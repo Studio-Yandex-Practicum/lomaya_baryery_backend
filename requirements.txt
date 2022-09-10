@@ -1,0 +1,6 @@
+environs~=9.5.0
+pyTelegramBotAPI~=4.7.0
+psycopg2-binary
+SQLAlchemy~=1.4.41
+uvicorn~=0.18.3
+fastapi~=0.82.0
