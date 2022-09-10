@@ -1,0 +1,22 @@
+version: '3.3'
+
+volumes:
+  postgres_data:
+
+services:
+  db:
+    image: postgres:13.2
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+  bot:
+    build: .
+    container_name: bot
+    restart: always
+    command: python src/run.py
+    depends_on:
+      - db
+    env_file:
+      - ./.env
