@@ -18,6 +18,7 @@ DB_HOST = env("DB_HOST")  # название сервиса (контейнер�
 DB_PORT = env("DB_PORT")  # порт для подключения к БД
 
 DATABASE_URL = (
-    "postgresql+psycopg2://"
+    "postgresql+asyncpg://"
     f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
+

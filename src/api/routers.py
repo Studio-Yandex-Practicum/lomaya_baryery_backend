@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-router_v1 = APIRouter()
+router = APIRouter()
 
 
-@router_v1.post("/hello")
+@router.post("/hello")
 async def hello():
     return {"answer": "hello world!"}

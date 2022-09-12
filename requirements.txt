@@ -1,6 +1,7 @@
 environs~=9.5.0
-pyTelegramBotAPI~=4.7.0
-psycopg2-binary
-SQLAlchemy~=1.4.41
+python-telegram-bot==20.0a1
+asyncpg==0.24.0
 uvicorn~=0.18.3
 fastapi~=0.82.0
+sqlmodel~=0.0.8
+alembic==1.7.1

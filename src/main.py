@@ -1,10 +1,13 @@
-import telebot
 from fastapi import FastAPI
 
-from src.api.routers.v1.views import router_v1
-from src.core.settings import BOT_TOKEN
+from src.api.routers import router
+from src.core.db.db import init_db
 
 app = FastAPI()
-app.include_router(router_v1)
+
+app.include_router(router)
 
 
+# @app.on_event("startup")
+async def on_startup():
+    await init_db()
