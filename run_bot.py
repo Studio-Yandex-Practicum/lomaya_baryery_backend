@@ -1,4 +1,4 @@
-from src.bot.bot import bot_app
+from src.main import create_bot
 
 if __name__ == '__main__':
-    bot_app.run_polling()
+    create_bot().run_polling()

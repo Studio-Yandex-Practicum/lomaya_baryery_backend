@@ -1,13 +1,26 @@
 from fastapi import FastAPI
+from telegram.ext import ApplicationBuilder, CommandHandler
 
 from src.api.routers import router
-from src.core.db.db import init_db
+from src.bot.handlers import start
+from src.core.settings import BOT_TOKEN
 
 app = FastAPI()
 
 app.include_router(router)
 
 
-@app.on_event("startup")
-async def on_startup():
-    await init_db()
+def create_bot():
+    """Создать бота."""
+    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_app.add_handler(CommandHandler("start", start))
+    return bot_app
+
+
+async def start_bot():
+    """Запустить бота."""
+    bot_app = create_bot()
+    await bot_app.updater.initialize()
+    await bot_app.initialize()
+    await bot_app.updater.start_polling()
+    await bot_app.start()

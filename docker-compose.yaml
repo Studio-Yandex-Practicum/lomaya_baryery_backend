@@ -14,8 +14,10 @@ services:
   bot:
     build: .
     container_name: bot
+    ports:
+      - "8000:8000"
     restart: always
-    command: python src/run.py
+    command: python run.py
     depends_on:
       - db
     env_file:

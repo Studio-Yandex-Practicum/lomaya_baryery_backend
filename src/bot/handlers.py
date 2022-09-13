@@ -1,8 +1,13 @@
 from telegram import Update
-from telegram.ext import (Application, ApplicationBuilder, CommandHandler,
-                          CallbackContext)
-from src.core.settings import BOT_TOKEN
-from src.main import app
+from telegram.ext import CallbackContext
+
+START_TEXT = (
+    'Это бот Центра "Ломая барьеры", который в игровой форме поможет '
+    'особенному ребенку стать немного самостоятельнее! Выполняя задания '
+    'каждый день, ребенку будут начислять виртуальные "ломбарьерчики". '
+    'Каждый месяц мы будем подводить итоги '
+    'и награждать самых активных и старательных ребят!'
+)
 
 
 async def test(context: CallbackContext) -> None:
@@ -15,28 +20,8 @@ async def test(context: CallbackContext) -> None:
 
 
 async def start(update: Update, context: CallbackContext) -> None:
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text="Привет! Я постараюсь помочь вам.")
-
-
-def create_bot():
-    """
-    Create telegram bot application
-    :return: Created telegram bot application
-    """
-    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
-    bot_app.add_handler(CommandHandler("start", start))
-    # bot_app.job_queue.run_repeating(test, config.TEST_PERIOD)
-    return bot_app
-
-
-@app.on_event("startup")
-async def init_polling() -> None:
-    """
-    Init bot polling
-    :return: Initiated application
-    """
-    bot_app = create_bot()
-    bot_app.run_polling()
-
-
+    """Команда /start."""
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=START_TEXT
+    )
