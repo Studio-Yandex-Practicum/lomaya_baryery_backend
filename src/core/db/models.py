@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field
 
 
-class BaseModel(SQLModel):
+class MainBaseModel(SQLModel):
     """Базовая модель."""
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4,
