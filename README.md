@@ -132,13 +132,7 @@ http://localhost:8080
 
 ## endpoins:
 
-- **POST**```/hello```: Получить сообщение "hello world!"
-
-### body
-
-```json
-{}
-```
+- **GET**```/hello```: Получить сообщение "hello world!"
 
 ### response
 
