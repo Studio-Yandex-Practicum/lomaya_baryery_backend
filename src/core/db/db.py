@@ -2,9 +2,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
+# нужно импортировать модели, чтобы создались в БД
+from src.core.db.models import Shift  # noqa
 from src.core.settings import DATABASE_URL
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, future=True, echo=True)
 
 
 async def init_db():
