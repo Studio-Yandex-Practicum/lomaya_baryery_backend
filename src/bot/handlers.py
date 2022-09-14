@@ -2,15 +2,6 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 
-async def test(context: CallbackContext) -> None:
-    """
-    Send test message after running
-    :param context: CallbackContext
-    """
-    chat_id = "1111"
-    await context.bot.send_message(chat_id=chat_id, text="Bot still running.")
-
-
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
     start_text = (
