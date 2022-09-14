@@ -1,6 +1,7 @@
 import uuid as uuid_pkg
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlmodel import SQLModel, Field
 
 
@@ -12,11 +13,11 @@ class MainBaseModel(SQLModel):
         index=True,
         nullable=False,
     )
-    updated_at: datetime = Field(default=datetime.utcnow())
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
     created_at: datetime = Field(default=datetime.utcnow())
 
 
-class Shift(BaseModel, table=True):
+class Shift(MainBaseModel, table=True):
     """Смена."""
     started_at: datetime
     finished_at: datetime
