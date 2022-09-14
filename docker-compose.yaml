@@ -15,7 +15,7 @@ services:
     build: .
     container_name: bot
     ports:
-      - "8000:8000"
+      - "8080:8080"
     restart: always
     command: python run.py
     depends_on:
