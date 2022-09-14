@@ -11,9 +11,9 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
-  bot:
+  backend:
     build: .
-    container_name: bot
+    container_name: backend
     ports:
       - "8080:8080"
     restart: always
