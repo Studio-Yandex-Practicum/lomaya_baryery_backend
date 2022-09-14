@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlmodel import SQLModel, Field
 
 
-class MainBaseModel(SQLModel):
+class MainMixin(SQLModel):
     """Базовая модель."""
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4,
@@ -17,7 +17,7 @@ class MainBaseModel(SQLModel):
     created_at: datetime = Field(default=datetime.utcnow())
 
 
-class Shift(MainBaseModel, table=True):
+class Shift(MainMixin, table=True):
     """Смена."""
     started_at: datetime
     finished_at: datetime
