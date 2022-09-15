@@ -11,7 +11,7 @@ env.read_env(str(BASE_DIR / ".env"))
 BOT_TOKEN = env("BOT_TOKEN")
 
 # DB settings
-DB_NAME = env("DB_NAME")  # имя базы данных
+DB_NAME = env("POSTGRES_DB")  # имя базы данных
 POSTGRES_USER = env("POSTGRES_USER")  # логин для подключения к базе данных
 POSTGRES_PASSWORD = env("POSTGRES_PASSWORD")  # пароль для подключения к БД (установите свой) # noqa
 DB_HOST = env("DB_HOST")  # название сервиса (контейнера)
