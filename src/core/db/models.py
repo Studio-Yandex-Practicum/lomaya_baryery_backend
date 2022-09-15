@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
@@ -30,7 +30,10 @@ class Base:
 
 class Shift(Base):
     """Смена."""
-    status = Column(String, nullable=False)
+    status_choices = ENUM(
+        "started", "finished", "preparing", "cancelled", name="status_choice"
+    )
+    status = Column(status_choices, nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
