@@ -4,10 +4,10 @@ volumes:
   postgres_data:
 
 services:
-  postgres-local:
+  lomaya_baryery_db-local:
     image: postgres:13.2
     restart: always
-    container_name: postgres-local
+    container_name: lomaya_baryery_db-local
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
