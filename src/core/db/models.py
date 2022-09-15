@@ -1,23 +1,42 @@
-import uuid as uuid_pkg
-from datetime import datetime
+import uuid
 
-from sqlalchemy import func
-from sqlmodel import SQLModel, Field
+from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
-class MainMixin(SQLModel):
+@as_declarative()
+class Base:
     """Базовая модель."""
-    id: uuid_pkg.UUID = Field(
-        default_factory=uuid_pkg.uuid4,
-        primary_key=True,
-        index=True,
-        nullable=False,
+    id = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    created_at: datetime = Field(default=datetime.utcnow())
+    created_date = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+    )
+    updated_date = Column(
+        TIMESTAMP,
+        server_default=func.current_timestamp(),
+        nullable=False,
+        onupdate=func.current_timestamp()
+    )
+    __name__: str
+
+    # Generate __tablename__ automatically
+    @declared_attr
+    def __tablename__(cls) -> str:
+        return cls.__name__.lower()
 
 
-class Shift(MainMixin, table=True):
+class Shift(Base):
     """Смена."""
-    started_at: datetime
-    finished_at: datetime
+    status = Column(String, nullable=False)
+    started_at = Column(
+        DATE, server_default=func.current_timestamp(), nullable=False
+    )
+    finished_at = Column(
+        DATE, server_default=func.current_timestamp(), nullable=False
+    )
+
+    def __repr__(self):
+        return f'<Shift: {self.id}, status: {self.status}>'
