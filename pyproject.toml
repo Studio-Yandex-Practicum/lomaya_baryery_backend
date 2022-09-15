@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "lomaya_baryery_backend"
+version = "0.1.0"
+description = "Lomaya Baryery tg_bot backend"
+authors = ["Yandex Practicum Team backend_5+"]
+
+
+[tool.poetry.dependencies]
+environs = "~9.5.0"
+python-telegram-bot = "~20.0a4"
+asyncpg = "0.24.0"
+uvicorn = "~0.18.3"
+fastapi = "~0.82.0"
+sqlmodel = "~0.0.8"
+alembic = "~1.7.1"
+python = "^3.8"
