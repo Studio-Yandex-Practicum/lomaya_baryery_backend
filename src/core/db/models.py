@@ -16,7 +16,7 @@ class Base:
     created_at = Column(
         TIMESTAMP, server_default=func.current_timestamp(), nullable=False
     )
-    modified_at = Column(
+    updated_at = Column(
         TIMESTAMP,
         server_default=func.current_timestamp(),
         nullable=False,
