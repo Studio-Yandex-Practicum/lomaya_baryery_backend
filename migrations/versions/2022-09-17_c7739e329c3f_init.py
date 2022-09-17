@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 6f9f7b9c24c3
+Revision ID: c7739e329c3f
 Revises: 
-Create Date: 2022-09-17 09:54:33.722051
+Create Date: 2022-09-17 20:59:08.354057
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '6f9f7b9c24c3'
+revision = 'c7739e329c3f'
 down_revision = None
 branch_labels = None
 depends_on = None
