@@ -15,7 +15,7 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-STATUS_ENUM_POSTGRES = postgresql.ENUM('started', 'finished', 'preparing','cancelled', name='status_choice',create_type=False)
+STATUS_ENUM_POSTGRES = postgresql.ENUM('started', 'finished', 'preparing', 'cancelled', name='status_choice',create_type=False)
 STATUS_ENUM = sa.Enum('started', 'finished', 'preparing', 'cancelled', name='status_choice')
 STATUS_ENUM.with_variant(STATUS_ENUM_POSTGRES, 'postgresql')
 
