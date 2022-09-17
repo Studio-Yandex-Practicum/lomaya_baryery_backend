@@ -53,8 +53,9 @@ class User(Base):
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
-    address = Column(String(50), nullable=False)
+    city = Column(String(50), nullable=False)
     phone_number = Column(INTEGER, unique=True, nullable=False)
+    telegram_id = Column(INTEGER, unique=True, nullable=False)
 
     def __repr__(self):
         return f'<User: {self.id}, name: {self.name}, surname: {self.surname}>'
@@ -68,13 +69,13 @@ class User(Base):
             raise ValueError('Фамилия и имя должны быть больше 2 символов')
         return value.upper()
 
-    @validates('address')
-    def validate_address(self, key, value) -> str:
+    @validates('city')
+    def validate_city(self, key, value) -> str:
         regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
         if re.compile(regex).search(value) is None:
-            raise ValueError('Адресс не корректны')
+            raise ValueError('Адрес не корректны')
         if len(value) < 2:
-            raise ValueError('Адресс слишком короткий')
+            raise ValueError('Адрес слишком короткий')
         return value
 
     @validates('phone_number')
@@ -96,7 +97,7 @@ class Request(Base):
     shift_id = Column(
         UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
     )
-    approved = Column(approved_choices, nullable=False)
+    status = Column(approved_choices, nullable=False, default="pending")
 
     def __repr__(self):
-        return f'<Request: {self.id}, approved: {self.approved}>'
+        return f'<Request: {self.id}, status: {self.status}>'
