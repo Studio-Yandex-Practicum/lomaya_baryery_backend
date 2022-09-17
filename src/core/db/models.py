@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from sqlalchemy import func, Column, TIMESTAMP, DATE
@@ -26,7 +27,9 @@ class Base:
     # Generate __tablename__ automatically
     @declared_attr
     def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+        class_name = cls.__name__
+        split_name = re.sub("([A-Z])", r" \1", class_name).lower().split()
+        return "_".join(split_name)
 
 
 class Shift(Base):
