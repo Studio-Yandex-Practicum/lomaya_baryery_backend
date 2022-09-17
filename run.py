@@ -1,6 +1,5 @@
 import uvicorn
 
-from src.core.db.db import init_db
 from src.main import app, start_bot, create_bot
 
 
