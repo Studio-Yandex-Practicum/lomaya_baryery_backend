@@ -41,9 +41,7 @@ class Shift(Base):
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
-    finished_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False
-    )
+    finished_at = Column(DATE, nullable=False)
 
     def __repr__(self):
         return f'<Shift: {self.id}, status: {self.status}>'
