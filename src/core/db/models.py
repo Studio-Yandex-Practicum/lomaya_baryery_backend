@@ -47,8 +47,8 @@ class Shift(Base):
 
 class Task(Base):
     """Модель для описания задания."""
-    url = Column(String(150), unique=True, nullable=False)
-    description = Column(String(150), unique=True, nullable=False)
+    url = Column(String(length=150), unique=True, nullable=False)
+    description = Column(String(length=150), unique=True, nullable=False)
 
     def __repr__(self):
         return f'<Task: {self.id}, description: {self.description}>'
