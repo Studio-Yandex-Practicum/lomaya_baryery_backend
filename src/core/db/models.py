@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types, Text
+from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
@@ -47,9 +47,9 @@ class Shift(Base):
 
 class Task(Base):
     """Модель для описания задания."""
-    picture_url = Column(Text, nullable=False)
-    name = Column(Text, unique=True, nullable=False)
+    url = Column(String(150), unique=True, nullable=False)
+    description = Column(String(150), unique=True, nullable=False)
 
     def __repr__(self):
-        return f'<Task: {self.id}, name: {self.name}>'
+        return f'<Task: {self.id}, description: {self.description}>'
 
