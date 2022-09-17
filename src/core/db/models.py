@@ -1,8 +1,8 @@
 import re
 import uuid
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE, String, INTEGER
-from sqlalchemy.dialects.postgresql import UUID, ENUM
+from sqlalchemy import BIGINT, DATE, INTEGER, TIMESTAMP, Column, String, func
+from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
@@ -54,7 +54,7 @@ class User(Base):
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
-    phone_number = Column(INTEGER, unique=True, nullable=False)
+    phone_number = Column(BIGINT, unique=True, nullable=False)
     telegram_id = Column(INTEGER, unique=True, nullable=False)
 
     def __repr__(self):
@@ -67,7 +67,7 @@ class User(Base):
             raise ValueError('Фамилия или имя не корректные')
         if len(value) < 2:
             raise ValueError('Фамилия и имя должны быть больше 2 символов')
-        return value.upper()
+        return value.title()
 
     @validates('city')
     def validate_city(self, key, value) -> str:
@@ -80,7 +80,7 @@ class User(Base):
 
     @validates('phone_number')
     def validate_phone_number(self, key, value) -> str:
-        if len(str(value)) == 11:
+        if len(str(value)) != 11:
             raise ValueError('Поле телефона должно состоять из 11 цифр')
         return value
 
