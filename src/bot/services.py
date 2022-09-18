@@ -1,7 +1,7 @@
 from telegram import Bot
 
 from src.main import create_bot
-from src.core.settings import ORGANIZATIONS_EMAIL, ORGANIZATIONS_GROUP
+from src.core import settings
 
 
 APPROVAL_MESSAGE = (
@@ -10,9 +10,9 @@ APPROVAL_MESSAGE = (
 )
 REJECTION_MESSAGE = (
     f'К сожалению, на данный момент мы не можем зарегистрировать вас в '
-    f'проекте. Вы можете написать на почту {ORGANIZATIONS_EMAIL}. Чтобы не '
+    f'проекте. Вы можете написать на почту {settings.ORGANIZATIONS_EMAIL}. Чтобы не '
     'пропустить актуальные новости Центра "Ломая барьеры" - вступайте '
-    f'в нашу группу {ORGANIZATIONS_GROUP}'
+    f'в нашу группу {settings.ORGANIZATIONS_GROUP}'
 )
 
 bot = create_bot().bot  # временная копия бота до миграции на webhooks
