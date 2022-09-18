@@ -1,3 +1,4 @@
+import enum
 import re
 import uuid
 
@@ -6,6 +7,20 @@ from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
+
+
+class Request_statuses(str, enum.Enum):
+    APPROVED = "approved"
+    DECLINED = "declined"
+    PENDING = "pending"
+    REPEAT_PENDING = "repeat pending"
+
+
+class Shift_statuses(str, enum.Enum):
+    STARTED = "started"
+    FINISHED = "finished"
+    PREPARING = "preparing"
+    CANCELLED = "cancelled"
 
 
 @as_declarative()
@@ -33,10 +48,7 @@ class Base:
 
 class Shift(Base):
     """Смена."""
-    status_choices = ENUM(
-        "started", "finished", "preparing", "cancelled", name="status_choice"
-    )
-    status = Column(status_choices, nullable=False)
+    status = Column(ENUM(Shift_statuses), nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
@@ -73,9 +85,9 @@ class User(Base):
     def validate_city(self, key, value) -> str:
         regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
         if re.compile(regex).search(value) is None:
-            raise ValueError('Адрес не корректны')
+            raise ValueError('Название города не корректное')
         if len(value) < 2:
-            raise ValueError('Адрес слишком короткий')
+            raise ValueError('Название города слишком короткое')
         return value
 
     @validates('phone_number')
@@ -87,9 +99,6 @@ class User(Base):
 
 class Request(Base):
     """Модель рассмотрения заявок"""
-    approved_choices = ENUM(
-        "approved", "declined", "pending", name="approved_choices"
-    )
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False
@@ -97,7 +106,11 @@ class Request(Base):
     shift_id = Column(
         UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
     )
-    status = Column(approved_choices, nullable=False, default="pending")
+    status = Column(
+        ENUM(Request_statuses),
+        nullable=False,
+        default=Request_statuses.PENDING
+    )
 
     def __repr__(self):
         return f'<Request: {self.id}, status: {self.status}>'
