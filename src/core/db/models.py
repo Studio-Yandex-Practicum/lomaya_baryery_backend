@@ -2,7 +2,7 @@ import re
 import uuid
 from enum import Enum
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE
+from sqlalchemy import func, Column, TIMESTAMP, DATE, String
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import as_declarative
