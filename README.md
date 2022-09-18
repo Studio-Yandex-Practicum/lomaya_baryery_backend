@@ -225,14 +225,18 @@ def downgrade():
 
 ```
 
-Если редактируем choice так же прописываем
+Если добавили значения в choice так же прописываем
 
 ```python
 def upgrade():
     with op.get_context().autocommit_block():
         op.execute("ALTER TYPE status ADD VALUE 'REJECTED'")
 ```
-для отката миграции
+Для отката миграции
+- переименовываем текущий тип
+- создаем новый (с прежними значениями)
+- приписываем новый тип для таблицы
+- удаляем старый тип
 ```python
 def downgrade():
     op.execute("ALTER TYPE status RENAME TO status_old")
