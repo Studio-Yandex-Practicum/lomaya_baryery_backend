@@ -9,14 +9,14 @@ from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
 
 
-class Request_statuses(str, enum.Enum):
+class RequestStatus(str, enum.Enum):
     APPROVED = "approved"
     DECLINED = "declined"
     PENDING = "pending"
     REPEAT_PENDING = "repeat pending"
 
 
-class Shift_statuses(str, enum.Enum):
+class ShiftStatus(str, enum.Enum):
     STARTED = "started"
     FINISHED = "finished"
     PREPARING = "preparing"
