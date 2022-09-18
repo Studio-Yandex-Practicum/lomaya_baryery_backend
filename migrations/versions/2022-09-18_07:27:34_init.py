@@ -1,8 +1,8 @@
 """init
 
-Revision ID: e2e44e3ca3cd
+Revision ID: bc61d3dfbfa8
 Revises: 
-Create Date: 2022-09-17 21:16:34.330057
+Create Date: 2022-09-18 07:27:34.175636
 
 """
 from alembic import op
@@ -10,13 +10,13 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'e2e44e3ca3cd'
+revision = 'bc61d3dfbfa8'
 down_revision = None
 branch_labels = None
 depends_on = None
 
-STATUS_ENUM_POSTGRES = postgresql.ENUM('started', 'finished', 'preparing', 'cancelled', name='status_choice', create_type=False)
-STATUS_ENUM = sa.Enum('started', 'finished', 'preparing', 'cancelled', name='status_choice')
+STATUS_ENUM_POSTGRES = postgresql.ENUM('started', 'finished', 'preparing', 'cancelled', name='shift_status', create_type=False)
+STATUS_ENUM = sa.Enum('started', 'finished', 'preparing', 'cancelled', name='shift_status')
 STATUS_ENUM.with_variant(STATUS_ENUM_POSTGRES, 'postgresql')
 
 def upgrade():

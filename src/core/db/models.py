@@ -1,5 +1,6 @@
 import re
 import uuid
+from enum import Enum
 
 from sqlalchemy import func, Column, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import UUID, ENUM
@@ -34,10 +35,19 @@ class Base:
 
 class Shift(Base):
     """Смена."""
-    status_choices = ENUM(
-        "started", "finished", "preparing", "cancelled", name="status_choice"
+    class Status(str, Enum):
+        """Статус смены."""
+        STARTED = 'started'
+        FINISHED = 'finished'
+        PREPARING = 'preparing'
+        CANCELING = 'cancelled'
+
+    ShiftStatusType = ENUM(
+        Status,
+        name="shift_status",
+        values_callable=lambda obj: [e.value for e in obj]
     )
-    status = Column(status_choices, nullable=False)
+    status = Column(ShiftStatusType, nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
