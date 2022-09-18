@@ -37,10 +37,10 @@ class Shift(Base):
     """Смена."""
     class Status(str, Enum):
         """Статус смены."""
-        STARTED = 'started'
-        FINISHED = 'finished'
-        PREPARING = 'preparing'
-        CANCELING = 'cancelled'
+        STARTED = "started"
+        FINISHED = "finished"
+        PREPARING = "preparing"
+        CANCELING = "cancelled"
 
     ShiftStatusType = ENUM(
         Status,
@@ -54,4 +54,4 @@ class Shift(Base):
     finished_at = Column(DATE, nullable=False)
 
     def __repr__(self):
-        return f'<Shift: {self.id}, status: {self.status}>'
+        return f"<Shift: {self.id}, status: {self.status}>"
