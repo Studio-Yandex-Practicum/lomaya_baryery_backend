@@ -9,6 +9,8 @@ env.read_env(str(BASE_DIR / ".env"))
 
 # BOT settings
 BOT_TOKEN = env("BOT_TOKEN")
+BOT_WEBHOOK_MODE = env("BOT_WEBHOOK_MODE", "False").lower() in ('true', '1')  # запустить бота в режиме webhook(true)|polling(false) # noqa
+BOT_WEBHOOK_URL = env("BOT_WEBHOOK_URL")  # URL для получения апдейтов в режиме webhook # noqa
 
 # DB settings
 DB_NAME = env("POSTGRES_DB")  # имя базы данных
