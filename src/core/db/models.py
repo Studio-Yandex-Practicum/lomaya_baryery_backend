@@ -87,9 +87,8 @@ class User(Base):
     def validate_city(self, key, value) -> str:
         regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
         regex_words = "[a-zA-Zа-яА-ЯёЁ]+"
-        if re.search(regex, value) is None:
-            if re.search(regex_words, value) is None:
-                raise ValueError('Название города не корректное')
+        if re.search(regex, value) is None and re.search(regex_words, value):
+            raise ValueError('Название города не корректное')
         if len(value) < 2:
             raise ValueError('Название города слишком короткое')
         return value
