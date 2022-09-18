@@ -165,6 +165,22 @@ alembic downgrade -1
 
 Если используются ENUM классы, например поле статус с заранее разрешенными значениями
 нужно вручную прописать в миграции создание и удаление типа
+
+Описываем тип
+```python
+STATUS_ENUM_POSTGRES = postgresql.ENUM('started', 'finished', 'preparing', 'cancelled', name='shift_status', create_type=False)
+STATUS_ENUM = sa.Enum('started', 'finished', 'preparing', 'cancelled', name='shift_status')
+STATUS_ENUM.with_variant(STATUS_ENUM_POSTGRES, 'postgresql')
+```
+добавляем к полю
+```python
+sa.Column('status', STATUS_ENUM, nullable=False),
+```
+Прописываем удаление при откате миграции
+```python
+STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+```
+Пример из миграции
 ```python
 """init
 
