@@ -10,15 +10,11 @@ Poetry - это инструмент для управления зависим�
 
 Для UNIX систем вводим в консоль следующую команду
 
-> *curl
--sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-| python -*
+> *curl -sSL https://install.python-poetry.org | python3 -*
 
 Для WINDOWS вводим в PowerShell
 
-> *(Invoke-WebRequest
--Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
--UseBasicParsing).Content | python -*
+> *(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -*
 
 После установки перезапустите оболочку и введите команду
 
@@ -27,6 +23,15 @@ Poetry - это инструмент для управления зависим�
 Ответ должен быть в формате
 
 > Poetry version 1.1.13
+
+В случае, если вы видите ошибку "команда не найдена", проверьте, что в PATH внесён путь
+(вместо USERNAME должно быть имя пользователя):
+> C:\Users\USERNAME\AppData\Roaming\Python\Scripts (для Windows)
+>
+> /Users/USERNAME/Library/Application Support/pypoetry/venv/bin (для Mac)
+
+Здесь вы можете ознакомиться подробнее с процессом установки Poetry:
+> https://python-poetry.org/docs/#installation
 
 Для дальнейшей работы введите команду:
 

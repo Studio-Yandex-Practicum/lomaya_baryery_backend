@@ -43,3 +43,20 @@ class Shift(Base):
 
     def __repr__(self):
         return f'<Shift: {self.id}, status: {self.status}>'
+
+
+class Photo(Base):
+    """Фотографии выполненных заданий."""
+    url = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Photo: {self.id}, url: {self.url}>'
+
+
+class Task(Base):
+    """Модель для описания задания."""
+    url = Column(String(length=150), unique=True, nullable=False)
+    description = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Task: {self.id}, description: {self.description}>'
