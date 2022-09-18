@@ -2,7 +2,8 @@ import enum
 import re
 import uuid
 
-from sqlalchemy import BIGINT, DATE, INTEGER, TIMESTAMP, Column, String, func
+import phonenumbers
+from sqlalchemy import DATE, TIMESTAMP, BigInteger, Column, String, func
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import validates
@@ -13,7 +14,7 @@ class RequestStatus(str, enum.Enum):
     APPROVED = "approved"
     DECLINED = "declined"
     PENDING = "pending"
-    REPEAT_PENDING = "repeat pending"
+    REPEATED_REQUEST = "repeated request"
 
 
 class ShiftStatus(str, enum.Enum):
@@ -48,7 +49,7 @@ class Base:
 
 class Shift(Base):
     """Смена."""
-    status = Column(ENUM(Shift_statuses), nullable=False)
+    status = Column(ENUM(ShiftStatus), nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
@@ -66,8 +67,8 @@ class User(Base):
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
-    phone_number = Column(BIGINT, unique=True, nullable=False)
-    telegram_id = Column(INTEGER, unique=True, nullable=False)
+    phone_number = Column(String(11), unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
 
     def __repr__(self):
         return f'<User: {self.id}, name: {self.name}, surname: {self.surname}>'
@@ -75,7 +76,7 @@ class User(Base):
     @validates('name', 'surname')
     def validate_name_and_surname(self, key, value) -> str:
         regex = "^[a-zа-яё ]+$"
-        if re.compile(regex).search(value.lower()) is None:
+        if re.search(regex, value.lower()) is None:
             raise ValueError('Фамилия или имя не корректные')
         if len(value) < 2:
             raise ValueError('Фамилия и имя должны быть больше 2 символов')
@@ -84,15 +85,20 @@ class User(Base):
     @validates('city')
     def validate_city(self, key, value) -> str:
         regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
-        if re.compile(regex).search(value) is None:
-            raise ValueError('Название города не корректное')
+        regex_words = "[a-zA-Zа-яА-ЯёЁ]+"
+        if re.search(regex, value) is None:
+            if re.search(regex_words, value) is None:
+                raise ValueError('Название города не корректное')
         if len(value) < 2:
             raise ValueError('Название города слишком короткое')
         return value
 
     @validates('phone_number')
     def validate_phone_number(self, key, value) -> str:
-        if len(str(value)) != 11:
+        new_number = phonenumbers.parse(value, "RU")
+        if phonenumbers.is_valid_number(new_number) is False:
+            raise ValueError('Поле телефона не корректное')
+        if len(value) != 11:
             raise ValueError('Поле телефона должно состоять из 11 цифр')
         return value
 
@@ -107,9 +113,9 @@ class Request(Base):
         UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
     )
     status = Column(
-        ENUM(Request_statuses),
+        ENUM(RequestStatus),
         nullable=False,
-        default=Request_statuses.PENDING
+        default=RequestStatus.PENDING
     )
 
     def __repr__(self):
