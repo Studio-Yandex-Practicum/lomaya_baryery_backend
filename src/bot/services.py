@@ -1,6 +1,7 @@
 from telegram import Bot
 
 from src.main import create_bot
+from src.core.settings import ORGANIZATIONS_EMAIL, ORGANIZATIONS_GROUP
 
 
 APPROVAL_MESSAGE = (
@@ -8,16 +9,18 @@ APPROVAL_MESSAGE = (
     'Поздравляем, ты в проекте!'
 )
 REJECTION_MESSAGE = (
-    'К сожалению, на данный момент мы не можем зарегистрировать вас в '
-    'проекте. Вы можете написать на почту info@stereotipov.net. Чтобы не '
+    f'К сожалению, на данный момент мы не можем зарегистрировать вас в '
+    f'проекте. Вы можете написать на почту {ORGANIZATIONS_EMAIL}. Чтобы не '
     'пропустить актуальные новости Центра "Ломая барьеры" - вступайте '
-    'в нашу группу https://vk.com/socialrb02'
+    f'в нашу группу {ORGANIZATIONS_GROUP}'
 )
 
 bot = create_bot().bot  # временная копия бота до миграции на webhooks
 
 
 class VerificationNotification:
+    """Класс для отправки уведомления пользователю
+    о результате проверки его заявки на участие в проекте"""
 
     def __init__(self, bot: Bot):
         self.bot = bot
