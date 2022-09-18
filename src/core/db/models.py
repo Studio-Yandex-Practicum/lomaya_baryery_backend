@@ -4,7 +4,8 @@ import uuid
 
 import phonenumbers
 from sqlalchemy import DATE, TIMESTAMP, BigInteger, Column, String, func
-from sqlalchemy.dialects.postgresql import ENUM, UUID
+from sqlalchemy.dialects.postgresql import ENUM as pg_enum
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
@@ -49,7 +50,7 @@ class Base:
 
 class Shift(Base):
     """Смена."""
-    status = Column(ENUM(ShiftStatus), nullable=False)
+    status = Column(pg_enum(ShiftStatus), nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
@@ -113,7 +114,7 @@ class Request(Base):
         UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
     )
     status = Column(
-        ENUM(RequestStatus),
+        pg_enum(RequestStatus),
         nullable=False,
         default=RequestStatus.PENDING
     )
