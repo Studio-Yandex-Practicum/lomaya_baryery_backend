@@ -28,3 +28,7 @@ def get_settings():
 
 
 settings = get_settings()
+
+# Organization data
+ORGANIZATIONS_EMAIL = 'info@stereotipov.net'
+ORGANIZATIONS_GROUP = 'https://vk.com/socialrb02'
