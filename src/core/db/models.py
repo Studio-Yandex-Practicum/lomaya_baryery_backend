@@ -1,8 +1,18 @@
+import enum
 import uuid
 
-from sqlalchemy import DATE, TIMESTAMP, Boolean, Column, String, func, types
+from sqlalchemy import (DATE, TIMESTAMP, Boolean, CheckConstraint, Column,
+                        Enum, ForeignKey, Integer, String, UniqueConstraint,
+                        func)
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
+
+
+class UserTaskStatuses(str, enum.Enum):
+    NEW = 'new'
+    UNDER_REVIEW = 'under_review'
+    APPROVED = 'approved'
+    DECLINED = 'declined'
 
 
 @as_declarative()
@@ -68,3 +78,45 @@ class Task(Base):
 
     def __repr__(self):
         return f'<Task: {self.id}, description: {self.description}>'
+
+
+class UserTask(Base):
+    """Ежедневные задания."""
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('user.id'),
+        nullable=False
+    )
+    shift_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('shift.id'),
+        nullable=False
+    )
+    task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('task.id'),
+        nullable=False
+    )
+    day_number = Column(
+        Integer,
+        CheckConstraint('day_number > 0 AND day_number < 100')
+    )
+    status = Column(Enum(UserTaskStatuses))
+    photo_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('photo.id'),
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'user_id',
+            'shift_id',
+            'task_id',
+            name='_user_task_uc'
+        )
+    )
+
+    def __repr__(self):
+        return (f'<UserTask: {self.id}, day_number: {self.day_number}, '
+                f'status: {self.status}>')
