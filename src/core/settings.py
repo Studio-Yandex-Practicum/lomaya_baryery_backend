@@ -23,3 +23,7 @@ DATABASE_URL = (
     "postgresql+asyncpg://"
     f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
+
+# Organization data
+ORGANIZATIONS_EMAIL = 'info@stereotipov.net'
+ORGANIZATIONS_GROUP = 'https://vk.com/socialrb02'
