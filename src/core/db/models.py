@@ -9,11 +9,18 @@ from sqlalchemy.ext.declarative import as_declarative, declared_attr
 class Base:
     """Базовая модель."""
     id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
     )
-    deleted = Column(Boolean, default=0)
+    deleted = Column(
+        Boolean,
+        default=0
+    )
     created_date = Column(
-        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+        TIMESTAMP,
+        server_default=func.current_timestamp(),
+        nullable=False
     )
     updated_date = Column(
         TIMESTAMP,
