@@ -1,18 +1,18 @@
 from urllib.parse import urljoin
 
-from fastapi import FastAPI, Request
-from telegram import Update
+from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler, Application
 
-from src.api.routers import router
+from src.api.routers import router, BOT_WEBHOOK_ENDPOINT
 from src.bot.handlers import start
 from src.core.settings import BOT_TOKEN, BOT_WEBHOOK_MODE, BOT_WEBHOOK_URL
+
 
 app = FastAPI()
 
 app.include_router(router)
 
-BOT_WEBHOOK_ENDPOINT = '/telegram_webhook'
+
 BOT_WEBHOOK_FULL_URL = urljoin(BOT_WEBHOOK_URL, BOT_WEBHOOK_ENDPOINT)
 
 
@@ -46,14 +46,3 @@ async def start_bot() -> None:
     else:
         await bot_init_polling_mode(bot_app)
     await bot_app.start()
-
-
-@app.post(BOT_WEBHOOK_ENDPOINT)
-async def get_telegram_bot_updates(request: Request):
-    """Получение обновлений telegram в режиме работы бота webhook."""
-    bot_app = request.app.state.bot_app
-    request_json_data = await request.json()
-    await bot_app.update_queue.put(
-        Update.de_json(data=request_json_data, bot=bot_app.bot)
-    )
-    return request_json_data
