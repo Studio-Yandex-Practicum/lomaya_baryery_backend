@@ -1,7 +1,7 @@
 import uuid
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
-from sqlalchemy.dialects.postgresql import UUID, ENUM
+from sqlalchemy import DATE, TIMESTAMP, Boolean, Column, String, func, types
+from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
@@ -9,10 +9,18 @@ from sqlalchemy.ext.declarative import as_declarative, declared_attr
 class Base:
     """Базовая модель."""
     id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    deleted = Column(
+        Boolean,
+        default=0
     )
     created_date = Column(
-        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+        TIMESTAMP,
+        server_default=func.current_timestamp(),
+        nullable=False
     )
     updated_date = Column(
         TIMESTAMP,
