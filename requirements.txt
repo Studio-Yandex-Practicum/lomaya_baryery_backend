@@ -5,4 +5,5 @@ uvicorn~=0.18.3
 fastapi~=0.82.0
 sqlmodel~=0.0.8
 alembic~=1.7.1
+pre-commit~=2.20.0
 phonenumbers~=8.12.55

@@ -3,7 +3,7 @@ import re
 import uuid
 
 import phonenumbers
-from sqlalchemy import DATE, TIMESTAMP, BigInteger, Column, String, func
+from sqlalchemy import DATE, TIMESTAMP, BigInteger, Column, String, func, Boolean, types
 from sqlalchemy.dialects.postgresql import ENUM as pg_enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
@@ -29,10 +29,18 @@ class ShiftStatus(str, enum.Enum):
 class Base:
     """Базовая модель."""
     id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    deleted = Column(
+        Boolean,
+        default=0
     )
     created_date = Column(
-        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
+        TIMESTAMP,
+        server_default=func.current_timestamp(),
+        nullable=False
     )
     updated_date = Column(
         TIMESTAMP,
@@ -60,6 +68,104 @@ class Shift(Base):
 
     def __repr__(self):
         return f'<Shift: {self.id}, status: {self.status}>'
+<<<<<<< HEAD
+
+
+class User(Base):
+    """Модель для пользователей"""
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    date_of_birth = Column(DATE, nullable=False)
+    city = Column(String(50), nullable=False)
+    phone_number = Column(String(11), unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<User: {self.id}, name: {self.name}, surname: {self.surname}>'
+
+    @validates('name', 'surname')
+    def validate_name_and_surname(self, key, value) -> str:
+        regex = "^[a-zа-яё ]+$"
+        if re.search(regex, value.lower()) is None:
+            raise ValueError('Фамилия или имя не корректные')
+        if len(value) < 2:
+            raise ValueError('Фамилия и имя должны быть больше 2 символов')
+        return value.title()
+
+    @validates('city')
+    def validate_city(self, key, value) -> str:
+        regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
+        regex_words = "[a-zA-Zа-яА-ЯёЁ]+"
+        if re.search(regex, value) is None and re.search(regex_words, value):
+            raise ValueError('Название города не корректное')
+        if len(value) < 2:
+            raise ValueError('Название города слишком короткое')
+        return value
+
+    @validates('phone_number')
+    def validate_phone_number(self, key, value) -> str:
+        new_number = phonenumbers.parse(value, "RU")
+        if phonenumbers.is_valid_number(new_number) is False:
+            raise ValueError('Поле телефона не корректное')
+        if len(value) != 11:
+            raise ValueError('Поле телефона должно состоять из 11 цифр')
+        return value
+
+
+class Request(Base):
+    """Модель рассмотрения заявок"""
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    shift_id = Column(
+        UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
+    )
+    status = Column(
+        pg_enum(RequestStatus),
+        nullable=False,
+        default=RequestStatus.PENDING
+    )
+
+    def __repr__(self):
+        return f'<Request: {self.id}, status: {self.status}>'
+||||||| 3874084
+=======
+
+
+class Photo(Base):
+    """Фотографии выполненных заданий."""
+    url = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Photo: {self.id}, url: {self.url}>'
+
+
+class Task(Base):
+    """Модель для описания задания."""
+    url = Column(String(length=150), unique=True, nullable=False)
+    description = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Task: {self.id}, description: {self.description}>'
+>>>>>>> 5a9ebec2c6bced5aaa919a4553a9fb5985cdd623
+
+
+class Photo(Base):
+    """Фотографии выполненных заданий."""
+    url = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Photo: {self.id}, url: {self.url}>'
+
+
+class Task(Base):
+    """Модель для описания задания."""
+    url = Column(String(length=150), unique=True, nullable=False)
+    description = Column(String(length=150), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Task: {self.id}, description: {self.description}>'
 
 
 class User(Base):
