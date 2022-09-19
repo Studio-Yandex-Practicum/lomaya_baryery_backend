@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, PostgresDsn
 from pydantic.tools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -17,12 +17,7 @@ else:
 class Settings(BaseSettings):
     """Настройки проекта."""
     BOT_TOKEN: Optional[str] = None
-    DB_NAME: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    DB_HOST: str
-    DB_PORT: str
-    DATABASE_URL: str
+    DATABASE_URL: PostgresDsn
 
     class Config:
         env_file = ENV_FILE
