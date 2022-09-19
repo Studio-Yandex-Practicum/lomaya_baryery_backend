@@ -10,7 +10,7 @@ on:
       - feature/ci_cd
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: lomaya_baryery_backend
 
 jobs:
   build_and_push_lomaya_baryery_backend_image:
@@ -28,6 +28,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set variables
+        run: |
+          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -36,9 +40,9 @@ jobs:
           labels: runnumber=${GITHUB_RUN_ID}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:stage,
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
     name: Deploy
