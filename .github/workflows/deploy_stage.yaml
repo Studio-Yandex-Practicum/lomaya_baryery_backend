@@ -54,7 +54,7 @@ jobs:
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.USER }}
-          key: ${{ secrets.PASSWORD }}
+          key: ${{ secrets.PASSWD }}
           script: |
             sudo rm -f .env
             touch .env
