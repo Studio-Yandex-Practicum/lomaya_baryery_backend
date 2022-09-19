@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseSettings, PostgresDsn
 from pydantic.tools import lru_cache
@@ -16,7 +15,7 @@ else:
 
 class Settings(BaseSettings):
     """Настройки проекта."""
-    BOT_TOKEN: Optional[str] = None
+    BOT_TOKEN: str
     DATABASE_URL: PostgresDsn
 
     class Config:
