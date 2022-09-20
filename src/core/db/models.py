@@ -36,17 +36,6 @@ class Base:
     )
     __name__: str
 
-    # Generate __tablename__ automatically
-    @declared_attr
-    def __tablename__(cls) -> str:
-        class_name = cls.__name__
-        split_name = re.sub("([A-Z])", r" \1", class_name).lower().split()
-        return "_".join(split_name)
-
-    @property
-    def table_name(self):
-        return self.__tablename__
-
 
 class Shift(Base):
     """Смена."""
@@ -58,13 +47,13 @@ class Shift(Base):
         PREPARING = "preparing"
         CANCELING = "cancelled"
 
+    __tablename__ = "shifts"
+
     status = Column(
         Enum(
             Status,
             name="shift_status",
             values_callable=lambda obj: [e.value for e in obj]),
-        default=Status.PREPARING.value,
-        server_default=Status.PREPARING.value,
         nullable=False
     )
     started_at = Column(
@@ -79,6 +68,8 @@ class Shift(Base):
 
 class Photo(Base):
     """Фотографии выполненных заданий."""
+    __tablename__ = "photos"
+
     url = Column(String(length=150), unique=True, nullable=False)
 
     def __repr__(self):
@@ -87,6 +78,8 @@ class Photo(Base):
 
 class Task(Base):
     """Модель для описания задания."""
+    __tablename__ = "tasks"
+
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
 
@@ -96,6 +89,8 @@ class Task(Base):
 
 class User(Base):
     """Модель для пользователей."""
+    __tablename__ = "users"
+
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
@@ -145,6 +140,8 @@ class Request(Base):
         PENDING = "pending"
         REPEATED_REQUEST = "repeated request"
 
+    __tablename__ = "requests"
+
     user_id = Column(
         UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
         nullable=False
@@ -176,6 +173,8 @@ class UserTask(Base):
         UNDER_REVIEW = 'under_review'
         APPROVED = 'approved'
         DECLINED = 'declined'
+
+    __tablename__ = "user_tasks"
 
     user_id = Column(
         UUID(as_uuid=True),
