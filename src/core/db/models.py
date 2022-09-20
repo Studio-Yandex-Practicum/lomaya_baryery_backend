@@ -1,6 +1,11 @@
+import re
 import uuid
+from enum import Enum
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
+from sqlalchemy import (
+    func, Column, TIMESTAMP, DATE, String, Boolean,
+    ForeignKey, Integer, CheckConstraint, UniqueConstraint
+)
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
@@ -38,6 +43,7 @@ class Base:
 
 class Shift(Base):
     """Смена."""
+
     class Status(str, Enum):
         """Статус смены."""
         STARTED = "started"
@@ -79,26 +85,40 @@ class Task(Base):
 
 class UserTask(Base):
     """Ежедневные задания."""
+
+    class Status(str, Enum):
+        """Статус задачи у пользователя."""
+        NEW = 'new'
+        UNDER_REVIEW = 'under_review'
+        APPROVED = 'approved'
+        DECLINED = 'declined'
+
+    UserTaskStatusType = ENUM(
+        Status,
+        name="user_task_status",
+        values_callable=lambda obj: [e.value for e in obj]
+    )
+
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('user.id'),
+        ForeignKey("User.id"),
         nullable=False
     )
     shift_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('shift.id'),
+        ForeignKey(Shift.id),
         nullable=False
     )
     task_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('task.id'),
+        ForeignKey(Task.id),
         nullable=False
     )
     day_number = Column(
         Integer,
         CheckConstraint('day_number > 0 AND day_number < 100')
     )
-    status = Column(Enum(UserTaskStatuses))
+    status = Column(UserTaskStatusType, nullable=False)
     photo_id = Column(
         UUID(as_uuid=True),
         ForeignKey('photo.id'),
@@ -111,9 +131,11 @@ class UserTask(Base):
             'shift_id',
             'task_id',
             name='_user_task_uc'
-        )
+        ),
     )
 
     def __repr__(self):
-        return (f'<UserTask: {self.id}, day_number: {self.day_number}, '
-                f'status: {self.status}>')
+        return (
+            f'<UserTask: {self.id}, day_number: {self.day_number}, '
+            f'status: {self.status}>'
+        )
