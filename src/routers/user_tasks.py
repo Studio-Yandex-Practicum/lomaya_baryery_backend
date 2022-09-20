@@ -44,7 +44,7 @@ async def crud_get(
     user_task = await session.execute(
         select(UserTask, Photo.url.label('photo_url')).where(
             UserTask.id == obj_id
-        ).join(Photo)
+        )
     )
     return user_task.scalars().first()
 
