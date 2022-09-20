@@ -54,7 +54,7 @@ async def crud_update_status(
         status,
         session: AsyncSession,
 ) -> Optional[UserTask]:
-    """Обновление статуса объекта"""
+    """Обновление статуса объекта."""
     db_obj.status = status
     session.add(db_obj)
     await session.commit()
@@ -66,7 +66,7 @@ async def check_user_task_exist(
         user_task_id: UUID,
         session: AsyncSession,
 ) -> Optional[UserTask]:
-    """Существует ли статус."""
+    """Существует ли задание."""
     user_task = await crud_get(user_task_id, session)
     if user_task is None:
         raise HTTPException(
