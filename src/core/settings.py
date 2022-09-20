@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Optional
 
 from pydantic import BaseSettings, PostgresDsn
 from pydantic.tools import lru_cache
@@ -20,6 +21,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     DB_HOST: str
     DB_PORT: str
+    DEBUG: str
+    SERVER_URL: Optional[str]
 
     @property
     def database_url(self):

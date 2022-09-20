@@ -1,9 +1,14 @@
 from src.core import settings
 from src.core.db import models
-from src.main import create_bot
+# from src.main import create_bot
+from src.schemas.user import UserData
+from src.schemas.registration import RequestData
+from src.core.db.db import async_session
+from src.core.crud.user import user_crud
+from src.core.crud.request import request_crud
 
 
-bot = create_bot().bot  # временная копия бота до миграции на webhooks
+# bot = create_bot().bot  # временная копия бота до миграции на webhooks
 
 
 async def send_approval_callback(user: models.User):
@@ -26,3 +31,24 @@ async def send_rejection_callback(user: models.User):
             f'{settings.ORGANIZATIONS_GROUP}'
         )
     )
+
+
+async def is_user_valid_for_registration(telegram_id) -> bool:
+    """Проверка пользователя на доступ к регистрации."""
+    return True
+
+
+async def registration(user_data):
+    """Регистрация пользователя."""
+    async with async_session() as session:
+        telegram_id = user_data.get('telegram_id')
+        user = await user_crud.get_by_attribute(attr_name='telegram_id',
+                                                attr_value=telegram_id,
+                                                session=session)
+        if not user:
+            user_obj = UserData(**user_data)
+            user = await user_crud.create(obj_in=user_obj,
+                                          session=session)
+        request_obj = RequestData(user_id=user.id)
+        await request_crud.create(obj_in=request_obj,
+                                  session=session)

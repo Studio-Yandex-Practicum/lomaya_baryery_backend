@@ -11,7 +11,7 @@ class UserData(BaseModel):
     surname: str = Field(..., min_length=2, max_length=100)
     date_of_birth: date
     city: str = Field(..., min_length=2, max_length=50)
-    phone_number: Optional[int]
+    phone_number: Optional[str]
     deleted: bool = False
 
     @validator('date_of_birth', pre=True)

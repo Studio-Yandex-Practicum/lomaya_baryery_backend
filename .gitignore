@@ -17,3 +17,4 @@ __pypackages__/
 # Environments
 .venv
 .env
+/migrations/versions/old/
