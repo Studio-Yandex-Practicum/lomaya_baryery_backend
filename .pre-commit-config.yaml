@@ -8,22 +8,22 @@ repos:
     - id: trailing-whitespace
       args: [--markdown-linebreak-ext=md]
     - id: check-merge-conflict
-    - id: mixed-branch-ending
-      args: [--fix=crlf]
+    - id: mixed-line-ending
+#      args: [--fix=crlf]
     - id: no-commit-to-branch
       args: [--branch, master, --branch, develop]
 
-- repo: https://github.com/pycqa/isort
-  rev: 5.10.1
-  hooks:
-    - id: isort
-      args: [--config, setup.cfg]
-
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-    - id: black
-      args: [--config, setup.cfg]
+#- repo: https://github.com/pycqa/isort
+#  rev: 5.10.1
+#  hooks:
+#    - id: isort
+#      args: [--config, setup.cfg]
+#
+#- repo: https://github.com/psf/black
+#  rev: 22.3.0
+#  hooks:
+#    - id: black
+#      args: [--config, setup.cfg]
 
 - repo: https://github.com/pycqa/flake8
   rev: 5.0.4
