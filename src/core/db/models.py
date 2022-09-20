@@ -64,9 +64,9 @@ class Shift(Base):
         nullable=False
     )
     started_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False
+        DATE, server_default=func.current_timestamp(), nullable=False, index=True
     )
-    finished_at = Column(DATE, nullable=False)
+    finished_at = Column(DATE, nullable=False, index=True)
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -120,7 +120,7 @@ class User(Base):
             raise ValueError('Название города слишком короткое')
         return value
 
-    @validates('phone_number')
+    @validates("phone_number")
     def validate_phone_number(self, key, value) -> str:
         new_number = phonenumbers.parse(value, "RU")
         if phonenumbers.is_valid_number(new_number) is False:
@@ -141,11 +141,11 @@ class Request(Base):
         REPEATED_REQUEST = "repeated request"
 
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"),
+        UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
         nullable=False
     )
     shift_id = Column(
-        UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False
     )
     status = Column(
         Enum(
