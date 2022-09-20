@@ -1,7 +1,7 @@
 version: '3.3'
 
 volumes:
-  postgres_data:
+  postgres_data_local:
 
 services:
   lomaya_baryery_db-local:
@@ -9,7 +9,7 @@ services:
     restart: always
     container_name: lomaya_baryery_db-local
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data_local:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
     env_file:
