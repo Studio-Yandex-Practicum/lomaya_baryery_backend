@@ -43,6 +43,10 @@ class Base:
         split_name = re.sub("([A-Z])", r" \1", class_name).lower().split()
         return "_".join(split_name)
 
+    @property
+    def table_name(self):
+        return self.__tablename__
+
 
 class Shift(Base):
     """Смена."""
@@ -64,7 +68,8 @@ class Shift(Base):
         nullable=False
     )
     started_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False, index=True
+        DATE, server_default=func.current_timestamp(), nullable=False,
+        index=True
     )
     finished_at = Column(DATE, nullable=False, index=True)
 
