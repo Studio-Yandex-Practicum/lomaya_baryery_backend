@@ -1,13 +1,11 @@
 import uvicorn
 
-from src.core.db.db import init_db
 from src.main import app, start_bot, create_bot
 
 
 @app.on_event("startup")
 async def on_startup():
     """Действия при старте API сервера."""
-    await init_db()
     await start_bot()
 
 
