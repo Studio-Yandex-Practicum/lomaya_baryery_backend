@@ -20,16 +20,12 @@ class StatusEnum(str, Enum):
     DECLINED = 'declined'
 
 
-class UserTaskChangeStatus(BaseModel):
-    """Схема входных данных."""
-    user_task_id: UUID
-    status: StatusEnum
-
-
-class UserTaskDB(UserTaskChangeStatus):
+class UserTaskDB(BaseModel):
     """Схема выходных данных."""
+    user_task_id: UUID
     task_id: UUID
     day_number: int
+    status: StatusEnum
     photo_url: str
 
     class Config:
@@ -77,20 +73,17 @@ async def check_user_task_exist(
 
 
 @router.patch(
-    '/',
+    '/{user_task_id}/{status}',
     response_model=UserTaskDB,
     response_model_exclude_none=True,
     # указать пермишн только для администратора
 )
 async def change_user_task_status(
-        task: UserTaskChangeStatus,
+        user_task_id: UUID,
+        status: StatusEnum,
         session: AsyncSession = Depends(get_session),
 ):
     """Изменение статуса задания."""
-    user_task = await check_user_task_exist(task.user_task_id, session)
-    user_task = await crud_update_status(
-        user_task,
-        UserTaskChangeStatus.status,
-        session
-    )
+    user_task = await check_user_task_exist(user_task_id, session)
+    user_task = await crud_update_status(user_task, status, session)
     return user_task
