@@ -13,3 +13,6 @@ uvicorn = "~0.18.3"
 fastapi = "~0.82.0"
 alembic = "~1.7.1"
 python = "^3.8"
+
+[tool.black]
+line-length = 120
