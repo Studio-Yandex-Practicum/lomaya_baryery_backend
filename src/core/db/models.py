@@ -1,36 +1,16 @@
-import re
 import enum
 import re
 import uuid
 
 import phonenumbers
-from sqlalchemy import (Boolean, BigInteger, CheckConstraint, DATE, Column, Enum,
-                        ForeignKey, func, Integer, String, TIMESTAMP, types,
-                        UniqueConstraint)
-from sqlalchemy.dialects.postgresql import ENUM as pg_enum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import (
     func, Column, TIMESTAMP, DATE, String, Boolean,
-    ForeignKey, Integer, CheckConstraint, UniqueConstraint
+    Integer, CheckConstraint, UniqueConstraint, BigInteger, Enum,
 )
-from sqlalchemy.dialects.postgresql import UUID, ENUM
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
-
-
-class RequestStatus(str, enum.Enum):
-    APPROVED = "approved"
-    DECLINED = "declined"
-    PENDING = "pending"
-    REPEATED_REQUEST = "repeated request"
-
-
-class ShiftStatus(str, enum.Enum):
-    STARTED = "started"
-    FINISHED = "finished"
-    PREPARING = "preparing"
-    CANCELLED = "cancelled"
 
 
 @as_declarative()
@@ -67,19 +47,22 @@ class Base:
 class Shift(Base):
     """Смена."""
 
-    class Status(str, Enum):
+    class Status(str, enum.Enum):
         """Статус смены."""
         STARTED = "started"
         FINISHED = "finished"
         PREPARING = "preparing"
         CANCELING = "cancelled"
 
-    ShiftStatusType = ENUM(
-        Status,
-        name="shift_status",
-        values_callable=lambda obj: [e.value for e in obj]
+    status = Column(
+        Enum(
+            Status,
+            name="shift_status",
+            values_callable=lambda obj: [e.value for e in obj]),
+        default=Status.PREPARING.value,
+        server_default=Status.PREPARING.value,
+        nullable=False
     )
-    status = Column(ShiftStatusType, nullable=False)
     started_at = Column(
         DATE, server_default=func.current_timestamp(), nullable=False
     )
@@ -107,7 +90,7 @@ class Task(Base):
 
 
 class User(Base):
-    """Модель для пользователей"""
+    """Модель для пользователей."""
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
@@ -149,6 +132,14 @@ class User(Base):
 
 class Request(Base):
     """Модель рассмотрения заявок"""
+
+    class Status(str, enum.Enum):
+        """Статус рассмотрения заявки."""
+        APPROVED = "approved"
+        DECLINED = "declined"
+        PENDING = "pending"
+        REPEATED_REQUEST = "repeated request"
+
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False
@@ -157,9 +148,14 @@ class Request(Base):
         UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
     )
     status = Column(
-        pg_enum(RequestStatus),
-        nullable=False,
-        default=RequestStatus.PENDING
+        Enum(
+            Status,
+            name="request_status",
+            values_callable=lambda obj: [e.value for e in obj]
+        ),
+        default=Status.PENDING.value,
+        server_default=Status.PENDING.value,
+        nullable=False
     )
 
     def __repr__(self):
@@ -169,22 +165,16 @@ class Request(Base):
 class UserTask(Base):
     """Ежедневные задания."""
 
-    class Status(str, Enum):
+    class Status(str, enum.Enum):
         """Статус задачи у пользователя."""
         NEW = 'new'
         UNDER_REVIEW = 'under_review'
         APPROVED = 'approved'
         DECLINED = 'declined'
 
-    UserTaskStatusType = ENUM(
-        Status,
-        name="user_task_status",
-        values_callable=lambda obj: [e.value for e in obj]
-    )
-
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("User.id"),
+        ForeignKey(User.id),
         nullable=False
     )
     shift_id = Column(
@@ -201,10 +191,20 @@ class UserTask(Base):
         Integer,
         CheckConstraint('day_number > 0 AND day_number < 100')
     )
-    status = Column(UserTaskStatusType, nullable=False)
+    status = Column(
+        Enum(
+            Status,
+            name="user_task_status",
+            values_callable=lambda obj: [e.value for e in obj]
+        ),
+        default=Status.NEW.value,
+        server_default=Status.NEW.value,
+        nullable=False
+    )
+
     photo_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('photo.id'),
+        ForeignKey(Photo.id),
         nullable=False
     )
 
