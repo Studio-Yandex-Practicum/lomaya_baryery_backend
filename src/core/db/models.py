@@ -1,18 +1,21 @@
-import re
 import uuid
-from enum import Enum
 
-from sqlalchemy import func, Column, TIMESTAMP, DATE, String
+from sqlalchemy import func, Column, TIMESTAMP, DATE, String, types
 from sqlalchemy.dialects.postgresql import UUID, ENUM
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import as_declarative
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
 @as_declarative()
 class Base:
     """Базовая модель."""
     id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    deleted = Column(
+        Boolean,
+        default=0
     )
     created_at = Column(
         TIMESTAMP, server_default=func.current_timestamp(), nullable=False
@@ -72,3 +75,45 @@ class Task(Base):
 
     def __repr__(self):
         return f'<Task: {self.id}, description: {self.description}>'
+
+
+class UserTask(Base):
+    """Ежедневные задания."""
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('user.id'),
+        nullable=False
+    )
+    shift_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('shift.id'),
+        nullable=False
+    )
+    task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('task.id'),
+        nullable=False
+    )
+    day_number = Column(
+        Integer,
+        CheckConstraint('day_number > 0 AND day_number < 100')
+    )
+    status = Column(Enum(UserTaskStatuses))
+    photo_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('photo.id'),
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'user_id',
+            'shift_id',
+            'task_id',
+            name='_user_task_uc'
+        )
+    )
+
+    def __repr__(self):
+        return (f'<UserTask: {self.id}, day_number: {self.day_number}, '
+                f'status: {self.status}>')
