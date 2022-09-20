@@ -96,10 +96,12 @@ _Примеры:_
 ## Переменные окружения:
 
 ```dotenv
-# токен бота
-BOT_TOKEN= 
-# строка для подключения к БД
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/lomaya_baryery_db_local 
+POSTGRES_DB=lomaya_baryery_db_local  # имя базы данных
+POSTGRES_USER=postgres # логин для подключения к базе данных
+POSTGRES_PASSWORD=postgres # пароль для подключения к БД
+DB_HOST=localhost # название сервиса (контейнера)
+DB_PORT=5432 # порт для подключения к БД
+BOT_TOKEN=
 ```
 Перед запуском проекта необходимо создать копию файла 
 ```.env.example```, назвав его ```.env``` и установить значение токена бота
