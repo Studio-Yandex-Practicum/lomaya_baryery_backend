@@ -1,18 +1,15 @@
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler, Application
 
-from src.api.routers import router, BOT_WEBHOOK_ENDPOINT
+from src.api.routers import router
 from src.bot.handlers import start
 from src.core.settings import settings
 
 app = FastAPI()
 
 app.include_router(router)
-
-
-BOT_WEBHOOK_FULL_URL = urljoin(BOT_WEBHOOK_URL, BOT_WEBHOOK_ENDPOINT)
 
 
 def create_bot() -> Application:
@@ -22,26 +19,26 @@ def create_bot() -> Application:
     return bot_app
 
 
-async def bot_init_polling_mode(bot_app: Application) -> None:
-    """Инициализировать бота в режиме polling."""
-    await bot_app.updater.initialize()
-    await bot_app.initialize()
-    await bot_app.updater.start_polling()
-
-
-async def bot_init_webhook_mode(bot_app: Application) -> None:
-    """Инициализировать бота в режиме webhook"""
-    bot_app.updater = None
-    await bot_app.bot.set_webhook(url=BOT_WEBHOOK_FULL_URL)
-    await bot_app.initialize()
-    app.state.bot_app = bot_app
-
-
 async def start_bot() -> None:
     """Запустить бота."""
     bot_app = create_bot()
-    if BOT_WEBHOOK_MODE:
-        await bot_init_webhook_mode(bot_app)
+    await bot_app.updater.initialize()
+    await bot_app.initialize()
+    if settings.BOT_WEBHOOK_MODE:
+        webhook_settings = get_bot_webhook_settings()
+        await bot_app.updater.start_webhook(**webhook_settings)
     else:
-        await bot_init_polling_mode(bot_app)
+        await bot_app.updater.start_polling()
     await bot_app.start()
+
+
+def get_bot_webhook_settings() -> dict:
+    """Сгенерировать настройки для запуска бота в режиме webhook."""
+    url_path = quote(settings.BOT_TOKEN)
+    webhook_url = urljoin(settings.BOT_WEBHOOK_URL, url_path)
+    return {
+        'listen': '0.0.0.0',
+        'port': settings.BOT_WEBHOOK_PORT,
+        'url_path': url_path,
+        'webhook_url': webhook_url
+    }

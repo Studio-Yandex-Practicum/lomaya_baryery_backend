@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     """Настройки проекта."""
     BOT_TOKEN: str
     DATABASE_URL: PostgresDsn
+    BOT_WEBHOOK_MODE: bool = False
+    BOT_WEBHOOK_PORT: int = 8443
+    BOT_WEBHOOK_URL: str
 
     class Config:
         env_file = ENV_FILE
