@@ -1,5 +1,4 @@
 from src.main import create_bot, get_bot_webhook_settings
-
 from src.core.settings import settings
 
 if __name__ == '__main__':
