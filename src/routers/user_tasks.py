@@ -32,7 +32,7 @@ class UserTaskDB(BaseModel):
         orm_mode = True
 
 
-async def crud_get(
+async def db_get(
         obj_id,
         session: AsyncSession,
 ) -> Optional[UserTask]:
@@ -45,7 +45,7 @@ async def crud_get(
     return user_task.scalars().first()
 
 
-async def crud_update_status(
+async def db_update_status(
         db_obj,
         status,
         session: AsyncSession,
@@ -63,7 +63,7 @@ async def check_user_task_exist(
         session: AsyncSession,
 ) -> Optional[UserTask]:
     """Существует ли задание."""
-    user_task = await crud_get(user_task_id, session)
+    user_task = await db_get(user_task_id, session)
     if user_task is None:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
@@ -85,5 +85,5 @@ async def change_user_task_status(
 ):
     """Изменение статуса задания."""
     user_task = await check_user_task_exist(user_task_id, session)
-    user_task = await crud_update_status(user_task, status, session)
+    user_task = await db_update_status(user_task, status, session)
     return user_task
