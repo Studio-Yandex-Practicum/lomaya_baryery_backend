@@ -16,3 +16,6 @@ __pypackages__/
 # Environments
 .venv
 .env
+
+# Vscode project settings
+.vscode
