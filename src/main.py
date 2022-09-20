@@ -5,8 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, Application
 
 from src.api.routers import router, BOT_WEBHOOK_ENDPOINT
 from src.bot.handlers import start
-from src.core.settings import BOT_TOKEN, BOT_WEBHOOK_MODE, BOT_WEBHOOK_URL
-
+from src.core.settings import settings
 
 app = FastAPI()
 
@@ -18,7 +17,7 @@ BOT_WEBHOOK_FULL_URL = urljoin(BOT_WEBHOOK_URL, BOT_WEBHOOK_ENDPOINT)
 
 def create_bot() -> Application:
     """Создать бота."""
-    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_app = ApplicationBuilder().token(settings.BOT_TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
     return bot_app
 
