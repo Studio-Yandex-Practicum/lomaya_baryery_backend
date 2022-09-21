@@ -52,9 +52,9 @@ jobs:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
-          password: ${{ secrets.DEV_PASSWORD }}
+          host: 51.250.50.18
+          username: lomaya
+          password: -baryery
           script: |
             sudo rm -f .env
             touch .env
