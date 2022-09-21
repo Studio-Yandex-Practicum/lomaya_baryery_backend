@@ -54,7 +54,7 @@ jobs:
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
-          password: ${{ secrets.DEV_PASSWORD }}
+          # password: ${{ secrets.DEV_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             sudo rm -f .env
