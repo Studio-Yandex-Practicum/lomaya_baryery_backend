@@ -53,8 +53,8 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           # host: ${{ secrets.DEV_HOST }}
-          username: lomaya
-          password: -baryery
+          user: lomaya
+          pass: -baryery
           script: |
             sudo rm -f .env
             touch .env
