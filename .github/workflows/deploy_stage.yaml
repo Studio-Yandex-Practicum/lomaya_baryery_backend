@@ -11,7 +11,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: lomaya_baryery_backend
-  DEPLOY_PATH: /LOMAYA_BARYERY_BACKEND
 
 jobs:
   build_and_push_lomaya_baryery_backend_image:
@@ -56,20 +55,13 @@ jobs:
           ref: develop
 
       - name: Create SSH key
-        # (SSH_KNOWN_HOSTS=ssh-keyscan -H сервер, SSH_PRIVATE_KEY - ключ с ПК, которому разрешен вход)
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/known_hosts
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-      -
-        name: Create folder for application
-        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p ${{ env.DEPLOY_PATH }}
-      -
-        name: Deploy with scp
-        run: scp -r infra_deploy/stage/ ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }}:${{ env.DEPLOY_PATH }}
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
