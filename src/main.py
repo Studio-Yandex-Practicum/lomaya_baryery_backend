@@ -31,17 +31,20 @@ async def bot_init_webhook_mode(bot_app: Application) -> None:
     bot_app.updater = None
     await bot_app.bot.set_webhook(
         url=urljoin(settings.APPLICATION_URL, 'telegram_handler'),
-        secret_token=settings.BOT_TOKEN
+        secret_token=settings.BOT_TOKEN.replace(':', '')  # colon is not allowed here # noqa
     )
     await bot_app.initialize()
     app.state.bot_app = bot_app
 
 
-async def start_bot() -> None:
+async def start_bot(
+    webhook_mode: bool = settings.BOT_WEBHOOK_MODE
+) -> Application:
     """Запустить бота."""
     bot_app = create_bot()
-    if settings.BOT_WEBHOOK_MODE:
+    if webhook_mode:
         await bot_init_webhook_mode(bot_app)
     else:
         await bot_init_polling_mode(bot_app)
     await bot_app.start()
+    return bot_app
