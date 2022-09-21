@@ -8,7 +8,7 @@ from sqlalchemy import (
     Integer, CheckConstraint, UniqueConstraint, BigInteger, Enum,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
 
@@ -157,8 +157,6 @@ class Request(Base):
             name="request_status",
             values_callable=lambda obj: [e.value for e in obj]
         ),
-        default=Status.PENDING.value,
-        server_default=Status.PENDING.value,
         nullable=False
     )
 
@@ -203,8 +201,6 @@ class UserTask(Base):
             name="user_task_status",
             values_callable=lambda obj: [e.value for e in obj]
         ),
-        default=Status.NEW.value,
-        server_default=Status.NEW.value,
         nullable=False
     )
 
