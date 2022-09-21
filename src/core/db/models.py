@@ -57,7 +57,9 @@ class Shift(Base):
         nullable=False
     )
     started_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False,
+        DATE,
+        server_default=func.current_timestamp(),
+        nullable=False,
         index=True
     )
     finished_at = Column(DATE, nullable=False, index=True)
