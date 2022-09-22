@@ -16,7 +16,7 @@ env:
 jobs:
   build_and_push_lomaya_baryery_backend_image:
     name: Push Docker image to GitHub Packages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - name: Check out the repo
