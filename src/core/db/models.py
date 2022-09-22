@@ -209,7 +209,7 @@ class UserTask(Base):
     photo_id = Column(
         UUID(as_uuid=True),
         ForeignKey(Photo.id),
-        nullable=False
+        nullable=True
     )
 
     __table_args__ = (
