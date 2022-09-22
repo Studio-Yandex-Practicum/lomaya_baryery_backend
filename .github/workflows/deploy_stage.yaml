@@ -49,22 +49,22 @@ jobs:
     runs-on: ubuntu-18.04
     needs: build_and_push_lomaya_baryery_backend_image
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: develop
+      # - name: Checkout
+      #   uses: actions/checkout@v2
+      #   with:
+      #     ref: develop
 
-      - name: Create SSH key
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      # - name: Create SSH key
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     chmod 700 ~/.ssh
+      #     echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      #     chmod 644 ~/.ssh/known_hosts
+      #     echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+      #     chmod 600 ~/.ssh/id_rsa
 
-      - name: Create folder for application
-        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
+      # - name: Create folder for application
+      #   run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
