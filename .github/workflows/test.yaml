@@ -9,6 +9,8 @@ jobs:
   test:
     name: Test yaml
     runs-on: ubuntu-latest
+    steps:
+    
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
