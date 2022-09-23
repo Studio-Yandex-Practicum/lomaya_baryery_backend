@@ -1,25 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import HTTPException
 from pydantic.schema import UUID
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.core.db.db import get_session
-from src.core.db.models import Photo, UserTask, UserTaskStatuses
-
-router = APIRouter()
-
-
-class UserTaskDB(BaseModel):
-    """Pydantic-схема, для описания объекта, полученного из БД"""
-    user_task_id: UUID
-    task_id: UUID
-    day_number: int
-    status: UserTaskStatuses
-    photo_url: str
-
-    class Config:
-        orm_mode = True
+from src.core.db.models import Photo, UserTask
 
 
 async def get(
@@ -49,18 +33,4 @@ async def check_user_task_exists(
             status_code=404,
             detail='Задачи с указанным id не существует!'
         )
-    return user_task
-
-
-@router.get(
-    '/{user_task_id}',
-    response_model=UserTaskDB,
-    response_model_exclude_none=True,
-)
-async def get_users_report(
-        user_task_id: UUID,
-        session: AsyncSession = Depends(get_session)
-):
-    """Вернуть отчет участника."""
-    user_task = await check_user_task_exists(user_task_id, session)
     return user_task
