@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from src.main import start_bot, create_bot
+from src.main import start_bot
 from src.api.routers import webhook_router
 
 
@@ -19,7 +19,8 @@ async def on_startup():
 @app.on_event('shutdown')
 async def on_shutdown():
     """Действия после остановки сервера с ботом."""
-    bot_app = create_bot()
+    bot_app = app.state.bot_app
+    await bot_app.stop()
     await bot_app.shutdown()
 
 
