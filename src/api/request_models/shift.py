@@ -1,9 +1,11 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, root_validator
 
+from src.core.db.models import Shift
+
 
 class ShiftCreate(BaseModel):
-    status: str = Field('preparing')
+    status: Shift.Status = Field('preparing')
     started_at: datetime
     finished_at: datetime
 
