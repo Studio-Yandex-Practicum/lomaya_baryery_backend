@@ -16,12 +16,14 @@ router = APIRouter()
 
 class StatusEnum(str, Enum):
     """Допустимые статусы."""
+
     APPROVED = 'approved'
     DECLINED = 'declined'
 
 
 class UserTaskDB(BaseModel):
     """Схема выходных данных."""
+
     user_task_id: UUID
     task_id: UUID
     day_number: int
@@ -49,7 +51,7 @@ async def db_update_status(
         db_obj,
         status,
         session: AsyncSession,
-) -> Optional[UserTask]:
+) -> UserTask:
     """Обновление статуса объекта."""
     db_obj.status = status
     session.add(db_obj)
@@ -61,7 +63,7 @@ async def db_update_status(
 async def check_user_task_exist(
         user_task_id: UUID,
         session: AsyncSession,
-) -> Optional[UserTask]:
+) -> UserTask:
     """Существует ли задание."""
     user_task = await db_get(user_task_id, session)
     if user_task is None:
