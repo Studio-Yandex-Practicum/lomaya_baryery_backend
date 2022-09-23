@@ -1,20 +1,15 @@
 import uvicorn
 
-from src.main import app, start_bot, create_bot
+from src.application import create_app
+from src.api.routers import router, webhook_router
+from src.core.settings import settings
 
+APP_ROUTERS = [router]
 
-@app.on_event("startup")
-async def on_startup():
-    """Действия при старте API сервера."""
-    await start_bot()
+if settings.BOT_WEBHOOK_MODE:
+    APP_ROUTERS.append(webhook_router)
 
-
-@app.on_event('shutdown')
-async def on_shutdown():
-    """Действия после остановки API сервера."""
-    bot_app = create_bot()
-    await bot_app.shutdown()
-
+app = create_app(routers=APP_ROUTERS)
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8080)

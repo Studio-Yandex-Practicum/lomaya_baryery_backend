@@ -1,6 +1,6 @@
 from src.core import settings
 from src.core.db import models
-from src.main import create_bot
+from src.bot.main import create_bot
 
 
 bot = create_bot().bot  # временная копия бота до миграции на webhooks
