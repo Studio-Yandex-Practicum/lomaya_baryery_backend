@@ -3,35 +3,14 @@ import re
 import uuid
 
 import phonenumbers
-from sqlalchemy import (Boolean, BigInteger, CheckConstraint, DATE, Column, Enum, 
-                        ForeignKey, func, Integer, String, TIMESTAMP, types,
-                        UniqueConstraint)
-from sqlalchemy.dialects.postgresql import ENUM as pg_enum
+from sqlalchemy import (
+    func, Column, TIMESTAMP, DATE, String, Boolean,
+    Integer, CheckConstraint, UniqueConstraint, BigInteger, Enum,
+)
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import ForeignKey
-
-
-class RequestStatus(str, enum.Enum):
-    APPROVED = "approved"
-    DECLINED = "declined"
-    PENDING = "pending"
-    REPEATED_REQUEST = "repeated request"
-
-
-class ShiftStatus(str, enum.Enum):
-    STARTED = "started"
-    FINISHED = "finished"
-    PREPARING = "preparing"
-    CANCELLED = "cancelled"
-
-
-class UserTaskStatuses(str, enum.Enum):
-    NEW = 'new'
-    UNDER_REVIEW = 'under_review'
-    APPROVED = 'approved'
-    DECLINED = 'declined'
 
 
 @as_declarative()
@@ -46,12 +25,10 @@ class Base:
         Boolean,
         default=0
     )
-    created_date = Column(
-        TIMESTAMP,
-        server_default=func.current_timestamp(),
-        nullable=False
+    created_at = Column(
+        TIMESTAMP, server_default=func.current_timestamp(), nullable=False
     )
-    updated_date = Column(
+    updated_at = Column(
         TIMESTAMP,
         server_default=func.current_timestamp(),
         nullable=False,
@@ -59,28 +36,42 @@ class Base:
     )
     __name__: str
 
-    # Generate __tablename__ automatically
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
-
 
 class Shift(Base):
     """Смена."""
-    status = Column(pg_enum(ShiftStatus), nullable=False)
+
+    class Status(str, enum.Enum):
+        """Статус смены."""
+        STARTED = "started"
+        FINISHED = "finished"
+        PREPARING = "preparing"
+        CANCELING = "cancelled"
+
+    __tablename__ = "shifts"
+
+    status = Column(
+        Enum(
+            Status,
+            name="shift_status",
+            values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False
+    )
     started_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False
+        DATE,
+        server_default=func.current_timestamp(),
+        nullable=False,
+        index=True
     )
-    finished_at = Column(
-        DATE, server_default=func.current_timestamp(), nullable=False
-    )
+    finished_at = Column(DATE, nullable=False, index=True)
 
     def __repr__(self):
-        return f'<Shift: {self.id}, status: {self.status}>'
+        return f"<Shift: {self.id}, status: {self.status}>"
 
 
 class Photo(Base):
     """Фотографии выполненных заданий."""
+    __tablename__ = "photos"
+
     url = Column(String(length=150), unique=True, nullable=False)
 
     def __repr__(self):
@@ -89,6 +80,8 @@ class Photo(Base):
 
 class Task(Base):
     """Модель для описания задания."""
+    __tablename__ = "tasks"
+
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
 
@@ -97,7 +90,9 @@ class Task(Base):
 
 
 class User(Base):
-    """Модель для пользователей"""
+    """Модель для пользователей."""
+    __tablename__ = "users"
+
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
@@ -127,7 +122,7 @@ class User(Base):
             raise ValueError('Название города слишком короткое')
         return value
 
-    @validates('phone_number')
+    @validates("phone_number")
     def validate_phone_number(self, key, value) -> str:
         new_number = phonenumbers.parse(value, "RU")
         if phonenumbers.is_valid_number(new_number) is False:
@@ -139,17 +134,30 @@ class User(Base):
 
 class Request(Base):
     """Модель рассмотрения заявок"""
+
+    class Status(str, enum.Enum):
+        """Статус рассмотрения заявки."""
+        APPROVED = "approved"
+        DECLINED = "declined"
+        PENDING = "pending"
+        REPEATED_REQUEST = "repeated request"
+
+    __tablename__ = "requests"
+
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"),
+        UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
         nullable=False
     )
     shift_id = Column(
-        UUID(as_uuid=True), ForeignKey("shift.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False
     )
     status = Column(
-        pg_enum(RequestStatus),
-        nullable=False,
-        default=RequestStatus.PENDING
+        Enum(
+            Status,
+            name="request_status",
+            values_callable=lambda obj: [e.value for e in obj]
+        ),
+        nullable=False
     )
 
     def __repr__(self):
@@ -158,19 +166,29 @@ class Request(Base):
 
 class UserTask(Base):
     """Ежедневные задания."""
+
+    class Status(str, enum.Enum):
+        """Статус задачи у пользователя."""
+        NEW = 'new'
+        UNDER_REVIEW = 'under_review'
+        APPROVED = 'approved'
+        DECLINED = 'declined'
+
+    __tablename__ = "user_tasks"
+
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('user.id'),
+        ForeignKey(User.id),
         nullable=False
     )
     shift_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('shift.id'),
+        ForeignKey(Shift.id),
         nullable=False
     )
     task_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('task.id'),
+        ForeignKey(Task.id),
         nullable=False
     )
     day_number = Column(
@@ -178,11 +196,17 @@ class UserTask(Base):
         CheckConstraint('day_number > 0 AND day_number < 100')
     )
     status = Column(
-        pg_enum(UserTaskStatuses)
+        Enum(
+            Status,
+            name="user_task_status",
+            values_callable=lambda obj: [e.value for e in obj]
+        ),
+        nullable=False
     )
+
     photo_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('photo.id'),
+        ForeignKey(Photo.id),
         nullable=False
     )
 
@@ -192,9 +216,11 @@ class UserTask(Base):
             'shift_id',
             'task_id',
             name='_user_task_uc'
-        )
+        ),
     )
 
     def __repr__(self):
-        return (f'<UserTask: {self.id}, day_number: {self.day_number}, '
-                f'status: {self.status}>')
+        return (
+            f'<UserTask: {self.id}, day_number: {self.day_number}, '
+            f'status: {self.status}>'
+        )
