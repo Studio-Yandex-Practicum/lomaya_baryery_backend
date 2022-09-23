@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler, Application
 
-from src.api.routers import router, webhook_router, WEBHOOK_ENDPOINT
+from src.api.routers import router, webhook_router, TELEGRAM_WEBHOOK_ENDPOINT
 from src.bot.handlers import start
 from src.core.settings import settings
 
@@ -24,7 +24,6 @@ def create_bot() -> Application:
 
 async def bot_init_polling_mode(bot_app: Application) -> None:
     """Инициализировать бота в режиме polling."""
-    await bot_app.updater.initialize()
     await bot_app.initialize()
     await bot_app.updater.start_polling()
 
@@ -33,11 +32,10 @@ async def bot_init_webhook_mode(bot_app: Application) -> None:
     """Инициализировать бота в режиме webhook"""
     bot_app.updater = None
     await bot_app.bot.set_webhook(
-        url=urljoin(settings.APPLICATION_URL, WEBHOOK_ENDPOINT),
+        url=urljoin(settings.APPLICATION_URL, TELEGRAM_WEBHOOK_ENDPOINT),
         secret_token=settings.BOT_TOKEN.replace(':', '')  # colon is not allowed here # noqa
     )
     await bot_app.initialize()
-    app.state.bot_app = bot_app
 
 
 async def start_bot(
@@ -50,4 +48,7 @@ async def start_bot(
     else:
         await bot_init_polling_mode(bot_app)
     await bot_app.start()
+    # storing bot_app to extra state of FastAPI app instance
+    # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
+    app.state.bot_app = bot_app
     return bot_app
