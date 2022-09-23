@@ -17,13 +17,7 @@ repos:
   rev: 5.10.1
   hooks:
     - id: isort
-      args: [--config, setup.cfg]
-
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-    - id: black
-      args: [--config, setup.cfg]
+      args: [--settings, setup.cfg]
 
 - repo: https://github.com/pycqa/flake8
   rev: 5.0.4

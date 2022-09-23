@@ -102,8 +102,9 @@ APPLICATION_URL= # домен, на котором развернуто прил
 POSTGRES_DB=lomaya_baryery_db_local  # имя базы данных
 POSTGRES_USER=postgres # логин для подключения к базе данных
 POSTGRES_PASSWORD=postgres # пароль для подключения к БД
-DB_HOST=localhost # название сервиса (контейнера)
+DB_HOST=localhost # адрес БД
 DB_PORT=5432 # порт для подключения к БД
+
 ```
 Перед запуском проекта необходимо создать копию файла 
 ```.env.example```, назвав его ```.env``` и установить значение токена бота
