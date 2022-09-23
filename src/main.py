@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler
 
-from src.api.routers.routers import main_router
+from src.api.routers.hello import router as hello
+from src.api.routers.user_tasks import router as user_tasks
 from src.bot.handlers import start
 from src.core.settings import settings
 
 app = FastAPI()
 
-app.include_router(main_router)
+app.include_router(hello)
+app.include_router(user_tasks)
 
 
 def create_bot():
