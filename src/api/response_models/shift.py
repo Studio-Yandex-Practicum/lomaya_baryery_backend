@@ -1,6 +1,5 @@
-from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
+from datetime import date
+from pydantic import BaseModel
 
 from src.core.db.models import Shift
 
@@ -8,8 +7,8 @@ from src.core.db.models import Shift
 class ShiftDB(BaseModel):
     id: int
     status: Shift.Status
-    created_date: Optional[datetime] = Field(datetime.now())
-    updated_date: Optional[datetime] = Field(datetime.now())
+    started_at: date
+    finished_at: date
 
     class Config:
         orm_mode = True
