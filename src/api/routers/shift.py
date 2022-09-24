@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post(
-    '/',
+    '/shift/create',
     response_model=ShiftDB,
     response_model_exclude_none=True
 )
