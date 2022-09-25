@@ -10,15 +10,13 @@ router = APIRouter()
 
 
 @router.post("/new_and_under_review_tasks", response_model=UserTaskResponseModel)
-async def get_new_and_under_review_tasks(
-        usertask: UserTaskRequestModel,
-        session: AsyncSession = Depends(get_session)
-):
+async def get_new_and_under_review_tasks(usertask: UserTaskRequestModel, session: AsyncSession = Depends(get_session)):
+    """Эндпоинт /new_and_under_review_tasks.
+
+    Используется для получения текущей информации о новых и еще не проверенных
+    заданиях всех пользователей конкретной смены в конкретный день.
+    """
     shift_id = usertask.shift_id
     day_number = usertask.day_number
-    response = await get_summary_user_tasks_response(
-        shift_id,
-        day_number,
-        session
-    )
+    response = await get_summary_user_tasks_response(shift_id, day_number, session)
     return response
