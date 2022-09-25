@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.db.models import Request, Task
+from src.core.db.models import Request
 
 
 async def user_ids_approved_to_shift(
@@ -17,19 +17,7 @@ async def user_ids_approved_to_shift(
         ).where(
             Request.shift_id == shift_id
         ).where(
-            Request.status == "approved"
+            Request.status == Request.Status.APPROVED.title()
         )
     )
     return user_ids.scalars().all()
-
-
-async def task_ids_list(
-        session: AsyncSession,
-) -> List:
-    """Список всех task_id"""
-    task_ids = await session.execute(
-        select(
-            Task.id
-        )
-    )
-    return task_ids.scalars().all()

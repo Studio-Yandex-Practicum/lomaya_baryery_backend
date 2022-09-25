@@ -3,15 +3,15 @@ import random
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.models import UserTask
-from src.core.services.request_service import (task_ids_list,
-                                               user_ids_approved_to_shift)
+from src.core.services.request_service import user_ids_approved_to_shift
+from src.core.services.task_service import task_ids_list
 
 
 async def task_distribution_on_new_shift(
         shift_id: int,
         session: AsyncSession,
 ):
-    """Раздача участникам заданий на на 3 месяца.
+    """Раздача участникам заданий на 3 месяца.
     Задачи раздаются случайным образом. Метод запускается при старте смены.
     """
     task_ids = await task_ids_list(session)
@@ -21,7 +21,7 @@ async def task_distribution_on_new_shift(
         # Случайным образом перемешиваем список task_ids
         random.shuffle(task_ids)
         task_counter = 0
-        for day in range(1, 93):
+        for day in range(1, 94):
 
             new_user_task = UserTask(
                 user_id=user_id,
