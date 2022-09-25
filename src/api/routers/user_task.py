@@ -1,28 +1,24 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.db.db import get_session
-from src.core.db.models import Shift, User, Task, UserTask
 from src.api.request_models.user_task import UserTaskRequestModel
-from src.api.response_models.user_task import UserTasksResponseModel
+from src.api.response_models.user_task import UserTaskResponseModel
+from src.core.db.db import get_session
+from src.core.services.user_task_service import get_summary_user_tasks_response
 
 router = APIRouter()
 
 
-@router.post("/new_and_under_review_tasks")
+@router.post("/new_and_under_review_tasks", response_model=UserTaskResponseModel)
 async def get_new_and_under_review_tasks(
         usertask: UserTaskRequestModel,
         session: AsyncSession = Depends(get_session)
 ):
-    usertask_data = usertask.dict()
-    shift_id, day_number = usertask_data.values()
-    get_info = await session.execute(
-        select([
-            ((Shift).where(Shift.id == shift_id)).label('shift'),
-
-        ]
-
-        )
+    shift_id = usertask.shift_id
+    day_number = usertask.day_number
+    response = await get_summary_user_tasks_response(
+        shift_id,
+        day_number,
+        session
     )
-    return {shift_id: day_number}
+    return response
