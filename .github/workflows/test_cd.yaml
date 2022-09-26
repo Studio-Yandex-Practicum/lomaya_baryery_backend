@@ -1,0 +1,20 @@
+name: test yaml
+
+on:
+  push:
+    branches:
+      - nn
+
+jobs:
+  test:
+    name: Test yaml
+    runs-on: ubuntu:22.04
+    steps:
+
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: whoami
