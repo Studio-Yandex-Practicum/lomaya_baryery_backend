@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request
-
 from telegram import Update
 
 router = APIRouter()
@@ -16,9 +15,9 @@ async def hello():
 @webhook_router.post(TELEGRAM_WEBHOOK_ENDPOINT)
 async def get_telegram_bot_updates(request: Request) -> dict:
     """Получение обновлений telegram в режиме работы бота webhook."""
-    bot_app = request.app.state.bot_app
+    bot_instance = request.app.state.bot_instance
     request_json_data = await request.json()
-    await bot_app.update_queue.put(
-        Update.de_json(data=request_json_data, bot=bot_app.bot)
+    await bot_instance.update_queue.put(
+        Update.de_json(data=request_json_data, bot=bot_instance.bot)
     )
     return request_json_data
