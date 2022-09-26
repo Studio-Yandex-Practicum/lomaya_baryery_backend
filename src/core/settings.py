@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from pydantic import BaseSettings, PostgresDsn
+from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -14,12 +14,15 @@ else:
 
 class Settings(BaseSettings):
     """Настройки проекта."""
+
     BOT_TOKEN: str
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     DB_HOST: str
     DB_PORT: str
+    MIN_DAYS: int = 1
+    MAX_DAYS: int = 93
 
     @property
     def database_url(self):
@@ -42,5 +45,5 @@ def get_settings():
 settings = get_settings()
 
 # Organization data
-ORGANIZATIONS_EMAIL = 'info@stereotipov.net'
-ORGANIZATIONS_GROUP = 'https://vk.com/socialrb02'
+ORGANIZATIONS_EMAIL = "info@stereotipov.net"
+ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
