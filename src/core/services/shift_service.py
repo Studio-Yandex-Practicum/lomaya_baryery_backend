@@ -5,7 +5,8 @@ from src.api.request_models.shift import ShiftCreate
 
 
 class ShiftService:
-    """CRUD class for Shift."""
+    def __init__(self, session):
+        self.session = session
 
     async def create_new_shift(
         new_shift: ShiftCreate,
