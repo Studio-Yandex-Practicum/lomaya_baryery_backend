@@ -14,28 +14,17 @@ def create_bot() -> Application:
     return bot_instance
 
 
-async def initialize_bot_on_polling_mode(bot_instance: Application) -> None:
-    """Инициализировать бота в режиме polling."""
-    await bot_instance.initialize()
-    await bot_instance.updater.start_polling()
-
-
-async def initialize_bot_on_webhook_mode(bot_instance: Application) -> None:
-    """Инициализировать бота в режиме webhook."""
-    bot_instance.updater = None
-    await bot_instance.bot.set_webhook(
-        url=urljoin(settings.APPLICATION_URL, TELEGRAM_WEBHOOK_ENDPOINT),
-        secret_token=settings.BOT_TOKEN.replace(':', '')  # colon is not allowed here
-    )
-    await bot_instance.initialize()
-
-
 async def start_bot(webhook_mode: bool = settings.BOT_WEBHOOK_MODE) -> Application:
     """Запустить бота."""
     bot_instance = create_bot()
+    await bot_instance.initialize()
     if webhook_mode:
-        await initialize_bot_on_webhook_mode(bot_instance)
+        bot_instance.updater = None
+        await bot_instance.bot.set_webhook(
+            url=urljoin(settings.APPLICATION_URL, TELEGRAM_WEBHOOK_ENDPOINT),
+            secret_token=settings.BOT_TOKEN.replace(':', '')  # colon is not allowed here
+        )
     else:
-        await initialize_bot_on_polling_mode(bot_instance)
+        await bot_instance.updater.start_polling()
     await bot_instance.start()
     return bot_instance

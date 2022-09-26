@@ -25,7 +25,7 @@ def create_app() -> FastAPI:
         bot_instance = app.state.bot_instance
         # manually stopping bot updater when running in polling mode
         # see https://github.com/python-telegram-bot/python-telegram-bot/blob/master/telegram/ext/_application.py#L523
-        if bot_instance.updater:
+        if not settings.BOT_WEBHOOK_MODE:
             await bot_instance.updater.stop()
         await bot_instance.stop()
         await bot_instance.shutdown()
