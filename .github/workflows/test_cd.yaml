@@ -8,8 +8,17 @@ on:
 jobs:
   test:
     name: Test yaml
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu:latest
     steps:
+      - name: Create SSH key
+        run: |
+         mkdir -p ~/.ssh
+         chmod 700 ~/.ssh
+         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+
+      - name: Create folder for application
+        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
