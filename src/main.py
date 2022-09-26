@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler
 
-from src.api.routers.hello import router as hello
-from src.api.routers.user_tasks import router as user_tasks
+from src.api.routers import hello, user_tasks
 from src.bot.handlers import start
 from src.core.settings import settings
 
