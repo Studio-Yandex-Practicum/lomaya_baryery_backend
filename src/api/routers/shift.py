@@ -20,5 +20,5 @@ async def create_new_shift(
     shift: ShiftCreate,
     session: AsyncSession = Depends(get_session)
 ):
-    new_shift = await ShiftService.create_new_shift(shift, session)
+    new_shift = await ShiftService(session).create_new_shift(shift)
     return new_shift
