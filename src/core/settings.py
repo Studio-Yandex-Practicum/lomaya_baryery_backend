@@ -1,23 +1,46 @@
+import os
 from pathlib import Path
 
-from environs import Env
+from pydantic import BaseSettings, PostgresDsn
+from pydantic.tools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env = Env()
-env.read_env(str(BASE_DIR / ".env"))
+if os.path.exists(str(BASE_DIR / ".env")):
+    ENV_FILE = ".env"
+else:
+    ENV_FILE = ".env.example"
 
-# BOT settings
-BOT_TOKEN = env("BOT_TOKEN")
 
-# DB settings
-DB_NAME = env("POSTGRES_DB")  # имя базы данных
-POSTGRES_USER = env("POSTGRES_USER")  # логин для подключения к базе данных
-POSTGRES_PASSWORD = env("POSTGRES_PASSWORD")  # пароль для подключения к БД (установите свой) # noqa
-DB_HOST = env("DB_HOST")  # название сервиса (контейнера)
-DB_PORT = env("DB_PORT")  # порт для подключения к БД
+class Settings(BaseSettings):
+    """Настройки проекта."""
+    BOT_TOKEN: str
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: str
 
-DATABASE_URL = (
-    "postgresql+asyncpg://"
-    f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+    @property
+    def database_url(self):
+        """Получить ссылку для подключения к DB."""
+        return (
+            f"postgresql+asyncpg://"
+            f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
+        )
+
+    class Config:
+        env_file = ENV_FILE
+
+
+@lru_cache()
+def get_settings():
+    return Settings()
+
+
+settings = get_settings()
+
+# Organization data
+ORGANIZATIONS_EMAIL = 'info@stereotipov.net'
+ORGANIZATIONS_GROUP = 'https://vk.com/socialrb02'

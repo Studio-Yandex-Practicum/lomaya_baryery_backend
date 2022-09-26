@@ -3,7 +3,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 
 from src.api.routers import router
 from src.bot.handlers import start
-from src.core.settings import BOT_TOKEN
+from src.core.settings import settings
 
 app = FastAPI()
 
@@ -12,7 +12,7 @@ app.include_router(router)
 
 def create_bot():
     """Создать бота."""
-    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_app = ApplicationBuilder().token(settings.BOT_TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
     return bot_app
 
