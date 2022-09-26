@@ -5,7 +5,7 @@ from src.api.request_models.shift import ShiftCreate
 
 
 class ShiftService:
-    def __init__(self, session: AsyncSession) -> AsyncSession:
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def create_new_shift(
