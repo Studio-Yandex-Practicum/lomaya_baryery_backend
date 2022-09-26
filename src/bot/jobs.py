@@ -1,30 +1,28 @@
 from datetime import datetime, time
-import pytz
 
+import pytz
 from telegram.ext import CallbackContext
 
 from src.core.db import models
-from src.main import create_bot
+from src.core.settings import settings
 
 
-bot = create_bot().bot  # временная копия бота до миграции на webhooks
-
-
-async def start_reminder(context: CallbackContext) -> None:
-    """Добавить в очередь и выполнить отправку напоминания в 20:00."""
+def get_sending_reminder_time_callback():
+    """Получить время отправки напоминания об отчёте."""
     dt = datetime(
         year=datetime.now().year,
         month=datetime.now().month,
         day=datetime.now().day,
-        hour=20
+        hour=settings.SEND_NO_REPORT_REMINDER_HOUR
     )
-    tm = pytz.timezone("Europe/Moscow").localize(dt).timetz()
-    context.job_queue.run_once(send_reminder_job, tm)
+    return pytz.timezone("Europe/Moscow").localize(dt).timetz()
 
 
-async def send_reminder_job(user: models.User) -> None:
-    """Отправить напоминание."""
-    await bot.send_message(
+async def send_no_report_reminder_job(
+    context: CallbackContext, user: models.User
+) -> None:
+    """Отправить напоминание об отчёте."""
+    await context.bot.send_message(
         chat_id=user.telegram_id,
         text=(
             f"{user.name} {user.surname}, мы потеряли тебя! Напоминаем, "
@@ -34,12 +32,14 @@ async def send_reminder_job(user: models.User) -> None:
     )
 
 
-async def start_task(context: CallbackContext) -> None:
-    """Добавить в очередь и выполнить метод отправки задания в 8:00."""
-    tm = time(hour=8, tzinfo=pytz.timezone("Europe/Moscow"))
-    context.job_queue.run_daily(send_method_job, tm)
+def get_sending_task_time_callback():
+    """Получить время отправки нового задания."""
+    return time(
+        hour=settings.SEND_NEW_TASK_HOUR,
+        tzinfo=pytz.timezone("Europe/Moscow")
+    )
 
 
-async def send_method_job():
-    """Метод отправки задания."""
+async def send_new_task_job(context: CallbackContext)  -> None:
+    """Метод отправки нового задания."""
     ...
