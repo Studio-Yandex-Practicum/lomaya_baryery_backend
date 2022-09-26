@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.db.models import Shift
 from src.api.request_models.shift import ShiftCreate
+from src.core.db.models import Shift
 
 
 class ShiftService:
@@ -18,3 +18,7 @@ class ShiftService:
         await self.session.commit()
         await self.session.refresh(db_shift)
         return db_shift
+
+
+def get_shift_service() -> ShiftService:
+    return ShiftService
