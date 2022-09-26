@@ -5,12 +5,12 @@ from src.api.request_models.shift import ShiftCreate
 
 
 class ShiftService:
-    def __init__(self, session):
+    def __init__(self, session: AsyncSession) -> AsyncSession:
         self.session = session
 
     async def create_new_shift(
         new_shift: ShiftCreate,
-        session: AsyncSession,
+        session,
     ) -> Shift:
         new_shift_data = new_shift.dict()
         db_shift = Shift(**new_shift_data)
