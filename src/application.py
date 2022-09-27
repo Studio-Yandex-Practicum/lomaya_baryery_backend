@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.api.routers import router, webhook_router
+from src.api.routers import router, user_tasks, webhook_router
 from src.bot.main import start_bot
 from src.core.settings import settings
 
@@ -8,6 +8,7 @@ from src.core.settings import settings
 def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router)
+    app.include_router(user_tasks)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
@@ -19,7 +20,7 @@ def create_app() -> FastAPI:
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
 
-    @app.on_event('shutdown')
+    @app.on_event("shutdown")
     async def on_shutdown():
         """Действия после остановки сервера."""
         bot_instance = app.state.bot_instance

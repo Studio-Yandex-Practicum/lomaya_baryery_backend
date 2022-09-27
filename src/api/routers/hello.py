@@ -17,7 +17,5 @@ async def get_telegram_bot_updates(request: Request) -> dict:
     """Получение обновлений telegram в режиме работы бота webhook."""
     bot_instance = request.app.state.bot_instance
     request_json_data = await request.json()
-    await bot_instance.update_queue.put(
-        Update.de_json(data=request_json_data, bot=bot_instance.bot)
-    )
+    await bot_instance.update_queue.put(Update.de_json(data=request_json_data, bot=bot_instance.bot))
     return request_json_data
