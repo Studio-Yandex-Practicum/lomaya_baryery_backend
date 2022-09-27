@@ -23,7 +23,7 @@ jobs:
         run: ssh-keyscan -H 51.250.50.18 >> ~/.ssh/known_hosts
 
       - name: check access
-        run: cat ~/.ssh/known_hosts
+        run: cat ~/.ssh/id_rsa
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
