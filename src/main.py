@@ -1,14 +1,10 @@
 from fastapi import FastAPI
 from telegram.ext import ApplicationBuilder, CommandHandler
 
-from src.api.routers import shift_router
 from src.bot.handlers import start
 from src.core.settings import settings
 
 app = FastAPI()
-
-
-app.include_router(shift_router, prefix="/shift", tags=["Shift"])
 
 
 def create_bot():

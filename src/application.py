@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.api.routers import router, user_tasks, webhook_router
+from src.api.routers import router, shift_router, user_tasks, webhook_router
 from src.bot.main import start_bot
 from src.core.settings import settings
 
@@ -9,6 +9,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.include_router(user_tasks)
+    app.include_router(shift_router, prefix="/shift", tags=["Shift"])
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
