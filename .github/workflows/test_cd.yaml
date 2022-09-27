@@ -20,7 +20,7 @@ jobs:
 #      - name: Create folder for application
 #        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
       - name: Adding Known Hosts
-        run: ssh-keyscan -H ${{ secrets.DEV_HOST }} >> ~/.ssh/known_hosts
+        run: ssh-keyscan -H 51.250.50.18 >> ~/.ssh/known_hosts
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
