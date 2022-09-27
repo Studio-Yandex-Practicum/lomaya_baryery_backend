@@ -19,6 +19,13 @@ repos:
     - id: isort
       args: [--settings, setup.cfg]
 
+- repo: https://github.com/ambv/black
+  rev: 22.8.0
+  hooks:
+    - id: black
+      exclude: (migrations|config/settings/)
+      args: [--line-length=120]
+
 - repo: https://github.com/pycqa/flake8
   rev: 5.0.4
   hooks:
