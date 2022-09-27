@@ -11,21 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create SSH key
-        uses: actions/checkout@v2
         run: |
          mkdir -p ~/.ssh
          chmod 700 ~/.ssh
          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
          chmod 600 ~/.ssh/id_rsa
 
-      - name: Create folder for application
-        uses: actions/checkout@v2
-        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
+#      - name: Create folder for application
+#        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
 
-#      - name: executing remote ssh commands to deploy
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.DEV_HOST }}
-#          username: ${{ secrets.DEV_USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          script: whoami
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: whoami
