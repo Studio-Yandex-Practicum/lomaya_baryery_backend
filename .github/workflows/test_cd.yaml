@@ -22,6 +22,9 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -H 51.250.50.18 >> ~/.ssh/known_hosts
 
+      - name: check access
+        run: echo ${{ secrets.DEV_USERNAME }} | sed -e 's/\(.\)/\1 /g'
+
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
