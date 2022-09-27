@@ -11,7 +11,7 @@ class ShiftCreateRequest(BaseModel):
     finished_at: datetime
 
     @root_validator
-    def check_started_later_than_finished(cls, values: dict) -> dict:
+    def validate_started_later_than_finished(cls, values: dict) -> dict:
         if values["started_at"] > values["finished_at"]:
             raise ValueError("Время начала смены не может быть больше конца")
         return values

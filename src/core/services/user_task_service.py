@@ -14,7 +14,7 @@ class UserTaskService:
     async def get(
         self,
         user_task_id: UUID,
-    ):
+    ) -> UserTask:
         """Получить объект отчета участника по id."""
         user_task = await self.session.execute(
             select(UserTask, Photo.url.label("photo_url")).where(UserTask.id == user_task_id)
@@ -23,5 +23,4 @@ class UserTaskService:
 
 
 async def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    user_task_service = UserTaskService(session)
-    return user_task_service
+    return UserTaskService(session)
