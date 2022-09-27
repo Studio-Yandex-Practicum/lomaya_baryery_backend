@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     DB_HOST: str
     DB_PORT: str
+    SEND_NEW_TASK_HOUR: int
+    SEND_NO_REPORT_REMINDER_HOUR: int
 
     @property
     def database_url(self):
