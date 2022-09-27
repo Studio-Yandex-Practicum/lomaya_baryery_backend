@@ -22,7 +22,7 @@ class UserTaskService:
         )
         return user_task.scalars().first()
 
-    async def change_task_status(
+    async def change_status(
         self,
         user_task: UserTask,
         status: AllowedUserTaskStatus,

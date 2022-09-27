@@ -52,6 +52,6 @@ async def change_users_report_status(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await get_users_report(user_task_id)
-    await user_task_service.change_task_status(user_task=user_task, status=status)
+    user_task = await get_users_report(user_task_id=user_task_id, user_task_service=user_task_service)
+    await user_task_service.change_status(user_task=user_task, status=status)
     return user_task
