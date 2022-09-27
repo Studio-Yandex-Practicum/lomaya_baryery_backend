@@ -3,12 +3,14 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.core.db.models import Shift
+
 
 class ShiftResponseModel(BaseModel):
     """Модель смены для ответа."""
 
     id: UUID
-    status: str
+    status: Shift.Status
     started_at: date
     finished_at: date
 
