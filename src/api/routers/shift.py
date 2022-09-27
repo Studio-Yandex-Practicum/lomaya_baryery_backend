@@ -1,18 +1,17 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from http import HTTPStatus
 
-from src.api.request_models.shift import ShiftCreate
-from src.api.response_models.shift import ShiftDB
-from src.core.db.db import get_session
-from src.core.services.shift_service import ShiftService, get_shift_service
+from fastapi import APIRouter, Depends
+
+from src.api.request_models.shift import ShiftCreateRequest
+from src.api.response_models.shift import ShiftDBResponse
+from src.core.services.shift_service import ShiftService, get_shift_create_service
 
 router = APIRouter()
 
 
-@router.post("/shift/create", response_model=ShiftDB, response_model_exclude_none=True)
+@router.post("/", response_model=ShiftDBResponse, response_model_exclude_none=True, status_code=HTTPStatus.CREATED)
 async def create_new_shift(
-    shift: ShiftCreate,
-    shift_service: ShiftService = Depends(get_shift_service),
-    session: AsyncSession = Depends(get_session),
+    shift: ShiftCreateRequest,
+    shift_service: ShiftService = Depends(get_shift_create_service),
 ):
-    return await shift_service(session).create_new_shift(new_shift=shift)
+    return await shift_service(shift)

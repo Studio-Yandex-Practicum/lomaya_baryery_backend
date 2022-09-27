@@ -7,7 +7,7 @@ from src.core.settings import settings
 
 app = FastAPI()
 
-app.include_router(shift_router)
+app.include_router(shift_router, prefix="/shift", tags=["Shift"])
 
 
 def create_bot():
