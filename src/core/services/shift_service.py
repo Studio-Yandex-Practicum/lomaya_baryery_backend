@@ -23,4 +23,4 @@ class ShiftService:
 
 
 def get_shift_create_service(session: AsyncSession = Depends(get_session)) -> ShiftService:
-    return ShiftService(session).create_new_shift
+    return ShiftService(session)

@@ -14,4 +14,4 @@ async def create_new_shift(
     shift: ShiftCreateRequest,
     shift_service: ShiftService = Depends(get_shift_create_service),
 ):
-    return await shift_service(shift)
+    return await shift_service.create_new_shift(shift)
