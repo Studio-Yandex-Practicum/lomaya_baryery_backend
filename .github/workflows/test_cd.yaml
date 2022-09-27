@@ -9,8 +9,8 @@ jobs:
   test:
     name: Test yaml
     runs-on: ubuntu-latest
-    environments:
-      - Stage
+    environment:
+      name: Stage
     steps:
       - name: Create SSH key
         run: |
