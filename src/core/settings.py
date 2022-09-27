@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     """Настройки проекта."""
 
     BOT_TOKEN: str
+    BOT_WEBHOOK_MODE: bool = False
+    APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

@@ -1,11 +1,12 @@
 from typing import Any, Union
 from uuid import UUID
 
+from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.db.models import UserTask
-from src.core.services import get_shift, get_task_info, get_user_info
+from src.core.db.db import get_session
+from src.core.db.models import Photo, User, Shift, Task, UserTask
 
 
 class UserTaskService:
@@ -16,56 +17,73 @@ class UserTaskService:
     с привязкой к смене и дню.
 
     Для инициализации необходимы параметры:
-    shift_id - уникальный id смены,
-    day_number - номер дня смены,
-    db_model - модель UserTask.
+    session - объект сессии.
 
-    Метод 'get_report' вызывается для формирования отчета.
+    Метод 'get_tasks_report' формирует отчет с информацией о задачах
+    и юзерах.
+    Метод 'get' возвращает экземпляр UserTask по id.
 
     Используется для ЭПИКА 'API: список заданий на проверке'
     """
 
-    def __init__(self, shift_id: UUID, day_number: int, db_model: UserTask):
-        self._tasks = []
-        self._report = {}
-        self.shift_id = shift_id
-        self.day_number = day_number
-        self.model = db_model
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    async def _get_all_ids_callback(self, session: AsyncSession) -> list[tuple[int]]:
+    async def _get_all_ids_callback(
+            self,
+            shift_id,
+            day_number,
+    ) -> list[tuple[int]]:
         """Получает список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
-        user_tasks_info = await session.execute(
-            select([self.model.id, self.model.user_id, self.model.task_id])
-            .where(
-                and_(
-                    self.model.shift_id == self.shift_id,
-                    self.model.day_number == self.day_number,
-                    or_(
-                        self.model.status == self.model.Status.NEW, self.model.status == self.model.Status.UNDER_REVIEW
-                    ),
-                )
-            )
-            .order_by(self.model.id)
+        user_tasks_info = await self.session.execute(
+            select(UserTask.id,
+                   UserTask.user_id,
+                   UserTask.task_id)
+            .where(and_(UserTask.shift_id == shift_id,
+                        UserTask.day_number == day_number,
+                        or_(UserTask.status == UserTask.Status.NEW,
+                            UserTask.status == UserTask.Status.UNDER_REVIEW
+                    )))
+            .order_by(UserTask.id)
         )
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    async def _get_summary_tasks_info_callback(self, session: AsyncSession) -> list[dict[str, Any]]:
+    async def get_tasks_report(self, shift_id, day_number) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        ids_list = await self._get_all_ids_callback(session)
+        ids_list = await self._get_all_ids_callback(shift_id, day_number)
+        tasks = []
         if not ids_list:
-            return self._tasks
+            return tasks
         for ids in ids_list:
-            user_info = await get_user_info(ids.user_id, session)
-            task_info = await get_task_info(ids.task_id, session)
-            task = {"id": ids.id, **user_info, **task_info}
-            self._tasks.append(task)
-        return self._tasks
+            task_summary_info = await self.session.execute(
+                select(User.name,
+                       User.surname,
+                       Task.id.label('task_id'),
+                       Task.description.label('task_description'),
+                       Task.url.label('task_url'))
+                .select_from(User,
+                             Task)
+                .where(User.id == ids.user_id,
+                       Task.id == ids.task_id)
+            )
+            task_summary_info = task_summary_info.all()
+            task = dict(*task_summary_info)
+            task['id'] = ids.id
+            tasks.append(task)
+        return tasks
 
-    async def get_report(self, session: AsyncSession) -> dict[str, Union[dict, list]]:
-        """Формирует итоговый ответ с информацией о смене и итоговым списком задач и юзеров."""
-        shift = await get_shift(self.shift_id, session)
-        tasks = await self._get_summary_tasks_info_callback(session)
-        self._report["shift"] = shift
-        self._report["tasks"] = tasks
-        return self._report
+    async def get(self, user_task_id: UUID):
+        """Получить объект отчета участника по id."""
+        user_task = await self.session.execute(
+            select(UserTask, Photo.url.label('photo_url'))
+            .where(UserTask.id == user_task_id)
+        )
+        return user_task.scalars().first()
+
+
+async def get_user_task_service(
+        session: AsyncSession = Depends(get_session)
+) -> UserTaskService:
+    user_task_service = UserTaskService(session)
+    return user_task_service
