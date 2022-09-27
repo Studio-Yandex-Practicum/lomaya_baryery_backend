@@ -1,12 +1,12 @@
 """init
 
 Revision ID: d37fa6413c00
-Revises: 
+Revises:
 Create Date: 2022-09-20 12:33:13.501170
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -99,7 +99,7 @@ def upgrade():
     sa.Column('task_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('day_number', sa.Integer(), nullable=True),
     sa.Column('status', USER_TASK_STATUS_TYPE, nullable=False),
-    sa.Column('photo_id', postgresql.UUID(as_uuid=True), nullable=True),
+    sa.Column('photo_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.ForeignKeyConstraint(['photo_id'], ['photos.id'], ),
     sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], ),
     sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
