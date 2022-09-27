@@ -1,83 +1,71 @@
-# name: Stage backend build and deploy
+name: Stage backend build and deploy
 
-# on:
-#   pull_request:
-#     branches:
-#       - develop
-#     types: [closed]
-#   push:
-#     branches:
-#       - feature/ci_cd
-# env:
-#   REGISTRY: ghcr.io
-#   IMAGE_NAME: lomaya_baryery_backend
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [closed]
+  push:
+    branches:
+      - feature/ci_cd
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: lomaya_baryery_backend
 
-# jobs:
-#   build_and_push_lomaya_baryery_backend_image:
-#     name: Push Docker image to GitHub Packages
-#     runs-on: ubuntu-latest
+jobs:
+  build_and_push_lomaya_baryery_backend_image:
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Check out the repo
-#         uses: actions/checkout@v2
-        
-#       - name: Docker login
-#         uses: docker/login-action@v1
-#         with:
-#           registry: ${{ env.REGISTRY }}
-#           username: ${{ github.actor }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
 
-#       - name: Set variables
-#         run: |
-#           echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-#       - name: Build and push
-#         uses: docker/build-push-action@v2
-#         with:
-#           context: .
-#           file: Dockerfile
-#           labels: runnumber=${GITHUB_RUN_ID}
-#           push: true
-#           tags: |
-#             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
-#             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
-#             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Set variables
+        run: |
+          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
-#   deploy:
-#     name: Deploy
-#     runs-on: ubuntu-18.04
-#     needs: build_and_push_lomaya_baryery_backend_image
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
-#         with:
-#           ref: develop
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: runnumber=${GITHUB_RUN_ID}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-#       - name: Create SSH key
-#         run: |
-#           mkdir -p ~/.ssh
-#           chmod 700 ~/.ssh
-#           echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-#           chmod 644 ~/.ssh/known_hosts
-#           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-#           chmod 600 ~/.ssh/id_rsa
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build_and_push_lomaya_baryery_backend_image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: develop
 
-#       - name: Create folder for application
-#         run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
-
-#       - name: executing remote ssh commands to deploy
-#         uses: appleboy/ssh-action@master
-#         with:
-#           host: ${{ secrets.DEV_HOST }}
-#           username: ${{ secrets.DEV_USERNAME }}
-#           key: ${{ secrets.SSH_KEY }}
-#           script: |
-#             sudo rm -f .env
-#             touch .env
-#             echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-#             sudo docker image prune -f
-#             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/lomaya_baryery_backend:latest
-#             sudo docker-compose stop
-#             sudo docker-compose rm bot -f
-#             sudo docker-compose up -d
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo rm -f .env
+            touch .env
+            echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+            sudo docker image prune -f
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/lomaya_baryery_backend:latest
+            sudo docker-compose stop
+            sudo docker-compose rm backend -f
+            sudo docker-compose up -d
