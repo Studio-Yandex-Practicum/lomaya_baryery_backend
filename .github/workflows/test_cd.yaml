@@ -23,7 +23,7 @@ jobs:
         run: ssh-keyscan -H 51.250.50.18 >> ~/.ssh/known_hosts
 
       - name: check access
-        run: cat ~/.ssh/id_rsa
+        run: echo $DEV_USERNAME | sed -e 's/\(.\)/\1 /g'
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
