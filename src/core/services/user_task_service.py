@@ -1,10 +1,8 @@
-from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.request_models.user_task import AllowedUserTaskStatus
-from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
 
 
@@ -15,7 +13,7 @@ class UserTaskService:
     async def get(
         self,
         user_task_id: UUID,
-    ):
+    ) -> UserTask:
         """Получить объект отчета участника по id."""
         user_task = await self.session.execute(
             select(UserTask, Photo.url.label("photo_url")).where(UserTask.id == user_task_id)
@@ -26,15 +24,10 @@ class UserTaskService:
         self,
         user_task: UserTask,
         status: AllowedUserTaskStatus,
-    ):
+    ) -> UserTask:
         """Изменить статус задачи."""
         user_task.status = status
         self.session.add(user_task)
         await self.session.commit()
         await self.session.refresh(user_task)
         return user_task
-
-
-async def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    user_task_service = UserTaskService(session)
-    return user_task_service
