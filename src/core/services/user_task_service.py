@@ -1,13 +1,15 @@
+from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.request_models.user_task import AllowedUserTaskStatus
+from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
 
 
 class UserTaskService:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         self.session = session
 
     async def get(
