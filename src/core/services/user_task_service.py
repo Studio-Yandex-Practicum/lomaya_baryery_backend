@@ -23,5 +23,4 @@ class UserTaskService:
 
 
 async def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    user_task_service = UserTaskService(session)
-    return user_task_service
+    return UserTaskService(session)
