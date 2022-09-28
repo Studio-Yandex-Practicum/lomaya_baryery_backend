@@ -30,5 +30,4 @@ class ShiftService:
 async def get_shift_service(
         session: AsyncSession = Depends(get_session)
 ) -> ShiftService:
-    shift_service = ShiftService(session)
-    return shift_service
+    return ShiftService(session)

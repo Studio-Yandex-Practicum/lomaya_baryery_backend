@@ -31,8 +31,8 @@ class UserTaskService:
 
     async def _get_all_ids_callback(
             self,
-            shift_id,
-            day_number,
+            shift_id: UUID,
+            day_number: int,
     ) -> list[tuple[int]]:
         """Получает список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
         user_tasks_info = await self.session.execute(
@@ -49,13 +49,17 @@ class UserTaskService:
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    async def get_tasks_report(self, shift_id, day_number) -> list[dict[str, Any]]:
+    async def get_tasks_report(
+            self,
+            shift_id: UUID,
+            day_number: int
+    ) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        ids_list = await self._get_all_ids_callback(shift_id, day_number)
+        user_task_ids = await self._get_all_ids_callback(shift_id, day_number)
         tasks = []
-        if not ids_list:
+        if not user_task_ids:
             return tasks
-        for ids in ids_list:
+        for user_task_id, user_id, task_id in user_task_ids:
             task_summary_info = await self.session.execute(
                 select(User.name,
                        User.surname,
@@ -64,16 +68,16 @@ class UserTaskService:
                        Task.url.label('task_url'))
                 .select_from(User,
                              Task)
-                .where(User.id == ids.user_id,
-                       Task.id == ids.task_id)
+                .where(User.id == user_id,
+                       Task.id == task_id)
             )
             task_summary_info = task_summary_info.all()
             task = dict(*task_summary_info)
-            task['id'] = ids.id
+            task['id'] = user_task_id
             tasks.append(task)
         return tasks
 
-    async def get(self, user_task_id: UUID):
+    async def get(self, user_task_id: UUID) -> UserTask:
         """Получить объект отчета участника по id."""
         user_task = await self.session.execute(
             select(UserTask, Photo.url.label('photo_url'))
@@ -85,5 +89,4 @@ class UserTaskService:
 async def get_user_task_service(
         session: AsyncSession = Depends(get_session)
 ) -> UserTaskService:
-    user_task_service = UserTaskService(session)
-    return user_task_service
+    return UserTaskService(session)
