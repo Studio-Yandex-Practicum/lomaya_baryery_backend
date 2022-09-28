@@ -3,7 +3,6 @@ from pydantic.schema import UUID
 from sqlalchemy import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.request_models.user_task import UserTaskStatusRequest
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
 
@@ -12,7 +11,7 @@ class UserTaskService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get(
+    async def get_or_none(
         self,
         user_task_id: UUID,
     ) -> UserTask:
@@ -25,7 +24,7 @@ class UserTaskService:
     async def change_status(
         self,
         user_task: UserTask,
-        status: UserTaskStatusRequest,
+        status: UserTask.Status,
     ) -> UserTask:
         """Изменить статус задачи."""
         user_task.status = status

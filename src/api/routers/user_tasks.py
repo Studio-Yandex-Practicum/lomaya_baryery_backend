@@ -3,7 +3,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic.schema import UUID
 
-from src.api.request_models.user_task import UserTaskStatusRequest
+from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.user_task import UserTaskResponse
 from src.core.db.models import UserTask
 from src.core.services.user_task_service import UserTaskService, get_user_task_service
@@ -33,14 +33,14 @@ async def get_user_report(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get(user_task_id)
+    user_task = await user_task_service.get_or_none(user_task_id)
     if user_task is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=STR_ENTITY_NOT_EXIST)
     return user_task
 
 
 @router.patch(
-    "/user_tasks/{user_task_id}/{status}",
+    "/user_tasks/{user_task_id}/",
     response_model=UserTaskResponse,
     response_model_exclude_none=True,
     summary="Изменить статус участника.",
@@ -48,7 +48,7 @@ async def get_user_report(
 )
 async def change_user_report_status(
     user_task_id: UUID,
-    status: UserTaskStatusRequest,
+    request: ChangeStatusRequest,
     user_task_service: UserTaskService = Depends(get_user_task_service),
 ) -> UserTask:
     """Изменить статус отчета участника.
@@ -59,8 +59,8 @@ async def change_user_report_status(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get(user_task_id)
+    user_task = await user_task_service.get_or_none(user_task_id)
     if user_task is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=STR_ENTITY_NOT_EXIST)
-    user_task = await user_task_service.change_status(user_task, status)
+    user_task = await user_task_service.change_status(user_task, request.status)
     return user_task

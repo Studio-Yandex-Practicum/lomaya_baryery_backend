@@ -1,10 +1,15 @@
-from enum import Enum
+from pydantic import BaseModel, Field, validator
 
 from src.core.db.models import UserTask
 
 
-class UserTaskStatusRequest(str, Enum):
-    """Допустимые статусы отчета участника."""
+class ChangeStatusRequest(BaseModel):
+    """Модель изменения статуса."""
 
-    APPROVED = UserTask.Status.APPROVED.value
-    DECLINED = UserTask.Status.DECLINED.value
+    status: UserTask.Status = Field(UserTask.Status.APPROVED.value)
+
+    @validator("status")
+    def validate_status_allowed(cls, value: UserTask.Status) -> UserTask.Status:
+        if value not in (UserTask.Status.APPROVED.value, UserTask.Status.DECLINED.value):
+            raise ValueError("Недопустимый статус отчета")
+        return value
