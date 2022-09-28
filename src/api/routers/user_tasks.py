@@ -6,13 +6,13 @@ from pydantic.schema import UUID
 from src.api.request_models.user_task import AllowedUserTaskStatus
 from src.api.response_models.user_task import UserTaskDB
 from src.core.db.models import UserTask
-from src.core.services.user_task_service import UserTaskService
+from src.core.services.user_task_service import UserTaskService, get_user_task_service
 
 router = APIRouter()
 
 
 @router.get(
-    "user_tasks/{user_task_id}",
+    "/user_tasks/{user_task_id}",
     response_model=UserTaskDB,
     response_model_exclude_none=True,
     summary="Получить информацию об отчёте участника.",
@@ -20,7 +20,7 @@ router = APIRouter()
 )
 async def get_user_report(
     user_task_id: UUID,
-    user_task_service: UserTaskService = Depends(),
+    user_task_service: UserTaskService = Depends(get_user_task_service),
 ) -> UserTask:
     """Вернуть отчет участника.
 
@@ -37,7 +37,7 @@ async def get_user_report(
 
 
 @router.patch(
-    "user_tasks/{user_task_id}/{status}",
+    "/user_tasks/{user_task_id}/{status}",
     response_model=UserTaskDB,
     response_model_exclude_none=True,
     summary="Изменить статус участника.",
@@ -46,7 +46,7 @@ async def get_user_report(
 async def change_user_report_status(
     user_task_id: UUID,
     status: AllowedUserTaskStatus,
-    user_task_service: UserTaskService = Depends(),
+    user_task_service: UserTaskService = Depends(get_user_task_service),
 ) -> UserTask:
     """Изменить статус отчета участника.
 

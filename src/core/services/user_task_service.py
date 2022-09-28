@@ -9,7 +9,7 @@ from src.core.db.models import Photo, UserTask
 
 
 class UserTaskService:
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def get(
@@ -33,3 +33,7 @@ class UserTaskService:
         await self.session.commit()
         await self.session.refresh(user_task)
         return user_task
+
+
+def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
+    return UserTaskService(session)
