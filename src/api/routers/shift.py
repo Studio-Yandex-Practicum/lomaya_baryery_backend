@@ -13,5 +13,5 @@ router = APIRouter(prefix="/shift", tags=["Shift"])
 async def create_new_shift(
     shift: ShiftCreateRequest,
     shift_service: ShiftService = Depends(get_shift_service),
-):
+) -> ShiftResponse:
     return await shift_service.create_new_shift(shift)
