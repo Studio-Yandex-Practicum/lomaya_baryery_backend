@@ -21,4 +21,4 @@ class PhotoRepositopry(AbstractRepository):
         return await super().create(obj_data)
 
     async def update(self):
-        pass
+        raise NotImplementedError(f"Метод `update` не определен в репозитории {self.__class__.__name__}")
