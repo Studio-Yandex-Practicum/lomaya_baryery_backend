@@ -40,7 +40,7 @@ async def get_user_report(
 
 
 @router.patch(
-    "/user_tasks/{user_task_id}/",
+    "/user_tasks/{user_task_id}",
     response_model=UserTaskResponse,
     response_model_exclude_none=True,
     summary="Изменить статус участника.",
