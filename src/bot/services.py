@@ -1,6 +1,6 @@
 from src.core import settings
 from src.core.db import models
-# from src.main import create_bot
+# from src.bot.main import create_bot
 from src.schemas.user import UserData
 from src.schemas.registration import RequestData
 from src.core.db.db import async_session

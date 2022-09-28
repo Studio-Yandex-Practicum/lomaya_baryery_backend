@@ -1,12 +1,8 @@
 from fastapi import FastAPI
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    filters)
+from telegram.ext import ApplicationBuilder, CommandHandler
 
 from src.api.routers import router
-from src.bot.handlers import start, registration_form_init, web_app_data
+from src.bot.handlers import start
 from src.core.settings import settings
 
 app = FastAPI()
@@ -18,10 +14,6 @@ def create_bot():
     """Создать бота."""
     bot_app = ApplicationBuilder().token(settings.BOT_TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
-    # для тестирования команда '/reg'
-    bot_app.add_handler(CommandHandler('reg', registration_form_init))
-    bot_app.add_handler(
-        MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
     return bot_app
 
 
