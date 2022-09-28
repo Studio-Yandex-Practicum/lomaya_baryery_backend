@@ -1,4 +1,5 @@
 import abc
+from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel as PydanticModel
@@ -17,7 +18,7 @@ class AbstractRepository(abc.ABC):
         self.model = DatabaseModel
 
     @abc.abstractmethod
-    async def get(self, obj_id: DatabaseModel.id) -> DatabaseModel:
+    async def get(self, obj_id: UUID) -> DatabaseModel:
         return await self.session.scalar(select(self.model).where(self.model.id == obj_id))
 
     @abc.abstractmethod

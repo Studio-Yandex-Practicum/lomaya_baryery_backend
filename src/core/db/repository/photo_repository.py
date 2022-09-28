@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.photo import PhotoRequest
@@ -12,8 +14,11 @@ class PhotoRepositopry(AbstractRepository):
         super().__init__(session)
         self.model = Photo
 
-    async def get(self, obj_id: PhotoRequest.id) -> Photo:
+    async def get(self, obj_id: UUID) -> Photo:
         return await super().get(obj_id)
 
     async def create(self, obj_data: PhotoRequest) -> Photo:
         return await super().create(obj_data)
+
+    async def update(self):
+        pass
