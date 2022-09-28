@@ -8,7 +8,7 @@ from src.core.db.repository import AbstractRepository
 
 
 class UserRepository(AbstractRepository):
-    """Репозиторий для работы с моделью Request."""
+    """Репозиторий для работы с моделью User."""
 
     def __init__(self, session: AsyncSession):
         super().__init__(session)
