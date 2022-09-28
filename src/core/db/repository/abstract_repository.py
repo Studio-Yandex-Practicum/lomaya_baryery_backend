@@ -25,6 +25,7 @@ class AbstractRepository(abc.ABC):
     async def create(self, obj_data: PydanticModel) -> DatabaseModel:
         obj_data = obj_data.dict()
         db_obj = self.model(**obj_data)
+        self.session.add(db_obj)
         await self.session.commit()
         await self.session.refresh(db_obj)
         return db_obj
@@ -37,6 +38,6 @@ class AbstractRepository(abc.ABC):
             for field in obj_update_data:
                 setattr(db_obj, field, obj_update_data[field])
         self.session.add(db_obj)
-        self.session.commit()
-        self.session.refresh(db_obj)
+        await self.session.commit()
+        await self.session.refresh(db_obj)
         return db_obj
