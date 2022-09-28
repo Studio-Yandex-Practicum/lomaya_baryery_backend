@@ -14,8 +14,7 @@ class ShiftService:
         self,
         new_shift: ShiftCreateRequest,
     ) -> Shift:
-        new_shift_data = new_shift.dict()
-        db_shift = Shift(**new_shift_data)
+        db_shift = Shift(**new_shift.dict())
         self.session.add(db_shift)
         await self.session.commit()
         await self.session.refresh(db_shift)

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from src.core.db.models import Shift
 
 
-class ShiftDBResponse(BaseModel):
+class ShiftResponse(BaseModel):
     id: UUID
     status: Shift.Status
     started_at: date

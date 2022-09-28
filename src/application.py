@@ -9,7 +9,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.include_router(user_tasks)
-    app.include_router(shift_router, prefix="/shift", tags=["Shift"])
+    app.include_router(shift_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
