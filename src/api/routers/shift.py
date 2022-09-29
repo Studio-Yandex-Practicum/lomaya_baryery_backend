@@ -10,18 +10,57 @@ from src.core.services.shift_service import ShiftService
 router = APIRouter(prefix="/shift", tags=["Shift"])
 
 
-@router.post("/", response_model=ShiftResponse, response_model_exclude_none=True, status_code=HTTPStatus.CREATED)
+@router.post(
+    "/",
+    response_model=ShiftResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.CREATED,
+    summary="Создать новую смену",
+    response_description="Информация о созданной смене",
+)
 async def create_new_shift(shift: ShiftCreateRequest, shift_service: ShiftService = Depends()) -> ShiftResponse:
+    """Создать новую смену.
+
+    - **status**: статус смены (started|finished|preparing|cancelled)
+    - **started_at**: дата начала смены
+    - **finished_at**: дата окончания смены
+    """
     return await shift_service.create_new_shift(shift)
 
 
-@router.get("/", response_model=ShiftResponse, response_model_exclude_none=True, status_code=HTTPStatus.OK)
+@router.get(
+    "/",
+    response_model=ShiftResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
+    summary="Получить информацию о смене",
+    response_description="Информация о смене",
+)
 async def get_shift(id: UUID, shift_service: ShiftService = Depends()) -> ShiftResponse:
+    """Получить информацию о смене по её ID.
+
+    - **status**: статус смены (started|finished|preparing|cancelled)
+    - **started_at**: дата начала смены
+    - **finished_at**: дата окончания смены
+    """
     return await shift_service.get_shift(id)
 
 
-@router.patch("/", response_model=ShiftResponse, response_model_exclude_none=True, status_code=HTTPStatus.OK)
+@router.patch(
+    "/",
+    response_model=ShiftResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
+    summary="Обновить информацию о смене",
+    response_description="Обновленная информация о смене",
+)
 async def update_shift(
     id: UUID, update_shift_data: ShiftCreateRequest, shift_service: ShiftService = Depends()
 ) -> ShiftResponse:
+    """Обновить информацию о смене с указанным ID.
+
+    - **status**: статус смены (started|finished|preparing|cancelled)
+    - **started_at**: дата начала смены
+    - **finished_at**: дата окончания смены
+    """
     return await shift_service.update_shift(id, update_shift_data)
