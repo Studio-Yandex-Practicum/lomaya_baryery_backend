@@ -21,7 +21,6 @@ router = APIRouter(prefix="/shift", tags=["Shift"])
 async def create_new_shift(shift: ShiftCreateRequest, shift_service: ShiftService = Depends()) -> ShiftResponse:
     """Создать новую смену.
 
-    - **status**: статус смены (started|finished|preparing|cancelled)
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
     """
@@ -39,6 +38,7 @@ async def create_new_shift(shift: ShiftCreateRequest, shift_service: ShiftServic
 async def get_shift(id: UUID, shift_service: ShiftService = Depends()) -> ShiftResponse:
     """Получить информацию о смене по её ID.
 
+    - **id**: уникальный индентификатор смены
     - **status**: статус смены (started|finished|preparing|cancelled)
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
@@ -59,7 +59,6 @@ async def update_shift(
 ) -> ShiftResponse:
     """Обновить информацию о смене с указанным ID.
 
-    - **status**: статус смены (started|finished|preparing|cancelled)
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
     """

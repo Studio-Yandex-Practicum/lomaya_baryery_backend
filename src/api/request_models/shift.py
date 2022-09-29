@@ -6,7 +6,7 @@ from src.core.db.models import Shift
 
 
 class ShiftCreateRequest(BaseModel):
-    status: Shift.Status = Field("preparing")
+    status: Shift.Status = Field("preparing")  # FIXME: удалить после реализации задания статуса в бизнес логике
     started_at: datetime
     finished_at: datetime
 
