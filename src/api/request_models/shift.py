@@ -1,12 +1,9 @@
 from datetime import date, datetime, timedelta
 
-from pydantic import BaseModel, Field, validator
-
-from src.core.db.models import Shift
+from pydantic import BaseModel, validator
 
 
 class ShiftCreateRequest(BaseModel):
-    status: Shift.Status = Field("preparing")  # FIXME: удалить после реализации задания статуса в бизнес логике
     started_at: datetime
     finished_at: datetime
 

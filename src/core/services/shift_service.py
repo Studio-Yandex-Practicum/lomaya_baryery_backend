@@ -8,13 +8,13 @@ from src.core.db.repository import ShiftRepository
 
 
 class ShiftService:
-    # `shift_repository: ShiftRepository = Depends()` - это удобный шорткат для объявления зависимости
-    # смотри здесь https://fastapi.tiangolo.com/tutorial/dependencies/classes-as-dependencies/#shortcut
     def __init__(self, shift_repository: ShiftRepository = Depends()) -> None:
         self.shift_repository = shift_repository
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
-        return await self.shift_repository.create(shift=Shift(**new_shift.dict()))
+        shift = Shift(**new_shift.dict())
+        shift.status = Shift.Status.PREPARING
+        return await self.shift_repository.create(shift=shift)
 
     async def get_shift(self, id: UUID) -> Shift:
         return await self.shift_repository.get(id)
