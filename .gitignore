@@ -9,6 +9,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -16,3 +17,6 @@ __pypackages__/
 # Environments
 .venv
 .env
+
+# Vscode project settings
+.vscode
