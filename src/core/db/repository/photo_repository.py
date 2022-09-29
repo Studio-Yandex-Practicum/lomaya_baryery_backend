@@ -1,8 +1,10 @@
+from typing import Optional
 from uuid import UUID
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.request_models.photo import PhotoRequest
+from src.core.db.db import get_session
 from src.core.db.models import Photo
 from src.core.db.repository import AbstractRepository
 
@@ -10,15 +12,27 @@ from src.core.db.repository import AbstractRepository
 class PhotoRepository(AbstractRepository):
     """Репозиторий для работы с моделью Photo."""
 
-    def __init__(self, session: AsyncSession):
-        super().__init__(session)
-        self.model = Photo
+    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+        self.session = session
 
-    async def get(self, obj_id: UUID) -> Photo:
-        return await super().get(obj_id)
+    async def get_or_none(self, id: UUID) -> Optional[Photo]:
+        return await self.session.get(Photo, id)
 
-    async def create(self, obj_data: PhotoRequest) -> Photo:
-        return await super().create(obj_data)
+    async def get(self, id: UUID) -> Photo:
+        photo = await self.get_or_none(id)
+        if photo is None:
+            # FIXME: написать и использовать кастомное исключение
+            raise LookupError(f"Объект Photo c {id=} не найден.")
+        return photo
 
-    async def update(self):
-        raise NotImplementedError(f"Метод `update` не определен в репозитории {self.__class__.__name__}")
+    async def create(self, photo: Photo) -> Photo:
+        self.session.add(photo)
+        await self.session.commit()
+        await self.session.refresh(photo)
+        return photo
+
+    async def update(self, id: UUID, photo: Photo) -> Photo:
+        photo.id = id
+        await self.session.merge(photo)
+        await self.session.commit()
+        return photo
