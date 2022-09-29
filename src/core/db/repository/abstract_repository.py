@@ -16,20 +16,20 @@ class AbstractRepository(abc.ABC):
 
     @abc.abstractmethod
     async def get_or_none(self, id: UUID) -> Optional[DatabaseModel]:
-        """Получает из базы инстанс модели по ID. В случае отсутствия возвращает None."""
+        """Получает из базы объект модели по ID. В случае отсутствия возвращает None."""
         pass
 
     @abc.abstractmethod
     async def get(self, id: UUID) -> DatabaseModel:
-        """Получает инстанс модели по ID. В случае отсутствия инстанса бросает ошибку."""
+        """Получает объект модели по ID. В случае отсутствия объекта бросает ошибку."""
         pass
 
     @abc.abstractmethod
     async def create(self, instance: DatabaseModel) -> DatabaseModel:
-        """Создает новый инстанс модели и сохраняет в базе."""
+        """Создает новый объект модели и сохраняет в базе."""
         pass
 
     @abc.abstractmethod
     async def update(self, id: UUID, instance: DatabaseModel) -> DatabaseModel:
-        """Обновляет существующий инстанс модели в базе."""
+        """Обновляет существующий объект модели в базе."""
         pass
