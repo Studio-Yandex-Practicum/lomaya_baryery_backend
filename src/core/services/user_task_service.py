@@ -36,25 +36,29 @@ class UserTaskService:
         """
         task_service = await get_task_service(self.session)
         request_service = await get_request_service(self.session)
-        task_ids = await task_service.get_task_ids_list()
-        user_ids = await request_service.get_user_ids_approved_to_shift(shift_id)
+        task_ids_list = await task_service.get_task_ids_list()
+        user_ids_list = await request_service.get_user_ids_approved_to_shift(shift_id)
 
-        for user_id in user_ids:
-            # Случайным образом перемешиваем список task_ids
-            random.shuffle(task_ids)
-            task_counter = 0
-            for day in range(1, 94):
+        def distribution_process(task_ids: list[UUID], user_ids: list[UUID]) -> None:
+            """Процесс раздачи заданий."""
+            for user_id in user_ids:
+                # Случайным образом перемешиваем список task_ids
+                random.shuffle(task_ids)
+                task_counter = 0
+                for day in range(1, 94):
 
-                new_user_task = UserTask(
-                    user_id=user_id,
-                    shift_id=shift_id,
-                    task_id=task_ids[task_counter],
-                    day_number=day,
-                )
-                self.session.add(new_user_task)
-                task_counter += 1
-                if task_counter == len(task_ids):
-                    task_counter = 0
+                    new_user_task = UserTask(
+                        user_id=user_id,
+                        shift_id=shift_id,
+                        task_id=task_ids[task_counter],
+                        day_number=day,
+                    )
+                    self.session.add(new_user_task)
+                    task_counter += 1
+                    if task_counter == len(task_ids):
+                        task_counter = 0
+
+        distribution_process(task_ids_list, user_ids_list)
         await self.session.commit()
 
 
