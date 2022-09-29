@@ -12,7 +12,7 @@ from src.core.db.repository import AbstractRepository
 class ShiftRepository(AbstractRepository):
     """Репозиторий для работы с моделью Shift."""
 
-    def __init__(self, session: AsyncSession = Depends(get_session)):
+    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         self.session = session
 
     async def get_or_none(self, id: UUID) -> Optional[Shift]:
