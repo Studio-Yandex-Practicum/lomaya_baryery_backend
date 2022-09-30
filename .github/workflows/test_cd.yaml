@@ -51,10 +51,21 @@ jobs:
       name: Stage
     needs: build_and_push_lomaya_baryery_backend_image
     steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: nn
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: nn
+
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set variables
+        run: |
+          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
