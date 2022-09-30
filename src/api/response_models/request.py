@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from src.core.db.models import Request
 
 
-class RequestDB(BaseModel):
+class RequestDBRespone(BaseModel):
     user_id: UUID
     name: str
     surname: str

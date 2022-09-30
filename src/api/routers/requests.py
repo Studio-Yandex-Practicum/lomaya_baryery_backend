@@ -1,23 +1,23 @@
 from fastapi import APIRouter, Depends
 
-from src.api.request_models.request import RequestList
-from src.api.response_models.request import RequestDB
+from src.api.request_models.request import GetListAllShiftRequests
+from src.api.response_models.request import RequestDBRespone
 from src.core.services.request_service import RequestService, get_request_service
 
 router = APIRouter()
 
 
 @router.post(
-    '/',
-    response_model=list[RequestDB],
+    '/requests',
+    response_model=list[RequestDBRespone],
     response_model_exclude_none=True,
     summary=("Получить информацию обо всех заявках смены"
              "с возможностью фильтрации"),
     response_description="Полная информация обо заявках смены.",
 )
 async def get_list_all_requests_on_project(
-    request_list: RequestList,
-    request_service: RequestService = Depends(get_request_service),
+    request_list: GetListAllShiftRequests,
+    request_service: RequestService = Depends(),
 ):
     """
     Данный метод будет использоваться для получения сведений
