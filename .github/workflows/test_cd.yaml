@@ -44,41 +44,56 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    needs: build_and_push_lomaya_baryery_backend_image
     environment:
       name: Stage
-    needs: build_and_push_lomaya_baryery_backend_image
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: nn
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Docker login
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set variables
+      - name: Run docker
         run: |
-          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+          rm -f .env
+          touch .env
+          echo TELEGRAM_BOT_TOKEN=*** >> .env
+          docker image prune -f
+          docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
+          docker compose stop
+          docker compose rm backend -f
+          docker compose up -d
 
-      - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            rm -f .env
-            touch .env
-            echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-            docker image prune -f
-            docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
-            docker compose stop
-            docker compose rm backend -f
-            docker compose up -d
+#
+#
+#    container:
+#      image: 'ghcr.io/${{ github.repository }}:latest'
+#      credentials:
+#        registry: ${{ env.REGISTRY }}
+#        username: ${{ github.actor }}
+#        password: ${{ secrets.GITHUB_TOKEN }}
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          ref: nn
+#
+#  test:
+#    name: test
+#    runs-on: ubuntu-latest
+#    needs: deploy
+#    environment:
+#      name: Stage
+#    steps:
+#      - name: executing remote ssh commands to deploy
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.DEV_HOST }}
+#          username: ${{ secrets.DEV_USERNAME }}
+#          key: ${{ secrets.SSH_KEY }}
+#          script: |
+#            rm -f .env
+#            touch .env
+#            echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
