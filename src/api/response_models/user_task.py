@@ -1,11 +1,12 @@
-from pydantic.schema import UUID
 from typing import List
 
 from pydantic import BaseModel
+from pydantic.schema import UUID
+
+from src.core.db.models import UserTask
 
 from .shift import ShiftResponseModel
 from .task import TaskResponseModel
-from src.core.db.models import UserTask
 
 
 class UserTaskResponseModel(BaseModel):
