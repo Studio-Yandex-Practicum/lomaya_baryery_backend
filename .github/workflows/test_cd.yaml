@@ -1,31 +1,60 @@
-name: test yaml
+name: Stage backend build and deploy
 
 on:
+  pull_request:
+    branches:
+      - develop
+    types: [closed]
   push:
     branches:
       - nn
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: lomaya_baryery_backend
 
 jobs:
-  test:
-    name: Test yaml
+  build_and_push_lomaya_baryery_backend_image:
+    name: Push Docker image to GitHub Packages
     runs-on: ubuntu-latest
     environment:
       name: Stage
+
     steps:
-      - name: Create SSH key
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set variables
         run: |
-         mkdir -p ~/.ssh
-         chmod 700 ~/.ssh
-         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-         chmod 600 ~/.ssh/id_rsa
-
-#      - name: Create folder for application
-#        run: ssh ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }} mkdir -p /test
-      - name: Adding Known Hosts
-        run: ssh-keyscan -H 51.250.50.18 >> ~/.ssh/known_hosts
-
-      - name: check access
-        run: echo $DEV_USERNAME | sed -e 's/\(.\)/\1 /g'
+          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: runnumber=${GITHUB_RUN_ID}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+    needs: build_and_push_lomaya_baryery_backend_image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: nn
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
@@ -33,4 +62,12 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          script: whoami
+          script: |
+            rm -f .env
+            touch .env
+            echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+            docker image prune -f
+            docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
+            docker-compose stop
+            docker-compose rm backend -f
+            docker-compose up -d
