@@ -22,8 +22,6 @@ class UserTaskService:
     Метод 'get_tasks_report' формирует отчет с информацией о задачах
     и юзерах.
     Метод 'get' возвращает экземпляр UserTask по id.
-
-    Используется для ЭПИКА 'API: список заданий на проверке'
     """
 
     def __init__(self, session: AsyncSession):
