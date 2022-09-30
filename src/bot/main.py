@@ -16,17 +16,11 @@ def create_bot() -> Application:
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,  # заменить на имя метода отправки задания
-        time(
-            hour=settings.SEND_NEW_TASK_HOUR,
-            tzinfo=pytz.timezone("Europe/Moscow")
-        )
+        time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
     )
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,
-        time(
-            hour=settings.SEND_NO_REPORT_REMINDER_HOUR,
-            tzinfo=pytz.timezone("Europe/Moscow")
-        )        
+        time(hour=settings.SEND_NO_REPORT_REMINDER_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
     )
     return bot_instance
 
@@ -39,7 +33,7 @@ async def start_bot(webhook_mode: bool = settings.BOT_WEBHOOK_MODE) -> Applicati
         bot_instance.updater = None
         await bot_instance.bot.set_webhook(
             url=urljoin(settings.APPLICATION_URL, TELEGRAM_WEBHOOK_ENDPOINT),
-            secret_token=settings.BOT_TOKEN.replace(':', '')  # colon is not allowed here
+            secret_token=settings.BOT_TOKEN.replace(":", ""),  # colon is not allowed here
         )
     else:
         await bot_instance.updater.start_polling()
