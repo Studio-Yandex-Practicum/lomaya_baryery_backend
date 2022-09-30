@@ -67,7 +67,7 @@ jobs:
             touch .env
             echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             docker image prune -f
-            docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
+            docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
             docker compose stop
             docker compose rm backend -f
             docker compose up -d
