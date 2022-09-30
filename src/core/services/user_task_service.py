@@ -1,4 +1,5 @@
 import random
+from datetime import date, timedelta
 
 from fastapi import Depends
 from pydantic.schema import UUID
@@ -15,7 +16,7 @@ class UserTaskService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get(
+    async def get_or_none(
         self,
         user_task_id: UUID,
     ) -> UserTask:
@@ -24,6 +25,18 @@ class UserTaskService:
             select(UserTask, Photo.url.label("photo_url")).where(UserTask.id == user_task_id)
         )
         return user_task.scalars().first()
+
+    async def change_status(
+        self,
+        user_task: UserTask,
+        status: UserTask.Status,
+    ) -> UserTask:
+        """Изменить статус задачи."""
+        user_task.status = status
+        self.session.add(user_task)
+        await self.session.commit()
+        await self.session.refresh(user_task)
+        return user_task
 
     async def distribute_tasks_on_shift(
         self,
@@ -38,29 +51,34 @@ class UserTaskService:
         request_service = await get_request_service(self.session)
         task_ids_list = await task_service.get_task_ids_list()
         user_ids_list = await request_service.get_user_ids_approved_to_shift(shift_id)
+        # Список 93 календарных дней, начиная с сегодняшнего
+        dates_tuple = tuple((date.today() + timedelta(i)).day for i in range(93))
 
-        def distribution_process(task_ids: list[UUID], user_ids: list[UUID]) -> None:
-            """Процесс раздачи заданий."""
-            for user_id in user_ids:
-                # Случайным образом перемешиваем список task_ids
-                random.shuffle(task_ids)
-                task_counter = 0
-                for day in range(1, 94):
+        def distribution_process(task_ids: list[UUID], dates: tuple[int], user_id: UUID) -> None:
+            """Процесс раздачи заданий пользователю."""
+            # Для каждого пользователя
+            # случайным образом перемешиваем список task_ids
+            random.shuffle(task_ids)
+            daynumbers_tuple = tuple(i for i in range(1, 94))
+            # составляем кортеж из пар "день месяца - номер дня смены"
+            date_to_daynumber_mapping = tuple(zip(dates, daynumbers_tuple))
+            for date_day, day_number in date_to_daynumber_mapping:
 
-                    new_user_task = UserTask(
-                        user_id=user_id,
-                        shift_id=shift_id,
-                        task_id=task_ids[task_counter],
-                        day_number=day,
-                    )
-                    self.session.add(new_user_task)
-                    task_counter += 1
-                    if task_counter == len(task_ids):
-                        task_counter = 0
+                new_user_task = UserTask(
+                    user_id=user_id,
+                    shift_id=shift_id,
+                    # Task_id на позиции, соответствующей дню месяца.
+                    # Например, для первого числа это task_ids[0]
+                    task_id=task_ids[date_day - 1],
+                    day_number=day_number,
+                )
+                self.session.add(new_user_task)
 
-        distribution_process(task_ids_list, user_ids_list)
+        for userid in user_ids_list:
+            distribution_process(task_ids_list, dates_tuple, userid)
+
         await self.session.commit()
 
 
-async def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
+def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(session)
