@@ -63,7 +63,7 @@ jobs:
 
       - name: Pull and up
         run: |
-          cp /code
+          cd /code
           rm -f .env
           touch .env
           echo TELEGRAM_BOT_TOKEN=*** >> .env
