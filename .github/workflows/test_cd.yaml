@@ -51,10 +51,10 @@ jobs:
       name: Stage
     needs: build_and_push_lomaya_baryery_backend_image
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: nn
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          ref: nn
 
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
