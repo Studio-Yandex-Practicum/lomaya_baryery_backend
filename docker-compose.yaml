@@ -9,6 +9,8 @@ services:
     container_name: lomaya_baryery_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
     env_file:
       - ./.env
   backend:
