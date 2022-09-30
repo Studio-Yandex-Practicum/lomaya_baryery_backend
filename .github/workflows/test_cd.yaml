@@ -66,8 +66,8 @@ jobs:
             rm -f .env
             touch .env
             echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-            sudo -S docker image prune -f
+            docker image prune -f
             docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
-            docker-compose stop
-            docker-compose rm backend -f
-            docker-compose up -d
+            docker compose stop
+            docker compose rm backend -f
+            docker compose up -d
