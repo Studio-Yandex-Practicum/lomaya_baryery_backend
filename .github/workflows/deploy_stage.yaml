@@ -63,13 +63,9 @@ jobs:
 
       - name: Pull and up
         run: |
-          cd /code
           rm -f .env
           touch .env
           echo TELEGRAM_BOT_TOKEN=*** >> .env
           docker image prune -f
           docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
           docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
-          docker compose stop
-          docker compose rm bot -f
-          docker compose up -d
