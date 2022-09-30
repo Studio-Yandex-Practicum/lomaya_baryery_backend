@@ -2,10 +2,11 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import User
+from src.core.db.models import Request, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -36,3 +37,8 @@ class UserRepository(AbstractRepository):
         await self.session.merge(user)
         await self.session.commit()
         return user
+
+    async def get_user_list_by_shift_id(self, shift_id) -> list[User]:
+        statement = select(User).where(and_(Request.user_id == User.id, Request.shift_id == shift_id))
+        users = await self.session.execute(statement)
+        return users.scalars().all()
