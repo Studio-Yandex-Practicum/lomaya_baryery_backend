@@ -18,7 +18,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.schema import ForeignKey
 
 
@@ -108,6 +108,7 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
+    request = relationship("Request", back_populates="user")
 
     def __repr__(self):
         return f'<User: {self.id}, name: {self.name}, surname: {self.surname}>'
@@ -157,6 +158,7 @@ class Request(Base):
         UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
         nullable=False
     )
+    user = relationship("User", back_populates="request")
     shift_id = Column(
         UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False
     )

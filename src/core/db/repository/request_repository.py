@@ -41,9 +41,9 @@ class RequestRepository(AbstractRepository):
         return request
 
     async def list_all_requests(
-                self,
-                request_status_and_shift_id: GetListAllShiftRequests,
-            ) -> list[RequestDBRespone]:
+        self,
+        request_status_and_shift_id: GetListAllShiftRequests,
+    ) -> list[RequestDBRespone]:
         db_list_request = await self.session.execute(
             select((Request.user_id),
                    (Request.id.label("request_id")),
@@ -53,7 +53,7 @@ class RequestRepository(AbstractRepository):
                    (User.date_of_birth),
                    (User.city),
                    (User.phone_number.label("phone")))
-                   .join(User)
+                   .join(Request.user)
                     .where(
                         or_(Request.shift_id == request_status_and_shift_id.shift_id),
                         #Добавление условия запроса к бд если есть статус,
