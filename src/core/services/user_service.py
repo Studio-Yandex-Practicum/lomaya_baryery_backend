@@ -16,8 +16,6 @@ class UserService:
 
     async def get_user_list_by_shift_id(self, shift_id: UUID) -> dict[str, Union[dict, list]]:
         """Получаем смену и список пользователей зарегистрированных на смену по shift_id."""
-        shift = await self.shift_repository.get(
-            shift_id,
-        )
+        shift = await self.shift_repository.get(shift_id)
         users = await self.user_repository.get_user_list_by_shift_id(shift_id)
         return {"shift": shift, "users": users}
