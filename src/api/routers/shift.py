@@ -77,7 +77,6 @@ async def update_shift(
 )
 async def get_shift_users(
     shift_id: UUID,
-    # shift_service: ShiftService = Depends(),
     user_service: UserService = Depends(),
 ) -> UserListResponseModel:
     """Получить список пользоватаелй смены."""
