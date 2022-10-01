@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends
 
 from src.api.request_models.request import GetListAllShiftRequests
 from src.api.response_models.request import RequestDBRespone
-from src.core.services.request_service import RequestService, get_request_service
+from src.core.services.request_service import RequestService
 
-router = APIRouter()
+router = APIRouter(prefix="/requests", tags=["requests"])
 
 
 @router.post(
-    '/requests',
+    '/',
     response_model=list[RequestDBRespone],
     response_model_exclude_none=True,
     summary=("Получить информацию обо всех заявках смены"
@@ -16,9 +16,9 @@ router = APIRouter()
     response_description="Полная информация обо заявках смены.",
 )
 async def get_list_all_requests_on_project(
-    request_list: GetListAllShiftRequests,
+    request_data: GetListAllShiftRequests,
     request_service: RequestService = Depends(),
-):
+) -> RequestDBRespone:
     """
     Данный метод будет использоваться для получения сведений
     обо всех заявках смены с возможностью фильтрации по:
@@ -34,5 +34,5 @@ async def get_list_all_requests_on_project(
     - **status**: Статус заявки
     """
     return await request_service.list_all_requests(
-        list_request=request_list,
+        request_status_and_shift_id=request_data,
     )

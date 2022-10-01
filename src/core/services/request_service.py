@@ -1,41 +1,16 @@
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.request import GetListAllShiftRequests
 from src.api.response_models.request import RequestDBRespone
-from src.core.db.db import get_session
-from src.core.db.models import Request, User
+from src.core.db.repository import RequestRepository
 
 
 class RequestService:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+    def __init__(self, request_repository: RequestRepository = Depends()) -> None:
+        self.request_repository = request_repository
 
     async def list_all_requests(
         self,
-        list_request: GetListAllShiftRequests,
+        request_status_and_shift_id: GetListAllShiftRequests,
     ) -> list[RequestDBRespone]:
-        db_list_request = await self.session.execute(
-            select((Request.user_id),
-                   (Request.id.label("request_id")),
-                   (Request.status),
-                   (User.name),
-                   (User.surname),
-                   (User.date_of_birth),
-                   (User.city),
-                   (User.phone_number.label("phone")))
-                   .join(User)
-                    .where(
-                        or_(Request.shift_id == list_request.shift_id),
-                        #Добавление условия запроса к бд если есть статус,
-                        # а если нету то получение всех записей из бд по shift_id
-                        or_(list_request.status is None,
-                            Request.status == list_request.status)
-                        )
-                    )
-        return db_list_request.all()
-
-
-def get_request_service(session: AsyncSession = Depends(get_session)) -> RequestService:
-    return RequestService(session)
+        return await self.request_repository.list_all_requests(request_status_and_shift_id)
