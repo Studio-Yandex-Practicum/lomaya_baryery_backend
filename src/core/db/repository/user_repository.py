@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -17,6 +18,11 @@ class UserRepository(AbstractRepository):
 
     async def get_or_none(self, id: UUID) -> Optional[User]:
         return await self.session.get(User, id)
+
+    async def get_by_attribute(self, attr_name: str, attr_value: Union[str, bool]) -> Optional[User]:
+        attr = getattr(User, attr_name)
+        user = await self.session.execute(select(User).where(attr == attr_value))
+        return user.scalars().first()
 
     async def get(self, id: UUID) -> User:
         user = await self.get_or_none(id)
