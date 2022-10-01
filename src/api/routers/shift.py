@@ -4,8 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from src.api.request_models.shift import ShiftCreateRequest
-from src.api.response_models.shift import ShiftResponse
-from src.api.response_models.user import UserListResponseModel
+from src.api.response_models.shift import ShiftResponse, ShiftUsersResponse
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
 
@@ -69,7 +68,7 @@ async def update_shift(
 
 @router.get(
     "/{shift_id}/users",
-    response_model=UserListResponseModel,
+    response_model=ShiftUsersResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
     summary="Получить список пользователей смены",
@@ -78,6 +77,6 @@ async def update_shift(
 async def get_shift_users(
     shift_id: UUID,
     user_service: UserService = Depends(),
-) -> UserListResponseModel:
+) -> ShiftUsersResponse:
     """Получить список пользоватаелй смены."""
     return await user_service.get_user_list_by_shift_id(shift_id)

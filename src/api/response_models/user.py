@@ -3,10 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from .shift import ShiftResponse
 
-
-class UserResponseDB(BaseModel):
+class UserResponse(BaseModel):
     """Модель пользователя для ответа."""
 
     user_id: UUID
@@ -18,10 +16,3 @@ class UserResponseDB(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class UserListResponseModel(BaseModel):
-    """Модель для вывода списка пользователей смены."""
-
-    shift: ShiftResponse
-    users: list[UserResponseDB]
