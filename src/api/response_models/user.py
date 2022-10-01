@@ -1,7 +1,6 @@
 from datetime import date
 from uuid import UUID
 
-from phonenumbers import phonenumber
 from pydantic import BaseModel
 
 from .shift import ShiftResponse
@@ -15,7 +14,7 @@ class UserResponseDB(BaseModel):
     surname: str
     date_of_birth: date
     city: str
-    phone: phonenumber
+    phone: str
 
     class Config:
         orm_mode = True
