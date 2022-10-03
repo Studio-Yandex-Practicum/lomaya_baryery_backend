@@ -7,12 +7,12 @@ from pydantic import BaseModel
 class UserResponse(BaseModel):
     """Модель пользователя для ответа."""
 
-    user_id: UUID
+    id: UUID
     name: str
     surname: str
     date_of_birth: date
     city: str
-    phone: str
+    phone_number: str
 
     class Config:
         orm_mode = True
