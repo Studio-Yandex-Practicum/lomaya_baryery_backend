@@ -1,8 +1,9 @@
 from fastapi import Depends
 from pydantic.schema import UUID
 
-from src.api.request_models.request import RequestStatusUpdate
-from src.core.db.models import Request
+from src.api.request_models.request import RequestStatusUpdateRequest, Status
+from src.bot.services import send_approval_callback, send_rejection_callback
+from src.core.db.models import Request, User
 from src.core.db.repository import RequestRepository
 
 
@@ -17,7 +18,14 @@ class RequestService:
         """Получить объект заявку по id."""
         return await self.request_repository.get(request_id)
 
-    async def status_update(self, request: Request, new_status_data: RequestStatusUpdate) -> Request:
+    async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> Request:
         """Обновить статус заявки."""
-        setattr(request, "status", new_status_data.status)
+        request = await self.get_request(request_id)
+        request.status = new_status_data.status
         return await self.request_repository.update(id=request.id, request=request)
+
+    async def send_message(self, user: User, status: str) -> None:
+        """Отправить сообщение о решении по заявке в telegram."""
+        if status is Status.APPROVED:
+            return await send_approval_callback(user)
+        return await send_rejection_callback(user)
