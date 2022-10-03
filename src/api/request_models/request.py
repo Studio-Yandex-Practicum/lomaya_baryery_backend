@@ -10,5 +10,5 @@ class Status(str, enum.Enum):
     DECLINED = "declined"
 
 
-class RequestStatusUpdate(BaseModel):
+class RequestStatusUpdateRequest(BaseModel):
     status: Status = Field(Status.APPROVED.value)
