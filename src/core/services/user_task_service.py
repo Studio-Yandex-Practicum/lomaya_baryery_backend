@@ -1,9 +1,12 @@
+from typing import Any
+from uuid import UUID
+
 from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Photo, User, Shift, Task, UserTask
+from src.core.db.models import Photo, User, Task, UserTask
 
 
 class UserTaskService:

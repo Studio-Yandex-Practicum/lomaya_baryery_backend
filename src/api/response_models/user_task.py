@@ -1,18 +1,26 @@
 from pydantic import BaseModel
 from pydantic.schema import UUID
 
-from pydantic import BaseModel
-
-from .shift import ShiftResponseModel
-from .task import TaskResponseModel
+from src.api.response_models.shift import ShiftResponse
 from src.core.db.models import UserTask
+
+
+class UserAndTaskInfoResponseModel(BaseModel):
+    """Модель для ответа c обобщенной информацией о задании и юзере."""
+
+    id: UUID
+    name: str
+    surname: str
+    task_id: UUID
+    task_description: str
+    task_url: str
 
 
 class UserTaskResponseModel(BaseModel):
     """Общая модель смены и заданий для ответа."""
 
-    shift: ShiftResponseModel
-    tasks: list[TaskResponseModel]
+    shift: ShiftResponse
+    tasks: list[UserAndTaskInfoResponseModel]
 
 
 class UserTaskResponse(BaseModel):
