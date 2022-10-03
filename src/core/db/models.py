@@ -176,14 +176,13 @@ class UserTask(Base):
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-
     photo_id = Column(UUID(as_uuid=True), ForeignKey(Photo.id), nullable=False)
-
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
     user = relationship("User", back_populates="user_tasks")
     shift = relationship("Shift", back_populates="user_tasks")
     task = relationship("Task", back_populates="user_tasks")
     photo = relationship("Photo", back_populates="user_tasks")
+
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
 
     def __repr__(self):
         return f"<UserTask: {self.id}, day_number: {self.day_number}, " f"status: {self.status}>"
