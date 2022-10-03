@@ -28,7 +28,7 @@ async def create_new_shift(shift: ShiftCreateRequest, shift_service: ShiftServic
 
 
 @router.get(
-    "/{id}",
+    "/",
     response_model=ShiftResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
@@ -47,7 +47,7 @@ async def get_shift(id: UUID, shift_service: ShiftService = Depends()) -> ShiftR
 
 
 @router.patch(
-    "/{id}",
+    "/",
     response_model=ShiftResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
