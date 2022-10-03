@@ -1,29 +1,26 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.user_task import UserTaskResponse
 from src.core.db.models import UserTask
-from src.core.services.user_task_service import UserTaskService, get_user_task_service
+from src.core.services.user_task_service import UserTaskService
 
-router = APIRouter()
-
-
-STR_ENTITY_NOT_EXIST = "Задачи с указанным id не существует!"
+router = APIRouter(prefix="/user_tasks", tags=["UserTask"])
 
 
 @router.get(
-    "/user_tasks/{user_task_id}",
+    "/{user_task_id}",
     response_model=UserTaskResponse,
     response_model_exclude_none=True,
     summary="Получить информацию об отчёте участника.",
     response_description="Полная информация об отчёте участника.",
 )
 async def get_user_report(
-    user_task_id: UUID,
-    user_task_service: UserTaskService = Depends(get_user_task_service),
+    id: UUID,
+    user_task_service: UserTaskService = Depends(),
 ) -> UserTask:
     """Вернуть отчет участника.
 
@@ -33,23 +30,23 @@ async def get_user_report(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get_or_none(user_task_id)
-    if user_task is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=STR_ENTITY_NOT_EXIST)
+    user_task = await user_task_service.get(id)
     return user_task
 
 
 @router.patch(
-    "/user_tasks/{user_task_id}",
+    "/{user_task_id}",
     response_model=UserTaskResponse,
     response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
     summary="Изменить статус участника.",
     response_description="Полная информация об отчёте участника.",
 )
-async def change_user_report_status(
+async def update_status(
     user_task_id: UUID,
-    request: ChangeStatusRequest,
-    user_task_service: UserTaskService = Depends(get_user_task_service),
+    status: UserTask.Status,
+    update_user_task_status: ChangeStatusRequest,
+    user_task_service: UserTaskService = Depends(),
 ) -> UserTask:
     """Изменить статус отчета участника.
 
@@ -59,8 +56,6 @@ async def change_user_report_status(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get_or_none(user_task_id)
-    if user_task is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=STR_ENTITY_NOT_EXIST)
-    user_task = await user_task_service.change_status(user_task, request.status)
+    user_task = await user_task_service.get(user_task_id)
+    user_task = await user_task_service.update_status(status, update_user_task_status)
     return user_task

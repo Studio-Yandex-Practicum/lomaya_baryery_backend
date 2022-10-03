@@ -1,38 +1,26 @@
 from fastapi import Depends
 from pydantic.schema import UUID
-from sqlalchemy import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.core.db.db import get_session
-from src.core.db.models import Photo, UserTask
+from src.api.request_models.user_task import ChangeStatusRequest
+from src.core.db.models import UserTask
+from src.core.db.repository import PhotoRepository, UserTaskRepository
 
 
 class UserTaskService:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+    def __init__(
+        self, user_task_repository: UserTaskRepository = Depends(), photo_repository: PhotoRepository = Depends()
+    ) -> None:
+        self.user_task_repository = user_task_repository
+        self.photo_repository = photo_repository
 
-    async def get_or_none(
-        self,
-        user_task_id: UUID,
-    ) -> UserTask:
-        """Получить объект отчета участника по id."""
-        user_task = await self.session.execute(
-            select(UserTask, Photo.url.label("photo_url")).where(UserTask.id == user_task_id)
+    async def get(self, id: UUID):
+        user_task = await self.user_task_repository.get(id)
+        photo = await self.photo_repository.get(id=user_task.photo_id)
+        photo_url = photo.url
+
+        return user_task, photo_url
+
+    async def update_status(self, status: UserTask.Status, update_user_task_status: ChangeStatusRequest) -> UserTask:
+        return await self.user_task_repository.update_status(
+            status=status, user_task=UserTask(**update_user_task_status.dict())
         )
-        return user_task.scalars().first()
-
-    async def change_status(
-        self,
-        user_task: UserTask,
-        status: UserTask.Status,
-    ) -> UserTask:
-        """Изменить статус задачи."""
-        user_task.status = status
-        self.session.add(user_task)
-        await self.session.commit()
-        await self.session.refresh(user_task)
-        return user_task
-
-
-def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    return UserTaskService(session)
