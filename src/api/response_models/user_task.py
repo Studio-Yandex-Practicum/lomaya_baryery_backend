@@ -1,5 +1,5 @@
+from pydantic import BaseModel
 from pydantic.schema import UUID
-from typing import List
 
 from pydantic import BaseModel
 
@@ -12,12 +12,13 @@ class UserTaskResponseModel(BaseModel):
     """Общая модель смены и заданий для ответа."""
 
     shift: ShiftResponseModel
-    tasks: List[TaskResponseModel]
+    tasks: list[TaskResponseModel]
 
 
-class UserTaskDB(BaseModel):
+class UserTaskResponse(BaseModel):
     """Pydantic-схема, для описания объекта, полученного из БД."""
 
+    user_id: UUID
     user_task_id: UUID
     task_id: UUID
     day_number: int
