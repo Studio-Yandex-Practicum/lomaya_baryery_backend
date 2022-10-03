@@ -1,0 +1,45 @@
+name: Check Migrations
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+jobs:
+ migrations:
+    name: Check Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lomaya_baryery_db_local
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+    -
+      name: Check out the repo
+      uses: actions/checkout@v2
+    -
+      name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    -
+      name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    -
+      name: Alembic Upgrade
+      run: alembic upgrade head
+    -
+      name: Check Migrations
+      run: alembic-autogen-check
