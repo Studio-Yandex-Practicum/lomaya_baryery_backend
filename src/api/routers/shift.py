@@ -78,5 +78,10 @@ async def get_shift_users(
     shift_id: UUID,
     user_service: UserService = Depends(),
 ) -> ShiftUsersResponse:
-    """Получить список пользоватаелй смены."""
+    """
+    Получить список пользоватаелй смены.
+
+    - **shift**: Информация о смене
+    - **users**: Список всех одобренных пользователей смены.
+    """
     return await user_service.get_user_list_by_shift_id(shift_id)
