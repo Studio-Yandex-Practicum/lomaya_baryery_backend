@@ -1,10 +1,11 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import ShiftResponse
+from src.core.db.models import Shift
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService
 
@@ -78,11 +79,19 @@ async def start_shift(
     shift_id: UUID,
     shift_service: ShiftService = Depends(),
 ) -> ShiftResponse:
-    """Запустить смену.
+    """Начать смену.
 
     - **shift_id**: уникальный индентификатор смены
     """
+    shift = await shift_service.get_shift(shift_id)
+    if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING):
+        raise HTTPException(
+            status_code=HTTPStatus.METHOD_NOT_ALLOWED,
+            detail="Нельзя запустить уже начатую, отмененную или закрытую смену.",
+        )
     user_service = UserTaskService(shift_service.shift_repository.session)
-    user_service.distribute_tasks_on_shift(shift_id)
+    await user_service.distribute_tasks_on_shift(shift_id)
+
     # TODO добавить вызов метода рассылки участникам первого задания
+
     return await shift_service.start_shift(shift_id)
