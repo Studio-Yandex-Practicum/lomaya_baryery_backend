@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import Depends
 
 from src.api.request_models.shift import ShiftCreateRequest
+from src.api.response_models.shift import ShiftUsersResponse
 from src.core.db.models import Shift
 from src.core.db.repository import ShiftRepository
 
@@ -21,3 +22,8 @@ class ShiftService:
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftCreateRequest) -> Shift:
         return await self.shift_repository.update(id=id, shift=Shift(**update_shift_data.dict()))
+
+    async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
+        shift = self.shift_repository.get(id)
+        users = self.shift_repository.get_users(id)
+        return ShiftUsersResponse(shift=shift, users=users)
