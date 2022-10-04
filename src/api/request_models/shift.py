@@ -3,15 +3,18 @@ from datetime import date, datetime, timedelta
 from pydantic import BaseModel, validator
 
 
-class ShiftCreateRequest(BaseModel):
+class ShiftStartRequest(BaseModel):
     started_at: datetime
-    finished_at: datetime
 
     @validator("started_at")
     def validate_started_later_than_now(cls, value: datetime) -> datetime:
         if value.date() < date.today():
             raise ValueError("Дата начала смены не может быть меньше текущей")
         return value
+
+
+class ShiftCreateRequest(ShiftStartRequest):
+    finished_at: datetime
 
     @validator("finished_at")
     def validate_finished_at_later_than_4_month(cls, value: datetime) -> datetime:

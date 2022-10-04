@@ -1,8 +1,9 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
 
-from src.api.request_models.shift import ShiftCreateRequest
+from src.api.request_models.shift import ShiftCreateRequest, ShiftStartRequest
 from src.core.db.models import Shift
 from src.core.db.repository import ShiftRepository
 
@@ -20,4 +21,8 @@ class ShiftService:
         return await self.shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftCreateRequest) -> Shift:
+        return await self.shift_repository.update(id=id, shift=Shift(**update_shift_data.dict()))
+
+    async def start_shift(self, id: UUID) -> Shift:
+        update_shift_data = ShiftStartRequest(started_at=datetime.now())
         return await self.shift_repository.update(id=id, shift=Shift(**update_shift_data.dict()))

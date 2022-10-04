@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends
 from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import ShiftResponse
 from src.core.services.shift_service import ShiftService
+from src.core.services.user_task_service import UserTaskService
 
-router = APIRouter(prefix="/shift", tags=["Shift"])
+router = APIRouter(prefix="/shifts", tags=["Shift"])
 
 
 @router.post(
@@ -63,3 +64,25 @@ async def update_shift(
     - **finished_at**: дата окончания смены
     """
     return await shift_service.update_shift(id, update_shift_data)
+
+
+@router.post(
+    "/{shift_id}",
+    response_model=ShiftResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
+    summary="Старт смены",
+    response_description="Информация о запущенной смене",
+)
+async def start_shift(
+    shift_id: UUID,
+    shift_service: ShiftService = Depends(),
+) -> ShiftResponse:
+    """Запустить смену.
+
+    - **shift_id**: уникальный индентификатор смены
+    """
+    user_service = UserTaskService(shift_service.shift_repository.session)
+    user_service.distribute_tasks_on_shift(shift_id)
+    # TODO добавить вызов метода рассылки участникам первого задания
+    return await shift_service.start_shift(shift_id)
