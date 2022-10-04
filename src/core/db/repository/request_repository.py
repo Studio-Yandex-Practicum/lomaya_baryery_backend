@@ -1,7 +1,8 @@
+from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -31,8 +32,7 @@ class RequestRepository(AbstractRepository):
         )
         request = request.scalars().first()
         if request is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Request c {id=} не найден.")
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Объект Request c {id=} не найден.")
         return request
 
     async def create(self, request: Request) -> Request:

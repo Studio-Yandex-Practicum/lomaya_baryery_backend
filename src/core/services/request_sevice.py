@@ -1,4 +1,6 @@
-from fastapi import Depends
+from http import HTTPStatus
+
+from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestStatusUpdateRequest, Status
@@ -21,6 +23,8 @@ class RequestService:
     async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> Request:
         """Обновить статус заявки."""
         request = await self.get_request(request_id)
+        if request.status == new_status_data.status:
+            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Данная заявка уже была рассмотрена ранее")
         request.status = new_status_data.status
         return await self.request_repository.update(id=request.id, request=request)
 
