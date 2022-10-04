@@ -10,7 +10,9 @@ from telegram import (
 )
 from telegram.ext import CallbackContext, ContextTypes
 
-from src.core.services.registration_service import user_registration_callback
+from src.core.db.db import get_session
+from src.core.db.repository import RequestRepository, UserRepository
+from src.core.services.registration_service import RegistrationService
 from src.core.settings import settings
 
 
@@ -45,7 +47,14 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_data["telegram_id"] = update.effective_user.id
-        await user_registration_callback(user_data)
+        sessions = get_session()
+        async for session in sessions:
+            request_repository = RequestRepository(session=session)
+            user_repository = UserRepository(session=session)
+            registration_service = RegistrationService(
+                request_repository=request_repository, user_repository=user_repository
+            )
+            await registration_service.user_registration(user_data=user_data)
         await update.message.reply_text(
             text="Процесс регистрации занимает некоторое время - вам придет уведомление",
             reply_markup=ReplyKeyboardRemove(),

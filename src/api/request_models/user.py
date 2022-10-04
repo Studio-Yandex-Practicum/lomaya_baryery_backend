@@ -9,7 +9,7 @@ VALID_PHONE_NUMBER = "^[0-9]{11}$"
 INVALID_TEXT_ERROR = "Адрес содержит недопустимые символы"
 
 
-class UserCreate(BaseModel):
+class UserCreateRequest(BaseModel):
     telegram_id: int
     name: str = Field(min_length=2, max_length=100)
     surname: str = Field(min_length=2, max_length=100)
@@ -21,7 +21,7 @@ class UserCreate(BaseModel):
     @validator("date_of_birth", pre=True)
     def validate_date(cls, value: str):
         try:
-            return datetime.strptime(value, "%d/%m/%Y")
+            return datetime.strptime(value, "%Y-%m-%d")
         except ValidationError as error:
             return error
 
