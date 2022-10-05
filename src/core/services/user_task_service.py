@@ -13,14 +13,8 @@ class UserTaskService:
         self.user_task_repository = user_task_repository
         self.photo_repository = photo_repository
 
-    async def get(self, id: UUID):
-        user_task = await self.user_task_repository.get(id)
-        photo = await self.photo_repository.get(id=user_task.photo_id)
-        photo_url = photo.url
+    async def get_user_task_photo(self, id: UUID) -> UserTask:
+        return await self.user_task_repository.get(id)
 
-        return user_task, photo_url
-
-    async def update_status(self, status: UserTask.Status, update_user_task_status: ChangeStatusRequest) -> UserTask:
-        return await self.user_task_repository.update_status(
-            status=status, user_task=UserTask(**update_user_task_status.dict())
-        )
+    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> UserTask:
+        return await self.user_task_repository.update_status(id=id, status=update_user_task_status.status)

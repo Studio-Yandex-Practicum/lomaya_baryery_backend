@@ -41,7 +41,8 @@ class UserTaskRepository(AbstractRepository):
         await self.session.commit()
         return user_task
 
-    async def update_status(self, status: UserTask.Status, user_task: UserTask) -> UserTask:
+    async def update_status(self, id: UUID, status: UserTask.Status) -> UserTask:
+        user_task = await self.get(id=id)
         user_task.status = status
         await self.session.merge(user_task)
         await self.session.commit()

@@ -21,7 +21,7 @@ router = APIRouter(prefix="/user_tasks", tags=["UserTask"])
 async def get_user_report(
     id: UUID,
     user_task_service: UserTaskService = Depends(),
-) -> UserTask:
+):
     """Вернуть отчет участника.
 
     - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
@@ -30,7 +30,7 @@ async def get_user_report(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get(id)
+    user_task = await user_task_service.get_user_task_photo(id)
     return user_task
 
 
@@ -44,7 +44,6 @@ async def get_user_report(
 )
 async def update_status(
     user_task_id: UUID,
-    status: UserTask.Status,
     update_user_task_status: ChangeStatusRequest,
     user_task_service: UserTaskService = Depends(),
 ) -> UserTask:
@@ -56,6 +55,6 @@ async def update_status(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.get(user_task_id)
-    user_task = await user_task_service.update_status(status, update_user_task_status)
+    user_task = await user_task_service.get_user_task_photo(user_task_id)
+    user_task = await user_task_service.update_status(id=user_task.id, update_user_task_status=update_user_task_status)
     return user_task
