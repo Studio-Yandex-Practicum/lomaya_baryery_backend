@@ -77,7 +77,6 @@ jobs:
             echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
-            
             sudo docker image prune -f
             sudo docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
             sudo docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
