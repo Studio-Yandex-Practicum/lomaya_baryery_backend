@@ -14,7 +14,6 @@ env:
 
 jobs:
   build_and_push_lomaya_baryery_backend_image:
-    # if: github.event.pull_request.merged == true
     name: Push Docker image to GitHub Packages
     runs-on: ubuntu-latest
     environment:
@@ -49,7 +48,6 @@ jobs:
 
 
   deploy:
-    # if: github.event.pull_request.merged == true
     name: Deploy
     runs-on: ubuntu-latest
     needs: build_and_push_lomaya_baryery_backend_image
@@ -65,19 +63,9 @@ jobs:
 
       - name: Pull and up
         run: |
-            rm -f .env
-            touch .env
-            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
-            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            echo BOT_TOKEN=${{ secrets.BOT_TOKEN }} >> .env
-            echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
-            echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
-            echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
-            echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
-            
-            sudo docker image prune -f
-            sudo docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
-            sudo docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
+          rm -f .env
+          touch .env
+          echo TELEGRAM_BOT_TOKEN=*** >> .env
+          docker image prune -f
+          docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
+          docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
