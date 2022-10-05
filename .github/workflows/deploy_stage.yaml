@@ -82,7 +82,6 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             docker image prune -f
             docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
-            docker compose stop
-            docker compose rm backend
-            docker compose up -d
-            docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
+            docker-compose stop
+            docker-compose rm backend
+            docker-compose up -d
