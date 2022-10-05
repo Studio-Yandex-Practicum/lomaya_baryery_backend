@@ -8,6 +8,8 @@ from src.bot.services import send_approval_callback, send_rejection_callback
 from src.core.db.models import Request, User
 from src.core.db.repository import RequestRepository
 
+REVIEWED_REQUEST = "Данная заявка уже была рассмотрена ранее"
+
 
 class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
@@ -24,8 +26,9 @@ class RequestService:
         """Обновить статус заявки."""
         request = await self.get_request(request_id)
         if request.status == new_status_data.status:
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Данная заявка уже была рассмотрена ранее")
+            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
         request.status = new_status_data.status
+        await self.send_message(request.user, request.status)
         return await self.request_repository.update(id=request.id, request=request)
 
     async def send_message(self, user: User, status: str) -> None:
