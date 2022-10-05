@@ -12,7 +12,7 @@ from telegram.ext import CallbackContext, ContextTypes
 
 from src.core.db.db import get_session
 from src.core.db.repository import RequestRepository, UserRepository
-from src.core.services.registration_service import RegistrationService
+from src.core.services.user_service import RegistrationService
 from src.core.settings import settings
 
 
