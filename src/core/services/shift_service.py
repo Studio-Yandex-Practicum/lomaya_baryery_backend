@@ -1,8 +1,7 @@
 from datetime import datetime
-from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from src.api.request_models.shift import ShiftCreateRequest
 from src.core.db.models import Shift
@@ -28,10 +27,8 @@ class ShiftService:
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.shift_repository.get(id)
         if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING.value):
-            raise HTTPException(
-                status_code=HTTPStatus.METHOD_NOT_ALLOWED,
-                detail="Нельзя запустить уже начатую, отмененную или завершенную смену.",
-            )
+            # TODO изменить на кастомное исключение
+            raise Exception
         user_service = UserTaskService(self.shift_repository.session)
         await user_service.distribute_tasks_on_shift(id)
 
