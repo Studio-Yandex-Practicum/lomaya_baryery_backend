@@ -42,4 +42,4 @@ jobs:
       run: alembic upgrade heads
     -
       name: Check Migrations
-      run: alembic-autogen-check
+      run: alembic-autogen-check --config ./alembic.ini
