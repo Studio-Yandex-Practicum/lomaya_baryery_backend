@@ -1,8 +1,11 @@
 import re
 from datetime import date, datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, validator
+
+from src.core.db.models import Request
 
 VALID_TEXT = "^[a-zA-Zа-яА-ЯёЁ ]+$"
 VALID_PHONE_NUMBER = "^[0-9]{11}$"
@@ -48,3 +51,9 @@ class UserCreateRequest(BaseModel):
         if re.compile(VALID_PHONE_NUMBER).search(str(value)) is None:
             raise ValueError("Поле телефона должно состоять из 11 цифр")
         return value
+
+
+class RequestCreateRequest(BaseModel):
+    user_id: UUID
+    shift_id: Optional[UUID] = None
+    status: Request.Status

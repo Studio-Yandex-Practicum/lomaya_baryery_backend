@@ -1,7 +1,6 @@
 from fastapi import Depends
 
-from src.api.request_models.registration import RequestCreateRequest
-from src.api.request_models.user import UserCreateRequest
+from src.api.request_models.user import RequestCreateRequest, UserCreateRequest
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
@@ -24,6 +23,6 @@ class RegistrationService:
             await self.user_repository.create(user)
         request = await self.request_repository.get_by_attribute("id", user.id)
         if not request:
-            request_scheme = RequestCreateRequest(user_id=user.id)
+            request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
             request = Request(**request_scheme.dict())
             await self.user_repository.create(request)
