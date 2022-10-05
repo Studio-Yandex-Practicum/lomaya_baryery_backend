@@ -68,8 +68,8 @@ async def update_shift(
     return await shift_service.update_shift(id, update_shift_data)
 
 
-@router.post(
-    "/{shift_id}",
+@router.put(
+    "/{shift_id}/actions/start",
     response_model=ShiftResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
