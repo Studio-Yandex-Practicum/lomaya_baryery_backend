@@ -1,6 +1,6 @@
 from pydantic import Field, validator
 
-from .request_base import RequestBase
+from src.api.request_models.request_base import RequestBase
 from src.core.db.models import UserTask
 
 

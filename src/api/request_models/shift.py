@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 
 from pydantic import validator
 
-from .request_base import RequestBase
+from src.api.request_models.request_base import RequestBase
 
 
 class ShiftCreateRequest(RequestBase):
