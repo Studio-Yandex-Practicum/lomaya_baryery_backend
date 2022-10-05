@@ -18,6 +18,7 @@ router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
 
 STR_ENTITY_NOT_EXIST = "Задачи с указанным id не существует!"
+SHIFT_NOT_FOUND = "Такая смена не найдена."
 
 
 @router.get(
@@ -94,7 +95,7 @@ async def get_new_and_under_review_tasks(
     """
     shift = await shift_service.get_shift(shift_id)
     if not shift:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Такая смена не найдена.")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SHIFT_NOT_FOUND)
     tasks = await user_task_service.get_tasks_report(shift_id, day_number)
     report = dict()
     report["shift"] = shift
