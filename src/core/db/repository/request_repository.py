@@ -32,7 +32,7 @@ class RequestRepository(AbstractRepository):
         )
         request = request.scalars().first()
         if request is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Объект Request c {id=} не найден.")
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Объект Request c id={id} не найден.")
         return request
 
     async def create(self, request: Request) -> Request:
