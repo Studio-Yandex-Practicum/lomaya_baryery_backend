@@ -36,9 +36,9 @@ async def update_request_status(
     - **status**: статус заявки
     """
     updated_request = await request_service.status_update(request_id, new_status_data)
-    request_and_user_data = {**jsonable_encoder(updated_request), **jsonable_encoder(updated_request.user)}
-    data_for_response = dict()
-    for field in request_and_user_data:
-        if field in RequestResponse.__fields__:
-            data_for_response[field] = request_and_user_data[field]
-    return RequestResponse(request_id=updated_request.id, **data_for_response)
+    return RequestResponse(
+        request_id=updated_request.id,
+        user_id=updated_request.user.id,
+        status=updated_request.status,
+        **jsonable_encoder(updated_request.user)
+    )
