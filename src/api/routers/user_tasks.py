@@ -18,7 +18,7 @@ router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
 
 STR_ENTITY_NOT_EXIST = "Задачи с указанным id не существует!"
-SHIFT_NOT_FOUND = "Такая смена не найдена."
+SHIFT_NOT_FOUND = "Такая смена не найдена, проверьте id."
 
 
 @router.get(
