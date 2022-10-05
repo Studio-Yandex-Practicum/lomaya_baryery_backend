@@ -69,7 +69,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.DEV_PASSWORD }}
+          password: ${{ secrets.DEV_PASSWORD }}
           script: |
             rm -f .env
             touch .env
