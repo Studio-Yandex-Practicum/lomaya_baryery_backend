@@ -80,6 +80,4 @@ jobs:
             
             sudo docker image prune -f
             sudo docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
-            sudo docker compose --file docker-compose.yaml stop
-            sudo docker compose --file docker-compose.yaml rm backend
-            sudo docker compose --file docker-compose.yaml up -d
+            sudo docker buildx imagetools inspect ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
