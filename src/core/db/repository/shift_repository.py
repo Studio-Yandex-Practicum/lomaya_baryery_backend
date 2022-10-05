@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Shift
+from src.core.db.models import Shift, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -36,3 +36,6 @@ class ShiftRepository(AbstractRepository):
         await self.session.merge(shift)
         await self.session.commit()
         return shift
+
+    async def get_users(self, id: UUID) -> list[User]:
+        pass
