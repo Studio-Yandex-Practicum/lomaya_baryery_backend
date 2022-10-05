@@ -66,10 +66,11 @@ jobs:
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          run: |
+          passphrase: ${{ secrets.DEV_PASSWORD }}
+          script: |
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
@@ -82,23 +83,7 @@ jobs:
             echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
-
-
-  start_application:
-    # if: github.event.pull_request.merged == true
-    name: Start application
-    runs-on: ubuntu-latest
-    environment:
-      name: Stage
-    needs: deploy
-    steps:
-      - name: Start appication
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
+            
             sudo docker image prune -f
             sudo docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage
             sudo docker compose --file docker-compose.yaml stop
