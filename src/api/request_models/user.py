@@ -19,7 +19,6 @@ class UserCreateRequest(BaseModel):
     date_of_birth: date
     city: str = Field(min_length=2, max_length=50)
     phone_number: Optional[str]
-    deleted: bool = False
 
     @validator("date_of_birth", pre=True)
     def validate_date(cls, value: str):
