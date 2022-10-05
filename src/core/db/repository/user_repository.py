@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
@@ -19,9 +19,8 @@ class UserRepository(AbstractRepository):
     async def get_or_none(self, id: UUID) -> Optional[User]:
         return await self.session.get(User, id)
 
-    async def get_by_attribute(self, attr_name: str, attr_value: Union[str, bool]) -> Optional[User]:
-        attr = getattr(User, attr_name)
-        user = await self.session.execute(select(User).where(attr == attr_value))
+    async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+        user = await self.session.execute(select(User).where(telegram_id == telegram_id))
         return user.scalars().first()
 
     async def get(self, id: UUID) -> User:
