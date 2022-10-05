@@ -64,9 +64,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.yaml"
-          target: ${{ env.DEPLOY_PATH }}
-          strip_components: 1
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
