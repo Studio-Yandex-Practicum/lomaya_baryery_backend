@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from fastapi import Depends
 from pydantic.schema import UUID
-from sqlalchemy import select
+from sqlalchemy import and_, false, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -79,6 +79,24 @@ class UserTaskService:
 
         await self.session.commit()
 
+    async def get_user_task_to_change(self, user_id: UUID) -> UserTask:
+        """Получить задачу для изменения статуса и photo_id."""
+        # Выбираем все задачи участника со статусом new и без признака удаления,
+        # сортируем список задач от наиболее ранней до наиболее поздней,
+        # возвращаем первый элемент списка.
+        statement = select(UserTask).where(
+            and_(UserTask.deleted == false(), UserTask.status == UserTask.Status.NEW.value, UserTask.user_id == user_id)
+        ).order_by(UserTask.day_number)
+        user_tasks = await self.session.execute(statement)
+        return user_tasks.scalars().first()
+
+    async def change_photo_id(self, user_task: UserTask, photo_id: UUID) -> UserTask:
+        """Изменить photo_id задачи."""
+        user_task.photo_id = photo_id
+        self.session.add(user_task)
+        await self.session.commit()
+        await self.session.refresh(user_task)
+        return user_task
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(session)

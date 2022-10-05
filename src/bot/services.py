@@ -1,5 +1,12 @@
+import os
+from pathlib import Path
+
+from telegram import Update
+from telegram.ext import CallbackContext
+
 from src.core import settings
 from src.core.db import models
+from src.core.settings import BASE_DIR
 from src.bot.main import create_bot
 
 
@@ -26,3 +33,15 @@ async def send_rejection_callback(user: models.User):
             f'{settings.ORGANIZATIONS_GROUP}'
         )
     )
+
+
+async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
+    """Сохранить фото отчёта на диск в /data/user_reports."""
+    USER_REPORTS_DIR = Path(BASE_DIR, "data", "user_reports")
+
+    if not os.path.exists(USER_REPORTS_DIR):
+        os.makedirs(USER_REPORTS_DIR)
+    file = await context.bot.get_file(update.message.photo[-1].file_id)
+    file_name = file.file_unique_id.replace('-', '') + Path(file.file_path).suffix
+    await file.download(custom_path=Path(USER_REPORTS_DIR, file_name))
+    return str(file.file_path)

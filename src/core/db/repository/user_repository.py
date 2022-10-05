@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -35,4 +36,15 @@ class UserRepository(AbstractRepository):
         user.id = id
         await self.session.merge(user)
         await self.session.commit()
+        return user
+
+    async def get_or_none_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+        user = await self.session.execute(select(User).where(User.telegram_id == telegram_id))
+        return user.scalars().first()
+
+    async def get_by_telegram_id(self, telegram_id: int) -> User:
+        user = await self.get_or_none_by_telegram_id(telegram_id)
+        if user is None:
+            # FIXME: написать и использовать кастомное исключение
+            raise LookupError(f"Объект User c {telegram_id=} не найден.")
         return user
