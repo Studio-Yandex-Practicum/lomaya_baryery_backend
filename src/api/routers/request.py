@@ -8,7 +8,7 @@ from src.api.request_models.request import RequestStatusUpdateRequest
 from src.api.response_models.request import RequestResponse
 from src.core.services.request_sevice import RequestService
 
-router = APIRouter(prefix="/request", tags=["Request"])
+router = APIRouter(prefix="/requests", tags=["Request"])
 
 
 @router.patch(
