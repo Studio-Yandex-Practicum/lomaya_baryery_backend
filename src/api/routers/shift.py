@@ -1,13 +1,16 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import ShiftResponse, ShiftUsersResponse
 from src.core.services.shift_service import ShiftService
 
-router = APIRouter(prefix="/shift", tags=["Shift"])
+router = APIRouter(prefix="/shifts", tags=["Shift"])
+
+
+STR_STATUS_DENIES_START_SHIFT = "Нельзя запустить уже начатую, отмененную или завершенную смену."
 
 
 @router.post(
@@ -84,3 +87,24 @@ async def get_shift_users(
     - **users**: Список всех одобренных пользователей смены.
     """
     return await shift_service.get_users_list(shift_id)
+
+
+@router.put(
+    "/{shift_id}/actions/start",
+    response_model=ShiftResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
+    summary="Старт смены",
+    response_description="Информация о запущенной смене",
+)
+async def start_shift(shift_id: UUID, shift_service: ShiftService = Depends()) -> ShiftResponse:
+    """Начать смену.
+
+    - **shift_id**: уникальный индентификатор смены
+    """
+    try:
+        shift = await shift_service.start_shift(shift_id)
+    # TODO изменить на кастомное исключение
+    except Exception:
+        raise HTTPException(status_code=HTTPStatus.METHOD_NOT_ALLOWED, detail=STR_STATUS_DENIES_START_SHIFT)
+    return shift
