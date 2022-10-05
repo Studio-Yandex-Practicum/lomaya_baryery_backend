@@ -10,18 +10,17 @@ from telegram import (
 )
 from telegram.ext import CallbackContext, ContextTypes
 
+from src.bot.services import get_registration_service_callback
 from src.core.db.db import get_session
-from src.core.db.repository import RequestRepository, UserRepository
-from src.core.services.user_service import RegistrationService
 from src.core.settings import settings
 
 
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
     start_text = (
-        "Это бот Центра \"Ломая барьеры\", который в игровой форме поможет "
+        'Это бот Центра "Ломая барьеры", который в игровой форме поможет '
         "особенному ребенку стать немного самостоятельнее! Выполняя задания "
-        "каждый день, ребенку будут начислять виртуальные \"ломбарьерчики\". "
+        'каждый день, ребенку будут начислять виртуальные "ломбарьерчики". '
         "Каждый месяц мы будем подводить итоги "
         "и награждать самых активных и старательных ребят!"
     )
@@ -47,14 +46,9 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_data["telegram_id"] = update.effective_user.id
-        sessions = get_session()
-        async for session in sessions:
-            request_repository = RequestRepository(session=session)
-            user_repository = UserRepository(session=session)
-            registration_service = RegistrationService(
-                request_repository=request_repository, user_repository=user_repository
-            )
-            await registration_service.user_registration(user_data=user_data)
+        session = get_session()
+        registration_service = await get_registration_service_callback(session)
+        await registration_service.user_registration(user_data)
         await update.message.reply_text(
             text="Процесс регистрации занимает некоторое время - вам придет уведомление",
             reply_markup=ReplyKeyboardRemove(),
