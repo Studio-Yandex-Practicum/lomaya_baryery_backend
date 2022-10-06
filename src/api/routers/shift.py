@@ -31,26 +31,26 @@ async def create_new_shift(shift: ShiftCreateRequest, shift_service: ShiftServic
 
 
 @router.get(
-    "/",
+    "/{shift_id}",
     response_model=ShiftResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
     summary="Получить информацию о смене",
     response_description="Информация о смене",
 )
-async def get_shift(id: UUID, shift_service: ShiftService = Depends()) -> ShiftResponse:
+async def get_shift(shift_id: UUID, shift_service: ShiftService = Depends()) -> ShiftResponse:
     """Получить информацию о смене по её ID.
 
-    - **id**: уникальный индентификатор смены
+    - **shift_id**: уникальный индентификатор смены
     - **status**: статус смены (started|finished|preparing|cancelled)
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
     """
-    return await shift_service.get_shift(id)
+    return await shift_service.get_shift(shift_id)
 
 
 @router.patch(
-    "/",
+    "/{shift_id}",
     response_model=ShiftResponse,
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
@@ -58,14 +58,15 @@ async def get_shift(id: UUID, shift_service: ShiftService = Depends()) -> ShiftR
     response_description="Обновленная информация о смене",
 )
 async def update_shift(
-    id: UUID, update_shift_data: ShiftCreateRequest, shift_service: ShiftService = Depends()
+    shift_id: UUID, update_shift_data: ShiftCreateRequest, shift_service: ShiftService = Depends()
 ) -> ShiftResponse:
     """Обновить информацию о смене с указанным ID.
 
+    - **shift_id**: уникальный индентификатор смены
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
     """
-    return await shift_service.update_shift(id, update_shift_data)
+    return await shift_service.update_shift(shift_id, update_shift_data)
 
 
 @router.put(

@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     DB_HOST: str
     DB_PORT: str
+    MIN_DAYS: int = 1
+    MAX_DAYS: int = 93
     SEND_NEW_TASK_HOUR: int
     SEND_NO_REPORT_REMINDER_HOUR: int
 
