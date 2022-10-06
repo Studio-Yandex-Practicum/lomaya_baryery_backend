@@ -3,7 +3,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.core.db.models import UserTask
-from src.core.db.repository import UserTaskRepository
+from src.core.db.repository.user_task_repository import UserTaskRepository
 
 
 class UserTaskService:

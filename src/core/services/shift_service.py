@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from src.api.request_models.shift import ShiftCreateRequest
 from src.core.db.models import Shift
-from src.core.db.repository import ShiftRepository
+from src.core.db.repository.shift_repository import ShiftRepository
 
 
 class ShiftService:

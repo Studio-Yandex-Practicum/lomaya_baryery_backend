@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.models import Task
-from src.core.db.repository import AbstractRepository
+from src.core.db.repository.abstract_repository import AbstractRepository
 
 
 class TaskRepository(AbstractRepository):

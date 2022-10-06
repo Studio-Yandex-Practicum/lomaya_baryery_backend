@@ -43,7 +43,7 @@ async def get_user_report(
     response_description="Полная информация об отчёте участника.",
 )
 async def update_status_report(
-    user_task_id: UUID,
+    id: UUID,
     update_user_task_status: ChangeStatusRequest,
     user_task_service: UserTaskService = Depends(),
 ) -> dict:
@@ -56,5 +56,5 @@ async def update_status_report(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.update_status(id=user_task_id, update_user_task_status=update_user_task_status)
+    user_task = await user_task_service.update_status(id, update_user_task_status)
     return user_task
