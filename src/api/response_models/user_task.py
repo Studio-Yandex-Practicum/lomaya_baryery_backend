@@ -12,7 +12,7 @@ class UserTaskResponse(BaseModel):
     task_id: UUID
     day_number: int
     status: UserTask.Status
-    # photo_url: str
+    photo_url: str
 
     class Config:
         orm_mode = True
