@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import Field, validator
 
 from src.api.request_models.request_base import RequestBase
@@ -14,3 +16,8 @@ class ChangeStatusRequest(RequestBase):
         if value not in (UserTask.Status.APPROVED.value, UserTask.Status.DECLINED.value):
             raise ValueError("Недопустимый статус отчета")
         return value
+
+
+class UserTaskUpdateRequest(RequestBase):
+    status: Optional[str]
+    photo_id: Optional[int]

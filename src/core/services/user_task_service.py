@@ -3,19 +3,22 @@ from datetime import date, timedelta
 
 from fastapi import Depends
 from pydantic.schema import UUID
-from sqlalchemy import and_, false, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
+from src.core.db.repository import UserTaskRepository
+# FIXME отсутствует
 from src.core.services.request_service import get_request_service
 from src.core.services.task_service import get_task_service
 
 
 class UserTaskService:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+    def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
+        self.user_task_repository = user_task_repository
 
+    # TODO нужно переписать
     async def get_or_none(
         self,
         user_task_id: UUID,
@@ -26,6 +29,7 @@ class UserTaskService:
         )
         return user_task.scalars().first()
 
+    # TODO нужно переписать
     async def change_status(
         self,
         user_task: UserTask,
@@ -38,6 +42,7 @@ class UserTaskService:
         await self.session.refresh(user_task)
         return user_task
 
+    # TODO нужно переписать
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
@@ -79,24 +84,9 @@ class UserTaskService:
 
         await self.session.commit()
 
-    async def get_user_task_to_change(self, user_id: UUID) -> UserTask:
+    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
         """Получить задачу для изменения статуса и photo_id."""
-        # Выбираем все задачи участника со статусом new и без признака удаления,
-        # сортируем список задач от наиболее ранней до наиболее поздней,
-        # возвращаем первый элемент списка.
-        statement = select(UserTask).where(
-            and_(UserTask.deleted == false(), UserTask.status == UserTask.Status.NEW.value, UserTask.user_id == user_id)
-        ).order_by(UserTask.day_number)
-        user_tasks = await self.session.execute(statement)
-        return user_tasks.scalars().first()
-
-    async def change_photo_id(self, user_task: UserTask, photo_id: UUID) -> UserTask:
-        """Изменить photo_id задачи."""
-        user_task.photo_id = photo_id
-        self.session.add(user_task)
-        await self.session.commit()
-        await self.session.refresh(user_task)
-        return user_task
+        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(session)

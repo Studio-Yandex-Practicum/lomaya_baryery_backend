@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     DB_PORT: str
     SEND_NEW_TASK_HOUR: int
     SEND_NO_REPORT_REMINDER_HOUR: int
+    USER_REPORTS_DIR: str
 
     @property
     def database_url(self):
