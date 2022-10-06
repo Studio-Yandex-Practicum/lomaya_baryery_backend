@@ -15,17 +15,14 @@ from src.core.services.user_service import UserService
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
     start_text = (
-        'Это бот Центра "Ломая барьеры", который в игровой форме поможет '
-        'особенному ребенку стать немного самостоятельнее! Выполняя задания '
-        'каждый день, ребенку будут начислять виртуальные "ломбарьерчики". '
-        'Каждый месяц мы будем подводить итоги '
-        'и награждать самых активных и старательных ребят!'
+        "Это бот Центра \"Ломая барьеры\", который в игровой форме поможет "
+        "особенному ребенку стать немного самостоятельнее! Выполняя задания "
+        "каждый день, ребенку будут начислять виртуальные \"ломбарьерчики\". "
+        "Каждый месяц мы будем подводить итоги "
+        "и награждать самых активных и старательных ребят!"
     )
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=start_text
-    )
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:

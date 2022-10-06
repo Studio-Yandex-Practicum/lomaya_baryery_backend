@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from pydantic import Field, validator
 
@@ -19,5 +20,5 @@ class ChangeStatusRequest(RequestBase):
 
 
 class UserTaskUpdateRequest(RequestBase):
-    status: Optional[str]
-    photo_id: Optional[int]
+    status: Optional[UserTask.Status]
+    photo_id: Optional[UUID]
