@@ -1,9 +1,11 @@
 from datetime import date, datetime, timedelta
 
-from pydantic import BaseModel, validator
+from pydantic import validator
+
+from src.api.request_models.request_base import RequestBase
 
 
-class ShiftCreateRequest(BaseModel):
+class ShiftCreateRequest(RequestBase):
     started_at: datetime
     finished_at: datetime
 

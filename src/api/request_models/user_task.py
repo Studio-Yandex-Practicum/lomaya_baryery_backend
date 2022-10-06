@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, validator
 
+from src.api.request_models.request_base import RequestBase
 from src.core.db.models import UserTask
 
 
-class ChangeStatusRequest(BaseModel):
+class ChangeStatusRequest(RequestBase):
     """Модель изменения статуса."""
 
     status: UserTask.Status = Field(UserTask.Status.APPROVED.value)
