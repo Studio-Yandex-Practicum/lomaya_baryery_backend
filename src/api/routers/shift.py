@@ -46,7 +46,7 @@ async def get_shift(shift_id: UUID, shift_service: ShiftService = Depends()) -> 
     - **started_at**: дата начала смены
     - **finished_at**: дата окончания смены
     """
-    return await shift_service.get_shift(id)
+    return await shift_service.get_shift(shift_id)
 
 
 @router.patch(
