@@ -153,8 +153,6 @@ class Request(Base):
     )
     user = relationship("User", back_populates="requests")
     shift = relationship("Shift", back_populates="requests")
-    users = relationship("User", back_populates="requests")
-    shifts = relationship("Shift", back_populates="requests")
 
     def __repr__(self):
         return f"<Request: {self.id}, status: {self.status}>"
