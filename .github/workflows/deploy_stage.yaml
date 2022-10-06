@@ -14,7 +14,10 @@ env:
   REP_OWNER: studio-yandex-practicum
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /opt/lom-back
-  
+
+defaults:
+  run:
+    working-directory: .
 
 jobs:
   build_and_push_lomaya_baryery_backend_image:
@@ -34,9 +37,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set variables
-        run: |
-          echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+      # - name: Set variables
+      #   run: |
+      #     echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -61,6 +64,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
+
       - name: Copy docker-compose file
         uses: appleboy/scp-action@master
         with:
@@ -70,6 +74,7 @@ jobs:
           source: "docker-compose.yaml"
           target: ${{ env.DEPLOY_PATH }}
           strip_components: 1
+          
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
