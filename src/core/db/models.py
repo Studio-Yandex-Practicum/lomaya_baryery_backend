@@ -55,7 +55,7 @@ class Shift(Base):
     finished_at = Column(DATE, nullable=False, index=True)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
-    users = relationship("Request", back_populates="shifts")
+    users = relationship("Request", back_populates="shift")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -99,7 +99,7 @@ class User(Base):
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user")
-    shifts = relationship("Request", back_populates="users")
+    shifts = relationship("Request", back_populates="user")
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
