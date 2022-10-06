@@ -9,8 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
-from src.core.services.request_sevice import get_request_service
+from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import get_task_service
+from src.core.db.repository.request_repository import RequestRepository
 
 
 class UserTaskService:
@@ -49,7 +50,7 @@ class UserTaskService:
         Метод запускается при старте смены.
         """
         task_service = await get_task_service(self.session)
-        request_service = await get_request_service()
+        request_service = RequestService(RequestRepository(self.session))
         task_ids_list = await task_service.get_task_ids_list()
         user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
         # Список 93 календарных дней, начиная с сегодняшнего
