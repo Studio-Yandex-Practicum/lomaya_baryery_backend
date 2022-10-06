@@ -1,5 +1,4 @@
 import random
-from typing import List, Tuple
 from datetime import date, timedelta
 
 from fastapi import Depends
@@ -56,7 +55,7 @@ class UserTaskService:
         # Список 93 календарных дней, начиная с сегодняшнего
         dates_tuple = tuple((date.today() + timedelta(i)).day for i in range(93))
 
-        def distribution_process(task_ids: List[UUID], dates: Tuple[int], user_id: UUID) -> None:
+        def distribution_process(task_ids: list[UUID], dates: tuple[int], user_id: UUID) -> None:
             """Процесс раздачи заданий пользователю."""
             # Для каждого пользователя
             # случайным образом перемешиваем список task_ids

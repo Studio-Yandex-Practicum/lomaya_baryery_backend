@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
@@ -50,7 +50,7 @@ class RequestRepository(AbstractRepository):
     async def get_shift_user_ids(
             self, shift_id: UUID,
             status: str = Request.Status.APPROVED.value
-    ) -> List[UUID]:
+    ) -> list[UUID]:
         users_ids = await self.session.execute(
             select(
                 Request.user_id
