@@ -53,6 +53,8 @@ class Shift(Base):
     )
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
+    requests = relationship("Request", back_populates="shift")
+    user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("Request", back_populates="shifts")
 
     def __repr__(self):
@@ -65,6 +67,7 @@ class Photo(Base):
     __tablename__ = "photos"
 
     url = Column(String(length=150), unique=True, nullable=False)
+    user_tasks = relationship("UserTask", back_populates="photo")
 
     def __repr__(self):
         return f"<Photo: {self.id}, url: {self.url}>"
@@ -77,6 +80,7 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
+    user_tasks = relationship("UserTask", back_populates="task")
 
     def __repr__(self):
         return f"<Task: {self.id}, description: {self.description}>"
@@ -93,6 +97,8 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
+    requests = relationship("Request", back_populates="user")
+    user_tasks = relationship("UserTask", back_populates="user")
     shifts = relationship("Request", back_populates="users")
 
     def __repr__(self):
@@ -145,8 +151,10 @@ class Request(Base):
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    users = relationship("User", back_populates="shifts")
-    shifts = relationship("Shift", back_populates="users")
+    user = relationship("User", back_populates="requests")
+    shift = relationship("Shift", back_populates="requests")
+    users = relationship("User", back_populates="requests")
+    shifts = relationship("Shift", back_populates="requests")
 
     def __repr__(self):
         return f"<Request: {self.id}, status: {self.status}>"
@@ -172,8 +180,11 @@ class UserTask(Base):
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-
     photo_id = Column(UUID(as_uuid=True), ForeignKey(Photo.id), nullable=True)
+    user = relationship("User", back_populates="user_tasks")
+    shift = relationship("Shift", back_populates="user_tasks")
+    task = relationship("Task", back_populates="user_tasks")
+    photo = relationship("Photo", back_populates="user_tasks")
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
 
