@@ -8,9 +8,11 @@ on:
   push:
     branches:
       - feature/ci_cd
+      
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: lomaya_baryery_backend
+  DEPLOY_PATH: /opt/lom-back
 
 jobs:
   build_and_push_lomaya_baryery_backend_image:
@@ -64,6 +66,8 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: "docker-compose.yaml"
+          target: ${{ env.DEPLOY_PATH }}
+          strip_components: 1
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
@@ -71,6 +75,7 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd ${{ env.DEPLOY_PATH }}
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
@@ -100,6 +105,7 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
             docker compose --file docker-compose.yaml stop
