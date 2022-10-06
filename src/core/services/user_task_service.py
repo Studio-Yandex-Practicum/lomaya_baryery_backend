@@ -1,4 +1,5 @@
 import random
+from typing import List, Tuple
 from datetime import date, timedelta
 
 from fastapi import Depends
@@ -8,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
-from src.core.services.request_service import get_request_service
+from src.core.services.request_sevice import get_request_service
 from src.core.services.task_service import get_task_service
 
 
@@ -48,13 +49,13 @@ class UserTaskService:
         Метод запускается при старте смены.
         """
         task_service = await get_task_service(self.session)
-        request_service = await get_request_service(self.session)
+        request_service = await get_request_service()
         task_ids_list = await task_service.get_task_ids_list()
-        user_ids_list = await request_service.get_user_ids_approved_to_shift(shift_id)
+        user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
         # Список 93 календарных дней, начиная с сегодняшнего
         dates_tuple = tuple((date.today() + timedelta(i)).day for i in range(93))
 
-        def distribution_process(task_ids: list[UUID], dates: tuple[int], user_id: UUID) -> None:
+        def distribution_process(task_ids: List[UUID], dates: Tuple[int], user_id: UUID) -> None:
             """Процесс раздачи заданий пользователю."""
             # Для каждого пользователя
             # случайным образом перемешиваем список task_ids
