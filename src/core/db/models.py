@@ -155,7 +155,7 @@ class Request(Base):
         nullable=False
     )
     shift_id = Column(
-        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False
+        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True
     )
     status = Column(
         Enum(
