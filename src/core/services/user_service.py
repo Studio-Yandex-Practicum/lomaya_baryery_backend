@@ -6,7 +6,7 @@ from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 
 
-class RegistrationService:
+class UserService:
     def __init__(
         self, user_repository: UserRepository = Depends(), request_repository: RequestRepository = Depends()
     ) -> None:
