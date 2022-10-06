@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy import select
@@ -13,7 +15,7 @@ class TaskService:
 
     async def get_task_ids_list(
         self,
-    ) -> list[UUID]:
+    ) -> List[UUID]:
         """Список всех task_id."""
         task_ids = await self.session.execute(select(Task.id))
         return task_ids.scalars().all()
