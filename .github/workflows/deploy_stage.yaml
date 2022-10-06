@@ -13,7 +13,6 @@ env:
   REGISTRY: ghcr.io
   REP_OWNER: studio-yandex-practicum
   IMAGE_NAME: lomaya_baryery_backend
-  DEPLOY_PATH: /opt/lom-back
 
 defaults:
   run:
@@ -36,10 +35,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Set variables
-      #   run: |
-      #     echo REP_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -72,9 +67,8 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: "docker-compose.yaml"
-          target: ${{ env.DEPLOY_PATH }}
-          strip_components: 1
-          
+          target: ~
+
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
@@ -82,7 +76,6 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ${{ env.DEPLOY_PATH }}
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
@@ -112,7 +105,6 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:stage
             docker compose --file docker-compose.yaml stop
