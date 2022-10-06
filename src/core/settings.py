@@ -14,6 +14,7 @@ else:
 
 class Settings(BaseSettings):
     """Настройки проекта."""
+
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
     APPLICATION_URL: str
@@ -22,6 +23,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     DB_HOST: str
     DB_PORT: str
+    MIN_DAYS: int = 1
+    MAX_DAYS: int = 93
     SEND_NEW_TASK_HOUR: int
     SEND_NO_REPORT_REMINDER_HOUR: int
 
@@ -46,5 +49,5 @@ def get_settings():
 settings = get_settings()
 
 # Organization data
-ORGANIZATIONS_EMAIL = 'info@stereotipov.net'
-ORGANIZATIONS_GROUP = 'https://vk.com/socialrb02'
+ORGANIZATIONS_EMAIL = "info@stereotipov.net"
+ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
