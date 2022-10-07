@@ -9,27 +9,29 @@ engine = create_engine(settings.database_url.replace("+asyncpg", "+psycopg2"))
 SESSION = scoped_session(sessionmaker(bind=engine))
 
 
-class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
+class BaseFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
-        model = models.User
         sqlalchemy_session = SESSION
         sqlalchemy_session_persistence = "commit"
+
+
+class UserFactory(BaseFactory):
+    class Meta:
+        model = models.User
 
     id = factory.Faker("uuid4")
     name = factory.Faker("first_name")
     surname = factory.Faker("last_name")
     date_of_birth = factory.Faker("date_object")
-    # FIXME: испльзовать фейкер
+    # faker генерирует города со скобками (например Вознесенск (Кировск.)), которые проходят нашу валидацию
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556789 + n)
 
 
-class ShiftFactory(factory.alchemy.SQLAlchemyModelFactory):
+class ShiftFactory(BaseFactory):
     class Meta:
         model = models.Shift
-        sqlalchemy_session = SESSION
-        sqlalchemy_session_persistence = "commit"
 
     id = factory.Faker("uuid4")
     status = factory.Iterator([status for status in models.Shift.Status])
@@ -40,26 +42,22 @@ class ShiftFactory(factory.alchemy.SQLAlchemyModelFactory):
     )
 
 
-class PhotoFactory(factory.alchemy.SQLAlchemyModelFactory):
+class PhotoFactory(BaseFactory):
     class Meta:
         model = models.Photo
-        sqlalchemy_session = SESSION
-        sqlalchemy_session_persistence = "commit"
 
     url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
 
 
-class TaskFactory(factory.alchemy.SQLAlchemyModelFactory):
+class TaskFactory(BaseFactory):
     class Meta:
         model = models.Task
-        sqlalchemy_session = SESSION
-        sqlalchemy_session_persistence = "commit"
 
     url = factory.Sequence(lambda n: f"tasks/{n}")
     description = factory.Faker("paragraph", nb_sentences=2)
 
 
-class RequestFactory(factory.alchemy.SQLAlchemyModelFactory):
+class RequestFactory(BaseFactory):
     class Meta:
         model = models.Request
         sqlalchemy_session = SESSION
@@ -74,11 +72,9 @@ class RequestFactory(factory.alchemy.SQLAlchemyModelFactory):
     status = factory.Iterator([status for status in models.Request.Status])
 
 
-class UserTaskFactory(factory.alchemy.SQLAlchemyModelFactory):
+class UserTaskFactory(BaseFactory):
     class Meta:
         model = models.UserTask
-        sqlalchemy_session = SESSION
-        sqlalchemy_session_persistence = "commit"
 
     class Params:
         user = factory.SubFactory(UserFactory)
