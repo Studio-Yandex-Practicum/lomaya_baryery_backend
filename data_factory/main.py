@@ -1,33 +1,14 @@
-import factory
+from data_factory import factories
 
-from src.core.db import models
-
-
-class UserFactory(factory.Factory):
-    class Meta:
-        model = models.User
+FAKE_DATA_QUANTITY = 10
 
 
-class ShiftFactory(factory.Factory):
-    class Meta:
-        model = models.Shift
-
-
-class PhotoFactory(factory.Factory):
-    class Meta:
-        model = models.Photo
-
-
-class TaskFactory(factory.Factory):
-    class Meta:
-        model = models.Task
-
-
-class RequestFactory(factory.Factory):
-    class Meta:
-        model = models.Request
-
-
-class UserTaskFactory(factory.Factory):
-    class Meta:
-        model = models.UserTask
+def sync_main():
+    msg = (
+        "ВНМАНИЕ! Дальнейшее действие приведет к удалению ВСЕХ существующих данных из ВСЕХ таблиц БД!\n"
+        "Продолжить?(y/n)"
+    )
+    if input(msg).lower().strip() not in ["y", "yes"]:
+        return
+    factories.RequestFactory.create_batch(FAKE_DATA_QUANTITY)
+    factories.UserTaskFactory.create_batch(FAKE_DATA_QUANTITY)
