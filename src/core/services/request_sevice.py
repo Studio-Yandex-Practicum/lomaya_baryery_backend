@@ -36,3 +36,8 @@ class RequestService:
         if status is Status.APPROVED:
             return await send_approval_callback(user)
         return await send_rejection_callback(user)
+
+    async def get_approved_shift_user_ids(
+            self, shift_id: UUID) -> list[UUID]:
+        """Получить id одобренных участников смены."""
+        return await self.request_repository.get_shift_user_ids(shift_id)
