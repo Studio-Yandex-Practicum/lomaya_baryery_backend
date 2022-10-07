@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -36,3 +37,10 @@ class TaskRepository(AbstractRepository):
         await self.session.merge(task)
         await self.session.commit()
         return task
+
+    async def get_task_ids_list(
+        self,
+    ) -> list[UUID]:
+        """Список всех task_id."""
+        task_ids = await self.session.execute(select(Task.id))
+        return task_ids.scalars().all()
