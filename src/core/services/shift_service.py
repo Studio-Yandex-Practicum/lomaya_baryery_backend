@@ -39,6 +39,3 @@ class ShiftService:
             "status": Shift.Status.STARTED.value,
         }
         return await self.shift_repository.update(id=id, shift=Shift(**update_shift_dict))
-
-
-# >>>>>>> develop
