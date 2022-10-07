@@ -146,8 +146,13 @@ class Request(Base):
 
     __tablename__ = "requests"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
-    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
+        nullable=False
+    )
+    shift_id = Column(
+        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True
+    )
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )

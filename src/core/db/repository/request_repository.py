@@ -46,3 +46,18 @@ class RequestRepository(AbstractRepository):
         await self.session.merge(request)
         await self.session.commit()
         return request
+
+    async def get_shift_user_ids(
+            self, shift_id: UUID,
+            status: str = Request.Status.APPROVED.value
+    ) -> list[UUID]:
+        users_ids = await self.session.execute(
+            select(
+                Request.user_id
+            ).where(
+                Request.shift_id == shift_id
+            ).where(
+                Request.status == status
+            )
+        )
+        return users_ids.scalars().all()
