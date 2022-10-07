@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.request_models.shift import ShiftCreateRequest
-from src.api.response_models.shift import ShiftResponse
+from src.api.response_models.shift import ShiftResponse, ShiftUsersResponse
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -88,3 +88,24 @@ async def start_shift(shift_id: UUID, shift_service: ShiftService = Depends()) -
     except Exception:
         raise HTTPException(status_code=HTTPStatus.METHOD_NOT_ALLOWED, detail=STR_STATUS_DENIES_START_SHIFT)
     return shift
+
+
+@router.get(
+    "/{shift_id}/users",
+    response_model=ShiftUsersResponse,
+    response_model_exclude_none=True,
+    status_code=HTTPStatus.OK,
+    summary="Получить список пользователей смены",
+    response_description="Информация о смене",
+)
+async def get_shift_users(
+    shift_id: UUID,
+    shift_service: ShiftService = Depends(),
+) -> ShiftUsersResponse:
+    """
+    Получить список пользоватаелй смены.
+
+    - **shift**: Информация о смене
+    - **users**: Список всех одобренных пользователей смены.
+    """
+    return await shift_service.get_users_list(shift_id)
