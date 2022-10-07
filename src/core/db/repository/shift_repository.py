@@ -1,8 +1,11 @@
+from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Shift
@@ -36,3 +39,11 @@ class ShiftRepository(AbstractRepository):
         shift = await self.session.merge(shift)
         await self.session.commit()
         return shift
+
+    async def get_with_users(self, id: UUID) -> Shift:
+        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
+        request = await self.session.execute(statement)
+        request = request.scalars().first()
+        if request is None:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
+        return request

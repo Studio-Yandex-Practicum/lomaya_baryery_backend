@@ -5,6 +5,7 @@
 from fastapi import Depends
 from pydantic.schema import UUID
 
+# <<<<<<< HEAD
 from src.api.request_models.user_task import ChangeStatusRequest
 
 # from src.core.db.db import get_session
@@ -17,6 +18,13 @@ from src.core.db.repository.user_task_repository import UserTaskRepository
 # from sqlalchemy.ext.asyncio import AsyncSession
 #
 # from src.core.services.task_service import get_task_service
+# =======
+# from src.core.db.db import get_session
+# from src.core.services.request_sevice import RequestService
+# from src.core.db.models import Photo, Task, User, UserTask
+# from src.core.services.task_service import get_task_service
+# from src.core.db.repository.request_repository import RequestRepository
+# # >>>>>>> develop
 
 
 class UserTaskService:
@@ -26,8 +34,21 @@ class UserTaskService:
         self.task_repository = task_repository
         self.user_task_repository = user_task_repository
 
+    # <<<<<<< HEAD
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.user_task_repository.get(id)
+
+    # =======
+    #         Задачи раздаются случайным образом.
+    #         Метод запускается при старте смены.
+    #         """
+    #         task_service = await get_task_service(self.session)
+    #         request_service = RequestService(RequestRepository(self.session))
+    #         task_ids_list = await task_service.get_task_ids_list()
+    #         user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
+    #         # Список 93 календарных дней, начиная с сегодняшнего
+    #         dates_tuple = tuple((date.today() + timedelta(i)).day for i in range(93))
+    # >>>>>>> develop
 
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.user_task_repository.get_user_task_with_photo_url(id)
