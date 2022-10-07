@@ -16,6 +16,9 @@ python = "^3.8"
 pre-commit = "~2.20.0"
 phonenumbers = "~8.12.55"
 
+[tool.black]
+skip-string-normalization = true
+
 [tool.poetry.group.dev.dependencies]
 factory-boy = "^3.2.1"
 psycopg2-binary = "^2.9.3"
