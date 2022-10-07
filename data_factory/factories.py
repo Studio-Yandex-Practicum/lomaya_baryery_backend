@@ -23,7 +23,6 @@ class UserFactory(BaseFactory):
     name = factory.Faker("first_name")
     surname = factory.Faker("last_name")
     date_of_birth = factory.Faker("date_object")
-    # faker генерирует города со скобками (например Вознесенск (Кировск.)), которые проходят нашу валидацию
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556789 + n)
