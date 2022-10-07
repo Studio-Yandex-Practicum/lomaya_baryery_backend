@@ -18,3 +18,4 @@ phonenumbers = "~8.12.55"
 
 [tool.poetry.group.dev.dependencies]
 factory-boy = "^3.2.1"
+psycopg2-binary = "^2.9.3"
