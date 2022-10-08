@@ -59,8 +59,6 @@ class TaskFactory(BaseFactory):
 class RequestFactory(BaseFactory):
     class Meta:
         model = models.Request
-        sqlalchemy_session = SESSION
-        sqlalchemy_session_persistence = "commit"
 
     class Params:
         shift = factory.SubFactory(ShiftFactory)
