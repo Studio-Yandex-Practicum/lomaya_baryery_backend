@@ -1,8 +1,7 @@
 import factory
 from sqlalchemy.orm import Session
 
-from data_factory import factories
-from data_factory.factories import SESSION
+from data_factory.factories import SESSION, RequestFactory, UserTaskFactory
 
 FAKE_DATA_QUANTITY = 10
 
@@ -25,6 +24,10 @@ def generate_fake_data(session: Session = SESSION, data_quantity: int = FAKE_DAT
     truncate_tables(session)
     print("Генерация фейковых данных...")
     with factory.Faker.override_default_locale("ru_RU"):
-        factories.RequestFactory.create_batch(data_quantity)
-        factories.UserTaskFactory.create_batch(data_quantity)
+        RequestFactory.create_batch(data_quantity)
+        UserTaskFactory.create_batch(data_quantity)
     print("Выполнено")
+
+
+if __name__ == "__main__":
+    generate_fake_data()
