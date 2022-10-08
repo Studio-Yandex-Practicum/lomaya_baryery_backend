@@ -3,7 +3,12 @@ from http import HTTPStatus
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
-from src.api.request_models.request import RequestStatusUpdateRequest, Status
+from src.api.request_models.request import (
+    GetListAllShiftRequests,
+    RequestStatusUpdateRequest,
+    Status,
+)
+from src.api.response_models.request import RequestDBRespone
 from src.bot.services import send_approval_callback, send_rejection_callback
 from src.core.db.models import Request, User
 from src.core.db.repository import RequestRepository
@@ -41,3 +46,9 @@ class RequestService:
             self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.request_repository.get_shift_user_ids(shift_id)
+
+    async def list_all_requests(
+            self,
+            request_status_and_shift_id: GetListAllShiftRequests,
+        ) -> list[RequestDBRespone]:
+        return await self.request_repository.list_all_requests(request_status_and_shift_id)
