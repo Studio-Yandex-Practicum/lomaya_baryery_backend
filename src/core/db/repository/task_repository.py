@@ -2,10 +2,11 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Task
+from src.core.db.models import Task, User
 from src.core.db.repository.abstract_repository import AbstractRepository
 
 
@@ -23,6 +24,23 @@ class TaskRepository(AbstractRepository):
         if task is None:
             # FIXME: написать и использовать кастомное исключение
             raise LookupError(f"Объект Task c {id=} не найден.")
+        return task
+
+    async def get_tasks_report(self, user_id: UUID, task_id: UUID) -> dict:
+        """Получить список задач с информацией о юзерах."""
+        task_summary_info = await self.session.execute(
+            select(
+                User.name,
+                User.surname,
+                Task.id.label("task_id"),
+                Task.description.label("task_description"),
+                Task.url.label("task_url"),
+            )
+            .select_from(User, Task)
+            .where(User.id == user_id, Task.id == task_id)
+        )
+        task_summary_info = task_summary_info.all()
+        task = dict(*task_summary_info)
         return task
 
     async def create(self, task: Task) -> Task:

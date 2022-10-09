@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -49,6 +49,26 @@ class UserTaskRepository(AbstractRepository):
         user_task = user_task.all()
         user_task = dict(*user_task)
         return user_task
+
+    async def get_all_ids_callback(
+        self,
+        shift_id: UUID,
+        day_number: int,
+    ) -> list[tuple[int]]:
+        """Получить список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
+        user_tasks_info = await self.session.execute(
+            select(UserTask.id, UserTask.user_id, UserTask.task_id)
+            .where(
+                and_(
+                    UserTask.shift_id == shift_id,
+                    UserTask.day_number == day_number,
+                    or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
+                )
+            )
+            .order_by(UserTask.id)
+        )
+        user_tasks_ids = user_tasks_info.all()
+        return user_tasks_ids
 
     async def create(self, user_task: UserTask) -> UserTask:
         self.session.add(user_task)
