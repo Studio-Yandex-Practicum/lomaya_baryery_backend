@@ -50,7 +50,7 @@ class UserTaskRepository(AbstractRepository):
         user_task = dict(*user_task)
         return user_task
 
-    async def get_all_ids_callback(
+    async def get_all_ids(
         self,
         shift_id: UUID,
         day_number: int,

@@ -46,7 +46,7 @@ class UserTaskService:
 
     async def get_tasks_report(self, shift_id: UUID, day_number: int) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        user_task_ids = await self.user_task_repository.get_all_ids_callback(shift_id, day_number)
+        user_task_ids = await self.user_task_repository.get_all_ids(shift_id, day_number)
         tasks = []
         if not user_task_ids:
             return tasks
