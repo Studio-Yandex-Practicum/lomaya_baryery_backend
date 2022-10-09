@@ -11,6 +11,8 @@ from src.core.db.db import get_session
 from src.core.db.models import Shift
 from src.core.db.repository.abstract_repository import AbstractRepository
 
+SHIFT_NOT_FOUND = "Такая смена не найдена, проверьте id."
+
 
 class ShiftRepository(AbstractRepository):
     """Репозиторий для работы с моделью Shift."""
@@ -24,8 +26,7 @@ class ShiftRepository(AbstractRepository):
     async def get(self, id: UUID) -> Shift:
         shift = await self.get_or_none(id)
         if shift is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Shift c {id=} не найден.")
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SHIFT_NOT_FOUND)
         return shift
 
     async def create(self, shift: Shift) -> Shift:

@@ -6,6 +6,7 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.request_models.user_task import ChangeStatusRequest
 from src.core.db.db import get_session
 from src.core.db.models import UserTask
 from src.core.db.repository.request_repository import RequestRepository
@@ -54,6 +55,10 @@ class UserTaskService:
             task["id"] = user_task_id
             tasks.append(task)
         return tasks
+
+    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> dict:
+        await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
+        return await self.user_task_repository.get_user_task_with_photo_url(id)
 
     async def distribute_tasks_on_shift(
         self,
