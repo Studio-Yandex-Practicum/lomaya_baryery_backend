@@ -8,7 +8,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Task, User, UserTask
+from src.core.db.models import Task, User, UserTask
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_task_repository import UserTaskRepository
 from src.core.services.request_sevice import RequestService
@@ -81,28 +81,6 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def get_or_none(
-        self,
-        user_task_id: UUID,
-    ) -> UserTask:
-        """Получить объект отчета участника по id."""
-        user_task = await self.session.execute(
-            select(UserTask, Photo.url.label("photo_url")).where(UserTask.id == user_task_id)
-        )
-        return user_task.scalars().first()
-
-    async def change_status(
-        self,
-        user_task: UserTask,
-        status: UserTask.Status,
-    ) -> UserTask:
-        """Изменить статус задачи."""
-        user_task.status = status
-        self.session.add(user_task)
-        await self.session.commit()
-        await self.session.refresh(user_task)
-        return user_task
-
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
@@ -128,7 +106,6 @@ class UserTaskService:
             # составляем кортеж из пар "день месяца - номер дня смены"
             date_to_daynumber_mapping = tuple(zip(dates, daynumbers_tuple))
             for date_day, day_number in date_to_daynumber_mapping:
-
                 new_user_task = UserTask(
                     user_id=user_id,
                     shift_id=shift_id,
