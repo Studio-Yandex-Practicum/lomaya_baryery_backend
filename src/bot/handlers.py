@@ -10,7 +10,7 @@ from telegram import (
 )
 from telegram.ext import CallbackContext, ContextTypes
 
-from src.bot.services import get_registration_service_callback
+from src.bot.api_services import get_registration_service_callback
 from src.core.db.db import get_session
 from src.core.settings import settings
 
