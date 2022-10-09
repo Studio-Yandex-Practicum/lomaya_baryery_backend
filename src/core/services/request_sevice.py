@@ -6,7 +6,7 @@ from pydantic.schema import UUID
 from src.api.request_models.request import RequestStatusUpdateRequest, Status
 from src.bot.services import send_approval_callback, send_rejection_callback
 from src.core.db.models import Request, User
-from src.core.db.repository import RequestRepository
+from src.core.db.repository.request_repository import RequestRepository
 
 REVIEWED_REQUEST = "Данная заявка уже была рассмотрена ранее"
 
@@ -37,7 +37,6 @@ class RequestService:
             return await send_approval_callback(user)
         return await send_rejection_callback(user)
 
-    async def get_approved_shift_user_ids(
-            self, shift_id: UUID) -> list[UUID]:
+    async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.request_repository.get_shift_user_ids(shift_id)
