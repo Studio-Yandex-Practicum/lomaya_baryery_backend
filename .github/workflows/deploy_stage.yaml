@@ -60,14 +60,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Create deploy path
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            mkdir -p /lombarye/back            
+
       - name: Copy docker-compose file
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.yaml"
-          target: ~
+          source: ./"docker-compose.yaml"
+          target: /lombarye/back
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
@@ -76,6 +85,7 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd /lombarye/back
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
