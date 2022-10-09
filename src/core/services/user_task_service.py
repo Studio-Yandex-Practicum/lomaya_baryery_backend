@@ -8,10 +8,11 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.services.request_sevice import RequestService
 from src.core.db.models import Photo, Task, User, UserTask
-from src.core.services.task_service import get_task_service
 from src.core.db.repository.request_repository import RequestRepository
+from src.core.db.repository.user_task_repository import UserTaskRepository
+from src.core.services.request_sevice import RequestService
+from src.core.services.task_service import get_task_service
 
 
 class UserTaskService:
@@ -26,8 +27,15 @@ class UserTaskService:
     Метод 'get' возвращает экземпляр UserTask по id.
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, user_task_repository: UserTaskRepository = Depends()):
         self.session = session
+        self.user_task_repository = user_task_repository
+
+    async def get_user_task(self, id: UUID) -> UserTask:
+        return await self.user_task_repository.get(id)
+
+    async def get_user_task_with_photo_url(self, id: UUID) -> dict:
+        return await self.user_task_repository.get_user_task_with_photo_url(id)
 
     async def _get_all_ids_callback(
         self,
