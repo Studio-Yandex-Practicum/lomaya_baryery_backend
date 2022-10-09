@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Shift
-from src.core.db.repository import AbstractRepository
+from src.core.db.repository.abstract_repository import AbstractRepository
 
 
 class ShiftRepository(AbstractRepository):

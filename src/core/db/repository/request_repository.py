@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Request
-from src.core.db.repository import AbstractRepository
+from src.core.db.repository.abstract_repository import AbstractRepository
 
 
 class RequestRepository(AbstractRepository):
@@ -47,17 +47,8 @@ class RequestRepository(AbstractRepository):
         await self.session.commit()
         return request
 
-    async def get_shift_user_ids(
-            self, shift_id: UUID,
-            status: str = Request.Status.APPROVED.value
-    ) -> list[UUID]:
+    async def get_shift_user_ids(self, shift_id: UUID, status: str = Request.Status.APPROVED.value) -> list[UUID]:
         users_ids = await self.session.execute(
-            select(
-                Request.user_id
-            ).where(
-                Request.shift_id == shift_id
-            ).where(
-                Request.status == status
-            )
+            select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
         )
         return users_ids.scalars().all()
