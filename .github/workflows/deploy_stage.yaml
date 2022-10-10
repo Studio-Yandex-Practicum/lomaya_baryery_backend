@@ -59,18 +59,16 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-      - name: Deploy with scp
-        run: scp -r infrastructure/ ${{ secrets.DEV_USERNAME }}@${{ secrets.DEV_HOST }}:/lombarye/back/
 
-#      - name: Copy docker-compose file
-#        uses: appleboy/scp-action@master
-#        with:
-#          host: ${{ secrets.DEV_HOST }}
-#          username: ${{ secrets.DEV_USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          source: "infrastructure/"
-#          target: "/lombarye/back"
-#          strip_components: 1
+      - name: Copy docker-compose file
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "infrastructure/docker-compose.yaml"
+          target: "/lombarye/back"
+          strip_components: 1
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
@@ -87,7 +85,7 @@ jobs:
 #            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
 #            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
 #            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-#            echo BOT_TOKEN=${{ secrets.BOT_TOKEN }} >> .env
+            echo BOT_TOKEN=${{ secrets.BOT_TOKEN }} >> .env
 #            echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
 #            echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
 #            echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
