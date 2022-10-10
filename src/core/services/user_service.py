@@ -26,3 +26,7 @@ class UserService:
             request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
             request = Request(**request_scheme.dict())
             await self.user_repository.create(request)
+
+    async def get_user_by_telegram_id(self, telegram_id: int) -> User:
+        """Получить участника проекта по его telegram_id."""
+        return await self.user_repository.get_by_telegram_id(telegram_id)
