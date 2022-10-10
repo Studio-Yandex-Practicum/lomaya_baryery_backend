@@ -71,7 +71,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: deploy.tar
+          source: "deploy.tar"
           target: "/lombarye/back"
 
       - name: Create .env file
