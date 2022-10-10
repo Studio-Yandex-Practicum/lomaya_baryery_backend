@@ -60,14 +60,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
-#      - name: Copy docker-compose file
-#        uses: appleboy/scp-action@master
-#        with:
-#          host: ${{ secrets.DEV_HOST }}
-#          username: ${{ secrets.DEV_USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          source: "docker-compose.yaml"
-#          target: "/lombarye/back"
+      - name: Copy docker-compose file
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "infrastructure/docker-compose.yaml"
+          target: "/lombarye/back"
+          strip_components: 1
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
