@@ -66,8 +66,8 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: ./"docker-compose.yaml"
-          target: /lombarye/back
+          source: "docker-compose.yaml"
+          target: "/lombarye/back"
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
