@@ -36,17 +36,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Build and push
-#        uses: docker/build-push-action@v2
-#        with:
-#          context: .
-#          file: Dockerfile
-#          labels: runnumber=${GITHUB_RUN_ID}
-#          push: true
-#          tags: |
-#            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
-#            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
-#            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: runnumber=${GITHUB_RUN_ID}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
 
   deploy:
@@ -69,16 +69,16 @@ jobs:
           source: ./"docker-compose.yaml"
           target: /lombarye/back
 
-#      - name: Create .env file
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.DEV_HOST }}
-#          username: ${{ secrets.DEV_USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          script: |
-#            cd /lombarye/back
-#            rm -f .env
-#            touch .env
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /lombarye/back
+            rm -f .env
+            touch .env
 #            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
 #            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
 #            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
