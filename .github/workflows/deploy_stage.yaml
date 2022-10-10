@@ -62,7 +62,7 @@ jobs:
       - name: Run a multi-line script
         run: |
           mkdir ../build
-          cp -TR infrastructure/docker-compose.yaml ../build
+          cp infrastructure/docker-compose.yaml ../build
           tar -cvf deploy.tar ../build/
 
       - name: Copy docker-compose file
