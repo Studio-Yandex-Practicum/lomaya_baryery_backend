@@ -69,6 +69,7 @@ jobs:
           source: "infrastructure/docker-compose.yaml"
           target: "/lombarye/back"
           strip_components: 1
+          overwrite: true
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
