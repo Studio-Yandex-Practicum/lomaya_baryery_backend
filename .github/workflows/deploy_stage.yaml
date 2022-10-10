@@ -62,11 +62,10 @@ jobs:
 
       - name: Copy docker-compose file
         uses: appleboy/scp-action@master
-        env:
+        with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-        with:
           source: "infrastructure/docker-compose.yaml"
           target: "/lombarye/back"
           strip_components: 1
