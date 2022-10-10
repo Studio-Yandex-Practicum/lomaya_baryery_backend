@@ -59,6 +59,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
+      - name: Run a multi-line script
+        run: |
+          mkdir ../build
+          cp -TR infrastructure/docker-compose.yaml ../build
+          tar -cvf deploy.tar ../build/
 
       - name: Copy docker-compose file
         uses: appleboy/scp-action@master
@@ -66,10 +71,8 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: "infrastructure/docker-compose.yaml"
+          source: deploy.tar
           target: "/lombarye/back"
-          strip_components: 1
-          overwrite: true
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
