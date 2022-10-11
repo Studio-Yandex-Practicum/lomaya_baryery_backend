@@ -1,8 +1,11 @@
+from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Request
@@ -19,10 +22,17 @@ class RequestRepository(AbstractRepository):
         return await self.session.get(Request, id)
 
     async def get(self, id: UUID) -> Request:
-        request = await self.get_or_none(id)
+        request = await self.session.execute(
+            select(Request)
+            .where(Request.id == id)
+            .options(
+                selectinload(Request.user),
+                selectinload(Request.shift),
+            )
+        )
+        request = request.scalars().first()
         if request is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Request c {id=} не найден.")
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Объект Request c id={id} не найден.")
         return request
 
     async def create(self, request: Request) -> Request:
@@ -36,3 +46,18 @@ class RequestRepository(AbstractRepository):
         await self.session.merge(request)
         await self.session.commit()
         return request
+
+    async def get_shift_user_ids(
+            self, shift_id: UUID,
+            status: str = Request.Status.APPROVED.value
+    ) -> list[UUID]:
+        users_ids = await self.session.execute(
+            select(
+                Request.user_id
+            ).where(
+                Request.shift_id == shift_id
+            ).where(
+                Request.status == status
+            )
+        )
+        return users_ids.scalars().all()

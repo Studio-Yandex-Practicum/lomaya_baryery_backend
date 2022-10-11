@@ -8,3 +8,4 @@ alembic~=1.7.1
 pre-commit~=2.20.0
 phonenumbers~=8.12.55
 alembic-autogen-check~=1.1.1
+factory-boy==3.2.1
