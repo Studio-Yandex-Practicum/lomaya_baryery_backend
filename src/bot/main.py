@@ -2,11 +2,10 @@ from datetime import time
 from urllib.parse import urljoin
 
 import pytz
-from telegram.ext import Application, ApplicationBuilder, CommandHandler, MessageHandler
-from telegram.ext.filters import PHOTO
+from telegram.ext import Application, ApplicationBuilder, CommandHandler
 
 from src.api.routers import TELEGRAM_WEBHOOK_ENDPOINT
-from src.bot.handlers import photo_handler, start
+from src.bot.handlers import start
 from src.bot.jobs import send_no_report_reminder_job
 from src.core.settings import settings
 
@@ -15,7 +14,6 @@ def create_bot() -> Application:
     """Создать бота."""
     bot_instance = ApplicationBuilder().token(settings.BOT_TOKEN).build()
     bot_instance.add_handler(CommandHandler("start", start))
-    bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,  # заменить на имя метода отправки задания
         time(
