@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Request
-from src.core.db.repository.abstract_repository import AbstractRepository
+from src.core.db.repository import AbstractRepository
 
 
 class RequestRepository(AbstractRepository):
