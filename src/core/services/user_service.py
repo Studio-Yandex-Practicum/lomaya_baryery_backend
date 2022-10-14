@@ -9,7 +9,7 @@ from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 
-VALID_TEXT = "^[a-zA-Zа-яА-ЯёЁ ][-a-zA-Zа-яА-ЯёЁ ]+[a-zA-Zа-яА-ЯёЁ ]$"
+VALID_TEXT = "^[a-zA-Zа-яА-ЯёЁ ]?[-a-zA-Zа-яА-ЯёЁ ]+[a-zA-Zа-яА-ЯёЁ ]$"
 VALID_DATE_FORMAT = "%Y-%m-%d"
 
 
