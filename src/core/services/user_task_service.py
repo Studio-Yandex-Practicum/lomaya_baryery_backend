@@ -8,10 +8,10 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Task, User, UserTask
-from src.core.db.repository import RequestRepository, UserTaskRepository
 from src.core.services.request_sevice import RequestService
+from src.core.db.models import Photo, Task, User, UserTask
 from src.core.services.task_service import get_task_service
+from src.core.db.repository.request_repository import RequestRepository
 
 
 class UserTaskService:
@@ -26,14 +26,9 @@ class UserTaskService:
     Метод 'get' возвращает экземпляр UserTask по id.
     """
 
-    def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
-        self.user_task_repository = user_task_repository
-
-    # FIXME
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    # TODO переписать
     async def _get_all_ids_callback(
         self,
         shift_id: UUID,
@@ -54,7 +49,6 @@ class UserTaskService:
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, day_number: int) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
         user_task_ids = await self._get_all_ids_callback(shift_id, day_number)
@@ -79,7 +73,6 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    # TODO переписать
     async def get_or_none(
         self,
         user_task_id: UUID,
@@ -90,7 +83,6 @@ class UserTaskService:
         )
         return user_task.scalars().first()
 
-    # TODO переписать
     async def change_status(
         self,
         user_task: UserTask,
@@ -103,7 +95,6 @@ class UserTaskService:
         await self.session.refresh(user_task)
         return user_task
 
-    # TODO переписать
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
@@ -144,10 +135,6 @@ class UserTaskService:
             distribution_process(task_ids_list, dates_tuple, userid)
 
         await self.session.commit()
-
-    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
-        """Получить задачу для изменения статуса и photo_id."""
-        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
 
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
