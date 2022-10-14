@@ -9,9 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.core.db.db import get_session
 from src.core.db.models import UserTask
-from src.core.db.repository.request_repository import RequestRepository
-from src.core.db.repository.task_repository import TaskRepository
-from src.core.db.repository.user_task_repository import UserTaskRepository
+from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import get_task_service
 
@@ -44,6 +42,7 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.user_task_repository.get_user_task_with_photo_url(id)
 
+    # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, day_number: int) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
         user_task_ids = await self.user_task_repository.get_all_ids(shift_id, day_number)
@@ -60,6 +59,7 @@ class UserTaskService:
         await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
         return await self.user_task_repository.get_user_task_with_photo_url(id)
 
+    # TODO переписать
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
@@ -99,6 +99,10 @@ class UserTaskService:
             distribution_process(task_ids_list, dates_tuple, userid)
 
         await self.session.commit()
+
+    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
+        """Получить задачу для изменения статуса и photo_id."""
+        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
 
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
