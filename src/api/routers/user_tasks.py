@@ -63,7 +63,7 @@ async def update_status_report(
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
-    user_task = await user_task_service.update_status(id=user_task_id, update_user_task_status=update_user_task_status)
+    user_task = await user_task_service.update_status(user_task_id, update_user_task_status)
     return user_task
 
 

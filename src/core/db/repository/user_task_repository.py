@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
-from src.core.db.repository.abstract_repository import AbstractRepository
+from src.core.db.repository import AbstractRepository
 
 
 class UserTaskRepository(AbstractRepository):
