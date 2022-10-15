@@ -78,7 +78,7 @@ class UserService:
         telegram_id = user_data.get("telegram_id")
         user = await self.user_repository.get_by_telegram_id(telegram_id)
         if not user:
-            user_scheme = UserCreateRequest(**validate_user_data(user_data))
+            user_scheme = UserCreateRequest(**user_data)
             user = User(**user_scheme.dict())
             await self.user_repository.create(user)
         request = await self.request_repository.get_or_none(user.id)
