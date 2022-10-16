@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel
 from pydantic.schema import UUID
 
@@ -26,7 +28,7 @@ class UserTaskResponse(BaseModel):
     user_id: UUID
     user_task_id: UUID
     task_id: UUID
-    day_number: int
+    day_date: date
     status: UserTask.Status
     photo_url: str
 
