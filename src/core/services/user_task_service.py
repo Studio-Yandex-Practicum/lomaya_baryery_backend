@@ -100,10 +100,6 @@ class UserTaskService:
 
         await self.session.commit()
 
-    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
-        """Получить задачу для изменения статуса и photo_id."""
-        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
-
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(session)
