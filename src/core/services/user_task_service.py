@@ -40,6 +40,9 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.user_task_repository.get_user_task_with_photo_url(id)
 
+    async def get_task_by_user(self, user_id: UUID, day_number: int, shift_id: int) -> dict:
+        return await self.user_task_repository.get_task_by_user(user_id, day_number, shift_id)
+
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, day_number: int) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""

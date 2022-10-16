@@ -6,7 +6,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Photo, UserTask
+from src.core.db.models import Photo, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -67,6 +67,16 @@ class UserTaskRepository(AbstractRepository):
         )
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
+
+    async def get_task_by_user(self, user: User, day_number: int, shift_id: int) -> dict[str, str]:
+        """Получить для каждого участника номер задания task_id и ссылку на карточку задания."""
+        task_id = await self.session.execute(
+            select(UserTask.task_id).where(
+                UserTask.user_id == user.id, UserTask.day_number == day_number, UserTask.shift_id == shift_id
+            )
+        )
+        task_url = await self.session.execute(select(Task.url).where(Task.id == task_id))
+        return {task_id.scalars().first(): task_url.scalars().first()}
 
     async def create(self, user_task: UserTask) -> UserTask:
         self.session.add(user_task)
