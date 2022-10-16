@@ -28,11 +28,9 @@ class UserTaskService:
 
     def __init__(
         self,
-        session: AsyncSession,
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
     ) -> None:
-        self.session = session
         self.user_task_repository = user_task_repository
         self.task_repository = task_repository
 
