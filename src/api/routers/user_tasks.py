@@ -1,7 +1,9 @@
 from http import HTTPStatus
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, FastAPI
+from fastapi_pagination import Page, add_pagination
+from fastapi_pagination.ext.sqlalchemy import paginate
 from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
@@ -13,6 +15,9 @@ from src.core.db.models import UserTask
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService, get_user_task_service
 from src.core.settings import settings
+
+app = FastAPI()
+
 
 router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
@@ -75,7 +80,7 @@ async def change_user_report_status(
 
 @router.get(
     "/{shift_id}/{day_number}/new",
-    response_model=UserTasksAndShiftResponse,
+    response_model=Page[UserTasksAndShiftResponse],
     summary="Получить непроверенные и новые задания.",
 )
 async def get_new_and_under_review_tasks(
@@ -100,4 +105,4 @@ async def get_new_and_under_review_tasks(
     report = dict()
     report["shift"] = shift
     report["tasks"] = tasks
-    return report
+    return paginate(report)
