@@ -8,7 +8,7 @@ from src.core.db.models import UserTask
 
 
 class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
-    """Модель для ответа c обобщенной информацией о задании и юзере."""
+    """Модель для ответа с обобщенной информацией о задании и юзере."""
 
     id: UUID
 
@@ -24,7 +24,7 @@ class UserTaskResponse(BaseModel):
     """Pydantic-схема, для описания объекта, полученного из БД."""
 
     user_id: UUID
-    user_task_id: UUID
+    id: UUID
     task_id: UUID
     day_number: int
     status: UserTask.Status
