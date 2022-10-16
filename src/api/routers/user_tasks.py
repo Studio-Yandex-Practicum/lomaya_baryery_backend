@@ -106,3 +106,5 @@ async def get_new_and_under_review_tasks(
     report["shift"] = shift
     report["tasks"] = tasks
     return paginate(report)
+
+add_pagination(app)
