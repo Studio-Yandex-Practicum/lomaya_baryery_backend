@@ -26,7 +26,7 @@ async def send_rejection_callback(user: models.User):
     )
 
 
-async def send_task_callback(user: models.User, description: int, task_url: str):
+async def send_task_callback(user: models.User, description: str, task_url: str):
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
     await bot.send_message(chat_id=user.telegram_id, text=(task_url))
     await bot.send_message(
