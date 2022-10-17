@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -52,3 +52,8 @@ class RequestRepository(AbstractRepository):
             select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
         )
         return users_ids.scalars().all()
+
+    async def get_user_approved_request(self, user_id: UUID) -> Request:
+        statement = select(Request).where(and_(Request.status == Request.Status.APPROVED, Request.user_id == user_id))
+        request = await self.session.scalars(statement)
+        return request.first()
