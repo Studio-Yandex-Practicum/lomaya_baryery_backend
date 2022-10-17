@@ -47,9 +47,5 @@ class ShiftService:
         users = shift.users
         return ShiftUsersResponse(shift=shift, users=users)
 
-    async def list_all_requests(
-            self,
-            id: UUID,
-            status: Optional[Request.Status]
-        ) -> list[ShiftDtoRespone]:
+    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.shift_repository.list_all_requests(id=id, status=status)
