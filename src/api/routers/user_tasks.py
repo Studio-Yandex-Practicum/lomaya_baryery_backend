@@ -1,13 +1,9 @@
 from http import HTTPStatus
 from typing import Union
 
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException, Path, FastAPI
-from fastapi_pagination import Page, add_pagination
-from fastapi_pagination.ext.sqlalchemy import paginate
-=======
+from fastapi_pagination import Page, paginate, add_pagination, Params
 from fastapi import APIRouter, Depends, Path
->>>>>>> 2b0b12c9f79d7d8b087f7b2112a7ef6ff05aeec0
 from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
@@ -76,6 +72,8 @@ async def update_status_report(
     return user_task
 
 
+add_pagination(app)
+
 @router.get(
     "/{shift_id}/{day_number}/new",
     response_model=Page[UserTasksAndShiftResponse],
@@ -86,6 +84,7 @@ async def get_new_and_under_review_tasks(
     day_number: int = Path(..., title="Номер дня, от 1 до 93", ge=settings.MIN_DAYS, le=settings.MAX_DAYS),
     user_task_service: UserTaskService = Depends(),
     shift_service: ShiftService = Depends(),
+    params: Params = Depends()
 ) -> dict[str, Union[dict, list]]:
     """Получить непроверенные и новые задания.
 
@@ -101,6 +100,5 @@ async def get_new_and_under_review_tasks(
     report = dict()
     report["shift"] = shift
     report["tasks"] = tasks
-    return paginate(report)
-
-add_pagination(app)
+    return paginate(report, params)
+    
