@@ -102,7 +102,8 @@ class UserTaskService:
 
     async def check_user_skips_tasks_in_row(self, user_id: UUID) -> bool:
         """Проверяет пропустил ли пользователь несколько заданий подряд."""
-        last_user_tasks = self.user_task_repository.get_last_user_tasks(user_id, DAYS_TO_BAN)
+        today = date.today()
+        last_user_tasks = self.user_task_repository.get_last_user_tasks(user_id, today, DAYS_TO_BAN)
         if len(last_user_tasks) < DAYS_TO_BAN:
             return False
         return all(task.status == UserTask.Status.NEW for task in last_user_tasks)

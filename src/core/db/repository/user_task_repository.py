@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
@@ -80,12 +81,13 @@ class UserTaskRepository(AbstractRepository):
         await self.session.commit()
         return user_task
 
-    async def get_last_user_tasks(self, user_id: UUID, task_amount: int) -> list[UserTask]:
+    async def get_last_user_tasks(self, user_id: UUID, date: date, task_amount: int) -> list[UserTask]:
         """
         Получает список последних полученных заданий пользователя.
 
         Аргументы:
-            user_id (UUID): id пользователя.
+            user_id (UUID): id пользователя,
+            date (date): Дата до которой необходимо найти последние полученные задачи,
             task_amount (int): количество заданий, которое необходимо получить.
 
         Возвращает:
@@ -93,8 +95,8 @@ class UserTaskRepository(AbstractRepository):
         """
         statement = (
             select(UserTask)
-            .where(and_(UserTask.user_id == user_id, UserTask.status.is_not(None)))
-            .order_by(desc(UserTask.day_number))
+            .where(and_(UserTask.user_id == user_id, UserTask.day <= date))
+            .order_by(desc(UserTask.day))
             .limit(task_amount)
         )
         last_users_tasks = await self.session.scalars(statement)
