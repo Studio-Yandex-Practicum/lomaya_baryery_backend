@@ -4,14 +4,16 @@ from typing import Any
 
 from fastapi import Depends
 from pydantic.schema import UUID
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.services.request_sevice import RequestService
 from src.core.db.models import Photo, Task, User, UserTask
-from src.core.services.task_service import get_task_service
 from src.core.db.repository.request_repository import RequestRepository
+from src.core.services.request_sevice import RequestService
+from src.core.services.task_service import get_task_service
+
+DAYS_TO_BAN = 5
 
 
 class UserTaskService:
@@ -135,6 +137,19 @@ class UserTaskService:
             distribution_process(task_ids_list, dates_tuple, userid)
 
         await self.session.commit()
+
+    async def check_user_skips_tasks_in_row(self, user_id: UUID) -> bool:
+        """Проверяет пропустил ли пользователь несколько заданий подряд."""
+        last_user_tasks = self.session.scalars(
+            select(UserTask)
+            .where(and_(UserTask.user_id == user_id, UserTask.status.is_not(None)))
+            .order_by(desc(UserTask.day_number))
+            .limit(DAYS_TO_BAN)
+        )
+        last_user_tasks = last_user_tasks.all()
+        if len(last_user_tasks) < DAYS_TO_BAN:
+            return False
+        return all(task.status == UserTask.Status.NEW for task in last_user_tasks)
 
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
