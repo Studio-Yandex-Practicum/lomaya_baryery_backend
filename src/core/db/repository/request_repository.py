@@ -54,6 +54,12 @@ class RequestRepository(AbstractRepository):
         return users_ids.scalars().all()
 
     async def get_user_approved_request(self, user_id: UUID) -> Request:
+        """
+        Возвращает одобренную заявку пользователя.
+
+        Аргументы:
+            user_id (UUID): id пользователя.
+        """
         statement = select(Request).where(and_(Request.status == Request.Status.APPROVED, Request.user_id == user_id))
         request = await self.session.scalars(statement)
         return request.first()
