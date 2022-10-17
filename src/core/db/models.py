@@ -97,6 +97,7 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
+    lombaryers_sum = Column(Integer, default=0)
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user")
     shifts = relationship("Request", back_populates="user")
@@ -146,16 +147,12 @@ class Request(Base):
 
     __tablename__ = "requests"
 
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"),
-        nullable=False
-    )
-    shift_id = Column(
-        UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True
-    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
+    lombaryers_sum = Column(Integer, default=0)
     user = relationship("User", back_populates="requests")
     shift = relationship("Shift", back_populates="requests")
 
