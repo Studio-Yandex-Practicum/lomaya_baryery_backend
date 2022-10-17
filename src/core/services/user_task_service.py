@@ -4,14 +4,12 @@ from typing import Any
 
 from fastapi import Depends
 from pydantic.schema import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user_task import ChangeStatusRequest
-from src.core.db.db import get_session
 from src.core.db.models import UserTask
 from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
 from src.core.services.request_sevice import RequestService
-from src.core.services.task_service import get_task_service
+from src.core.services.task_service import TaskService
 
 
 class UserTaskService:
@@ -30,9 +28,11 @@ class UserTaskService:
         self,
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
+        request_repository: RequestRepository = Depends(),
     ) -> None:
         self.user_task_repository = user_task_repository
         self.task_repository = task_repository
+        self.request_repository = request_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.user_task_repository.get(id)
@@ -67,8 +67,8 @@ class UserTaskService:
         Задачи раздаются случайным образом.
         Метод запускается при старте смены.
         """
-        task_service = await get_task_service(self.session)
-        request_service = RequestService(RequestRepository(self.session))
+        task_service = TaskService(self.task_repository)
+        request_service = RequestService(self.request_repository)
         task_ids_list = await task_service.get_task_ids_list()
         user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
         # Список 93 календарных дней, начиная с сегодняшнего
@@ -97,7 +97,3 @@ class UserTaskService:
             distribution_process(task_ids_list, dates_tuple, userid)
 
         await self.session.commit()
-
-
-def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    return UserTaskService(session)
