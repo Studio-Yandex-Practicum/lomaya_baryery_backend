@@ -6,7 +6,7 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.request_models.user_task import ChangeStatusRequest
+from src.api.request_models.user_task import ChangeStatusRequest, UserTaskUpdateRequest
 from src.core.db.db import get_session
 from src.core.db.models import UserTask
 from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
@@ -97,6 +97,13 @@ class UserTaskService:
             distribution_process(task_ids_list, dates_tuple, userid)
 
         await self.session.commit()
+
+    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
+        """Получить задачу для изменения статуса и photo_id."""
+        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
+
+    async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
+        return await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
 
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
