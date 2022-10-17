@@ -98,6 +98,19 @@ class UserTaskService:
 
         await self.session.commit()
 
+    async def check_user_skips_tasks_in_row(self, user_id: UUID) -> bool:
+        """Проверяет пропустил ли пользователь несколько заданий подряд."""
+        last_user_tasks = self.session.scalars(
+            select(UserTask)
+            .where(and_(UserTask.user_id == user_id, UserTask.status.is_not(None)))
+            .order_by(desc(UserTask.day_number))
+            .limit(DAYS_TO_BAN)
+        )
+        last_user_tasks = last_user_tasks.all()
+        if len(last_user_tasks) < DAYS_TO_BAN:
+            return False
+        return all(task.status == UserTask.Status.NEW for task in last_user_tasks)
+
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(session)
