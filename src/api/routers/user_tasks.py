@@ -37,7 +37,7 @@ async def get_user_report(
 
     - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
     - **task_id**: номер задачи
-    - **day_date**: дата получения задания
+    - **day**: дата получения задания
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
@@ -63,7 +63,7 @@ async def change_user_report_status(
 
     - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
     - **task_id**: номер задачи
-    - **day_date**: дата получения задания
+    - **day**: дата получения задания
     - **status**: статус задачи
     - **photo_url**: url фото выполненной задачи
     """
@@ -75,13 +75,13 @@ async def change_user_report_status(
 
 
 @router.get(
-    "/{shift_id}/{day_date}/new",
+    "/{shift_id}/{day}/new",
     response_model=UserTasksAndShiftResponse,
     summary="Получить непроверенные и новые задания.",
 )
 async def get_new_and_under_review_tasks(
     shift_id: UUID = Path(..., title="ID смены"),
-    day_date: date = Path(..., title="Дата получения задания"),
+    day: date = Path(..., title="Дата получения задания"),
     user_task_service: UserTaskService = Depends(get_user_task_service),
     shift_service: ShiftService = Depends(),
 ) -> dict[str, Union[dict, list]]:
@@ -92,12 +92,12 @@ async def get_new_and_under_review_tasks(
     в определенной смене:
 
     - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
-    - **day_date**: дата получения задания, ожидается в формате yyyy-mm-dd
+    - **day**: дата получения задания, ожидается в формате yyyy-mm-dd
     """
     shift = await shift_service.get_shift(shift_id)
     if not shift:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SHIFT_NOT_FOUND)
-    tasks = await user_task_service.get_tasks_report(shift_id, day_date)
+    tasks = await user_task_service.get_tasks_report(shift_id, day)
     report = dict()
     report["shift"] = shift
     report["tasks"] = tasks

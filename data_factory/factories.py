@@ -1,7 +1,4 @@
-from datetime import date
-
 import factory
-from dateutil.relativedelta import relativedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -85,8 +82,10 @@ class UserTaskFactory(BaseFactory):
     user_id = factory.SelfAttribute("user.id")
     shift_id = factory.SelfAttribute("shift.id")
     task_id = factory.SelfAttribute("task.id")
-    day_date = factory.Faker(
-        "date_between_dates", date_start=date.today(), date_end=date.today() + relativedelta(months=+3)
+    day = factory.Faker(
+        "date_between_dates",
+        date_start=factory.SelfAttribute("..shift.started_at"),
+        date_end=factory.SelfAttribute("..shift.finished_at")
     )
     status = factory.Iterator([status for status in models.UserTask.Status])
     photo_id = factory.SelfAttribute("photo.id")

@@ -2,15 +2,16 @@ import random
 from datetime import date, timedelta
 from typing import Any
 
-from dateutil.relativedelta import relativedelta
 from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
+from src.core.db.repository import ShiftRepository
 from src.core.services.request_sevice import RequestService
-from src.core.db.models import Photo, Task, User, UserTask
+from src.core.db.models import Photo, Task, User, UserTask, Shift
+from src.core.services.shift_service import ShiftService
 from src.core.services.task_service import get_task_service
 from src.core.db.repository.request_repository import RequestRepository
 
@@ -33,7 +34,7 @@ class UserTaskService:
     async def _get_all_ids_callback(
         self,
         shift_id: UUID,
-        day_date: date,
+        day: date,
     ) -> list[tuple[int]]:
         """Получает список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
         user_tasks_info = await self.session.execute(
@@ -41,7 +42,7 @@ class UserTaskService:
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.day_date == day_date,
+                    UserTask.day == day,
                     or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
                 )
             )
@@ -50,9 +51,9 @@ class UserTaskService:
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    async def get_tasks_report(self, shift_id: UUID, day_date: date) -> list[dict[str, Any]]:
+    async def get_tasks_report(self, shift_id: UUID, day: date) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        user_task_ids = await self._get_all_ids_callback(shift_id, day_date)
+        user_task_ids = await self._get_all_ids_callback(shift_id, day)
         tasks = []
         if not user_task_ids:
             return tasks
@@ -107,18 +108,18 @@ class UserTaskService:
         """
         task_service = await get_task_service(self.session)
         request_service = RequestService(RequestRepository(self.session))
+        shift_service = ShiftService(ShiftRepository(self.session))
         task_ids_list = await task_service.get_task_ids_list()
         user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
+        current_shift = await shift_service.get_shift(shift_id)
 
-        def distribution_process(task_ids: list[UUID], user_id: UUID) -> None:
+        def distribution_process(task_ids: list[UUID], shift: Shift, user_id: UUID) -> None:
             """Процесс раздачи заданий пользователю."""
             # Для каждого пользователя
             # случайным образом перемешиваем список task_ids
             random.shuffle(task_ids)
-            date_now = date.today()
-            and_date = date_now + relativedelta(months=+3)
-            all_days = (and_date - date_now).days
-            all_dates = tuple((date_now + timedelta(day)) for day in range(all_days))
+            all_days = (shift.finished_at - shift.created_at).days
+            all_dates = tuple((shift.created_at + timedelta(day)) for day in range(all_days))
             for one_date in all_dates:
                 new_user_task = UserTask(
                     user_id=user_id,
@@ -126,12 +127,12 @@ class UserTaskService:
                     # Task_id на позиции, соответствующей дню месяца.
                     # Например, для первого числа это task_ids[0]
                     task_id=task_ids[one_date.day - 1],
-                    day_date=one_date,
+                    day=one_date,
                 )
                 self.session.add(new_user_task)
 
         for userid in user_ids_list:
-            distribution_process(task_ids_list, userid)
+            distribution_process(task_ids_list, current_shift, userid)
 
         await self.session.commit()
 

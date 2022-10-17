@@ -28,7 +28,7 @@ class UserTaskResponse(BaseModel):
     user_id: UUID
     user_task_id: UUID
     task_id: UUID
-    day_date: date
+    day: date
     status: UserTask.Status
     photo_url: str
 
