@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -79,3 +79,23 @@ class UserTaskRepository(AbstractRepository):
         await self.session.merge(user_task)
         await self.session.commit()
         return user_task
+
+    async def get_last_user_tasks(self, user_id: UUID, task_amount: int) -> list[UserTask]:
+        """
+        Получает список последних полученных заданий пользователя.
+
+        Аргументы:
+            user_id (UUID): id пользователя.
+            task_amount (int): количество заданий, которое необходимо получить.
+
+        Возвращает:
+            list[UserTask]: список заданий пользователя.
+        """
+        statement = (
+            select(UserTask)
+            .where(and_(UserTask.user_id == user_id, UserTask.status.is_not(None)))
+            .order_by(desc(UserTask.day_number))
+            .limit(task_amount)
+        )
+        last_users_tasks = await self.session.scalars(statement)
+        return last_users_tasks.all()

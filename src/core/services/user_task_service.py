@@ -13,6 +13,8 @@ from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRe
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import get_task_service
 
+DAYS_TO_BAN = 5
+
 
 class UserTaskService:
     """Вспомогательный класс для UserTask.
@@ -100,13 +102,7 @@ class UserTaskService:
 
     async def check_user_skips_tasks_in_row(self, user_id: UUID) -> bool:
         """Проверяет пропустил ли пользователь несколько заданий подряд."""
-        last_user_tasks = self.session.scalars(
-            select(UserTask)
-            .where(and_(UserTask.user_id == user_id, UserTask.status.is_not(None)))
-            .order_by(desc(UserTask.day_number))
-            .limit(DAYS_TO_BAN)
-        )
-        last_user_tasks = last_user_tasks.all()
+        last_user_tasks = self.user_task_repository.get_last_user_tasks(user_id, DAYS_TO_BAN)
         if len(last_user_tasks) < DAYS_TO_BAN:
             return False
         return all(task.status == UserTask.Status.NEW for task in last_user_tasks)
