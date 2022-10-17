@@ -37,7 +37,12 @@ class RequestService:
             return await send_approval_callback(user)
         return await send_rejection_callback(user)
 
-    async def get_approved_shift_user_ids(
-            self, shift_id: UUID) -> list[UUID]:
+    async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.request_repository.get_shift_user_ids(shift_id)
+
+    async def set_user_request_declined(self, user_id: UUID) -> Request:
+        """Переводит текущую заявку пользователя в статус неактивной."""
+        request = await self.request_repository.get_user_approved_request(user_id)
+        request.status = Request.Status.DECLINED
+        return await self.request_repository.update(request.id, request)
