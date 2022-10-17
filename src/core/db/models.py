@@ -97,7 +97,7 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
-    lombaryers_sum = Column(Integer, default=0)
+    sum_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user")
     shifts = relationship("Request", back_populates="user")
@@ -152,7 +152,7 @@ class Request(Base):
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    lombaryers_sum = Column(Integer, default=0)
+    sum_lombaryers = Column(Integer)
     user = relationship("User", back_populates="requests")
     shift = relationship("Shift", back_populates="requests")
 
