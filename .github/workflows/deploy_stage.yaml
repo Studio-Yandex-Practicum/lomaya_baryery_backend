@@ -68,8 +68,8 @@ jobs:
       - name: Copy docker-compose file
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: "deploy.tar"
           target: "/lombarye/back"
@@ -77,8 +77,8 @@ jobs:
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /lombarye/back
