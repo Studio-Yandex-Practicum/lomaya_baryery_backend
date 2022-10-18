@@ -87,7 +87,7 @@ class UserTaskRepository(AbstractRepository):
 
         Аргументы:
             user_id (UUID): id пользователя,
-            date (date): Дата до которой необходимо найти последние полученные задачи,
+            date (date): Дата до(не включая) которой необходимо найти последние полученные задачи,
             task_amount (int): количество заданий, которое необходимо получить.
 
         Возвращает:
@@ -95,7 +95,7 @@ class UserTaskRepository(AbstractRepository):
         """
         statement = (
             select(UserTask)
-            .where(and_(UserTask.user_id == user_id, UserTask.day <= date))
+            .where(and_(UserTask.user_id == user_id, UserTask.day < date, UserTask.deleted.is_not(False)))
             .order_by(desc(UserTask.day))
             .limit(task_amount)
         )
