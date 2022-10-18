@@ -32,7 +32,10 @@ class RequestRepository(AbstractRepository):
         )
         request = request.scalars().first()
         if request is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Объект Request c id={id} не найден.")
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail=f"Объект Request c id={id} не найден.",
+            )
         return request
 
     async def create(self, request: Request) -> Request:
@@ -60,6 +63,12 @@ class RequestRepository(AbstractRepository):
         Аргументы:
             user_id (UUID): id пользователя.
         """
-        statement = select(Request).where(and_(Request.status == Request.Status.APPROVED, Request.user_id == user_id))
+        statement = select(Request).where(
+            and_(
+                Request.status == Request.Status.APPROVED,
+                Request.user_id == user_id,
+                Request.deleted.is_(False),
+            )
+        )
         request = await self.session.scalars(statement)
         return request.first()
