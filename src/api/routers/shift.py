@@ -1,10 +1,16 @@
 from http import HTTPStatus
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.request_models.shift import ShiftCreateRequest
-from src.api.response_models.shift import ShiftResponse, ShiftUsersResponse
+from src.api.response_models.shift import (
+    ShiftDtoRespone,
+    ShiftResponse,
+    ShiftUsersResponse,
+)
+from src.core.db.models import Request
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -109,3 +115,34 @@ async def get_shift_users(
     - **users**: Список всех одобренных пользователей смены.
     """
     return await shift_service.get_users_list(shift_id)
+
+
+@router.get(
+    '/{shift_id}/requests',
+    response_model=list[ShiftDtoRespone],
+    response_model_exclude_none=True,
+    summary=("Получить информацию обо всех заявках смены"
+             "с возможностью фильтрации"),
+    response_description="Полная информация обо заявках смены.",
+)
+async def get_list_all_requests_on_project(
+    shift_id: UUID,
+    status: Optional[Request.Status] = None,
+    shift_service: ShiftService = Depends(),
+) -> ShiftDtoRespone:
+    """
+    Данный метод будет использоваться для получения сведений
+    обо всех заявках смены с возможностью фильтрации по:
+    номеру смены и статусу заявки.
+    - **user_id**: Номер пользователя
+    - **name**: Имя пользователя
+    - **surname**: Фамилия пользователя
+    - **date_of_birth**: Дата рождения пользователя
+    - **city**: Город пользователя
+    - **phone**: Телефон пользователя
+    - **request_id**: Номер заявки
+    - **status**: Статус заявки
+    """
+    return await shift_service.list_all_requests(
+        id=shift_id, status=status
+    )

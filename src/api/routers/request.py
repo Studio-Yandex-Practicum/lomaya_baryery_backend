@@ -26,13 +26,6 @@ async def update_request_status(
 ) -> RequestResponse:
     """Обновить статус заявки.
 
-    - **request_id**: id заявки
-    - **user_id**: id пользователя
-    - **name**: имя пользователя
-    - **surname**: фамилия пользователя
-    - **date_of_birth**: дата рождения пользователя
-    - **city**: город пользователя
-    - **phone_number**: телефонный номер пользователя
     - **status**: статус заявки
     """
     updated_request = await request_service.status_update(request_id, new_status_data)
