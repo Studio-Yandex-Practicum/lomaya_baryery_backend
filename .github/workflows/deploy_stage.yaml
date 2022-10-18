@@ -89,29 +89,29 @@ jobs:
             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            echo BOT_TOKEN=${{ secrets.BOT_TOKEN }} >> .env
+            echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
             echo APPLICATION_URL=${{ secrets.HOST }} >> .env
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
 
-#  start_application:
-#    name: Start application
-#    runs-on: ubuntu-latest
-#    environment:
-#      name: Stage
-#    needs: deploy
-#    steps:
-#      - name: Start appication
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          script: |
-#            cd /lombarye/back
-#            docker image prune -f
-#            docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
-#            docker compose --file docker-compose.yaml stop
-#            docker compose --file docker-compose.yaml rm backend
-#            docker compose --file docker-compose.yaml up -d
+  start_application:
+    name: Start application
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+    needs: deploy
+    steps:
+      - name: Start appication
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /lombarye/back
+            docker image prune -f
+            docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
+            docker compose --file docker-compose.yaml stop
+            docker compose --file docker-compose.yaml rm backend
+            docker compose --file docker-compose.yaml up -d
