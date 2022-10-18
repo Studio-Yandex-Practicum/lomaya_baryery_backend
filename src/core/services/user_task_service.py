@@ -12,6 +12,7 @@ from src.core.db.models import UserTask
 from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import get_task_service
+from src.core.services.user_service import get_user_service
 
 
 class UserTaskService:
@@ -100,4 +101,18 @@ class UserTaskService:
 
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
-    return UserTaskService(session)
+    return UserTaskService(UserTaskRepository(session), TaskRepository(session))
+
+
+async def get_current_user_task_by_telegram_id(telegram_id: int) -> UserTask:
+    """Получение текущего задания пользователя по номеру телеграмма.
+
+    - UserTask.photo: одгружается для получения даты загрузки фотографии.
+    """
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    user_ser = get_user_service(session)
+    user = await user_ser.user_repository.get_by_telegram_id(telegram_id)
+    user_task_servie = get_user_task_service(session)
+    user_task = await user_task_servie.user_task_repository.get_last_updated_user_task(user)
+    return user_task

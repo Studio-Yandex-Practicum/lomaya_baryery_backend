@@ -1,9 +1,10 @@
 from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import RequestCreateRequest, UserCreateRequest
+from src.core.db.db import get_session
 from src.core.db.models import Request, User
-from src.core.db.repository.request_repository import RequestRepository
-from src.core.db.repository.user_repository import UserRepository
+from src.core.db.repository import RequestRepository, UserRepository
 
 
 class UserService:
@@ -26,3 +27,7 @@ class UserService:
             request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
             request = Request(**request_scheme.dict())
             await self.user_repository.create(request)
+
+
+def get_user_service(session: AsyncSession = Depends(get_session)) -> UserService:
+    return UserService(UserRepository(session), RequestRepository(session))
