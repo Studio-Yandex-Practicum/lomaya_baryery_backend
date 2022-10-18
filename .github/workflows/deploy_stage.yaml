@@ -109,6 +109,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd /lombarye/back
             docker image prune -f
             docker pull ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
             docker compose --file docker-compose.yaml stop
