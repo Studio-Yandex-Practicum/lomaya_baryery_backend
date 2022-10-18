@@ -95,7 +95,7 @@ class UserTaskRepository(AbstractRepository):
         """
         statement = (
             select(UserTask)
-            .where(and_(UserTask.user_id == user_id, UserTask.day < date, UserTask.deleted.is_not(False)))
+            .where(and_(UserTask.user_id == user_id, UserTask.day < date, UserTask.deleted.is_(False)))
             .order_by(desc(UserTask.day))
             .limit(task_amount)
         )
