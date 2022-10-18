@@ -7,6 +7,7 @@ from pydantic.schema import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user_task import ChangeStatusRequest
+from src.api.response_models.task import ShortTaskResponse
 from src.core.db.db import get_session
 from src.core.db.models import UserTask
 from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
@@ -40,7 +41,7 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.user_task_repository.get_user_task_with_photo_url(id)
 
-    async def get_task_by_user(self, user_id: UUID, day_number: int, shift_id: int) -> dict:
+    async def get_task_by_user(self, user_id: UUID, day_number: int, shift_id: int) -> ShortTaskResponse:
         return await self.user_task_repository.get_task_by_user(user_id, day_number, shift_id)
 
     # TODO переписать
