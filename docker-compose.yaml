@@ -13,12 +13,11 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - ./.env
+      - .env
 
   backend:
     env_file:
       - .env
-    build: .
     container_name: lomaya_baryery_backend
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
     restart: always
