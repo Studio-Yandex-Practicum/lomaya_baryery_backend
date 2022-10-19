@@ -23,6 +23,10 @@ class UserRepository(AbstractRepository):
         user = await self.session.execute(select(User).where(telegram_id == telegram_id))
         return user.scalars().first()
 
+    async def get_by_phone_number(self, phone_number: str) -> Optional[User]:
+        user = await self.session.execute(select(User).where(phone_number == phone_number))
+        return user.scalars().first()
+
     async def get(self, id: UUID) -> User:
         user = await self.get_or_none(id)
         if user is None:

@@ -1,15 +1,12 @@
-import re
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ValidationError, validator
+from pydantic import BaseModel, Field, validator
 
 from src.core.db.models import Request
 
-VALID_TEXT = "^[a-zA-Zа-яА-ЯёЁ ]+$"
-VALID_PHONE_NUMBER = "^[0-9]{11}$"
-INVALID_TEXT_ERROR = "Адрес содержит недопустимые символы"
+INVALID_TYPE_ERROR = 'В поле {} передан некорректный тип данных.'.format
 
 
 class UserCreateRequest(BaseModel):
@@ -18,37 +15,42 @@ class UserCreateRequest(BaseModel):
     surname: str = Field(min_length=2, max_length=100)
     date_of_birth: date
     city: str = Field(min_length=2, max_length=50)
-    phone_number: Optional[str]
+    phone_number: str
 
-    @validator("date_of_birth", pre=True)
-    def validate_date(cls, value: str):
-        try:
-            return datetime.strptime(value, "%Y-%m-%d")
-        except ValidationError as error:
-            return error
+    @validator("telegram_id", pre=True)
+    def validate_telegram_id(cls, value: int):
+        if not isinstance(value, int):
+            raise ValueError(INVALID_TYPE_ERROR('Telegram ID'))
+        return value
 
     @validator("name", pre=True)
     def validate_name(cls, value: str):
-        if re.compile(VALID_TEXT).search(value) is None:
-            raise ValueError(INVALID_TEXT_ERROR)
-        return value.title()
+        if not isinstance(value, str):
+            raise ValueError(INVALID_TYPE_ERROR('Имя'))
+        return value
 
     @validator("surname", pre=True)
     def validate_surname(cls, value: str):
-        if re.compile(VALID_TEXT).search(value) is None:
-            raise ValueError(INVALID_TEXT_ERROR)
-        return value.title()
+        if not isinstance(value, str):
+            raise ValueError(INVALID_TYPE_ERROR('Фамилия'))
+        return value
+
+    @validator("date_of_birth", pre=True)
+    def validate_date_of_birth(cls, value: date):
+        if not isinstance(value, date):
+            raise ValueError(INVALID_TYPE_ERROR('Дата рождения'))
+        return value
 
     @validator("city", pre=True)
     def validate_city(cls, value: str):
-        if re.compile(VALID_TEXT).search(value) is None:
-            raise ValueError(INVALID_TEXT_ERROR)
-        return value.title()
+        if not isinstance(value, str):
+            raise ValueError(INVALID_TYPE_ERROR('Город'))
+        return value
 
     @validator("phone_number", pre=True)
-    def validate_phone(cls, value):
-        if re.compile(VALID_PHONE_NUMBER).search(str(value)) is None:
-            raise ValueError("Поле телефона должно состоять из 11 цифр")
+    def validate_phone_number(cls, value: str):
+        if not isinstance(value, str):
+            raise ValueError(INVALID_TYPE_ERROR('Телефон'))
         return value
 
 
