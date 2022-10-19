@@ -12,8 +12,13 @@ from src.core.services.user_task_service import UserTaskService
 
 
 class ShiftService:
-    def __init__(self, shift_repository: ShiftRepository = Depends()) -> None:
+    def __init__(
+        self,
+        shift_repository: ShiftRepository = Depends(),
+        user_task_service: UserTaskService = Depends(),
+    ) -> None:
         self.shift_repository = shift_repository
+        self.user_task_service = user_task_service
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
@@ -31,8 +36,7 @@ class ShiftService:
         if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING.value):
             # TODO изменить на кастомное исключение
             raise Exception
-        user_service = UserTaskService(self.shift_repository.session)
-        await user_service.distribute_tasks_on_shift(id)
+        await self.user_task_service.distribute_tasks_on_shift(id)
 
         # TODO добавить вызов метода рассылки участникам первого задания
 

@@ -1,5 +1,5 @@
 import random
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any
 
 from fastapi import Depends
@@ -7,7 +7,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.core.db.models import UserTask
-from src.core.db.repository import RequestRepository, TaskRepository, UserTaskRepository
+from src.core.db.repository import RequestRepository, ShiftRepository, TaskRepository, UserTaskRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
@@ -29,10 +29,16 @@ class UserTaskService:
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         request_repository: RequestRepository = Depends(),
+        shift_repository: ShiftRepository = Depends(),
+        task_service: TaskService = Depends(),
+        request_service: RequestService = Depends(),
     ) -> None:
         self.user_task_repository = user_task_repository
         self.task_repository = task_repository
         self.request_repository = request_repository
+        self.shift_repository = shift_repository
+        self.task_service = task_service
+        self.request_service = request_service
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.user_task_repository.get(id)
@@ -67,33 +73,24 @@ class UserTaskService:
         Задачи раздаются случайным образом.
         Метод запускается при старте смены.
         """
-        task_service = TaskService(self.task_repository)
-        request_service = RequestService(self.request_repository)
-        task_ids_list = await task_service.get_task_ids_list()
-        user_ids_list = await request_service.get_approved_shift_user_ids(shift_id)
-        # Список 93 календарных дней, начиная с сегодняшнего
-        dates_tuple = tuple((date.today() + timedelta(i)).day for i in range(93))
+        task_ids_list = await self.task_service.get_task_ids_list()
+        user_ids_list = await self.request_service.get_approved_shift_user_ids(shift_id)
+        current_shift = await self.shift_repository.get(shift_id)
 
-        def distribution_process(task_ids: list[UUID], dates: tuple[int], user_id: UUID) -> None:
-            """Процесс раздачи заданий пользователю."""
-            # Для каждого пользователя
-            # случайным образом перемешиваем список task_ids
-            random.shuffle(task_ids)
-            daynumbers_tuple = tuple(i for i in range(1, 94))
-            # составляем кортеж из пар "день месяца - номер дня смены"
-            date_to_daynumber_mapping = tuple(zip(dates, daynumbers_tuple))
-            for date_day, day_number in date_to_daynumber_mapping:
-                new_user_task = UserTask(
-                    user_id=user_id,
-                    shift_id=shift_id,
-                    # Task_id на позиции, соответствующей дню месяца.
-                    # Например, для первого числа это task_ids[0]
-                    task_id=task_ids[date_day - 1],
-                    day_number=day_number,
-                )
-                self.session.add(new_user_task)
-
-        for userid in user_ids_list:
-            distribution_process(task_ids_list, dates_tuple, userid)
-
-        await self.session.commit()
+        result = []
+        for user_id in user_ids_list:
+            random.shuffle(task_ids_list)
+            all_days = (current_shift.finished_at - current_shift.created_at).days
+            all_dates = tuple((current_shift.created_at + timedelta(day)) for day in range(all_days))
+            for one_date in all_dates:
+                result.append(
+                        UserTask(
+                            user_id=user_id,
+                            shift_id=shift_id,
+                            # Task_id на позиции, соответствующей дню месяца.
+                            # Например, для первого числа это task_ids[0]
+                            task_id=task_ids_list[one_date.day - 1],
+                            day=one_date,
+                        )
+                )  
+        await self.user_task_repository.create_all(result)
