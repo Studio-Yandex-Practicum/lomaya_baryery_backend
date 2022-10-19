@@ -4,7 +4,7 @@ RUN python -m pip install --upgrade pip
 RUN apt-get update
 RUN apt-get -y install gcc
 
-WORKDIR  /code
+WORKDIR  /LOMAYA_BARYERY_BACKEND
 
 # устанавливаем зависимости в отдельном слое
 COPY ./requirements.txt .
