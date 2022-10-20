@@ -41,3 +41,7 @@ class UserRepository(AbstractRepository):
         await self.session.merge(user)
         await self.session.commit()
         return user
+
+    async def get_all(self) -> Optional[list[User]]:
+        users = await self.session.execute(select(User))
+        return users.scalars().all()
