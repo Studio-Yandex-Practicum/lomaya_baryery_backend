@@ -4,10 +4,9 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Photo, User, UserTask
+from src.core.db.models import Photo, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -80,15 +79,3 @@ class UserTaskRepository(AbstractRepository):
         await self.session.merge(user_task)
         await self.session.commit()
         return user_task
-
-    async def get_last_updated_user_task(self, user: User) -> UserTask:
-        """Получить текущее задание юзера c датой загрузки фотографии."""
-        user_task = await self.session.execute(
-            select(UserTask)
-            .where(
-                UserTask.user_id == user.id,
-            )
-            .options(selectinload(UserTask.photo))
-            .order_by(UserTask.updated_at.desc())
-        )
-        return user_task.scalars().first()

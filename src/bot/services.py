@@ -1,6 +1,7 @@
+from src.api.request_models.request import Status
+from src.bot.main import create_bot
 from src.core import settings
 from src.core.db import models
-from src.bot.main import create_bot
 
 bot = create_bot().bot  # временная копия бота до миграции на webhooks
 
@@ -22,3 +23,21 @@ async def send_rejection_callback(user: models.User):
             f"{settings.ORGANIZATIONS_GROUP}"
         ),
     )
+
+
+async def send_change_task_status_notifitation_callback(user_task: models.UserTask, telegram_id: int):
+    """Уведомление о проверенном задании."""
+    if user_task.status is Status.APPROVED:
+        text_reply = f"""
+        Твой отчет от {user_task.photo.updated_at} принят!
+        Тебе начислен 1 \"ломбарьерчик\".
+        Следующее задание придет в 8.00 мск.
+        """
+    else:
+        text_reply = """
+            К сожалению, мы не можем принять твой фотоотчет!
+            Возможно на фотографии не видно, что именно ты выполняешь задание.
+            Предлагаем продолжить, ведь впереди много интересных заданий.
+            Следующее задание придет в 8.00 мск.
+        """
+    await bot.send_message(chat_id=telegram_id, text=text_reply)
