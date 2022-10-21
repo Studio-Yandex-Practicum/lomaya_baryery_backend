@@ -75,7 +75,6 @@ class UserTaskRepository(AbstractRepository):
         return user_task
 
     async def create_all(self, user_tasks_list: list[UserTask]) -> UserTask:
-        print(user_tasks_list)
         self.session.add_all(user_tasks_list)
         await self.session.commit()
         return user_tasks_list
