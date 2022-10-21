@@ -176,7 +176,7 @@ class UserTask(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
-    day = Column(DATE, nullable=False)
+    task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
@@ -189,4 +189,4 @@ class UserTask(Base):
     __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
 
     def __repr__(self):
-        return f"<UserTask: {self.id}, day: {self.day}, " f"status: {self.status}>"
+        return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"

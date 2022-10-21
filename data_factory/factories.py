@@ -82,7 +82,7 @@ class UserTaskFactory(BaseFactory):
     user_id = factory.SelfAttribute("user.id")
     shift_id = factory.SelfAttribute("shift.id")
     task_id = factory.SelfAttribute("task.id")
-    day = factory.Faker(
+    task_date = factory.Faker(
         "date_between_dates",
         date_start=factory.SelfAttribute("..shift.started_at"),
         date_end=factory.SelfAttribute("..shift.finished_at")

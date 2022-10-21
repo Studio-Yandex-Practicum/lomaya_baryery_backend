@@ -65,7 +65,7 @@ class UserTasksCBV:
         - **user_id**:номер участника
         - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
         - **task_id**: номер задачи
-        - **day_number**: номер дня смены
+        - **task_date**: дата получения задания
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
@@ -73,7 +73,7 @@ class UserTasksCBV:
         return user_task
 
     @router.get(
-        "/{shift_id}/{day_number}/new",
+        "/{shift_id}/{task_date}/new",
         response_model=UserTasksAndShiftResponse,
         summary="Получить непроверенные и новые задания.",
     )
@@ -89,10 +89,10 @@ class UserTasksCBV:
         в определенной смене:
 
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
-        - **day_number**: номер дня смены, в диапазоне от 1 до 93
+        - **task_date**: дата получения задания, формат yyyy mm dd
         """
         shift = await self.shift_service.get_shift(shift_id)
-        tasks = await self.user_task_service.get_tasks_report(shift_id, day_number)
+        tasks = await self.user_task_service.get_tasks_report(shift_id, task_date)
         report = dict()
         report["shift"] = shift
         report["tasks"] = tasks
