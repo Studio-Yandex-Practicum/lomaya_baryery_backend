@@ -7,13 +7,13 @@ from sqlalchemy.sql import text
 from src.core.db.db import get_session
 
 
-class HealthRepository(ABC):
+class HealthcheckRepository(ABC):
     """Репозиторий для обращения к бд сервисом HealthService."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         self.session = session
 
-    async def get_db_ver(self, db_table: str) -> str:
-        query = text('SELECT * FROM ' + db_table)
+    async def get_db_ver(self) -> str:
+        query = text('SELECT VERSION()')
         db_ver = await self.session.execute(query)
-        return db_ver.scalars().first()
+        return db_ver.fetchone()
