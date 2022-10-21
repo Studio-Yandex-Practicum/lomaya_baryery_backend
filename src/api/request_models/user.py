@@ -1,18 +1,18 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, PastDate
+from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr
 
 from src.core.db.models import Request
 
 
 class UserCreateRequest(BaseModel):
-    telegram_id: int
-    name: str = Field(min_length=2, max_length=100)
-    surname: str = Field(min_length=2, max_length=100)
+    telegram_id: StrictInt
+    name: StrictStr = Field(min_length=2, max_length=100)
+    surname: StrictStr = Field(min_length=2, max_length=100)
     date_of_birth: PastDate
-    city: str = Field(min_length=2, max_length=50)
-    phone_number: str
+    city: StrictStr = Field(min_length=2, max_length=50)
+    phone_number: StrictStr
 
 
 class RequestCreateRequest(BaseModel):
