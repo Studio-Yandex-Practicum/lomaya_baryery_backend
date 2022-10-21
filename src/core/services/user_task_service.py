@@ -6,12 +6,12 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.request_models.request import Status
 from src.api.request_models.user_task import ChangeStatusRequest
-from src.bot.services import send_change_task_status_notifitation_callback
+from src.bot.services import send_message_about_change_task_status
 from src.core.db.db import get_session
-from src.core.db.models import UserTask
+from src.core.db.models import Photo, User, UserTask
 from src.core.db.repository import (
+    PhotoRepository,
     RequestRepository,
     TaskRepository,
     UserRepository,
@@ -37,11 +37,9 @@ class UserTaskService:
         self,
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
-        user_repository: UserRepository = Depends(),
     ) -> None:
         self.user_task_repository = user_task_repository
         self.task_repository = task_repository
-        self.user_repository = user_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.user_task_repository.get(id)
@@ -65,14 +63,9 @@ class UserTaskService:
     async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> dict:
         await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
         user_task = await self.user_task_repository.get_user_task_with_photo_url(id)
-        if user_task.status in (Status.APPROVED, Status.DECLINED):
-            await self.send_message(user_task)
+        user, photo = await get_user_and_photo_by_task(user_task)
+        await send_message_about_change_task_status(user_task.status, user.telegram_id, photo.created_at)
         return user_task
-
-    async def send_message(self, user_task: UserTaskRepository) -> None:
-        """Отправить сообщение об изменении статуса задачи."""
-        user = self.user_repository.get(user_task.user_id)
-        return await send_change_task_status_notifitation_callback(user_task, user.telegram_id)
 
     # TODO переписать
     async def distribute_tasks_on_shift(
@@ -118,3 +111,9 @@ class UserTaskService:
 
 def get_user_task_service(session: AsyncSession = Depends(get_session)) -> UserTaskService:
     return UserTaskService(UserTaskRepository(session), TaskRepository(session), UserRepository(session))
+
+
+async def get_user_and_photo_by_task(user_task: UserTask) -> list(User, Photo):
+    user = await UserRepository.get(user_task.user_id)
+    photo = await PhotoRepository.get(user_task.photo_id)
+    return user, photo

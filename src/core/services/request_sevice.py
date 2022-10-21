@@ -3,9 +3,9 @@ from http import HTTPStatus
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
-from src.api.request_models.request import RequestStatusUpdateRequest, Status
-from src.bot.services import send_approval_callback, send_rejection_callback
-from src.core.db.models import Request, User
+from src.api.request_models.request import RequestStatusUpdateRequest
+from src.bot.services import send_message_about_new_request_status
+from src.core.db.models import Request
 from src.core.db.repository import RequestRepository
 
 REVIEWED_REQUEST = "Данная заявка уже была рассмотрена ранее"
@@ -28,14 +28,8 @@ class RequestService:
         if request.status == new_status_data.status:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
         request.status = new_status_data.status
-        await self.send_message(request.user, request.status)
+        await send_message_about_new_request_status(request.user, request.status)
         return await self.request_repository.update(id=request.id, request=request)
-
-    async def send_message(self, user: User, status: str) -> None:
-        """Отправить сообщение о решении по заявке в telegram."""
-        if status is Status.APPROVED:
-            return await send_approval_callback(user)
-        return await send_rejection_callback(user)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
