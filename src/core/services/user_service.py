@@ -58,13 +58,27 @@ def validate_phone_number(value: str) -> str:
     return format_number(parsed_number, PhoneNumberFormat.E164)[1:]
 
 
-def ValidateUserCreate(user: UserCreateRequest) -> UserCreateRequest:
+async def validate_user_exists(
+    user_repository: UserRepository, telegram_id: int = None, phone_number: str = None
+) -> None:
+    """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
+    user = None
+    if telegram_id:
+        user = await user_repository.get_by_telegram_id(telegram_id)
+    if not user and phone_number:
+        user = await user_repository.get_by_phone_number(phone_number)
+    if user:
+        raise ValueError(f'Пользователь уже зарегистрирован. Telegram ID: {user.telegram_id}.')
+
+
+async def ValidateUserCreate(user: UserCreateRequest, user_repository: UserRepository) -> UserCreateRequest:
     """Валидация персональных данных пользователя."""
     user.name = validate_name(user.name)
     user.surname = validate_surname(user.surname)
     user.date_of_birth = validate_date_of_birth(user.date_of_birth)
     user.city = validate_city(user.city)
     user.phone_number = validate_phone_number(user.phone_number)
+    await validate_user_exists(user_repository, user.telegram_id, user.phone_number)
     return user
 
 
@@ -78,13 +92,9 @@ class UserService:
     async def user_registration(self, user_data: dict):
         """Регистрация пользователя. Отправка запроса на участие в смене."""
         user_scheme = UserCreateRequest(**user_data)
-        valid_user_scheme = ValidateUserCreate(user_scheme)
-        user = await self.user_repository.get_by_telegram_id(valid_user_scheme.telegram_id)
-        if not user:
-            user = await self.user_repository.get_by_phone_number(valid_user_scheme.phone_number)
-        if not user:
-            user = User(**valid_user_scheme.dict())
-            await self.user_repository.create(user)
+        valid_user_scheme = await ValidateUserCreate(user_scheme, self.user_repository)
+        user = User(**valid_user_scheme.dict())
+        await self.user_repository.create(user)
         request = await self.request_repository.get_or_none(user.id)
         if not request:
             request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
