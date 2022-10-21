@@ -1,24 +1,27 @@
 version: '3.3'
 
 volumes:
-  postgres_data:
+  postgres_data_stage:
 
 services:
-  db:
+  postgres:
     image: postgres:13.2
-    container_name: lomaya_baryery_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - ./.env
-  backend:
-    build: .
-    container_name: lomaya_baryery_backend
-    ports:
-      - "8080:8080"
     restart: always
-    command: python run.py
-    depends_on:
-      - db
+    container_name: postgres_stage
+    volumes:
+      - postgres_data_stage:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
     env_file:
-      - ./.env
+      - .env
+
+  backend:
+    env_file:
+      - .env
+    container_name: lomaya_baryery_backend
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
