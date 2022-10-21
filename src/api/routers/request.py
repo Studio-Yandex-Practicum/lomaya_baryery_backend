@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
-from fastapi_utils.cbv import cbv
+from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestStatusUpdateRequest

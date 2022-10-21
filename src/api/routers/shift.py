@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi_utils.cbv import cbv
+from fastapi_restful.cbv import cbv
 
 from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import (
