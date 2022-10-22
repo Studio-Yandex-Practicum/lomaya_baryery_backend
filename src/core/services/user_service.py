@@ -9,12 +9,11 @@ from src.core.db.repository.user_repository import UserRepository
 from src.core.settings import settings
 
 
-def validate_date_of_birth(value: date) -> date:
+def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
     current_year = datetime.now().date().year
     if current_year - value.year < settings.MIN_AGE:
         raise ValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
-    return value
 
 
 async def validate_user_not_exists(
@@ -26,7 +25,7 @@ async def validate_user_not_exists(
         raise ValueError('Пользователь уже зарегистрирован.')
 
 
-async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> UserCreateRequest:
+async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
     """Валидация персональных данных пользователя."""
     validate_date_of_birth(user.date_of_birth)
     await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number)
