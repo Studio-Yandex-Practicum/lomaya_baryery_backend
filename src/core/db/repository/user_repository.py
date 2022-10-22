@@ -23,7 +23,7 @@ class UserRepository(AbstractRepository):
         user = await self.session.execute(select(User).where(telegram_id == telegram_id))
         return user.scalars().first()
 
-    async def check_user_existence(self, telegram_id: int = None, phone_number: str = None) -> bool:
+    async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
         user = await self.session.execute(
             exists().where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id))
         )
