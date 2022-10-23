@@ -5,9 +5,14 @@ from typing import Any
 from fastapi import Depends
 from pydantic.schema import UUID
 
+from src.api.request_models.request import Status
 from src.api.request_models.user_task import ChangeStatusRequest
+from src.api.response_models.user_task import UserTaskResponse
+from src.bot.services import send_message_task_status_changed
 from src.core.db.models import UserTask
 from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
+from src.core.db.repository.photo_repository import PhotoRepository
+from src.core.db.repository.user_repository import UserRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
@@ -26,12 +31,16 @@ class UserTaskService:
 
     def __init__(
         self,
+        user_repository: UserRepository = Depends(),
+        photo_repository: PhotoRepository = Depends(),
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
     ) -> None:
+        self.__user_repository = user_repository
+        self.__photo_repository = photo_repository
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -57,9 +66,14 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> dict:
-        await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
-        return await self.user_task_repository.get_user_task_with_photo_url(id)
+    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> UserTaskResponse:
+        await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
+        user_task = await self.__user_task_repository.get_user_task_with_photo_url(id)
+        user = self.__user_repository.get(user_task.user_id)
+        if user_task.status is Status.APPROVED:
+            photo = self.__photo_repository.get(user_task.photo_id)
+        await send_message_task_status_changed(user_task.status, user.telegram_id, photo.created_at)
+        return user_task
 
     # TODO переписать
     async def distribute_tasks_on_shift(

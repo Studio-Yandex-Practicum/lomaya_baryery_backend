@@ -6,6 +6,7 @@ from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.response_models.user_task import UserTaskResponse
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
 from src.core.db.repository import AbstractRepository
@@ -30,7 +31,7 @@ class UserTaskRepository(AbstractRepository):
     async def get_user_task_with_photo_url(
         self,
         id: UUID,
-    ) -> dict:
+    ) -> UserTaskResponse:
         """Получить отчет участника по id с url фото выполненного задания."""
         user_task = await self.__session.execute(
             select(

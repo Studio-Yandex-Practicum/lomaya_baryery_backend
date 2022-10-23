@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestStatusUpdateRequest
-from src.bot.services import send_message_about_new_request_status
+from src.bot.services import send_message_request_status_changed
 from src.core.db.models import Request
 from src.core.db.repository import RequestRepository
 
@@ -28,7 +28,7 @@ class RequestService:
         if request.status == new_status_data.status:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
         request.status = new_status_data.status
-        await send_message_about_new_request_status(request.user, request.status)
+        await send_message_request_status_changed(request.user, request.status)
         return await self.request_repository.update(id=request.id, request=request)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
