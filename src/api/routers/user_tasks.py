@@ -1,9 +1,10 @@
 from http import HTTPStatus
+from select import select
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, Path, FastAPI
-from fastapi_pagination import Page, paginate, add_pagination, Params
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, FastAPI
+from fastapi_pagination import add_pagination, Page, Params
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
@@ -20,10 +21,12 @@ app = FastAPI()
 
 router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
+add_pagination(app)
+
 
 @router.get(
     "/{user_task_id}",
-    response_model=UserTaskResponse,
+    response_model=Page[UserTaskResponse],
     response_model_exclude_none=True,
     status_code=HTTPStatus.OK,
     summary="Получить информацию об отчёте участника.",
@@ -32,6 +35,7 @@ router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 async def get_user_report(
     user_task_id: UUID,
     user_task_service: UserTaskService = Depends(),
+    params: Params = Depends(),
 ) -> dict:
     """Вернуть отчет участника.
 
@@ -43,7 +47,7 @@ async def get_user_report(
     - **photo_url**: url фото выполненной задачи
     """
     user_task = await user_task_service.get_user_task_with_photo_url(user_task_id)
-    return user_task
+    return await paginate(user_task, UserTaskResponse, params)
 
 
 @router.patch(
@@ -72,11 +76,11 @@ async def update_status_report(
     return user_task
 
 
-add_pagination(app)
+
 
 @router.get(
     "/{shift_id}/{day_number}/new",
-    response_model=Page[UserTasksAndShiftResponse],
+    response_model=UserTasksAndShiftResponse,
     summary="Получить непроверенные и новые задания.",
 )
 async def get_new_and_under_review_tasks(
@@ -84,7 +88,6 @@ async def get_new_and_under_review_tasks(
     day_number: int = Path(..., title="Номер дня, от 1 до 93", ge=settings.MIN_DAYS, le=settings.MAX_DAYS),
     user_task_service: UserTaskService = Depends(),
     shift_service: ShiftService = Depends(),
-    params: Params = Depends()
 ) -> dict[str, Union[dict, list]]:
     """Получить непроверенные и новые задания.
 
@@ -100,5 +103,5 @@ async def get_new_and_under_review_tasks(
     report = dict()
     report["shift"] = shift
     report["tasks"] = tasks
-    return paginate(report, params)
+    return report
     
