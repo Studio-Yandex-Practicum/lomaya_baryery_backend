@@ -2,14 +2,14 @@ import re
 from typing import Optional
 from uuid import UUID
 
-from phonenumbers import PhoneNumberFormat, format_number, is_valid_number, parse
+import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
 from src.core.db.models import Request
 
 VALID_TEXT = "^[а-яА-ЯёЁ][а-яА-ЯёЁ -]*[а-яА-ЯёЁ]$"
-INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\".".format
+INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
 
 
 class UserCreateRequest(BaseModel):
@@ -22,35 +22,32 @@ class UserCreateRequest(BaseModel):
 
     @validator("name")
     def validate_name(cls, value: str):
-        correct_value = re.compile(VALID_TEXT).search(value)
-        if not correct_value:
-            raise ValueError(INVALID_TEXT_ERROR('Имя'))
+        if not re.compile(VALID_TEXT).match(value):
+            raise ValueError(INVALID_TEXT_ERROR.format('Имя'))
         return value.title()
 
     @validator("surname")
     def validate_surname(cls, value: str):
-        correct_value = re.compile(VALID_TEXT).search(value)
-        if not correct_value:
-            raise ValueError(INVALID_TEXT_ERROR('Фамилия'))
+        if not re.compile(VALID_TEXT).match(value):
+            raise ValueError(INVALID_TEXT_ERROR.format('Фамилия'))
         return value.title()
 
     @validator("city")
     def validate_city(cls, value: str):
-        correct_value = re.compile(VALID_TEXT).search(value)
-        if not correct_value:
-            raise ValueError(INVALID_TEXT_ERROR('Город'))
+        if not re.compile(VALID_TEXT).match(value):
+            raise ValueError(INVALID_TEXT_ERROR.format('Город'))
         return value.title()
 
     @validator("phone_number", pre=True)
     def validate_phone_number(cls, value: str):
         invalid_phone_number = 'Некорректный номер телефона'
         try:
-            parsed_number = parse(value.replace('+', ''), "RU")
+            parsed_number = phonenumbers.parse(value.replace('+', ''), "RU")
         except NumberParseException:
             raise ValueError(invalid_phone_number)
-        if not is_valid_number(parsed_number):
+        if not phonenumbers.is_valid_number(parsed_number):
             raise ValueError(invalid_phone_number)
-        return format_number(parsed_number, PhoneNumberFormat.E164)[1:]
+        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)[1:]
 
 
 class RequestCreateRequest(BaseModel):
