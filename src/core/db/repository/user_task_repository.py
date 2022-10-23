@@ -100,8 +100,8 @@ class UserTaskRepository(AbstractRepository):
         """
         statement = (
             select(UserTask)
-            .where(and_(UserTask.user_id == user_id, UserTask.day < date, UserTask.deleted.is_(False)))
-            .order_by(desc(UserTask.day))
+            .where(and_(UserTask.user_id == user_id, UserTask.task_date < date, UserTask.deleted.is_(False)))
+            .order_by(desc(UserTask.task_date))
             .limit(task_amount)
         )
         last_users_tasks = await self.session.scalars(statement)
