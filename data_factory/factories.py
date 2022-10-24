@@ -82,6 +82,10 @@ class UserTaskFactory(BaseFactory):
     user_id = factory.SelfAttribute("user.id")
     shift_id = factory.SelfAttribute("shift.id")
     task_id = factory.SelfAttribute("task.id")
-    day_number = factory.Faker("random_int", min=1, max=99)
+    task_date = factory.Faker(
+        "date_between_dates",
+        date_start=factory.SelfAttribute("..shift.started_at"),
+        date_end=factory.SelfAttribute("..shift.finished_at")
+    )
     status = factory.Iterator([status for status in models.UserTask.Status])
     photo_id = factory.SelfAttribute("photo.id")
