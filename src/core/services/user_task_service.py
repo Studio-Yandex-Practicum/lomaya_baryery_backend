@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta
+from datetime import timedelta, date
 from typing import Any
 
 from fastapi import Depends
@@ -45,9 +45,9 @@ class UserTaskService:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
 
     # TODO переписать
-    async def get_tasks_report(self, shift_id: UUID, day_number: int) -> list[dict[str, Any]]:
+    async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
         """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        user_task_ids = await self.__user_task_repository.get_all_ids(shift_id, day_number)
+        user_task_ids = await self.__user_task_repository.get_all_ids(shift_id, task_date)
         tasks = []
         if not user_task_ids:
             return tasks
@@ -85,10 +85,8 @@ class UserTaskService:
                         UserTask(
                             user_id=user_id,
                             shift_id=shift_id,
-                            # Task_id на позиции, соответствующей дню месяца.
-                            # Например, для первого числа это task_ids[0]
                             task_id=task_ids_list[one_date.day - 1],
-                            day=one_date,
+                            task_date=one_date,
                         )
                 )  
         await self.__user_task_repository.create_all(result)
