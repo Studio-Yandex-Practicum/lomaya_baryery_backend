@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import and_, select
+from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -63,12 +63,16 @@ class RequestRepository(AbstractRepository):
         Аргументы:
             user_id (UUID): id пользователя.
         """
-        statement = select(Request).where(
-            and_(
-                Request.status == Request.Status.APPROVED,
-                Request.user_id == user_id,
-                Request.deleted.is_(False),
+        statement = (
+            select(Request)
+            .where(
+                and_(
+                    Request.status == Request.Status.APPROVED,
+                    Request.user_id == user_id,
+                    Request.deleted.is_(False),
+                )
             )
+            .order_by(desc(Request.created_at))
         )
         request = await self.session.scalars(statement)
         return request.first()
