@@ -42,7 +42,7 @@ class RequestService:
         return await self.request_repository.get_shift_user_ids(shift_id)
 
     async def set_user_request_declined(self, user_id: UUID) -> Request:
-        """Переводит текущую заявку пользователя в статус неактивной."""
+        """Переводит текущую одобренную заявку пользователя в статус неактивной."""
         request = await self.request_repository.get_user_approved_request(user_id)
         if not request:
             raise HTTPException(HTTPStatus.NOT_FOUND, 'Одобренной заявки не найдено!')
