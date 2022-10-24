@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     MAX_DAYS: int = 93
     SEND_NEW_TASK_HOUR: int
     SEND_NO_REPORT_REMINDER_HOUR: int
+    MIN_AGE: int
 
     @property
     def database_url(self):

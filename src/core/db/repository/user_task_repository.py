@@ -37,7 +37,7 @@ class UserTaskRepository(AbstractRepository):
                 UserTask.user_id,
                 UserTask.id,
                 UserTask.task_id,
-                UserTask.day_number,
+                UserTask.task_date,
                 UserTask.status,
                 Photo.url.label("photo_url"),
             )
@@ -52,7 +52,7 @@ class UserTaskRepository(AbstractRepository):
     async def get_all_ids(
         self,
         shift_id: UUID,
-        day_number: int,
+        task_date: date,
     ) -> list[tuple[int]]:
         """Получить список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
         user_tasks_info = await self.__session.execute(
@@ -60,7 +60,7 @@ class UserTaskRepository(AbstractRepository):
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.day_number == day_number,
+                    UserTask.task_date == task_date,
                     or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
                 )
             )
