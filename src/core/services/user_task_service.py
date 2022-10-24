@@ -45,8 +45,8 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
 
-    async def get_task_by_user(self, user_id: UUID, day_number: int, shift_id: int) -> ShortTaskResponse:
-        return await self.__user_task_repository.get_task_by_user(user_id, day_number, shift_id)
+    async def get_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
+        return await self.__user_task_repository.get_task_by_user(user_id)
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:

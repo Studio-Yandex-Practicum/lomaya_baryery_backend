@@ -1,5 +1,3 @@
-from telegram import ReplyKeyboardMarkup
-
 from src.bot.main import create_bot
 from src.core import settings
 from src.core.db import models
@@ -23,18 +21,4 @@ async def send_rejection_callback(user: models.User):
             f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
             f"{settings.ORGANIZATIONS_GROUP}"
         ),
-    )
-
-
-async def send_task_callback(user: models.User, description: str, task_url: str):
-    buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
-    chat_id = user.telegram_id
-    await bot.send_message(chat_id=chat_id, text=(task_url))
-    await bot.send_message(
-        chat_id=chat_id,
-        text=(
-            f"Сегодня твоим заданием будет {description}."
-            f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
-        ),
-        reply_markup=buttons,
     )
