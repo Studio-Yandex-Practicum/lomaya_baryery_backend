@@ -14,7 +14,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     )
 
 
-async def send_task_job(context: CallbackContext, telegram_id: int, description: str, task_url: str):
+async def send_task_job(context: CallbackContext, telegram_id: int, description: str, task_url: str) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
     await context.bot.send_message(chat_id=telegram_id, text=(task_url))
     await context.bot.send_message(
