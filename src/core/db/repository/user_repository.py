@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -22,6 +22,12 @@ class UserRepository(AbstractRepository):
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
         user = await self.session.execute(select(User).where(telegram_id == telegram_id))
         return user.scalars().first()
+
+    async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
+        user_exists = await self.session.execute(
+            exists().where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id))
+        )
+        return user_exists.scalar()
 
     async def get(self, id: UUID) -> User:
         user = await self.get_or_none(id)
