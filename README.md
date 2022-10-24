@@ -110,24 +110,17 @@ _Примеры:_
 
 ## 3.1. Запуск локальной БД
 
-```dotenv
-BOT_TOKEN= # токен бота
-BOT_WEBHOOK_MODE= # запустить бота в режиме webhook(true)|polling(false)
-APPLICATION_URL= # домен, на котором развернуто приложение
-POSTGRES_DB=lomaya_baryery_db_local  # имя базы данных
-POSTGRES_USER=postgres # логин для подключения к базе данных
-POSTGRES_PASSWORD=postgres # пароль для подключения к БД
-DB_HOST=localhost # адрес БД
-DB_PORT=5432 # порт для подключения к БД
-
-```
-Перед запуском проекта необходимо создать копию файла
-```.env.example```, назвав его ```.env``` и установить значение токена бота
+<details>
+ <summary>
+ Запуск
+ </summary>
+<br />
 
 ```shell
 docker-compose -f docker-compose.local.yaml up
 ```
 Если у вас запущен Postgres на компьютере, то остановите его или создайте базу для проекта там.
+
 </details>
 
 ## 3.2. Миграции
@@ -136,7 +129,7 @@ docker-compose -f docker-compose.local.yaml up
  <summary>
  При первом запуске необходимо применить существующие миграции, чтобы в БД создались таблицы
  </summary>
-<br>
+<br />
 
 ```shell
 alembic upgrade head
