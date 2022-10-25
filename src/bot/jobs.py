@@ -16,10 +16,10 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 async def send_task_job(context: CallbackContext, telegram_id: int, description: str, task_url: str) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
-    await context.bot.send_message(chat_id=telegram_id, text=(task_url))
-    await context.bot.send_message(
+    await context.bot.send_photo(
         chat_id=telegram_id,
-        text=(
+        photo=task_url,
+        caption=(
             f"Сегодня твоим заданием будет {description}."
             f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
         ),

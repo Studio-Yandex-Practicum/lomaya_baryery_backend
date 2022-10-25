@@ -70,8 +70,8 @@ class UserTaskRepository(AbstractRepository):
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    async def get_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
-        """Получить для каждого участника task_id и url."""
+    async def get_today_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
+        """Получить для участника полагащийся на этот день task_id и url."""
         task_date = datetime.now().date()
         task_id_url = await self.__session.execute(
             select(UserTask.task_id, Task.url.label("task_url"))

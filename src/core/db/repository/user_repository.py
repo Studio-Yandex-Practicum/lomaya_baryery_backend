@@ -6,7 +6,7 @@ from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import User
+from src.core.db.models import Shift, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -28,6 +28,14 @@ class UserRepository(AbstractRepository):
             exists().where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id))
         )
         return user_exists.scalar()
+
+    async def check_user_is_in_active_shift(self, id: UUID) -> None:
+        user_in_active_shift = await self.session.execute(
+            select(exists(User)).where(User.id == id, Shift.status == Shift.Status.STARTED.value).join(User.shifts)
+        )
+        user_in_active_shift = user_in_active_shift.scalar()
+        if not user_in_active_shift:
+            raise LookupError(f"Объект User c {id=} не участвует в активной смене.")
 
     async def get(self, id: UUID) -> User:
         user = await self.get_or_none(id)

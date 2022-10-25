@@ -8,7 +8,12 @@ from pydantic.schema import UUID
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.task import ShortTaskResponse
 from src.core.db.models import UserTask
-from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
+from src.core.db.repository import (
+    ShiftRepository,
+    TaskRepository,
+    UserRepository,
+    UserTaskRepository,
+)
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
@@ -32,12 +37,14 @@ class UserTaskService:
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
+        user_repository: UserRepository = Depends(),
     ) -> None:
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
         self.__task_service = task_service
         self.__request_service = request_service
+        self.__user_repository = user_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.__user_task_repository.get(id)
@@ -45,8 +52,10 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
 
-    async def get_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
-        return await self.__user_task_repository.get_task_by_user(user_id)
+    async def get_today_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
+        user = await self.__user_repository.get(user_id)
+        await self.__user_repository.check_user_is_in_active_shift(user.id)
+        return await self.__user_task_repository.get_today_task_by_user(user_id)
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
