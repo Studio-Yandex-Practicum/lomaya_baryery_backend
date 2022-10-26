@@ -15,7 +15,8 @@ alembic = "~1.7.1"
 python = "^3.8"
 pre-commit = "~2.20.0"
 phonenumbers = "~8.12.55"
-fastapi-pagination = {extras = ["all"], version = "^0.10.0"}
+fastapi-restful = "^0.4.3"
+fastapi-pagination = "^0.10.0"
 
 [tool.black]
 skip-string-normalization = true

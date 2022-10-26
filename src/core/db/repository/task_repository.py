@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,10 +15,10 @@ class TaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью Task."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.session = session
+        self.__session = session
 
     async def get_or_none(self, id: UUID) -> Optional[Task]:
-        return await self.session.get(Task, id)
+        return await self.__session.get(Task, id)
 
     async def get(self, id: UUID) -> Task:
         task = await self.get_or_none(id)
@@ -26,9 +27,14 @@ class TaskRepository(AbstractRepository):
             raise LookupError(f"Объект Task c {id=} не найден.")
         return task
 
+    async def get_task_ids_list(self) -> list[UUID]:
+        """Список всех task_id."""
+        task_ids = await self.__session.execute(select(Task.id))
+        return task_ids.scalars().all()
+
     async def get_tasks_report(self, user_id: UUID, task_id: UUID) -> dict:
         """Получить список задач с информацией о юзерах."""
-        task_summary_info = await self.session.execute(
+        statement = (
             select(
                 User.name,
                 User.surname,
@@ -39,18 +45,20 @@ class TaskRepository(AbstractRepository):
             .select_from(User, Task)
             .where(User.id == user_id, Task.id == task_id)
         )
+        task_summary_info = await self.session.execute(statement)
         task_summary_info = task_summary_info.all()
         task = dict(*task_summary_info)
-        return task
+        await paginate(self.session, statement)
+        return await task
 
     async def create(self, task: Task) -> Task:
-        self.session.add(task)
-        await self.session.commit()
-        await self.session.refresh(task)
+        self.__session.add(task)
+        await self.__session.commit()
+        await self.__session.refresh(task)
         return task
 
     async def update(self, id: UUID, task: Task) -> Task:
         task.id = id
-        await self.session.merge(task)
-        await self.session.commit()
+        await self.__session.merge(task)
+        await self.__session.commit()
         return task

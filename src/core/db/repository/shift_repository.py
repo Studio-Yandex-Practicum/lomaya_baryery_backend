@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -47,7 +48,8 @@ class ShiftRepository(AbstractRepository):
         request = request.scalars().first()
         if request is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-        return request
+        await paginate(self.session, statement)
+        return await request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         db_list_request = await self.session.execute(

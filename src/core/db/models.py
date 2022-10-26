@@ -1,8 +1,6 @@
 import enum
-import re
 import uuid
 
-import phonenumbers
 from sqlalchemy import (
     DATE,
     TIMESTAMP,
@@ -18,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import relationship, validates
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
 
 
@@ -97,41 +95,13 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
-    lombaryers_sum = Column(Integer, default=0)
+    numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user")
     shifts = relationship("Request", back_populates="user")
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
-
-    @validates("name", "surname")
-    def validate_name_and_surname(self, key, value) -> str:
-        regex = "^[a-zа-яё ]+$"
-        if re.search(regex, value.lower()) is None:
-            raise ValueError("Фамилия или имя не корректные")
-        if len(value) < 2:
-            raise ValueError("Фамилия и имя должны быть больше 2 символов")
-        return value.title()
-
-    @validates("city")
-    def validate_city(self, key, value) -> str:
-        regex = "^[a-zA-Zа-яА-ЯёЁ -]+$"
-        regex_words = "[a-zA-Zа-яА-ЯёЁ]+"
-        if re.search(regex, value) is None and re.search(regex_words, value):
-            raise ValueError("Название города не корректное")
-        if len(value) < 2:
-            raise ValueError("Название города слишком короткое")
-        return value
-
-    @validates("phone_number")
-    def validate_phone_number(self, key, value) -> str:
-        new_number = phonenumbers.parse(value, "RU")
-        if phonenumbers.is_valid_number(new_number) is False:
-            raise ValueError("Поле телефона не корректное")
-        if len(value) != 11:
-            raise ValueError("Поле телефона должно состоять из 11 цифр")
-        return value
 
 
 class Request(Base):
@@ -152,7 +122,7 @@ class Request(Base):
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    lombaryers_sum = Column(Integer, default=0)
+    numbers_lombaryers = Column(Integer)
     user = relationship("User", back_populates="requests")
     shift = relationship("Shift", back_populates="requests")
 
@@ -176,7 +146,7 @@ class UserTask(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
-    day_number = Column(Integer, CheckConstraint("day_number > 0 AND day_number < 100"))
+    task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
@@ -189,4 +159,4 @@ class UserTask(Base):
     __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
 
     def __repr__(self):
-        return f"<UserTask: {self.id}, day_number: {self.day_number}, " f"status: {self.status}>"
+        return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"

@@ -1,0 +1,112 @@
+name: Stage backend build and deploy
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [closed]
+  push:
+    branches:
+      - feature/ci_cd
+      
+env:
+  REGISTRY: ghcr.io
+  REP_OWNER: studio-yandex-practicum
+  IMAGE_NAME: lomaya_baryery_backend
+  DEPLOY_PATH: /lombarye/back
+
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  build_and_push_docker_image:
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: runnumber=${GITHUB_RUN_ID}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build_and_push_docker_image
+    environment:
+      name: Stage
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Copy docker-compose file
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.yaml"
+          target: ${{ env.DEPLOY_PATH }}
+
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            rm -f .env
+            touch .env
+            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
+            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+            echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
+            echo APPLICATION_URL=${{ secrets.HOST }} >> .env
+            echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
+            echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
+
+  start_application:
+    name: Start application
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+    needs: deploy
+    steps:
+      - name: Start appication
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            docker image prune -f
+            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker compose --file docker-compose.yaml stop
+            docker compose --file docker-compose.yaml rm backend
+            docker compose --file docker-compose.yaml up -d
