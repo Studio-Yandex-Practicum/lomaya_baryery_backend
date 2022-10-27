@@ -6,14 +6,12 @@ from fastapi import APIRouter, Depends, Path
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
 )
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService
-from src.core.settings import settings
 
 router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
@@ -48,19 +46,18 @@ class UserTasksCBV:
         return user_task
 
     @router.patch(
-        "/{user_task_id}",
+        "/{user_task_id}/accepted",
         response_model=UserTaskResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
-        summary="Изменить статус участника.",
+        summary="Изменить статус отчета участника на \"accepted\".",
         response_description="Полная информация об отчёте участника.",
     )
-    async def update_status_report(
+    async def accepted_status_report(
         self,
         user_task_id: UUID,
-        update_user_task_status: ChangeStatusRequest,
     ) -> dict:
-        """Изменить статус отчета участника.
+        """Отчет участника провенер и принят.
 
         - **user_id**:номер участника
         - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
@@ -69,7 +66,31 @@ class UserTasksCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
-        user_task = await self.user_task_service.update_status(user_task_id, update_user_task_status)
+        user_task = await self.user_task_service.accepted_task_update_status(user_task_id)
+        return user_task
+
+    @router.patch(
+        "/{user_task_id}/declined",
+        response_model=UserTaskResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Изменить статус отчета участника на \"declined\".",
+        response_description="Полная информация об отчёте участника.",
+    )
+    async def declined_status_report(
+        self,
+        user_task_id: UUID,
+    ) -> dict:
+        """Отчет участника проверен и отклонен.
+
+        - **user_id**:номер участника
+        - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
+        - **task_id**: номер задачи
+        - **task_date**: дата получения задания
+        - **status**: статус задачи
+        - **photo_url**: url фото выполненной задачи
+        """
+        user_task = await self.user_task_service.declined_task_update_status(user_task_id)
         return user_task
 
     @router.get(

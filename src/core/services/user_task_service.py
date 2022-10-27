@@ -8,7 +8,7 @@ from pydantic.schema import UUID
 from src.api.request_models.request import Status
 from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.user_task import UserTaskResponse
-from src.bot.services import send_message_task_status_changed
+from src.bot.services import BotService as bot_services
 from src.core.db.models import UserTask
 from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
 from src.core.db.repository.photo_repository import PhotoRepository
@@ -67,13 +67,43 @@ class UserTaskService:
         return tasks
 
     async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> UserTaskResponse:
+        """Изменение статуса задания."""
+        await self.check_task_status(id)
         await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_status.dict()))
         user_task = await self.__user_task_repository.get_user_task_with_photo_url(id)
-        user = self.__user_repository.get(user_task.user_id)
-        if user_task.status is Status.APPROVED:
-            photo = self.__photo_repository.get(user_task.photo_id)
-        await send_message_task_status_changed(user_task.status, user.telegram_id, photo.created_at)
         return user_task
+
+    async def accepted_task_update_status(self, id: UUID) -> UserTaskResponse:
+        """Задание принято.
+
+        - Уточнение, не было ли задание проверено ранее.
+        - Обновление статуса задания.
+        - Уведомление участника о принятом задании.
+        """
+        await self.check_task_status(id)
+        user_task = await self.update_status(id, Status.APPROVED)
+        user = self.__user_repository.get(user_task.user_id)
+        await bot_services.notify_approved_task(user_task, user.telegram_id)
+        return user_task
+
+    async def declined_task_update_status(self, id: UUID) -> UserTaskResponse:
+        """Задание принято.
+
+        - Уточнение, не было ли задание уже проверено ранее.
+        - Обновление статуса задания.
+        - Уведомление участника о не принятом задании.
+        """
+        await self.check_task_status(id)
+        user_task = await self.update_status(id, Status.DECLINED)
+        user = self.__user_repository.get(user_task.user_id)
+        await bot_services.notify_declined_task(user.telegram_id)
+        return user_task
+
+    async def check_task_status(self, id: UUID) -> None:
+        """Уточнение статуса задания."""
+        user_task = await self.__user_task_repository.get(id)
+        if user_task.status in (Status.APPROVED, Status.DECLINED):
+            raise Exception(f'Задание уже проверено, статус задания: {user_task.status}.')
 
     # TODO переписать
     async def distribute_tasks_on_shift(

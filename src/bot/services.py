@@ -1,15 +1,28 @@
-from src.api.request_models.request import Status
+from fastapi import Depends
+from telegram import Bot
+
 from src.bot.main import create_bot
 from src.core import settings
 from src.core.db import models
 
-bot = create_bot().bot  # временная копия бота до миграции на webhooks
 
+class BotService:
+    def __init__(self, bot: Bot = Depends(create_bot)) -> None:
+        self.bot = bot
 
-async def send_message_request_status_changed(user: models.User, status: str) -> None:
-    """Отправить сообщение о решении по заявке в telegram."""
-    text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
-    if status is Status.DECLINED:
+    async def notify_approved_request(self, user: models.User) -> None:
+        """Уведомление участника о решении по заявке в telegram.
+
+        - Заявка принята.
+        """
+        text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
+        await self.bot.send_message(user.telegram_id, text)
+
+    async def notify_declined_request(self, user: models.User) -> None:
+        """Уведомление участника о решении по заявке в telegram.
+
+        - Заявка отклонена.
+        """
         text = (
             f"К сожалению, на данный момент мы не можем зарегистрировать вас"
             f" в проекте. Вы можете написать на почту "
@@ -17,21 +30,29 @@ async def send_message_request_status_changed(user: models.User, status: str) ->
             f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
             f"{settings.ORGANIZATIONS_GROUP}"
         )
-    await bot.send_message(chat_id=user.telegram_id, text=text)
+        await self.bot.send_message(user.telegram_id, text)
 
+    async def notify_approved_task(self, user_task: models.UserTask, telegram_id: str) -> None:
+        """Уведомление участника о проверенном задании.
 
-async def send_message_task_status_changed(user_task_status: str, telegram_id: str, photo_created_at: str = None):
-    """Уведомление о проверенном задании."""
-    text = (
-        "К сожалению, мы не можем принять твой фотоотчет! "
-        "Возможно на фотографии не видно, что именно ты выполняешь задание. "
-        "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        "Следующее задание придет в 8.00 мск."
-    )
-    if user_task_status is Status.APPROVED:
+        - Задание принято, начислен 1 ломбарьерчик.
+        """
         text = (
-            f"Твой отчет от {photo_created_at} принят! "
+            f"Твой отчет от {user_task.photo.created_at} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следуюее задание придет в 8.00 мск."
         )
-    await bot.send_message(chat_id=telegram_id, text=text)
+        await self.bot.send_message(telegram_id, text)
+
+    async def notify_declined_task(self, telegram_id: str) -> None:
+        """Уведомление участника о проверенном задании.
+
+        - Задание не принято.
+        """
+        text = (
+            "К сожалению, мы не можем принять твой фотоотчет! "
+            "Возможно на фотографии не видно, что именно ты выполняешь задание. "
+            "Предлагаем продолжить, ведь впереди много интересных заданий. "
+            "Следующее задание придет в 8.00 мск."
+        )
+        await self.bot.send_message(telegram_id, text)
