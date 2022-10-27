@@ -5,7 +5,11 @@ from uuid import UUID
 from fastapi import Depends
 
 from src.api.request_models.shift import ShiftCreateRequest
-from src.api.response_models.shift import ShiftDtoRespone, ShiftUsersResponse
+from src.api.response_models.shift import (
+    ShiftDtoRespone,
+    ShiftsResponse,
+    ShiftUsersResponse,
+)
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.services.user_task_service import UserTaskService
@@ -53,3 +57,6 @@ class ShiftService:
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
+
+    async def list_all_shifts(self, status: Optional[Shift.Status], sort: Optional[Shift.Sort]) -> list[ShiftsResponse]:
+        return await self.__shift_repository.get_shifts_with_status(status=status, sort=sort)

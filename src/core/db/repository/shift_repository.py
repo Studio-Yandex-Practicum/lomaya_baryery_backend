@@ -3,11 +3,11 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.response_models.shift import ShiftDtoRespone
+from src.api.response_models.shift import ShiftDtoRespone, ShiftsResponse
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
 from src.core.db.repository import AbstractRepository
@@ -70,3 +70,28 @@ class ShiftRepository(AbstractRepository):
             )
         )
         return db_list_request.all()
+
+    async def get_shifts_with_status(
+        self,
+        status: Optional[Shift.Status],
+        sort: Optional[Shift.Sort],
+    ) -> list[ShiftsResponse]:
+        request = (
+            select(
+                (Shift.id),
+                (Shift.status),
+                (Shift.started_at),
+                (Shift.finished_at),
+                (func.count(Request.user_id).label("total_users")),
+            )
+            .join(Request.shift)
+            .group_by(Shift.id)
+            .where(status is None or Shift.status == status)
+            .order_by(sort or Shift.started_at.desc())
+        )
+        request = await self.session.execute(request)
+        request = request.all()
+        print(request)
+        if request is None:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
+        return request

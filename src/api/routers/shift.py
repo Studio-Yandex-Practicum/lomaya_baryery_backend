@@ -9,9 +9,10 @@ from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
+    ShiftsResponse,
     ShiftUsersResponse,
 )
-from src.core.db.models import Request
+from src.core.db.models import Request, Shift
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -156,3 +157,26 @@ class ShiftCBV:
         - **status**: Статус заявки
         """
         return await self.shift_service.list_all_requests(id=shift_id, status=status)
+
+    @router.get(
+        "/",
+        response_model=list[ShiftsResponse],
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Получить список смен с количеством участников",
+        response_description="Информация о сменах с фильтрацией по статусу и возможностью сортировки",
+    )
+    async def get_all_shifts(
+        self,
+        status: Optional[Shift.Status] = None,
+        sort: Optional[Shift.Sort] = None,
+    ) -> list[ShiftsResponse]:
+        """Получить список смен с фильтрацией по статусу.
+
+        - **id**: id смены
+        - **status**: статус смены
+        - **started_at**: дата начала смены
+        - **finished_at**: дата окончания смены
+        - **total_users**: количество участников смены
+        """
+        return await self.shift_service.list_all_shifts(status, sort)
