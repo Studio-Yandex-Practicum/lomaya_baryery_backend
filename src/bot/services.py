@@ -32,7 +32,7 @@ class BotService:
         )
         await self.bot.send_message(user.telegram_id, text)
 
-    async def notify_approved_task(self, user_task: models.UserTask, telegram_id: str) -> None:
+    async def notify_approved_task(self, user_task: models.UserTask) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
@@ -42,7 +42,7 @@ class BotService:
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следуюее задание придет в 8.00 мск."
         )
-        await self.bot.send_message(telegram_id, text)
+        await self.bot.send_message(user_task.user.telegram_id, text)
 
     async def notify_declined_task(self, telegram_id: str) -> None:
         """Уведомление участника о проверенном задании.
