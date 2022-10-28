@@ -12,6 +12,7 @@ from src.api.response_models.shift import (
 )
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
+from src.core.services.shift_sort import Sort
 from src.core.services.user_task_service import UserTaskService
 
 
@@ -58,5 +59,5 @@ class ShiftService:
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
-    async def list_all_shifts(self, status: Optional[Shift.Status], sort: Optional[Shift.Sort]) -> list[ShiftsResponse]:
-        return await self.__shift_repository.get_shifts_with_status(status=status, sort=sort)
+    async def list_all_shifts(self, status: Optional[Shift.Status], sort: Optional[Sort]) -> list[ShiftsResponse]:
+        return await self.__shift_repository.get_shifts_with_total_users(status, sort)

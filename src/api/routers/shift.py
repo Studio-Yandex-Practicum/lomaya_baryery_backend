@@ -14,6 +14,7 @@ from src.api.response_models.shift import (
 )
 from src.core.db.models import Request, Shift
 from src.core.services.shift_service import ShiftService
+from src.core.services.shift_sort import Sort
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
 
@@ -169,7 +170,7 @@ class ShiftCBV:
     async def get_all_shifts(
         self,
         status: Optional[Shift.Status] = None,
-        sort: Optional[Shift.Sort] = None,
+        sort: Optional[Sort] = None,
     ) -> list[ShiftsResponse]:
         """Получить список смен с фильтрацией по статусу.
 

@@ -11,6 +11,7 @@ from src.api.response_models.shift import ShiftDtoRespone, ShiftsResponse
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
 from src.core.db.repository import AbstractRepository
+from src.core.services.shift_sort import Sort
 
 
 class ShiftRepository(AbstractRepository):
@@ -71,10 +72,10 @@ class ShiftRepository(AbstractRepository):
         )
         return db_list_request.all()
 
-    async def get_shifts_with_status(
+    async def get_shifts_with_total_users(
         self,
         status: Optional[Shift.Status],
-        sort: Optional[Shift.Sort],
+        sort: Optional[Sort],
     ) -> list[ShiftsResponse]:
         request = (
             select(
@@ -91,7 +92,6 @@ class ShiftRepository(AbstractRepository):
         )
         request = await self.session.execute(request)
         request = request.all()
-        print(request)
         if request is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
         return request
