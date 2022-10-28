@@ -46,7 +46,7 @@ class UserTasksCBV:
         return user_task
 
     @router.patch(
-        "/{user_task_id}/accepted",
+        "/{user_task_id}/accept",
         response_model=UserTaskResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
@@ -57,7 +57,7 @@ class UserTasksCBV:
         self,
         user_task_id: UUID,
     ) -> dict:
-        """Отчет участника провенер и принят.
+        """Отчет участника проверен и принят.
 
         - **user_id**:номер участника
         - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
@@ -70,7 +70,7 @@ class UserTasksCBV:
         return user_task
 
     @router.patch(
-        "/{user_task_id}/declined",
+        "/{user_task_id}/decline",
         response_model=UserTaskResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
