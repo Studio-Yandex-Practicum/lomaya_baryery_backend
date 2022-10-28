@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class HealthcheckResponse(BaseModel):
     """Модель для вывода статусов ручки /healthcheck."""
 
-    bot_status: tuple[bool, Optional[str]]
-    api_status: tuple[bool, Optional[str]]
-    db_status: tuple[bool, Optional[str]]
+    bot_status: bool
+    api_status: bool
+    db_status: bool
+    errors: Optional[list]

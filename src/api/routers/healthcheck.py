@@ -20,4 +20,4 @@ class HealthcheckCBV:
     )
     async def get_current_status(self) -> HealthcheckResponse:
         """Запускает сервис проверки состояния Бота, АПИ, БД."""
-        return await self.healthcheck_service.health_check()
+        return await self.healthcheck_service.get_healthcheck_status()
