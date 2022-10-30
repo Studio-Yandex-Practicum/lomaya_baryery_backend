@@ -50,7 +50,7 @@ class UserTasksCBV:
         response_model=UserTaskResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
-        summary="Изменить статус отчета участника на \"accepted\".",
+        summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
         response_description="Полная информация об отчёте участника.",
     )
     async def accepted_status_report(
@@ -74,7 +74,7 @@ class UserTasksCBV:
         response_model=UserTaskResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
-        summary="Изменить статус отчета участника на \"declined\".",
+        summary="Отклонить задание.",
         response_description="Полная информация об отчёте участника.",
     )
     async def declined_status_report(

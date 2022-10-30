@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.api.response_models.user_task import UserTaskResponse
 from src.core.db.db import get_session
@@ -27,6 +28,21 @@ class UserTaskRepository(AbstractRepository):
             # FIXME: написать и использовать кастомное исключение
             raise LookupError(f"Объект UserTask c {id=} не найден.")
         return user_task
+
+    async def get_user_task_with_user_and_photo(
+        self,
+        id: UUID,
+    ) -> UserTask:
+        """Получить отчет участника по id cо связанными данными user и photo."""
+        user_task = await self.__session.execute(
+            select(UserTask)
+            .where(UserTask.id == id)
+            .options(
+                selectinload(UserTask.user),
+                selectinload(UserTask.photo),
+            )
+        )
+        return user_task.scalars().first()
 
     async def get_user_task_with_photo_url(
         self,

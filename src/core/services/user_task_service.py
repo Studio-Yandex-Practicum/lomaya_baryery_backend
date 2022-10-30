@@ -97,7 +97,7 @@ class UserTaskService:
 
     async def check_task_status(self, id: UUID) -> None:
         """Уточнение статуса задания."""
-        user_task = await self.__user_task_repository.get(id)
+        user_task = await self.__user_task_repository.get_user_task_with_user_and_photo(id)
         if user_task.status is UserTask.Status.UNDER_REVIEW:
             return user_task
         if user_task.status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
