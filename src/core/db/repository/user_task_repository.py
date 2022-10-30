@@ -69,6 +69,13 @@ class UserTaskRepository(AbstractRepository):
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
+    async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
+        """Получить список id непроверенных задач."""
+        all_tasks_id_under_review = await self.__session.execute(
+            select(UserTask.task_id).select_from(UserTask).where(UserTask.status == UserTask.Status.UNDER_REVIEW)
+        )
+        return all_tasks_id_under_review.all()
+
     async def create(self, user_task: UserTask) -> UserTask:
         self.__session.add(user_task)
         await self.__session.commit()
