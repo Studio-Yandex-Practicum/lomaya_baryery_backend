@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, desc, or_, select
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -86,23 +86,14 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_last_user_tasks(self, user_id: UUID, date: date, task_amount: int) -> list[UserTask]:
-        """
-        Получает список последних полученных заданий пользователя.
-
-        Аргументы:
-            user_id (UUID): id пользователя,
-            date (date): Дата до(не включая) которой необходимо найти последние полученные задачи,
-            task_amount (int): количество заданий, которое необходимо получить.
-
-        Возвращает:
-            list[UserTask]: список заданий пользователя.
-        """
-        statement = (
-            select(UserTask)
+    async def get_user_last_tasks_wait_report_count(self, user_id: UUID, date: date, task_amount: int) -> int:
+        subquery = (
+            select(UserTask.status)
             .where(and_(UserTask.user_id == user_id, UserTask.task_date < date, UserTask.deleted.is_(False)))
             .order_by(desc(UserTask.task_date))
             .limit(task_amount)
+            .subquery()
         )
-        last_users_tasks = await self.session.scalars(statement)
-        return last_users_tasks.all()
+        statement = select(func.count(1)).where(subquery.c.status == UserTask.Status.WAIT_REPORT)
+        not_reported_tasks_count = await self.__session.scalars(statement)
+        return not_reported_tasks_count.first()
