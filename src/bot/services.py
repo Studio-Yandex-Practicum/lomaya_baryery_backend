@@ -1,14 +1,15 @@
-from fastapi import Depends
-from telegram import Bot
+from datetime import datetime as dt
 
 from src.bot.main import create_bot
 from src.core import settings
 from src.core.db import models
 
+FORMAT_PHOTO_DATE = "%d.%m.%Y"
+
 
 class BotService:
-    def __init__(self, bot: Bot = Depends(create_bot)) -> None:
-        self.bot = bot
+    def __init__(self, telegram_bot=create_bot()) -> None:
+        self.bot = telegram_bot.bot
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -37,8 +38,9 @@ class BotService:
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
+        photo_date = dt.strftime(user_task.photo.created_at, FORMAT_PHOTO_DATE)
         text = (
-            f"Твой отчет от {user_task.photo.created_at} принят! "
+            f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следуюее задание придет в 8.00 мск."
         )

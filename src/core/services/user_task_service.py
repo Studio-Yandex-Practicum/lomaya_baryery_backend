@@ -77,10 +77,11 @@ class UserTaskService:
         - Уточнение, не было ли задание проверено ранее.
         - Обновление статуса задания.
         - Уведомление участника о принятом задании.
+        # - Начислен 1 /"ломбарьерчик/". - НЕТ
         """
         user_task = await self.check_task_status(id)
         user_task_responce = await self.update_status(id, UserTask.Status.APPROVED)
-        await bot_services.notify_approved_task(user_task)
+        await bot_services().notify_approved_task(user_task)
         return user_task_responce
 
     async def declined_task_update_status(self, id: UUID) -> UserTaskResponse:
@@ -92,7 +93,7 @@ class UserTaskService:
         """
         user_task = await self.check_task_status(id)
         user_task_responce = await self.update_status(id, UserTask.Status.DECLINED)
-        await bot_services.notify_declined_task(user_task.user)
+        await bot_services().notify_declined_task(user_task.user)
         return user_task_responce
 
     async def check_task_status(self, id: UUID) -> None:

@@ -44,7 +44,7 @@ class RequestService:
         - Уведомление участника об одобрении заявки.
         """
         request = await self.status_update(id, Request.Status.APPROVED)
-        await bot_services.notify_approved_request(request.user)
+        await bot_services().notify_approved_request(request.user)
         return request
 
     async def declined_request_update_status(self, id: UUID) -> Request:
@@ -55,7 +55,7 @@ class RequestService:
         - Уведомление участника об отклонении заявки.
         """
         request = await self.status_update(id, Request.Status.DECLINED)
-        await bot_services.notify_declined_request(request.user)
+        await bot_services().notify_declined_request(request.user)
         return request
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
