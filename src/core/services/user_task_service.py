@@ -93,6 +93,15 @@ class UserTaskService:
         await self.__user_task_repository.create_all(result)
 
     async def check_user_activity(self, user_id: UUID) -> bool:
+        """Проверяет пропускает ли участник подряд отправку отчета к полученным заданиям.
+
+        Аргументы:
+            user_id (UUID): id участника смены
+
+        Возвращает:
+            bool: True если пропущено указанное в настройках количество заданий,
+            False - если в допустимых пределах.
+        """
         today = date.today()
         wait_report_count = await self.__user_task_repository.get_user_last_tasks_wait_report_count(
             user_id, today, settings.TASKS_SKIPPED_IN_ROW_FOR_BAN
