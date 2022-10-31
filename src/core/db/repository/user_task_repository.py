@@ -6,7 +6,7 @@ from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.response_models.task import ShortTaskResponse
+from src.api.response_models.task import TaskInfoResponse
 from src.core.db.db import get_session
 from src.core.db.models import Photo, Task, UserTask
 from src.core.db.repository import AbstractRepository
@@ -70,16 +70,18 @@ class UserTaskRepository(AbstractRepository):
         user_tasks_ids = user_tasks_info.all()
         return user_tasks_ids
 
-    async def get_today_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
+    async def get_today_task_by_user(self, user_id: UUID) -> TaskInfoResponse:
         """Получить для участника полагащийся на этот день task_id и url."""
         task_date = datetime.now().date()
-        task_id_url = await self.__session.execute(
-            select(UserTask.task_id, Task.url.label("task_url"))
+        task_info = await self.__session.execute(
+            select(UserTask.task_id, Task.url.label("task_url"), Task.description.label("task_description"))
             .where(UserTask.user_id == user_id, UserTask.task_date == task_date)
             .join(Task)
         )
-        task_id_url = dict(*task_id_url)
-        task_response = ShortTaskResponse(task_id=task_id_url['task_id'], task_url=task_id_url['task_url'])
+        task_info = dict(*task_info)
+        task_response = TaskInfoResponse(
+            task_id=task_info["task_id"], task_url=task_info["task_url"], task_description=task_info["task_description"]
+        )
         return task_response
 
     async def create(self, user_task: UserTask) -> UserTask:

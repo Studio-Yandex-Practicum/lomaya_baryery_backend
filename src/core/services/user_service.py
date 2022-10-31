@@ -49,3 +49,6 @@ class UserService:
             request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
             request = Request(**request_scheme.dict())
             await self.user_repository.create(request)
+
+    async def get_users_in_active_shift(self) -> list[User]:
+        return await self.user_repository.get_users_in_active_shift()

@@ -6,7 +6,7 @@ from fastapi import Depends
 from pydantic.schema import UUID
 
 from src.api.request_models.user_task import ChangeStatusRequest
-from src.api.response_models.task import ShortTaskResponse
+from src.api.response_models.task import TaskInfoResponse
 from src.core.db.models import UserTask
 from src.core.db.repository import (
     ShiftRepository,
@@ -52,10 +52,9 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
 
-    async def get_today_task_by_user(self, user_id: UUID) -> ShortTaskResponse:
+    async def get_today_task_by_user(self, user_id: UUID) -> TaskInfoResponse:
         user = await self.__user_repository.get(user_id)
-        await self.__user_repository.check_user_is_in_active_shift(user.id)
-        return await self.__user_task_repository.get_today_task_by_user(user_id)
+        return await self.__user_task_repository.get_today_task_by_user(user.id)
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
