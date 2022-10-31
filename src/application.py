@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routers import (
+    healthcheck_router,
     request_router,
     router,
     shift_router,
@@ -29,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(user_tasks)
     app.include_router(shift_router)
     app.include_router(request_router)
+    app.include_router(healthcheck_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 

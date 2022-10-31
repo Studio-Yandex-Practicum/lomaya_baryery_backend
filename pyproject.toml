@@ -16,6 +16,7 @@ python = "^3.8"
 pre-commit = "~2.20.0"
 phonenumbers = "~8.12.55"
 fastapi-restful = "^0.4.3"
+aiohttp = ">=3.8.3"
 
 [tool.black]
 skip-string-normalization = true
