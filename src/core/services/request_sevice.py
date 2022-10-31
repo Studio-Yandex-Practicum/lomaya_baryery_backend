@@ -22,9 +22,14 @@ class RequestService:
         """Получить объект заявку по id."""
         return await self.request_repository.get(request_id)
 
-    async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> Request:
+    async def status_update(
+        self, request_id: UUID, new_status_data: RequestStatusUpdateRequest, user_request: Request = None
+    ) -> Request:
         """Обновить статус заявки."""
-        request = await self.get_request(request_id)
+        if user_request:
+            request = user_request
+        else:
+            request = await self.get_request(request_id)
         if request.status == new_status_data.status:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
         request.status = new_status_data.status
