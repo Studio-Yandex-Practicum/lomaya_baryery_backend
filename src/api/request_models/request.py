@@ -8,6 +8,7 @@ class Status(str, enum.Enum):
 
     APPROVED = "approved"
     DECLINED = "declined"
+    BLOCKED = "blocked"
 
 
 class RequestStatusUpdateRequest(BaseModel):
