@@ -4,7 +4,11 @@ from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestStatusUpdateRequest, Status
-from src.bot.services import send_approval_callback, send_rejection_callback
+from src.bot.services import (
+    send_approval_callback,
+    send_blocking_callback,
+    send_rejection_callback,
+)
 from src.core.db.models import Request, User
 from src.core.db.repository import RequestRepository
 
@@ -40,6 +44,8 @@ class RequestService:
         """Отправить сообщение о решении по заявке в telegram."""
         if status is Status.APPROVED:
             return await send_approval_callback(user)
+        if status is Status.BLOCKED:
+            return await send_blocking_callback(user)
         return await send_rejection_callback(user)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
