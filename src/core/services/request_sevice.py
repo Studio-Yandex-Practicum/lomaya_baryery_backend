@@ -52,6 +52,10 @@ class RequestService:
         """Получить id одобренных участников смены."""
         return await self.request_repository.get_shift_user_ids(shift_id)
 
+    async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
+        """Возвращает заявку участника в указанной смене."""
+        return await self.request_repository.get_user_request_by_user_id_and_shift_id(user_id, shift_id)
+
     async def block_user(self, user_id: UUID, shift_id: UUID) -> None:
         """Переводит статус заявки участника в заблокированный.
 

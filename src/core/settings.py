@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
+    TASKS_SKIPPED_IN_ROW_FOR_BAN: int = 5
 
     @property
     def database_url(self):
