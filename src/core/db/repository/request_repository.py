@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import and_, desc, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -56,23 +56,26 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_user_approved_request(self, user_id: UUID) -> Request:
-        """
-        Возвращает одобренную заявку пользователя.
+    async def get_user_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
+        """Возвращает одобренную заявку участника на .
 
         Аргументы:
-            user_id (UUID): id пользователя.
+            user_id (UUID): id пользователя,
+            shift_id (UUID): id смены, в которой участвует пользователь.
         """
         statement = (
             select(Request)
             .where(
                 and_(
-                    Request.status == Request.Status.APPROVED,
                     Request.user_id == user_id,
+                    Request.shift_id == shift_id,
                     Request.deleted.is_(False),
                 )
             )
-            .order_by(desc(Request.created_at))
+            .options(
+                selectinload(Request.user),
+                selectinload(Request.shift),
+            )
         )
         request = await self.session.scalars(statement)
         return request.first()
