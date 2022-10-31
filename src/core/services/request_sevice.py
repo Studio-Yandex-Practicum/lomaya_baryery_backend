@@ -41,10 +41,16 @@ class RequestService:
         """Получить id одобренных участников смены."""
         return await self.request_repository.get_shift_user_ids(shift_id)
 
-    async def set_user_request_declined(self, user_id: UUID) -> Request:
-        """Переводит текущую одобренную заявку пользователя в статус неактивной."""
-        request = await self.request_repository.get_user_approved_request(user_id)
-        if not request:
-            raise HTTPException(HTTPStatus.NOT_FOUND, 'Одобренной заявки не найдено!')
-        request.status = Request.Status.DECLINED
-        return await self.request_repository.update(request.id, request)
+    async def block_user(self, user_id: UUID, shift_id: UUID) -> None:
+        """Переводит статус заявки участника в заблокированный.
+
+        Участник не сможет получать новые задания в этой смене.
+
+        Аргументы:
+            user_id (UUID): id участника
+            shift_id (UUID): id смены, в которой состоит участник
+        """
+        request = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
+        new_request_status = RequestStatusUpdateRequest()
+        new_request_status.status = Status.BLOCKED
+        await self.status_update(request.id, new_request_status, request)
