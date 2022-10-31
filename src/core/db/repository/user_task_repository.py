@@ -86,20 +86,19 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_last_tasks_status_count(
-        self, user_id: UUID, date: date, task_amount: int, status: UserTask.Status
-    ) -> int:
-        """Возвращает количество искомого статуса из последних задач участника.
+    async def get_user_last_tasks_status_count(self, user_id: UUID, task_amount: int, status: UserTask.Status) -> int:
+        """Возвращает количество искомого статуса из последних полученных задач участника.
 
         Аргументы:
             user_id (UUID): id участника
-            date (date): дата до которой(не включая) необходимо найти последние задачи
             task_amount (int): количество последних задач участника
-            status (UserTask.Status): искомый статус
+            status (UserTask.Status): искомый статус заданий
         """
         subqry = (
             select(UserTask.status)
-            .where(and_(UserTask.user_id == user_id, UserTask.task_date < date, UserTask.deleted.is_(False)))
+            .where(
+                and_(UserTask.user_id == user_id, UserTask.status != UserTask.Status.NEW, UserTask.deleted.is_(False))
+            )
             .order_by(desc(UserTask.task_date))
             .limit(task_amount)
             .subquery()

@@ -102,9 +102,8 @@ class UserTaskService:
             bool: True если пропущено указанное в настройках количество заданий,
             False - если в допустимых пределах.
         """
-        today = date.today()
         status = UserTask.Status.WAIT_REPORT
         status_count = await self.__user_task_repository.get_user_last_tasks_status_count(
-            user_id, today, settings.TASKS_SKIPPED_IN_ROW_FOR_BAN, status
+            user_id, settings.TASKS_SKIPPED_IN_ROW_FOR_BAN, status
         )
         return status_count >= settings.TASKS_SKIPPED_IN_ROW_FOR_BAN
