@@ -1,6 +1,6 @@
+from src.bot.main import create_bot
 from src.core import settings
 from src.core.db import models
-from src.bot.main import create_bot
 
 bot = create_bot().bot  # временная копия бота до миграции на webhooks
 
@@ -20,5 +20,18 @@ async def send_rejection_callback(user: models.User):
             f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
             f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
             f"{settings.ORGANIZATIONS_GROUP}"
+        ),
+    )
+
+
+async def send_blocking_callback(user: models.User) -> None:
+    await bot.send_message(
+        chat_id=user.telegram_id,
+        text=(
+            "К сожалению, мы заблокировали Ваше участие в смене из-за неактивности - "
+            f"Вы не отправили ни одного отчета на последние {settings.settings.TASKS_SKIPPED_IN_ROW_FOR_BAN} заданий. "
+            "Вы не сможете получать новые задания, но всё еще можете потратить свои накопленные ломбарьерчики. "
+            "Если Вы считаете, что произошла ошибка - обращайтесь "
+            f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         ),
     )
