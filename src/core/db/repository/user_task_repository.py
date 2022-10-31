@@ -86,14 +86,24 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_last_tasks_wait_report_count(self, user_id: UUID, date: date, task_amount: int) -> int:
-        subquery = (
+    async def get_user_last_tasks_status_count(
+        self, user_id: UUID, date: date, task_amount: int, status: UserTask.Status
+    ) -> int:
+        """Возвращает количество искомого статуса из последних задач участника.
+
+        Аргументы:
+            user_id (UUID): id участника
+            date (date): дата до которой(не включая) необходимо найти последние задачи
+            task_amount (int): количество последних задач участника
+            status (UserTask.Status): искомый статус
+        """
+        subqry = (
             select(UserTask.status)
             .where(and_(UserTask.user_id == user_id, UserTask.task_date < date, UserTask.deleted.is_(False)))
             .order_by(desc(UserTask.task_date))
             .limit(task_amount)
             .subquery()
         )
-        statement = select(func.count(1)).where(subquery.c.status == UserTask.Status.WAIT_REPORT)
-        not_reported_tasks_count = await self.__session.scalars(statement)
-        return not_reported_tasks_count.first()
+        statement = select(func.count(subqry.c.status)).where(subqry.c.status == status)
+        tasks_status_count = await self.__session.scalars(statement)
+        return tasks_status_count.first()
