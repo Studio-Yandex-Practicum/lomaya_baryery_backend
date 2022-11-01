@@ -14,7 +14,7 @@ REVIEWED_REQUEST = "Заявка была обработана, статус з�
 class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
         self.__request_repository = request_repository
-        self.__bot_service = BotService()
+        self.__telegram_bot = BotService()
 
     async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> HTTPStatus.OK:
         """Обновление статуса заявки."""
@@ -29,7 +29,7 @@ class RequestService:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
         request.status = Status.APPROVED
         await self.__request_repository.update(request.id, request)
-        await self.__bot_service.notify_approved_request(request.user)
+        await self.__telegram_bot.notify_approved_request(request.user)
         return HTTPStatus.OK
 
     async def decline_request(self, request: Request) -> HTTPStatus.OK:
@@ -38,7 +38,7 @@ class RequestService:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
         request.status = Status.DECLINED
         await self.__request_repository.update(request.id, request)
-        await self.__bot_service.notify_declined_request(request.user)
+        await self.__telegram_bot.notify_declined_request(request.user)
         return HTTPStatus.OK
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
