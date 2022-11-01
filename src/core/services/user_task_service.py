@@ -90,7 +90,7 @@ class UserTaskService:
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(user_task.id, user_task)
-        await self.__telegram_bot.notify_declined_task(user_task.user)
+        await self.__telegram_bot.notify_declined_task(user_task.user.telegram_id)
         return HTTPStatus.OK
 
     async def __check_task_status(self, status: str) -> None:
