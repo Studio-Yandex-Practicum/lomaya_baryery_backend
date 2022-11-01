@@ -19,20 +19,6 @@ class UserTaskRepository(AbstractRepository):
         self.__session = session
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        return await self.__session.get(UserTask, id)
-
-    async def get(self, id: UUID) -> UserTask:
-        user_task = await self.get_or_none(id)
-        if user_task is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект UserTask c {id=} не найден.")
-        return user_task
-
-    async def get_user_task_with_user_and_photo(
-        self,
-        id: UUID,
-    ) -> UserTask:
-        """Получить отчет участника по id cо связанными данными user и photo."""
         user_task = await self.__session.execute(
             select(UserTask)
             .where(UserTask.id == id)
@@ -42,6 +28,13 @@ class UserTaskRepository(AbstractRepository):
             )
         )
         return user_task.scalars().first()
+
+    async def get(self, id: UUID) -> UserTask:
+        user_task = await self.get_or_none(id)
+        if user_task is None:
+            # FIXME: написать и использовать кастомное исключение
+            raise LookupError(f"Объект UserTask c {id=} не найден.")
+        return user_task
 
     async def get_user_task_with_photo_url(
         self,

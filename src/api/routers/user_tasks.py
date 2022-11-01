@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Path
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
+from src.api.request_models.request import Status
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
@@ -47,51 +48,23 @@ class UserTasksCBV:
 
     @router.patch(
         "/{user_task_id}/accept",
-        response_model=UserTaskResponse,
-        response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
-        response_description="Полная информация об отчёте участника.",
     )
     async def accepted_status_report(
         self,
         user_task_id: UUID,
-    ) -> dict:
-        """Отчет участника проверен и принят.
+    ) -> HTTPStatus.OK:
+        """Отчет участника проверен и принят."""
+        return await self.user_task_service.update_status(user_task_id, Status.APPROVED)
 
-        - **user_id**:номер участника
-        - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
-        - **task_id**: номер задачи
-        - **task_date**: дата получения задания
-        - **status**: статус задачи
-        - **photo_url**: url фото выполненной задачи
-        """
-        user_task = await self.user_task_service.accepted_task_update_status(user_task_id)
-        return user_task
-
-    @router.patch(
-        "/{user_task_id}/decline",
-        response_model=UserTaskResponse,
-        response_model_exclude_none=True,
-        status_code=HTTPStatus.OK,
-        summary="Отклонить задание.",
-        response_description="Полная информация об отчёте участника.",
-    )
+    @router.patch("/{user_task_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
     async def declined_status_report(
         self,
         user_task_id: UUID,
-    ) -> dict:
-        """Отчет участника проверен и отклонен.
-
-        - **user_id**:номер участника
-        - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
-        - **task_id**: номер задачи
-        - **task_date**: дата получения задания
-        - **status**: статус задачи
-        - **photo_url**: url фото выполненной задачи
-        """
-        user_task = await self.user_task_service.declined_task_update_status(user_task_id)
-        return user_task
+    ) -> HTTPStatus.OK:
+        """Отчет участника проверен и отклонен."""
+        return await self.user_task_service.update_status(user_task_id, Status.DECLINED)
 
     @router.get(
         "/{shift_id}/{task_date}/new",

@@ -6,11 +6,12 @@ from typing import Any
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
+from src.api.request_models.request import Status
 from src.api.request_models.user_task import ChangeStatusRequest
-from src.api.response_models.user_task import UserTaskResponse
-from src.bot.services import BotService as bot_services
+from src.bot.services import BotService as bot_service
 from src.core.db.models import UserTask
 from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
+from src.core.db.repository.request_repository import RequestRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
@@ -38,12 +39,14 @@ class UserTaskService:
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
+        request_repository: RequestRepository = Depends(),
     ) -> None:
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
         self.__task_service = task_service
         self.__request_service = request_service
+        self.__request_repository = request_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.__user_task_repository.get(id)
@@ -64,49 +67,39 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> UserTaskResponse:
+    async def update_status(self, id: UUID, update_user_task_status: ChangeStatusRequest) -> HTTPStatus.OK:
         """Изменение статуса задания."""
         user_task = await self.__user_task_repository.get(id)
-        user_task.status = update_user_task_status
-        await self.__user_task_repository.update(id, user_task)
-        return await self.__user_task_repository.get_user_task_with_photo_url(id)
+        if update_user_task_status is Status.APPROVED:
+            return await self.approve_task(user_task)
+        return await self.decline_task(user_task)
 
-    async def accepted_task_update_status(self, id: UUID) -> UserTaskResponse:
-        """Задание принято.
+    async def approve_task(self, user_task: UserTask) -> HTTPStatus.OK:
+        """Проверка статуса и его обновление. Начисление 1 /"ломбарьерчика/". Уведомление участника."""
+        await self.__check_task_status(user_task.status)
+        user_task.status = Status.APPROVED
+        await self.__user_task_repository.update(user_task.id, user_task)
+        request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
+        await self.__request_repository.add_one_lombaryer(request)
+        await bot_service().notify_approved_task(user_task)
+        return HTTPStatus.OK
 
-        - Уточнение, не было ли задание проверено ранее.
-        - Обновление статуса задания.
-        - Уведомление участника о принятом задании.
-        # - Начислен 1 /"ломбарьерчик/". - НЕТ
-        """
-        user_task = await self.check_task_status(id)
-        user_task_responce = await self.update_status(id, UserTask.Status.APPROVED)
-        await bot_services().notify_approved_task(user_task)
-        return user_task_responce
+    async def decline_task(self, user_task: UserTask) -> HTTPStatus.OK:
+        """Проверка статуса и его обновление. Уведомление участника о не принятом задании."""
+        await self.__check_task_status(user_task.status)
+        user_task.status = Status.DECLINED
+        await self.__user_task_repository.update(user_task.id, user_task)
+        await bot_service().notify_declined_task(user_task.user)
+        return HTTPStatus.OK
 
-    async def declined_task_update_status(self, id: UUID) -> UserTaskResponse:
-        """Задание принято.
-
-        - Уточнение, не было ли задание проверено ранее.
-        - Обновление статуса задания.
-        - Уведомление участника о не принятом задании.
-        """
-        user_task = await self.check_task_status(id)
-        user_task_responce = await self.update_status(id, UserTask.Status.DECLINED)
-        await bot_services().notify_declined_task(user_task.user)
-        return user_task_responce
-
-    async def check_task_status(self, id: UUID) -> None:
+    async def __check_task_status(self, status: str) -> None:
         """Уточнение статуса задания."""
-        user_task = await self.__user_task_repository.get_user_task_with_user_and_photo(id)
-        if user_task.status is UserTask.Status.UNDER_REVIEW:
-            return user_task
-        if user_task.status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(user_task.status))
-        elif user_task.status is UserTask.Status.WAIT_REPORT:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=WAIT_REPORT_TASK.format(user_task.status))
-        elif user_task.status is UserTask.Status.NEW:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(user_task.status))
+        if status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
+        # elif status is UserTask.Status.WAIT_REPORT:
+        #     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=WAIT_REPORT_TASK.format(status))
+        elif status is UserTask.Status.NEW:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
 
     # TODO переписать
     async def distribute_tasks_on_shift(
