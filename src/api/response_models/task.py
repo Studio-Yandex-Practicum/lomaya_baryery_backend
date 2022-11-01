@@ -9,5 +9,11 @@ class TaskInfoResponse(BaseModel):
     task_url: str
     task_description: str
 
+
+class LongTaskResponse(TaskInfoResponse):
+    """Схема для отображения информации о задании и адреса получателя."""
+
+    user_telegram_id: int
+
     class Config:
         orm_mode = True

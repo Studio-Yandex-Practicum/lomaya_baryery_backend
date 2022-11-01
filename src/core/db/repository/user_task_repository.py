@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
@@ -6,9 +6,9 @@ from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.response_models.task import TaskInfoResponse
+from src.api.response_models.task import LongTaskResponse
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Task, UserTask
+from src.core.db.models import Photo, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -77,19 +77,30 @@ class UserTaskRepository(AbstractRepository):
         )
         return all_tasks_id_under_review.all()
 
-    async def get_today_task_by_user(self, user_id: UUID) -> TaskInfoResponse:
-        """Получить для участника полагащийся на этот день task_id и url."""
-        task_date = datetime.now().date()
-        task_info = await self.__session.execute(
-            select(UserTask.task_id, Task.url.label("task_url"), Task.description.label("task_description"))
-            .where(UserTask.user_id == user_id, UserTask.task_date == task_date)
-            .join(Task)
-        )
-        task_info = dict(*task_info)
-        task_response = TaskInfoResponse(
-            task_id=task_info["task_id"], task_url=task_info["task_url"], task_description=task_info["task_description"]
-        )
-        return task_response
+    async def get_tasks_by_usertask_ids(self, usertask_ids: list[UUID]) -> list[LongTaskResponse]:
+        """Получить список заданий с подробностями на каждого участника по usertask_id."""
+        task_infos = []
+        for id in usertask_ids:
+            task_info = await self.__session.execute(
+                select(
+                    Task.id.label("task_id"),
+                    Task.url.label("task_url"),
+                    Task.description.label("task_description"),
+                    User.telegram_id.label("user_telegram_id"),
+                )
+                .where(UserTask.id == id)
+                .join(UserTask.task)
+                .join(UserTask.user)
+            )
+            task_info = dict(*task_info)
+            task_response = LongTaskResponse(
+                task_id=task_info["task_id"],
+                task_url=task_info["task_url"],
+                task_description=task_info["task_description"],
+                user_telegram_id=task_info["user_telegram_id"],
+            )
+            task_infos.append(task_response)
+        return task_infos
 
     async def create(self, user_task: UserTask) -> UserTask:
         self.__session.add(user_task)
