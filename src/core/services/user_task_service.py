@@ -8,7 +8,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import Status
 from src.api.request_models.user_task import ChangeStatusRequest
-from src.bot.services import BotService as bot_service
+from src.bot.services import BotService
 from src.core.db.models import UserTask
 from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
 from src.core.db.repository.request_repository import RequestRepository
@@ -34,6 +34,7 @@ class UserTaskService:
 
     def __init__(
         self,
+        # bot_service: BotService,
         user_task_repository: UserTaskRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
@@ -41,6 +42,7 @@ class UserTaskService:
         request_service: RequestService = Depends(),
         request_repository: RequestRepository = Depends(),
     ) -> None:
+        # self.__bot_service = bot_service
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -81,7 +83,8 @@ class UserTaskService:
         await self.__user_task_repository.update(user_task.id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        await bot_service().notify_approved_task(user_task)
+        await BotService().notify_approved_task(user_task)
+        # await self.__bot_service.notify_approved_task(user_task)
         return HTTPStatus.OK
 
     async def decline_task(self, user_task: UserTask) -> HTTPStatus.OK:
@@ -89,7 +92,8 @@ class UserTaskService:
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(user_task.id, user_task)
-        await bot_service().notify_declined_task(user_task.user)
+        # await self.__bot_service.notify_declined_task(user_task.user)
+        await BotService().notify_declined_task(user_task.user)
         return HTTPStatus.OK
 
     async def __check_task_status(self, status: str) -> None:

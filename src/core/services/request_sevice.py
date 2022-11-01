@@ -19,10 +19,10 @@ class RequestService:
         """Обновление статуса заявки."""
         request = await self.request_repository.get(request_id)
         if new_status_data is Status.APPROVED:
-            return await self.approve_status(request)
-        return await self.decline_status(request)
+            return await self.approve_request(request)
+        return await self.decline_request(request)
 
-    async def approve_status(self, request: Request) -> HTTPStatus.OK:
+    async def approve_request(self, request: Request) -> HTTPStatus.OK:
         """Заявка одобрена. Уведомление участника в телеграм."""
         if request.status is Status.APPROVED:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
@@ -31,7 +31,7 @@ class RequestService:
         await bot_service().notify_approved_request(request.user)
         return HTTPStatus.OK
 
-    async def decline_status(self, request: Request) -> HTTPStatus.OK:
+    async def decline_request(self, request: Request) -> HTTPStatus.OK:
         """Заявка отклонена. Уведомление участника в телеграм."""
         if request.status is Status.DECLINED:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
