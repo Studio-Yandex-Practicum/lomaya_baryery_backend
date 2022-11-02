@@ -104,6 +104,6 @@ class UserTaskService:
         """
         status = UserTask.Status.WAIT_REPORT
         status_count = await self.__user_task_repository.get_user_last_tasks_status_count(
-            user_id, settings.TASKS_SKIPPED_IN_ROW_FOR_BAN, status
+            user_id, settings.TASKS_SKIPPED_IN_ROW_FOR_BLOCK, status
         )
-        return status_count >= settings.TASKS_SKIPPED_IN_ROW_FOR_BAN
+        return status_count >= settings.TASKS_SKIPPED_IN_ROW_FOR_BLOCK
