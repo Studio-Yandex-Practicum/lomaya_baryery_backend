@@ -7,7 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.response_models.shift import ShiftDtoRespone, ShiftsResponse
+from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
 from src.core.db.repository import AbstractRepository
@@ -76,7 +76,7 @@ class ShiftRepository(AbstractRepository):
         self,
         status: Optional[Shift.Status],
         sort: Optional[Sort],
-    ) -> list[ShiftsResponse]:
+    ) -> Optional[list[Shift]]:
         request = (
             select(
                 (Shift.id),
@@ -91,7 +91,4 @@ class ShiftRepository(AbstractRepository):
             .order_by(sort or Shift.started_at.desc())
         )
         request = await self.session.execute(request)
-        request = request.all()
-        if request is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-        return request
+        return request.all()

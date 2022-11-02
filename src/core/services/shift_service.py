@@ -60,4 +60,13 @@ class ShiftService:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(self, status: Optional[Shift.Status], sort: Optional[Sort]) -> list[ShiftsResponse]:
+        if status and status not in (
+            Shift.Status.STARTED.value,
+            Shift.Status.FINISHED.value,
+            Shift.Status.CANCELING.value,
+            Shift.Status.PREPARING.value,
+        ):
+            raise Exception
+        if sort and sort not in (Sort.STATUS.value, Sort.FINISHED_AT.value, Sort.STARTED_AT.value):
+            raise Exception
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
