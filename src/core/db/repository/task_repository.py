@@ -1,11 +1,7 @@
-from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.db.db import get_session
 from src.core.db.models import Task, User
 from src.core.db.repository import AbstractRepository
 
@@ -13,19 +9,6 @@ from src.core.db.repository import AbstractRepository
 class TaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью Task."""
 
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.__session = session
-
-    async def get_or_none(self, id: UUID) -> Optional[Task]:
-        return await self.__session.get(Task, id)
-
-    async def get(self, id: UUID) -> Task:
-        task = await self.get_or_none(id)
-        if task is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Task c {id=} не найден.")
-        return task
-        
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""
         task_ids = await self.__session.execute(select(Task.id))
@@ -48,14 +31,5 @@ class TaskRepository(AbstractRepository):
         task = dict(*task_summary_info)
         return task
 
-    async def create(self, task: Task) -> Task:
-        self.__session.add(task)
-        await self.__session.commit()
-        await self.__session.refresh(task)
-        return task
 
-    async def update(self, id: UUID, task: Task) -> Task:
-        task.id = id
-        await self.__session.merge(task)
-        await self.__session.commit()
-        return task
+task_repository = TaskRepository(Task)

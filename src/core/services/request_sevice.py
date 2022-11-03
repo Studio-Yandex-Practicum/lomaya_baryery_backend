@@ -1,18 +1,21 @@
 from http import HTTPStatus
 
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestStatusUpdateRequest, Status
 from src.bot.services import send_approval_callback, send_rejection_callback
 from src.core.db.models import Request, User
-from src.core.db.repository import RequestRepository
+from src.core.db.repository.request_repository import (
+    RequestRepository,
+    request_repository,
+)
 
 REVIEWED_REQUEST = "Данная заявка уже была рассмотрена ранее"
 
 
 class RequestService:
-    def __init__(self, request_repository: RequestRepository = Depends()) -> None:
+    def __init__(self, request_repository: RequestRepository = request_repository) -> None:
         self.request_repository = request_repository
 
     async def get_request(

@@ -2,16 +2,18 @@ import logging
 from http import HTTPStatus
 
 import aiohttp
-from fastapi import Depends
 
 from src.api.response_models.healthcheck import HealthcheckResponse
 from src.bot.services import bot
-from src.core.db.repository import UserTaskRepository
+from src.core.db.repository.user_task_repository import (
+    UserTaskRepository,
+    user_task_repository,
+)
 from src.core.settings import settings
 
 
 class HealthcheckService:
-    def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
+    def __init__(self, user_task_repository: UserTaskRepository = user_task_repository) -> None:
         self.__user_task_repository = user_task_repository
 
     async def __get_bot_status(self) -> tuple:
