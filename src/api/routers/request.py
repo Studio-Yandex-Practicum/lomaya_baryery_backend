@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.request_models.request import Status
 from src.api.response_models.request import RequestResponse
 from src.core.services.request_sevice import RequestService
 
@@ -16,7 +15,7 @@ class RequestCBV:
     request_service: RequestService = Depends()
 
     @router.patch(
-        "/{request_id}/accept",
+        "/{request_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Одобрить заявку на участие.",
     )
@@ -25,7 +24,7 @@ class RequestCBV:
         request_id: UUID,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        return await self.request_service.status_update(request_id, Status.APPROVED)
+        return await self.request_service.approve_request(request_id)
 
     @router.patch(
         "/{request_id}/decline",
@@ -37,4 +36,4 @@ class RequestCBV:
         request_id: UUID,
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
-        return await self.request_service.status_update(request_id, Status.DECLINED)
+        return await self.request_service.decline_request(request_id)

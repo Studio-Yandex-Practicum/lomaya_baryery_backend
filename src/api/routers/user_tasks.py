@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, Path
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.request_models.request import Status
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
@@ -47,24 +46,24 @@ class UserTasksCBV:
         return user_task
 
     @router.patch(
-        "/{user_task_id}/accept",
+        "/{user_task_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
     )
-    async def accepted_status_report(
+    async def approve_task_status(
         self,
         user_task_id: UUID,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и принят."""
-        return await self.user_task_service.update_status(user_task_id, Status.APPROVED)
+        return await self.user_task_service.approve_task(user_task_id)
 
     @router.patch("/{user_task_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
-    async def declined_status_report(
+    async def decline_task_status(
         self,
         user_task_id: UUID,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и отклонен."""
-        return await self.user_task_service.update_status(user_task_id, Status.DECLINED)
+        return await self.user_task_service.decline_task(user_task_id)
 
     @router.get(
         "/{shift_id}/{task_date}/new",
