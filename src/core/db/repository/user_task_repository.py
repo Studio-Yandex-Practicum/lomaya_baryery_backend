@@ -53,10 +53,8 @@ class UserTaskRepository(AbstractRepository):
             .join(Photo)
             .where(UserTask.id == id, Photo.id == UserTask.photo_id)
         )
-
         user_task = user_task.all()
-        user_task = dict(*user_task)
-        return user_task
+        return dict(*user_task)
 
     async def get_all_ids(
         self,
@@ -75,8 +73,7 @@ class UserTaskRepository(AbstractRepository):
             )
             .order_by(UserTask.id)
         )
-        user_tasks_ids = user_tasks_info.all()
-        return user_tasks_ids
+        return user_tasks_info.all()
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
