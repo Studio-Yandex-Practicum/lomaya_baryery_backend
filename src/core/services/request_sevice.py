@@ -26,14 +26,9 @@ class RequestService:
         """Получить объект заявку по id."""
         return await self.request_repository.get(request_id)
 
-    async def status_update(
-        self, request_id: UUID, new_status_data: RequestStatusUpdateRequest, user_request: Request = None
-    ) -> Request:
+    async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> Request:
         """Обновить статус заявки."""
-        if user_request:
-            request = user_request
-        else:
-            request = await self.get_request(request_id)
+        request = await self.get_request(request_id)
         if request.status == new_status_data.status:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
         request.status = new_status_data.status
@@ -66,6 +61,5 @@ class RequestService:
             shift_id (UUID): id смены, в которой состоит участник
         """
         request = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
-        new_request_status = RequestStatusUpdateRequest()
-        new_request_status.status = Status.BLOCKED
-        await self.status_update(request.id, new_request_status, request)
+        new_request_status = RequestStatusUpdateRequest(Status.BLOCKED)
+        await self.status_update(request.id, new_request_status)

@@ -57,7 +57,7 @@ class RequestRepository(AbstractRepository):
         return users_ids.scalars().all()
 
     async def get_user_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
-        """Возвращает одобренную заявку участника на .
+        """Возвращает заявку участника на смену по id участника и смены.
 
         Аргументы:
             user_id (UUID): id пользователя,

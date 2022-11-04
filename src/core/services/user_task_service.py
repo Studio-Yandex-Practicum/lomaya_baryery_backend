@@ -102,8 +102,7 @@ class UserTaskService:
             bool: True если пропущено указанное в настройках количество заданий,
             False - если в допустимых пределах.
         """
-        status = UserTask.Status.WAIT_REPORT
         status_count = await self.__user_task_repository.get_user_last_tasks_status_count(
-            user_id, settings.TASKS_SKIPPED_IN_ROW_FOR_BLOCK, status
+            user_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_BLOCKING, UserTask.Status.WAIT_REPORT
         )
-        return status_count >= settings.TASKS_SKIPPED_IN_ROW_FOR_BLOCK
+        return status_count >= settings.SEQUENTIAL_TASKS_PASSES_FOR_BLOCKING
