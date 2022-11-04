@@ -49,7 +49,7 @@ class RequestService:
 
     async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
         """Возвращает заявку участника в указанной смене."""
-        return await self.request_repository.get_user_request_by_user_id_and_shift_id(user_id, shift_id)
+        return await self.request_repository.get_user_request_id_by_user_id_and_shift_id(user_id, shift_id)
 
     async def block_user(self, user_id: UUID, shift_id: UUID) -> None:
         """Переводит статус заявки участника в заблокированный.
@@ -60,6 +60,6 @@ class RequestService:
             user_id (UUID): id участника
             shift_id (UUID): id смены, в которой состоит участник
         """
-        request = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
+        request_id = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
         new_request_status = RequestStatusUpdateRequest(Status.BLOCKED)
-        await self.status_update(request.id, new_request_status)
+        await self.status_update(request_id, new_request_status)
