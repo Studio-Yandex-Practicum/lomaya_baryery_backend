@@ -36,7 +36,7 @@ class ShiftRepository(AbstractRepository):
 
     async def update(self, id: UUID, shift: Shift) -> Shift:
         shift.id = id
-        shift = await self.session.merge(shift)
+        await self.session.merge(shift)
         await self.session.commit()
         return shift
 
