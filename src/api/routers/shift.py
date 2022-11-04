@@ -18,9 +18,6 @@ from src.core.services.shift_service import ShiftService
 router = APIRouter(prefix="/shifts", tags=["Shift"])
 
 
-STR_STATUS_DENIES_START_SHIFT = "Нельзя запустить уже начатую, отмененную или завершенную смену."
-
-
 @cbv(router)
 class ShiftCBV:
     shift_service: ShiftService = Depends()
@@ -103,10 +100,9 @@ class ShiftCBV:
         - **shift_id**: уникальный индентификатор смены
         """
         try:
-            shift = await self.shift_service.start_shift(shift_id)
+            await self.shift_service.start_shift(shift_id)
         except Exception:
             raise NotFoundException()
-        return shift
 
     @router.get(
         "/{shift_id}/users",
