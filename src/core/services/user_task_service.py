@@ -91,8 +91,6 @@ class UserTaskService:
         """Уточнение статуса задания."""
         if status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
-        # if status is UserTask.Status.WAIT_REPORT:
-        #     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=WAIT_REPORT_TASK.format(status))
         if status is UserTask.Status.NEW:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
 
