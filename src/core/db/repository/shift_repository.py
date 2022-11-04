@@ -25,7 +25,7 @@ class ShiftRepository(AbstractRepository):
     async def get(self, id: UUID) -> Shift:
         shift = await self.get_or_none(id)
         if shift is None:
-            raise NotFoundException()
+            raise NotFoundException
         return shift
 
     async def create(self, shift: Shift) -> Shift:
@@ -36,7 +36,7 @@ class ShiftRepository(AbstractRepository):
 
     async def update(self, id: UUID, shift: Shift) -> Shift:
         shift.id = id
-        await self.session.merge(shift)
+        shift = await self.session.merge(shift)
         await self.session.commit()
         return shift
 
@@ -45,7 +45,7 @@ class ShiftRepository(AbstractRepository):
         request = await self.session.execute(statement)
         request = request.scalars().first()
         if request is None:
-            raise NotFoundException()
+            raise NotFoundException
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:

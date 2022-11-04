@@ -35,7 +35,7 @@ class ShiftService:
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
         if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING.value):
-            raise NotFoundException()
+            raise NotFoundException
         await self.__user_task_service.distribute_tasks_on_shift(id)
 
         # TODO добавить вызов метода рассылки участникам первого задания

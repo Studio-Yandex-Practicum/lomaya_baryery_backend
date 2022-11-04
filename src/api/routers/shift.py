@@ -100,9 +100,10 @@ class ShiftCBV:
         - **shift_id**: уникальный индентификатор смены
         """
         try:
-            await self.shift_service.start_shift(shift_id)
+            shift = await self.shift_service.start_shift(shift_id)
         except Exception:
-            raise NotFoundException()
+            raise NotFoundException
+        return shift
 
     @router.get(
         "/{shift_id}/users",
