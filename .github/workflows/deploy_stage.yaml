@@ -89,6 +89,8 @@ jobs:
             echo APPLICATION_URL=${{ secrets.HOST }} >> .env
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
+            echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
+            echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
 
   start_application:
     name: Start application

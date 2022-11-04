@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import pytz
 from telegram.ext import Application, ApplicationBuilder, CommandHandler
 
-from src.api.routers import TELEGRAM_WEBHOOK_ENDPOINT
+from src.api.routers.hello import TELEGRAM_WEBHOOK_ENDPOINT
 from src.bot.handlers import start
 from src.bot.jobs import send_no_report_reminder_job
 from src.core.settings import settings

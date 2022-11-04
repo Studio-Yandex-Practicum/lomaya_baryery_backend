@@ -14,7 +14,7 @@ class HealthcheckService:
     def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
         self.__user_task_repository = user_task_repository
 
-    async def __get_bot_status(self) -> tuple[bool] | tuple[bool, str]:
+    async def __get_bot_status(self) -> tuple:
         """Проверка, что бот запустился и работает корректно."""
         try:
             await bot.get_me()
@@ -23,7 +23,7 @@ class HealthcheckService:
             logging.exception(bot_error)
             return False, f"{bot_error}"
 
-    async def __get_api_status(self) -> tuple[bool] | tuple[bool, str]:
+    async def __get_api_status(self) -> tuple:
         """Делает запрос к апи и проверяет, что апи отвечает."""
         async with aiohttp.ClientSession() as session:
             async with session.get(settings.HEALTHCHECK_API_URL) as response:
@@ -31,7 +31,7 @@ class HealthcheckService:
                     return (True,)
                 return False, f"{response.status}"
 
-    async def __get_db_status(self) -> tuple[bool] | tuple[bool, str]:
+    async def __get_db_status(self) -> tuple:
         """Делает запрос к Базе Данных и проверяет, что приходит ответ."""
         try:
             await self.__user_task_repository.get_all_tasks_id_under_review()
