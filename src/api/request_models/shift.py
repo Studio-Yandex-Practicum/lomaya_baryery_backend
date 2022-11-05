@@ -6,7 +6,7 @@ from pydantic import validator
 from src.api.request_models.request_base import RequestBase
 
 
-class Sort(str, enum.Enum):
+class ShiftSortRequest(str, enum.Enum):
     """Поля модели Shift для сортировки."""
 
     STATUS = "status"

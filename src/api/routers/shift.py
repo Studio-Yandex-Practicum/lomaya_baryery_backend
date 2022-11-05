@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.shift import ShiftCreateRequest, Sort
+from src.api.request_models.shift import ShiftCreateRequest, ShiftSortRequest
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
-    ShiftsResponse,
     ShiftUsersResponse,
+    ShiftWithTotalUsers,
 )
 from src.core.db.models import Request, Shift
 from src.core.services.shift_service import ShiftService
@@ -160,7 +160,7 @@ class ShiftCBV:
 
     @router.get(
         "/",
-        response_model=list[ShiftsResponse],
+        response_model=list[ShiftWithTotalUsers],
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Получить список смен с количеством участников",
@@ -169,8 +169,8 @@ class ShiftCBV:
     async def get_all_shifts(
         self,
         status: Optional[Shift.Status] = None,
-        sort: Optional[Sort] = None,
-    ) -> list[ShiftsResponse]:
+        sort: Optional[ShiftSortRequest] = None,
+    ) -> list[ShiftWithTotalUsers]:
         """Получить список смен с фильтрацией по статусу.
 
         - **id**: id смены

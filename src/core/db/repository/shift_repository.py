@@ -7,7 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.request_models.shift import Sort
+from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
@@ -75,7 +75,7 @@ class ShiftRepository(AbstractRepository):
     async def get_shifts_with_total_users(
         self,
         status: Optional[Shift.Status],
-        sort: Optional[Sort],
+        sort: Optional[ShiftSortRequest],
     ) -> Optional[list[Shift]]:
         request = (
             select(
