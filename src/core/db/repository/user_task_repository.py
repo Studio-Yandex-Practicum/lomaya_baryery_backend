@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Photo, UserTask
@@ -18,7 +19,15 @@ class UserTaskRepository(AbstractRepository):
         self.__session = session
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        return await self.__session.get(UserTask, id)
+        user_task = await self.__session.execute(
+            select(UserTask)
+            .where(UserTask.id == id)
+            .options(
+                selectinload(UserTask.user),
+                selectinload(UserTask.photo),
+            )
+        )
+        return user_task.scalars().first()
 
     async def get(self, id: UUID) -> UserTask:
         user_task = await self.get_or_none(id)
@@ -44,10 +53,8 @@ class UserTaskRepository(AbstractRepository):
             .join(Photo)
             .where(UserTask.id == id, Photo.id == UserTask.photo_id)
         )
-
         user_task = user_task.all()
-        user_task = dict(*user_task)
-        return user_task
+        return dict(*user_task)
 
     async def get_all_ids(
         self,
@@ -66,8 +73,7 @@ class UserTaskRepository(AbstractRepository):
             )
             .order_by(UserTask.id)
         )
-        user_tasks_ids = user_tasks_info.all()
-        return user_tasks_ids
+        return user_tasks_info.all()
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
