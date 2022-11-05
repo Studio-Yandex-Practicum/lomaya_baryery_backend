@@ -3,63 +3,52 @@ from http import HTTPStatus
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
-from src.api.request_models.request import RequestStatusUpdateRequest, Status
-from src.bot.services import (
-    send_approval_callback,
-    send_blocking_callback,
-    send_rejection_callback,
-)
-from src.core.db.models import Request, User
+from src.api.request_models.request import Status
+from src.bot.services import BotService
+from src.core.db.models import Request
 from src.core.db.repository import RequestRepository
 
-REVIEWED_REQUEST = "Данная заявка уже была рассмотрена ранее"
+REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
 
 
 class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
-        self.request_repository = request_repository
+        self.__request_repository = request_repository
+        self.__telegram_bot = BotService()
 
-    async def get_request(
-        self,
-        request_id: UUID,
-    ) -> Request:
-        """Получить объект заявку по id."""
-        return await self.request_repository.get(request_id)
+    async def approve_request(self, request_id: UUID) -> None:
+        """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
+        request = await self.__request_repository.get(request_id)
+        if request.status is Status.APPROVED:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
+        request.status = Status.APPROVED
+        await self.__request_repository.update(request_id, request)
+        await self.__telegram_bot.notify_approved_request(request.user)
+        return
 
-    async def status_update(self, request_id: UUID, new_status_data: RequestStatusUpdateRequest) -> Request:
-        """Обновить статус заявки."""
-        request = await self.get_request(request_id)
-        if request.status == new_status_data.status:
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=REVIEWED_REQUEST)
-        request.status = new_status_data.status
-        await self.send_message(request.user, request.status)
-        return await self.request_repository.update(id=request.id, request=request)
+    async def decline_request(self, request_id: UUID) -> None:
+        """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
+        request = await self.__request_repository.get(request_id)
+        if request.status is Status.DECLINED:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
+        request.status = Status.DECLINED
+        await self.__request_repository.update(request_id, request)
+        await self.__telegram_bot.notify_declined_request(request.user)
+        return
 
-    async def send_message(self, user: User, status: str) -> None:
-        """Отправить сообщение о решении по заявке в telegram."""
-        if status is Status.APPROVED:
-            return await send_approval_callback(user)
-        if status is Status.BLOCKED:
-            return await send_blocking_callback(user)
-        return await send_rejection_callback(user)
+    async def block_request(self, user_id: UUID, shift_id: UUID) -> None:
+        """Блокирует заявку участника, высылает уведомление в телеграм."""
+        request = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
+        if request.status is Request.Status.BLOCKED:
+            raise HTTPException(HTTPStatus.NOT_FOUND, REVIEWED_REQUEST.format(request.status))
+        request.status = Request.Status.BLOCKED
+        await self.__request_repository.update(request.id, request)
+        await self.__telegram_bot.notify_blocked_request(request.user)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
-        return await self.request_repository.get_shift_user_ids(shift_id)
+        return await self.__request_repository.get_shift_user_ids(shift_id)
 
     async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
         """Возвращает заявку участника в указанной смене."""
-        return await self.request_repository.get_user_request_id_by_user_id_and_shift_id(user_id, shift_id)
-
-    async def block_user(self, user_id: UUID, shift_id: UUID) -> None:
-        """Переводит статус заявки участника в заблокированный.
-
-        Участник не сможет получать новые задания в этой смене.
-
-        Аргументы:
-            user_id (UUID): id участника
-            shift_id (UUID): id смены, в которой состоит участник
-        """
-        request_id = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
-        new_request_status = RequestStatusUpdateRequest(Status.BLOCKED)
-        await self.status_update(request_id, new_request_status)
+        return await self.__request_repository.get_request_by_user_id_and_shift_id(user_id, shift_id)

@@ -38,6 +38,20 @@ class RequestRepository(AbstractRepository):
             )
         return request
 
+    async def get_by_user_and_shift(self, user_id: UUID, shift_id: UUID) -> Request:
+        request = await self.session.execute(
+            select(Request).where(Request.user_id == user_id, Request.shift_id == shift_id)
+        )
+        return request.scalars().first()
+
+    async def add_one_lombaryer(self, request: Request) -> None:
+        if not request.numbers_lombaryers:
+            request.numbers_lombaryers = 1
+        else:
+            request.numbers_lombaryers += 1
+        await self.session.merge(request)
+        await self.session.commit()
+
     async def create(self, request: Request) -> Request:
         self.session.add(request)
         await self.session.commit()
@@ -56,15 +70,15 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_user_request_id_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> UUID:
-        """Возвращает id заявки участника на смену по id участника и смены.
+    async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> UUID:
+        """Возвращает заявку участника на смену по id участника и смены вместе с user и shift.
 
         Аргументы:
             user_id (UUID): id пользователя,
             shift_id (UUID): id смены, в которой участвует пользователь.
         """
         statement = (
-            select(Request.id)
+            select(Request)
             .where(
                 and_(
                     Request.user_id == user_id,
