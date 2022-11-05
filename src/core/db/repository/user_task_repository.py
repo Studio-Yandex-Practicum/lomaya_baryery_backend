@@ -79,27 +79,22 @@ class UserTaskRepository(AbstractRepository):
 
     async def get_tasks_by_usertask_ids(self, usertask_ids: list[UUID]) -> list[LongTaskResponse]:
         """Получить список заданий с подробностями на каждого участника по usertask_id."""
+        tasks = await self.__session.execute(
+            select(
+                Task.id.label("task_id"),
+                Task.url.label("task_url"),
+                Task.description.label("task_description"),
+                User.telegram_id.label("user_telegram_id"),
+            )
+            .where(UserTask.id.in_(usertask_ids))
+            .join(UserTask.task)
+            .join(UserTask.user)
+        )
+        tasks = tasks.all()
         task_infos = []
-        for id in usertask_ids:
-            task_info = await self.__session.execute(
-                select(
-                    Task.id.label("task_id"),
-                    Task.url.label("task_url"),
-                    Task.description.label("task_description"),
-                    User.telegram_id.label("user_telegram_id"),
-                )
-                .where(UserTask.id == id)
-                .join(UserTask.task)
-                .join(UserTask.user)
-            )
-            task_info = dict(*task_info)
-            task_response = LongTaskResponse(
-                task_id=task_info["task_id"],
-                task_url=task_info["task_url"],
-                task_description=task_info["task_description"],
-                user_telegram_id=task_info["user_telegram_id"],
-            )
-            task_infos.append(task_response)
+        for task in tasks:
+            task_info = LongTaskResponse(**task)
+            task_infos.append(task_info)
         return task_infos
 
     async def create(self, user_task: UserTask) -> UserTask:
