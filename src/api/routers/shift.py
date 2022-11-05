@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.shift import ShiftCreateRequest
+from src.api.request_models.shift import ShiftCreateRequest, Sort
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
@@ -14,7 +14,6 @@ from src.api.response_models.shift import (
 )
 from src.core.db.models import Request, Shift
 from src.core.services.shift_service import ShiftService
-from src.core.services.shift_sort import Sort
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
 

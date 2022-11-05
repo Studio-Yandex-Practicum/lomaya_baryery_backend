@@ -7,11 +7,11 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.api.request_models.shift import Sort
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.services.shift_sort import Sort
 
 
 class ShiftRepository(AbstractRepository):
