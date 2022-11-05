@@ -46,8 +46,8 @@ class ShiftService:
         }
         return await self.__shift_repository.update(id=id, shift=Shift(**update_shift_dict))
 
-    async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
-        shift = await self.__shift_repository.get_with_users(id)
+    async def get_users_list(self, id: UUID, pagination) -> ShiftUsersResponse:
+        shift = await self.__shift_repository.get_with_users(id, pagination)
         users = shift.users
         return ShiftUsersResponse(shift=shift, users=users)
 

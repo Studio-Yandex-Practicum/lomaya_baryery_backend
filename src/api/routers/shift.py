@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination import Page
 from fastapi_restful.cbv import cbv
 
+from src.api.request_models.paginate import PaginationRequest
 from src.api.request_models.shift import ShiftCreateRequest
 from src.api.response_models.shift import (
     ShiftDtoRespone,
@@ -120,6 +121,7 @@ class ShiftCBV:
     async def get_shift_users(
         self,
         shift_id: UUID,
+        pagination: PaginationRequest = Depends()
     ) -> ShiftUsersResponse:
         """
         Получить список пользоватаелй смены.
@@ -127,7 +129,7 @@ class ShiftCBV:
         - **shift**: Информация о смене
         - **users**: Список всех одобренных пользователей смены.
         """
-        return await self.shift_service.get_users_list(shift_id)
+        return await self.shift_service.get_users_list(shift_id, pagination)
 
     @router.get(
         '/{shift_id}/requests',

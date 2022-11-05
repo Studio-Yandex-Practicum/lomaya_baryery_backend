@@ -42,13 +42,12 @@ class ShiftRepository(AbstractRepository):
         await self.session.commit()
         return shift
 
-    async def get_with_users(self, id: UUID) -> Shift:
+    async def get_with_users(self, id: UUID, pagination) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
-        request = await self.session.execute(statement)
+        request = await paginate(self.session, statement, pagination)
         request = request.scalars().first()
         if request is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-        await paginate(self.session, statement)
         return await request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:

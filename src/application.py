@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi_pagination import add_pagination
 
 from src.api.routers import (
     request_router,
@@ -20,7 +19,6 @@ def create_app() -> FastAPI:
     app.include_router(request_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
-    add_pagination(app)
 
     @app.on_event("startup")
     async def on_startup():
