@@ -44,7 +44,7 @@ class ShiftRepository(AbstractRepository):
 
     async def get_with_users(self, id: UUID, pagination) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
-        request = await paginate(self.session, statement, pagination)
+        request = await paginate(self.session, statement, params=pagination)
         request = request.scalars().first()
         if request is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
