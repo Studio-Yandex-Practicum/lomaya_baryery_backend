@@ -12,6 +12,7 @@ from src.api.response_models.shift import (
 )
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
+from src.core.exceptions import NotFoundException
 from src.core.services.user_task_service import UserTaskService
 
 
@@ -38,8 +39,7 @@ class ShiftService:
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
         if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING.value):
-            # TODO изменить на кастомное исключение
-            raise Exception
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         await self.__user_task_service.distribute_tasks_on_shift(id)
 
         # TODO добавить вызов метода рассылки участникам первого задания

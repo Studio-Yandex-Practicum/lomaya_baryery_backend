@@ -6,14 +6,12 @@ from fastapi import APIRouter, Depends, Path
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.request_models.user_task import ChangeStatusRequest
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
 )
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService
-from src.core.settings import settings
 
 router = APIRouter(prefix="/user_tasks", tags=["user_tasks"])
 
@@ -44,33 +42,27 @@ class UserTasksCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
-        user_task = await self.user_task_service.get_user_task_with_photo_url(user_task_id)
-        return user_task
+        return await self.user_task_service.get_user_task_with_photo_url(user_task_id)
 
     @router.patch(
-        "/{user_task_id}",
-        response_model=UserTaskResponse,
-        response_model_exclude_none=True,
+        "/{user_task_id}/approve",
         status_code=HTTPStatus.OK,
-        summary="Изменить статус участника.",
-        response_description="Полная информация об отчёте участника.",
+        summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
     )
-    async def update_status_report(
+    async def approve_task_status(
         self,
         user_task_id: UUID,
-        update_user_task_status: ChangeStatusRequest,
-    ) -> dict:
-        """Изменить статус отчета участника.
+    ) -> HTTPStatus.OK:
+        """Отчет участника проверен и принят."""
+        return await self.user_task_service.approve_task(user_task_id)
 
-        - **user_id**:номер участника
-        - **user_task_id**: номер задачи, назначенной участнику на день смены (генерируется рандомно при старте смены)
-        - **task_id**: номер задачи
-        - **task_date**: дата получения задания
-        - **status**: статус задачи
-        - **photo_url**: url фото выполненной задачи
-        """
-        user_task = await self.user_task_service.update_status(user_task_id, update_user_task_status)
-        return user_task
+    @router.patch("/{user_task_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
+    async def decline_task_status(
+        self,
+        user_task_id: UUID,
+    ) -> HTTPStatus.OK:
+        """Отчет участника проверен и отклонен."""
+        return await self.user_task_service.decline_task(user_task_id)
 
     @router.get(
         "/{shift_id}/{task_date}/new",
