@@ -1,20 +1,17 @@
 from http import HTTPStatus
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
 
 from src.api.request_models.request import Status
 from src.bot.services import BotService
-from src.core.db.repository.request_repository import (
-    RequestRepository,
-    request_repository,
-)
+from src.core.db.repository.request_repository import RequestRepository
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
 
 
 class RequestService:
-    def __init__(self, request_repository: RequestRepository = request_repository) -> None:
+    def __init__(self, request_repository: RequestRepository = Depends()) -> None:
         self.__request_repository = request_repository
         self.__telegram_bot = BotService()
 

@@ -1,12 +1,11 @@
 from datetime import date, datetime
 
+from fastapi import Depends
+
 from src.api.request_models.user import RequestCreateRequest, UserCreateRequest
 from src.core.db.models import Request, User
-from src.core.db.repository.request_repository import (
-    RequestRepository,
-    request_repository,
-)
-from src.core.db.repository.user_repository import UserRepository, user_repository
+from src.core.db.repository.request_repository import RequestRepository
+from src.core.db.repository.user_repository import UserRepository
 from src.core.settings import settings
 
 
@@ -35,8 +34,8 @@ async def validate_user_create(user: UserCreateRequest, user_repository: UserRep
 class UserService:
     def __init__(
         self,
-        user_repository: UserRepository = user_repository,
-        request_repository: RequestRepository = request_repository,
+        user_repository: UserRepository = Depends(),
+        request_repository: RequestRepository = Depends(),
     ) -> None:
         self.user_repository = user_repository
         self.request_repository = request_repository

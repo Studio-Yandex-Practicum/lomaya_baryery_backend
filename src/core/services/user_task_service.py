@@ -10,12 +10,9 @@ from src.api.request_models.request import Status
 from src.bot.services import BotService
 from src.core.db.models import UserTask
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.db.repository.shift_repository import ShiftRepository, shift_repository
-from src.core.db.repository.task_repository import TaskRepository, task_repository
-from src.core.db.repository.user_task_repository import (
-    UserTaskRepository,
-    user_task_repository,
-)
+from src.core.db.repository.shift_repository import ShiftRepository
+from src.core.db.repository.task_repository import TaskRepository
+from src.core.db.repository.user_task_repository import UserTaskRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
@@ -38,9 +35,9 @@ class UserTaskService:
 
     def __init__(
         self,
-        user_task_repository: UserTaskRepository = user_task_repository,
-        task_repository: TaskRepository = task_repository,
-        shift_repository: ShiftRepository = shift_repository,
+        user_task_repository: UserTaskRepository = Depends(),
+        task_repository: TaskRepository = Depends(),
+        shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
         request_repository: RequestRepository = Depends(),

@@ -1,14 +1,9 @@
 import abc
-from http import HTTPStatus
-from http.client import HTTPException
 from typing import Optional, TypeVar
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.core.db.db import get_session
 
 DatabaseModel = TypeVar("DatabaseModel")
 
@@ -16,37 +11,34 @@ DatabaseModel = TypeVar("DatabaseModel")
 class AbstractRepository(abc.ABC):
     """Абстрактный класс, для реализации паттерна Repository."""
 
-    @abc.abstractmethod
-    def __init__(self, model: DatabaseModel, session: AsyncSession = Depends(get_session)) -> None:
-        self.__session = session
-        self.model = model
+    _model = None
 
     @abc.abstractmethod
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
     async def get_or_none(self, id: UUID) -> Optional[DatabaseModel]:
         """Получает из базы объект модели по ID. В случае отсутствия возвращает None."""
-        db_obj = await self.__session.execute(select(self.model).where(self.model.id == id))
+        db_obj = await self._session.execute(select(self._model).where(self._model.id == id))
         return db_obj.scalars().first()
 
-    @abc.abstractmethod
     async def get(self, id: UUID) -> DatabaseModel:
         """Получает объект модели по ID. В случае отсутствия объекта бросает ошибку."""
-        db_obj = await self.get(id)
+        db_obj = await self.get_or_none(id)
         if db_obj is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
+            raise LookupError(f"Объект с id {id} не найден ")
         return db_obj
 
-    @abc.abstractmethod
     async def create(self, instance: DatabaseModel) -> DatabaseModel:
         """Создает новый объект модели и сохраняет в базе."""
-        self.__session.add(instance)
-        await self.__session.commit()
-        await self.__session.refresh(instance)
+        self._session.add(instance)
+        await self._session.commit()
+        await self._session.refresh(instance)
         return instance
 
-    @abc.abstractmethod
     async def update(self, id: UUID, instance: DatabaseModel) -> DatabaseModel:
         """Обновляет существующий объект модели в базе."""
         instance.id = id
-        await self.__session.merge(instance)
-        await self.__session.commit()
+        await self._session.merge(instance)
+        await self._session.commit()
         return instance
