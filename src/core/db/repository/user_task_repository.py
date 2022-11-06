@@ -18,10 +18,10 @@ class UserTaskRepository(AbstractRepository):
     _model = UserTask
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self._session = session
+        AbstractRepository.__init__(self, session)
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        user_task = await self._session.execute(
+        user_task = await self.__session.execute(
             select(UserTask)
             .where(UserTask.id == id)
             .options(
@@ -43,7 +43,7 @@ class UserTaskRepository(AbstractRepository):
         id: UUID,
     ) -> dict:
         """Получить отчет участника по id с url фото выполненного задания."""
-        user_task = await self._session.execute(
+        user_task = await self.__session.execute(
             select(
                 UserTask.user_id,
                 UserTask.id,
@@ -64,7 +64,7 @@ class UserTaskRepository(AbstractRepository):
         task_date: date,
     ) -> list[tuple[int]]:
         """Получить список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
-        user_tasks_info = await self._session.execute(
+        user_tasks_info = await self.__session.execute(
             select(UserTask.id, UserTask.user_id, UserTask.task_id)
             .where(
                 and_(
@@ -79,12 +79,12 @@ class UserTaskRepository(AbstractRepository):
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
-        all_tasks_id_under_review = await self._session.execute(
+        all_tasks_id_under_review = await self.__session.execute(
             select(UserTask.task_id).select_from(UserTask).where(UserTask.status == UserTask.Status.UNDER_REVIEW)
         )
         return all_tasks_id_under_review.all()
 
     async def create_all(self, user_tasks_list: list[UserTask]) -> UserTask:
-        self._session.add_all(user_tasks_list)
-        await self._session.commit()
+        self.__session.add_all(user_tasks_list)
+        await self.__session.commit()
         return user_tasks_list

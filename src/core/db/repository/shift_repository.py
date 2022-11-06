@@ -19,18 +19,18 @@ class ShiftRepository(AbstractRepository):
     _model = Shift
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self._session = session
+        AbstractRepository.__init__(self, session)
 
     async def get_with_users(self, id: UUID) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
-        request = await self._session.execute(statement)
+        request = await self.__session.execute(statement)
         request = request.scalars().first()
         if request is None:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
-        db_list_request = await self._session.execute(
+        db_list_request = await self.__session.execute(
             select(
                 (Request.user_id),
                 (Request.id.label("request_id")),

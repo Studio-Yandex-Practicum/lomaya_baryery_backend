@@ -12,4 +12,4 @@ class PhotoRepository(AbstractRepository):
     _model = Photo
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self._session = session
+        AbstractRepository.__init__(self, session)

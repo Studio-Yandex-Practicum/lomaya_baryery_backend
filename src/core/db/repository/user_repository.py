@@ -15,14 +15,14 @@ class UserRepository(AbstractRepository):
     _model = User
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self._session = session
+        AbstractRepository.__init__(self, session)
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
-        user = await self._session.execute(select(User).where(telegram_id == telegram_id))
+        user = await self.__session.execute(select(User).where(telegram_id == telegram_id))
         return user.scalars().first()
 
     async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
-        user_exists = await self._session.execute(
+        user_exists = await self.__session.execute(
             exists().where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id))
         )
         return user_exists.scalar()

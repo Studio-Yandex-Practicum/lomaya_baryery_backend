@@ -15,16 +15,16 @@ class TaskRepository(AbstractRepository):
     _model = Task
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self._session = session
+        AbstractRepository.__init__(self, session)
 
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""
-        task_ids = await self._session.execute(select(Task.id))
+        task_ids = await self.__session.execute(select(Task.id))
         return task_ids.scalars().all()
 
     async def get_tasks_report(self, user_id: UUID, task_id: UUID) -> dict:
         """Получить список задач с информацией о юзерах."""
-        task_summary_info = await self._session.execute(
+        task_summary_info = await self.__session.execute(
             select(
                 User.name,
                 User.surname,
