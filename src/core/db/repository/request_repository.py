@@ -17,10 +17,10 @@ class RequestRepository(AbstractRepository):
     _model = Request
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session)
+        self._session = session
 
     async def get(self, id: UUID) -> Request:
-        request = await self.__session.execute(
+        request = await self._session.execute(
             select(Request)
             .where(Request.id == id)
             .options(
@@ -34,7 +34,7 @@ class RequestRepository(AbstractRepository):
         return request
 
     async def get_by_user_and_shift(self, user_id: UUID, shift_id: UUID) -> Request:
-        request = await self.__session.execute(
+        request = await self._session.execute(
             select(Request).where(Request.user_id == user_id, Request.shift_id == shift_id)
         )
         return request.scalars().first()
@@ -44,11 +44,11 @@ class RequestRepository(AbstractRepository):
             request.numbers_lombaryers = 1
         else:
             request.numbers_lombaryers += 1
-        await self.__session.merge(request)
-        await self.__session.commit()
+        await self._session.merge(request)
+        await self._session.commit()
 
     async def get_shift_user_ids(self, shift_id: UUID, status: str = Request.Status.APPROVED.value) -> list[UUID]:
-        users_ids = await self.__session.execute(
+        users_ids = await self._session.execute(
             select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
         )
         return users_ids.scalars().all()
