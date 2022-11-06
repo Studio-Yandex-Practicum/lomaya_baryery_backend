@@ -36,3 +36,7 @@ class ShiftDtoRespone(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ShiftWithTotalUsersResponse(ShiftResponse):
+    total_users: int
