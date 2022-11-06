@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -87,7 +87,12 @@ class ShiftRepository(AbstractRepository):
             )
             .join(Request.shift)
             .group_by(Shift.id)
-            .where((status is None or Shift.status == status) and Request.status == Request.Status.APPROVED.value)
+            .where(
+                and_(
+                    or_(status is None, Shift.status == status),
+                    Request.status == Request.Status.APPROVED.value,
+                )
+            )
             .order_by(sort or Shift.started_at.desc())
         )
         shifts = await self.session.execute(shifts)
