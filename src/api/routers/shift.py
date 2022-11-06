@@ -10,7 +10,7 @@ from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
     ShiftUsersResponse,
-    ShiftWithTotalUsers,
+    ShiftWithTotalUsersResponse,
 )
 from src.core.db.models import Request, Shift
 from src.core.services.shift_service import ShiftService
@@ -160,7 +160,7 @@ class ShiftCBV:
 
     @router.get(
         "/",
-        response_model=list[ShiftWithTotalUsers],
+        response_model=list[ShiftWithTotalUsersResponse],
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Получить список смен с количеством участников",
@@ -170,7 +170,7 @@ class ShiftCBV:
         self,
         status: Optional[Shift.Status] = None,
         sort: Optional[ShiftSortRequest] = None,
-    ) -> list[ShiftWithTotalUsers]:
+    ) -> list[ShiftWithTotalUsersResponse]:
         """Получить список смен с фильтрацией по статусу.
 
         - **id**: id смены

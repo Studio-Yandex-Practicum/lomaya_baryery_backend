@@ -8,7 +8,7 @@ from src.api.request_models.shift import ShiftCreateRequest, ShiftSortRequest
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftUsersResponse,
-    ShiftWithTotalUsers,
+    ShiftWithTotalUsersResponse,
 )
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
@@ -60,5 +60,5 @@ class ShiftService:
 
     async def list_all_shifts(
         self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
-    ) -> list[ShiftWithTotalUsers]:
+    ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)

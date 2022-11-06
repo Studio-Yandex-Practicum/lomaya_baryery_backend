@@ -76,8 +76,8 @@ class ShiftRepository(AbstractRepository):
         self,
         status: Optional[Shift.Status],
         sort: Optional[ShiftSortRequest],
-    ) -> Optional[list[Shift]]:
-        request = (
+    ) -> list:
+        shifts = (
             select(
                 (Shift.id),
                 (Shift.status),
@@ -87,8 +87,8 @@ class ShiftRepository(AbstractRepository):
             )
             .join(Request.shift)
             .group_by(Shift.id)
-            .where(status is None or Shift.status == status)
+            .where((status is None or Shift.status == status) and Request.status == Request.Status.APPROVED.value)
             .order_by(sort or Shift.started_at.desc())
         )
-        request = await self.session.execute(request)
-        return request.all()
+        shifts = await self.session.execute(shifts)
+        return shifts.all()
