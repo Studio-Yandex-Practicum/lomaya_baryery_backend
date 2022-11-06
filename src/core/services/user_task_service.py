@@ -128,14 +128,14 @@ class UserTaskService:
     async def check_user_activity(self, user_id: UUID, shift_id: UUID) -> None:
         """Проверяет пропускает ли участник подряд отправку отчета к полученным заданиям.
 
-        При положительном результате блокирует заявку участника в смене.
+        При положительном результате исключает участника из смены.
 
         Аргументы:
             user_id (UUID): id участника смены
             shift_id (UUID): id смены участника
         """
         status_count = await self.__user_task_repository.get_user_last_tasks_status_count(
-            user_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_BLOCKING, UserTask.Status.WAIT_REPORT
+            user_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE, UserTask.Status.WAIT_REPORT
         )
-        if status_count >= settings.SEQUENTIAL_TASKS_PASSES_FOR_BLOCKING:
-            await self.__request_service.block_request(user_id, shift_id)
+        if status_count >= settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE:
+            await self.__request_service.exclude_user(user_id, shift_id)

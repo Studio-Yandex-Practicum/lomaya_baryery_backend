@@ -1,4 +1,4 @@
-"""added wait_report status to UserTask and blocked status to Request
+"""added wait_report status to UserTask and excluded status to Request
 
 Revision ID: 0ae05a7f87ee
 Revises: 415099a58080
@@ -29,7 +29,7 @@ REQUEST_ENUM_COLUMN_NAME = "status"
 REQUEST_TEMP_ENUM_NAME = "temp_" + REQUEST_ENUM_COLUMN_NAME
 
 REQUEST_OLD_STATUSES = ("declined", "approved", "pending", "repeated request",)
-REQUEST_NEW_STATUS = "blocked"
+REQUEST_NEW_STATUS = "excluded"
 
 USER_TASK_NEW_STATUSES = (*USER_TASK_OLD_STATUSES, USER_TASK_NEW_STATUS,)
 

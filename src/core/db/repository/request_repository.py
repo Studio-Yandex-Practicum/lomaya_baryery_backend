@@ -70,8 +70,8 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> UUID:
-        """Возвращает заявку участника на смену по id участника и смены вместе с user и shift.
+    async def get_request_with_user_and_shift_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> UUID:
+        """Возвращает заявку участника на смену по id участника и смены вместе со связанными сущностями user и shift.
 
         Аргументы:
             user_id (UUID): id пользователя,
@@ -91,5 +91,4 @@ class RequestRepository(AbstractRepository):
                 selectinload(Request.shift),
             )
         )
-        requests_ids = await self.session.scalars(statement)
-        return requests_ids.first()
+        return (await self.session.scalars(statement)).first()

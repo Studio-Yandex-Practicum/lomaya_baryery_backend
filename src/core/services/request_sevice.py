@@ -36,19 +36,21 @@ class RequestService:
         await self.__telegram_bot.notify_declined_request(request.user)
         return
 
-    async def block_request(self, user_id: UUID, shift_id: UUID) -> None:
-        """Блокирует заявку участника, высылает уведомление в телеграм."""
-        request = await self.get_request_by_user_id_and_shift_id(user_id, shift_id)
-        if request.status is Request.Status.BLOCKED:
+    async def exclude_user(self, user_id: UUID, shift_id: UUID) -> None:
+        """Исключает участника из смены, высылает уведомление в телеграм."""
+        request = await self.get_request_with_user_and_shift_by_user_id_and_shift_id(user_id, shift_id)
+        if request.status is Request.Status.EXCLUDED:
             raise HTTPException(HTTPStatus.NOT_FOUND, REVIEWED_REQUEST.format(request.status))
-        request.status = Request.Status.BLOCKED
+        request.status = Request.Status.EXCLUDED
         await self.__request_repository.update(request.id, request)
-        await self.__telegram_bot.notify_blocked_request(request.user)
+        await self.__telegram_bot.notify_excluded_request(request.user)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.__request_repository.get_shift_user_ids(shift_id)
 
-    async def get_request_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
-        """Возвращает заявку участника в указанной смене."""
-        return await self.__request_repository.get_request_by_user_id_and_shift_id(user_id, shift_id)
+    async def get_request_with_user_and_shift_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
+        """Возвращает заявку участника по id участника и смены вместе со связанными сущностями user и shift."""
+        return await self.__request_repository.get_request_with_user_and_shift_by_user_id_and_shift_id(
+            user_id, shift_id
+        )

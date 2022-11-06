@@ -117,5 +117,4 @@ class UserTaskRepository(AbstractRepository):
             .subquery()
         )
         statement = select(func.count(subqry.c.status)).where(subqry.c.status == status)
-        tasks_status_count = await self.__session.scalars(statement)
-        return tasks_status_count.first()
+        return (await self.__session.scalars(statement)).first()

@@ -113,7 +113,7 @@ class Request(Base):
         DECLINED = "declined"
         PENDING = "pending"
         REPEATED_REQUEST = "repeated request"
-        BLOCKED = "blocked"
+        EXCLUDED = "excluded"
 
     __tablename__ = "requests"
 
