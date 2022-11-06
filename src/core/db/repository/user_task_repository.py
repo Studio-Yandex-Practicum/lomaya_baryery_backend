@@ -1,16 +1,32 @@
+from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Task, User, UserTask
+from src.core.db.models import Photo, Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
+
+
+@dataclass
+class DataForStatusByShift():
+    shift_id: UUID
+    shift_status: str
+    shift_started_at: date
+    user_task_id: UUID
+    user_task_created_at: date
+    user_name: str
+    user_surname: str
+    task_id: UUID
+    task_description: str
+    task_url: str
+    photo_url: str
 
 
 class UserTaskRepository(AbstractRepository):
@@ -119,3 +135,45 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.merge(user_task)
         await self.__session.commit()
         return user_task
+
+    async def get_user_task_status_by_shift_id(
+        self,
+        shift_id: UUID,
+        status: UserTask.Status
+    ) -> list[dict]:
+        """Получить отчет участника по id с url фото выполненного задания."""
+        user_by_status = await self.__session.execute(
+            select(Shift.id, Shift.status, Shift.started_at,
+                   UserTask.id, UserTask.created_at,
+                   User.name, User.surname,
+                   UserTask.task_id,
+                   Task.description, Task.url,
+                   Photo.url
+                   )
+            .where(
+                and_(
+                    UserTask.shift_id.in_((shift_id,)),
+                    UserTask.status.in_((status.split()),)
+                )
+            )
+            .join(Shift).join(User).join(Task).join(Photo)
+            .order_by(Shift.started_at)
+        )
+        if not user_by_status:
+            raise ValueError("Такой смены с таким статусом не может быть")
+        result = []
+        for u in user_by_status.all():
+            result.append(DataForStatusByShift(*u))
+        return result
+
+    async def patch_user_task_status_by_shift(self, shift_id: UUID,
+                                              status: UserTask.Status,
+                                              user_task: UserTask) -> UserTask:
+        data = await self.__session.execute(
+            update(UserTask)
+            .where(UserTask.shift_id == shift_id)
+            .values(status=status)
+        )
+        if not data:
+            raise ValueError("Такой смены с таким статусом не может быть")
+        return data

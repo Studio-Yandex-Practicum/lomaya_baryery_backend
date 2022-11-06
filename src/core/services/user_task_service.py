@@ -8,6 +8,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import Status
 from src.api.response_models.task import LongTaskResponse
+from src.api.request_models.user_task import ChangeStatusByShiftRequest
 from src.bot.services import BotService
 from src.core.db.models import UserTask
 from src.core.db.repository import (
@@ -135,3 +136,28 @@ class UserTaskService:
                     )
                 )
         await self.__user_task_repository.create_all(result)
+
+    async def get_user_task_by_shift_id_and_status(
+        self, shift_id: UUID, status: str
+    ) -> list[dict]:
+        return await (
+            self.__user_task_repository
+            .get_user_task_status_by_shift_id(shift_id, status)
+        )
+
+    async def patch_user_task_by_shift_id_and_status(
+        self, shift_id: UUID, status: UserTask.Status,
+        user_status_by_shift: ChangeStatusByShiftRequest
+    ) -> dict:
+        await (
+            self.__user_task_repository
+            .patch_user_task_status_by_shift(
+                shift_id=shift_id,
+                status=status,
+                user_task=user_status_by_shift
+            )
+        )
+        return await (
+            self.__user_task_repository
+            .get_user_task_status_by_shift_id(shift_id, status)
+        )

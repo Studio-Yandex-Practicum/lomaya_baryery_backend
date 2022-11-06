@@ -14,3 +14,8 @@ class ChangeStatusRequest(RequestBase):
         if value not in (UserTask.Status.APPROVED.value, UserTask.Status.DECLINED.value):
             raise ValueError("Недопустимый статус отчета")
         return value
+
+
+class ChangeStatusByShiftRequest(RequestBase):
+    """Модель изменения статуса."""
+    pass
