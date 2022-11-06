@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from src.api.routers import (
     healthcheck_router,
@@ -10,6 +12,7 @@ from src.api.routers import (
     webhook_router,
 )
 from src.bot.main import start_bot
+from src.core.exceptions import NotFoundException
 from src.core.settings import settings
 
 
@@ -41,6 +44,10 @@ def create_app() -> FastAPI:
         # storing bot_instance to extra state of FastAPI app instance
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
+
+    @app.exception_handler(NotFoundException)
+    async def invalid_db_request(request: Request, exc: NotFoundException):
+        return JSONResponse(status_code=exc.status_code, content=jsonable_encoder({exc.detail: exc.status_code}))
 
     @app.on_event("shutdown")
     async def on_shutdown():

@@ -1,8 +1,7 @@
-from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,6 +10,7 @@ from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Request, Shift, User
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import NotFoundException
 
 
 class ShiftRepository(AbstractRepository):
@@ -26,7 +26,7 @@ class ShiftRepository(AbstractRepository):
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
