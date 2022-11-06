@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.shift import ShiftCreateRequest
@@ -11,13 +11,11 @@ from src.api.response_models.shift import (
     ShiftResponse,
     ShiftUsersResponse,
 )
-from src.core.db.models import Request
+from src.core.db.models import Request, Shift
+from src.core.exceptions import NotFoundException
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
-
-
-STR_STATUS_DENIES_START_SHIFT = "Нельзя запустить уже начатую, отмененную или завершенную смену."
 
 
 @cbv(router)
@@ -103,9 +101,8 @@ class ShiftCBV:
         """
         try:
             shift = await self.shift_service.start_shift(shift_id)
-        # TODO изменить на кастомное исключение
         except Exception:
-            raise HTTPException(status_code=HTTPStatus.METHOD_NOT_ALLOWED, detail=STR_STATUS_DENIES_START_SHIFT)
+            raise NotFoundException(object_name=Shift.__doc__, object_id=shift_id)
         return shift
 
     @router.get(
