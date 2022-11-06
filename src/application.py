@@ -47,9 +47,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(NotFoundException)
     async def invalid_db_request(request: Request, exc: NotFoundException):
-        return JSONResponse(
-            status_code=exc.status_code, content=jsonable_encoder({NotFoundException.detail: exc.status_code})
-        )
+        return JSONResponse(status_code=exc.status_code, content=jsonable_encoder({exc.detail: exc.status_code}))
 
     @app.on_event("shutdown")
     async def on_shutdown():

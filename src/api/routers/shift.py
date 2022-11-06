@@ -11,7 +11,7 @@ from src.api.response_models.shift import (
     ShiftResponse,
     ShiftUsersResponse,
 )
-from src.core.db.models import Request
+from src.core.db.models import Request, Shift
 from src.core.exceptions import NotFoundException
 from src.core.services.shift_service import ShiftService
 
@@ -102,7 +102,7 @@ class ShiftCBV:
         try:
             shift = await self.shift_service.start_shift(shift_id)
         except Exception:
-            raise NotFoundException
+            raise NotFoundException(object_name=Shift.__doc__, object_id=shift_id)
         return shift
 
     @router.get(
