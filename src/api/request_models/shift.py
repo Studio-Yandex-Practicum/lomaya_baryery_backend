@@ -1,8 +1,17 @@
+import enum
 from datetime import date, datetime, timedelta
 
 from pydantic import validator
 
 from src.api.request_models.request_base import RequestBase
+
+
+class ShiftSortRequest(str, enum.Enum):
+    """Поля модели Shift для сортировки."""
+
+    STATUS = "status"
+    STARTED_AT = "started_at"
+    FINISHED_AT = "finished_at"
 
 
 class ShiftCreateRequest(RequestBase):
