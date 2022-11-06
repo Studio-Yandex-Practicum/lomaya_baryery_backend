@@ -35,20 +35,20 @@ class UserService:
     def __init__(
         self, user_repository: UserRepository = Depends(), request_repository: RequestRepository = Depends()
     ) -> None:
-        self.user_repository = user_repository
-        self.request_repository = request_repository
+        self.__user_repository = user_repository
+        self.__request_repository = request_repository
 
     async def user_registration(self, user_data: dict):
         """Регистрация пользователя. Отправка запроса на участие в смене."""
         user_scheme = UserCreateRequest(**user_data)
         await validate_user_create(user_scheme, self.user_repository)
         user = User(**user_scheme.dict())
-        await self.user_repository.create(user)
-        request = await self.request_repository.get_or_none(user.id)
+        await self.__user_repository.create(user)
+        request = await self.__request_repository.get_or_none(user.id)
         if not request:
             request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
             request = Request(**request_scheme.dict())
-            await self.user_repository.create(request)
+            await self.__user_repository.create(request)
 
     async def get_users_in_active_shift(self) -> list[User]:
-        return await self.user_repository.get_users_in_active_shift()
+        return await self.__user_repository.get_users_in_active_shift()

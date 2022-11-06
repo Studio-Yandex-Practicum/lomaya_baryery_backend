@@ -76,7 +76,7 @@ class ShiftRepository(AbstractRepository):
         task_date = datetime.now().date()
         active_task_ids = await self.session.execute(
             select(UserTask.id)
-            .where(Request.status == Request.Status.APPROVED.value, UserTask.task_date == task_date)
+            .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
             .join(Shift.user_tasks)
             .join(Shift.requests)
         )
