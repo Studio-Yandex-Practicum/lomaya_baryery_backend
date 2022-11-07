@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
+from telegram.ext import Application
 
 from src.api.request_models.request import Status
 from src.api.response_models.task import LongTaskResponse
@@ -48,7 +49,6 @@ class UserTaskService:
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = BotService()
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -80,7 +80,7 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def approve_task(self, task_id: UUID) -> None:
+    async def approve_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
@@ -88,16 +88,18 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        await self.__telegram_bot.notify_approved_task(user_task)
+        __telegram_bot = BotService(bot)
+        await __telegram_bot.notify_approved_task(user_task)
         return
 
-    async def decline_task(self, task_id: UUID) -> None:
+    async def decline_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(task_id, user_task)
-        await self.__telegram_bot.notify_declined_task(user_task.user.telegram_id)
+        __telegram_bot = BotService(bot)
+        await __telegram_bot.notify_declined_task(user_task.user.telegram_id)
         return
 
     async def __check_task_status(self, status: str) -> None:

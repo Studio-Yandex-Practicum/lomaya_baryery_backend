@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 
-from src.bot.main import create_bot
+from telegram.ext import Application
+
 from src.core import settings
 from src.core.db import models
 
@@ -8,8 +9,8 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
-    def __init__(self, telegram_bot=create_bot()) -> None:
-        self.bot = telegram_bot.bot
+    def __init__(self, telegram_bot: Application.bot) -> None:
+        self.bot = telegram_bot
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
