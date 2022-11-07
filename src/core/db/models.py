@@ -52,7 +52,7 @@ class Shift(Base):
     finished_at = Column(DATE, nullable=False, index=True)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
-    users = relationship("User", back_populates="shifts", secondary="requests")
+    users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -97,7 +97,7 @@ class User(Base):
     numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user")
-    shifts = relationship("Shift", back_populates="users", secondary="requests")
+    shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
