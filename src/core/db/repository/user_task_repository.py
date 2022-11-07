@@ -1,13 +1,15 @@
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from src.api.response_models.task import LongTaskResponse
 from src.core.db.db import get_session
-from src.core.db.models import Photo, UserTask
+from src.core.db.models import Photo, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -18,7 +20,15 @@ class UserTaskRepository(AbstractRepository):
         self.__session = session
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        return await self.__session.get(UserTask, id)
+        user_task = await self.__session.execute(
+            select(UserTask)
+            .where(UserTask.id == id)
+            .options(
+                selectinload(UserTask.user),
+                selectinload(UserTask.photo),
+            )
+        )
+        return user_task.scalars().first()
 
     async def get(self, id: UUID) -> UserTask:
         user_task = await self.get_or_none(id)
@@ -44,32 +54,54 @@ class UserTaskRepository(AbstractRepository):
             .join(Photo)
             .where(UserTask.id == id, Photo.id == UserTask.photo_id)
         )
-
         user_task = user_task.all()
-        user_task = dict(*user_task)
-        return user_task
+        return dict(*user_task)
 
     async def get_all_ids(
         self,
         shift_id: UUID,
-        day_number: int,
+        task_date: date,
     ) -> list[tuple[int]]:
         """Получить список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
-        statement = (
+        user_tasks_info = await self.__session.execute(
             select(UserTask.id, UserTask.user_id, UserTask.task_id)
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.day_number == day_number,
+                    UserTask.task_date == task_date,
                     or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
                 )
             )
             .order_by(UserTask.id)
         )
-        user_tasks_info = await self.session.execute(statement)
-        user_tasks_ids = user_tasks_info.all()
-        await paginate(self.session, statement)
-        return await user_tasks_ids
+        return user_tasks_info.all()
+
+    async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
+        """Получить список id непроверенных задач."""
+        all_tasks_id_under_review = await self.__session.execute(
+            select(UserTask.task_id).select_from(UserTask).where(UserTask.status == UserTask.Status.UNDER_REVIEW)
+        )
+        return all_tasks_id_under_review.all()
+
+    async def get_tasks_by_usertask_ids(self, usertask_ids: list[UUID]) -> list[LongTaskResponse]:
+        """Получить список заданий с подробностями на каждого участника по usertask_id."""
+        tasks = await self.__session.execute(
+            select(
+                Task.id.label("task_id"),
+                Task.url.label("task_url"),
+                Task.description.label("task_description"),
+                User.telegram_id.label("user_telegram_id"),
+            )
+            .where(UserTask.id.in_(usertask_ids))
+            .join(UserTask.task)
+            .join(UserTask.user)
+        )
+        tasks = tasks.all()
+        task_infos = []
+        for task in tasks:
+            task_info = LongTaskResponse(**task)
+            task_infos.append(task_info)
+        return task_infos
 
     async def create(self, user_task: UserTask) -> UserTask:
         self.__session.add(user_task)

@@ -1,17 +1,19 @@
-from http import HTTPStatus
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi_pagination.ext.async_sqlalchemy import paginate
-from sqlalchemy import or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Request, Shift, User
+from src.core.db.models import Request, Shift, User, UserTask
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import NotFoundException
 
 
 class ShiftRepository(AbstractRepository):
@@ -20,14 +22,14 @@ class ShiftRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         self.session = session
 
-    async def get_or_none(self, id: UUID) -> Optional[Shift]:
-        return await self.session.get(Shift, id)
+    async def get_or_none(self, id: UUID, pagination) -> Optional[Shift]:
+        statement = select(Shift).where(Shift.id == id)
+        return await paginate(self.session, statement, pagination)
 
-    async def get(self, id: UUID) -> Shift:
-        shift = await self.get_or_none(id)
+    async def get(self, id: UUID, pagination) -> Shift:
+        shift = await self.get_or_none(id, pagination)
         if shift is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Shift c {id=} не найден.")
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         return shift
 
     async def create(self, shift: Shift) -> Shift:
@@ -47,10 +49,10 @@ class ShiftRepository(AbstractRepository):
         request = await paginate(self.session, statement, params=pagination)
         request = request.scalars().first()
         if request is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-        return await request
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+        return request
 
-    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
+    async def list_all_requests(self, id: UUID, status: Optional[Request.Status], pagination) -> list[ShiftDtoRespone]:
         db_list_request = await self.session.execute(
             select(
                 (Request.user_id),
@@ -70,4 +72,41 @@ class ShiftRepository(AbstractRepository):
                 or_(status is None, Request.status == status),
             )
         )
-        return db_list_request.all()
+        return paginate(self.session, db_list_request.all(), params=pagination)
+
+    async def get_shifts_with_total_users(
+        self,
+        status: Optional[Shift.Status],
+        sort: Optional[ShiftSortRequest],
+        pagination,
+    ) -> list:
+        shifts = (
+            select(
+                (Shift.id),
+                (Shift.status),
+                (Shift.started_at),
+                (Shift.finished_at),
+                (func.count(Request.user_id).label("total_users")),
+            )
+            .join(Request.shift)
+            .group_by(Shift.id)
+            .where(
+                and_(
+                    or_(status is None, Shift.status == status),
+                    Request.status == Request.Status.APPROVED.value,
+                )
+            )
+            .order_by(sort or Shift.started_at.desc())
+        )
+        shifts = await paginate(self.session, shifts, params=pagination)
+        return shifts.all()
+
+    async def get_today_active_user_task_ids(self) -> list[UUID]:
+        task_date = datetime.now().date()
+        active_task_ids = await self.session.execute(
+            select(UserTask.id)
+            .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
+            .join(Shift.user_tasks)
+            .join(Shift.requests)
+        )
+        return active_task_ids.scalars().all()

@@ -32,7 +32,7 @@ class TaskRepository(AbstractRepository):
         task_ids = await self.__session.execute(select(Task.id))
         return task_ids.scalars().all()
 
-    async def get_tasks_report(self, user_id: UUID, task_id: UUID) -> dict:
+    async def get_tasks_report(self, user_id: UUID, task_id: UUID, pagination) -> dict:
         """Получить список задач с информацией о юзерах."""
         statement = (
             select(
@@ -45,10 +45,9 @@ class TaskRepository(AbstractRepository):
             .select_from(User, Task)
             .where(User.id == user_id, Task.id == task_id)
         )
-        task_summary_info = await self.session.execute(statement)
+        task_summary_info = await paginate(self.session, statement, pagination)
         task_summary_info = task_summary_info.all()
         task = dict(*task_summary_info)
-        await paginate(self.session, statement)
         return await task
 
     async def create(self, task: Task) -> Task:

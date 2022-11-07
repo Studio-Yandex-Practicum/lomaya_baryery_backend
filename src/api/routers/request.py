@@ -1,11 +1,10 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
-from fastapi.encoders import jsonable_encoder
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
+from fastapi import Request
 
-from src.api.request_models.request import RequestStatusUpdateRequest
 from src.api.response_models.request import RequestResponse
 from src.core.services.request_sevice import RequestService
 
@@ -17,26 +16,27 @@ class RequestCBV:
     request_service: RequestService = Depends()
 
     @router.patch(
-        "/{request_id}",
-        response_model=RequestResponse,
-        response_model_exclude_none=True,
+        "/{request_id}/approve",
         status_code=HTTPStatus.OK,
-        summary="Обновить статус заявки",
-        response_description="Информация по заявке",
+        summary="Одобрить заявку на участие.",
     )
-    async def update_request_status(
+    async def approve_request_status(
         self,
         request_id: UUID,
-        new_status_data: RequestStatusUpdateRequest,
+        request: Request,
     ) -> RequestResponse:
-        """Обновить статус заявки.
+        """Одобрить заявку на участие в акции."""
+        return await self.request_service.approve_request(request_id, request.app.state.bot_instance.bot)
 
-        - **status**: статус заявки
-        """
-        updated_request = await self.request_service.status_update(request_id, new_status_data)
-        return RequestResponse(
-            request_id=updated_request.id,
-            user_id=updated_request.user.id,
-            status=updated_request.status,
-            **jsonable_encoder(updated_request.user)
-        )
+    @router.patch(
+        "/{request_id}/decline",
+        status_code=HTTPStatus.OK,
+        summary="Отклонить заявку на участие.",
+    )
+    async def decline_request_status(
+        self,
+        request_id: UUID,
+        request: Request,
+    ) -> RequestResponse:
+        """Отклонить заявку на участие в акции."""
+        return await self.request_service.decline_request(request_id, request.app.state.bot_instance.bot)
