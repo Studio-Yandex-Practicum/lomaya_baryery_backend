@@ -14,7 +14,7 @@ class HealthcheckService:
     def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
         self.__user_task_repository = user_task_repository
 
-    async def __get_bot_status(self, bot: Application) -> tuple:
+    async def __get_bot_status(self, bot: Application.bot) -> tuple:
         """Проверка, что бот запустился и работает корректно."""
         try:
             await bot.get_me()
@@ -40,7 +40,7 @@ class HealthcheckService:
             logging.exception(db_error)
             return False, f"{db_error}"
 
-    async def get_healthcheck_status(self, bot) -> HealthcheckResponse:
+    async def get_healthcheck_status(self, bot: Application.bot) -> HealthcheckResponse:
         return HealthcheckResponse(
             bot_status=await self.__get_bot_status(bot),
             api_status=await self.__get_api_status(),

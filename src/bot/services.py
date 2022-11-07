@@ -8,7 +8,7 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application) -> None:
+    def __init__(self, telegram_bot: Application.bot) -> None:
         self.bot = telegram_bot
 
     async def notify_approved_request(self, user: models.User) -> None:

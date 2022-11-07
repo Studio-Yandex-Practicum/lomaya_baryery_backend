@@ -15,7 +15,7 @@ class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
         self.__request_repository = request_repository
 
-    async def approve_request(self, request_id: UUID, bot: Application) -> None:
+    async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status is Status.APPROVED:
@@ -26,7 +26,7 @@ class RequestService:
         await __telegram_bot.notify_approved_request(request.user)
         return
 
-    async def decline_request(self, request_id: UUID, bot: Application) -> None:
+    async def decline_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status is Status.DECLINED:

@@ -79,7 +79,7 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def approve_task(self, task_id: UUID, bot: Application) -> None:
+    async def approve_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
@@ -91,7 +91,7 @@ class UserTaskService:
         await __telegram_bot.notify_approved_task(user_task)
         return
 
-    async def decline_task(self, task_id: UUID, bot: Application) -> None:
+    async def decline_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
