@@ -9,7 +9,9 @@ from pydantic.schema import UUID
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
+    UserTaskStatusByShiftResponse
 )
+from src.core.db.models import UserTask
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService
 
@@ -89,3 +91,29 @@ class UserTasksCBV:
         report["shift"] = shift
         report["tasks"] = tasks
         return report
+
+    @router.get(
+        "/{shift_id}/{status}",
+        response_model=list[UserTaskStatusByShiftResponse],
+        summary="Получения списка задач на проверку по полям status и shift_id.",
+    )
+    async def get_tasks_by_status(
+        *,
+        self,
+        shift_id: UUID,
+        status: UserTask.Status,
+    ) -> list[UserTaskStatusByShiftResponse]:
+        """
+        Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
+
+        Список формируется по убыванию поля started_at.
+
+        В запросе передаётся:
+
+        - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
+        - **user_task.status**: статус задачи
+        """
+        return await (
+            self.user_task_service
+            .get_user_task_by_shift_id_and_status(shift_id, status)
+        )

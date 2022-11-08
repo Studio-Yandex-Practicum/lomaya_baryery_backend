@@ -8,7 +8,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import Status
 from src.api.response_models.task import LongTaskResponse
-from src.bot.services import BotService
+from src.bot import services
 from src.core.db.models import UserTask
 from src.core.db.repository import (
     ShiftRepository,
@@ -47,7 +47,7 @@ class UserTaskService:
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = BotService()
+        self.__telegram_bot = services.BotService()
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -135,3 +135,11 @@ class UserTaskService:
                     )
                 )
         await self.__user_task_repository.create_all(result)
+
+    async def get_user_task_by_shift_id_and_status(
+        self, shift_id: UUID, status: UserTask.Status
+    ) -> list[dict]:
+        return await (
+            self.__user_task_repository
+            .get_user_task_status_by_shift_id(shift_id, status)
+        )
