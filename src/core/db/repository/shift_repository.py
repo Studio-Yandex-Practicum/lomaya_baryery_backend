@@ -1,14 +1,16 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Request, Shift, User
+from src.core.db.models import Request, Shift, User, UserTask
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -50,3 +52,39 @@ class ShiftRepository(AbstractRepository):
             )
         )
         return db_list_request.all()
+
+    async def get_shifts_with_total_users(
+        self,
+        status: Optional[Shift.Status],
+        sort: Optional[ShiftSortRequest],
+    ) -> list:
+        shifts = (
+            select(
+                (Shift.id),
+                (Shift.status),
+                (Shift.started_at),
+                (Shift.finished_at),
+                (func.count(Request.user_id).label("total_users")),
+            )
+            .join(Request.shift)
+            .group_by(Shift.id)
+            .where(
+                and_(
+                    or_(status is None, Shift.status == status),
+                    Request.status == Request.Status.APPROVED.value,
+                )
+            )
+            .order_by(sort or Shift.started_at.desc())
+        )
+        shifts = await self._session.execute(shifts)
+        return shifts.all()
+
+    async def get_today_active_user_task_ids(self) -> list[UUID]:
+        task_date = datetime.now().date()
+        active_task_ids = await self._session.execute(
+            select(UserTask.id)
+            .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
+            .join(Shift.user_tasks)
+            .join(Shift.requests)
+        )
+        return active_task_ids.scalars().all()

@@ -3,6 +3,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
+from fastapi import Request
 
 from src.api.response_models.request import RequestResponse
 from src.core.services.request_sevice import RequestService
@@ -22,9 +23,10 @@ class RequestCBV:
     async def approve_request_status(
         self,
         request_id: UUID,
+        request: Request,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        return await self.request_service.approve_request(request_id)
+        return await self.request_service.approve_request(request_id, request.app.state.bot_instance.bot)
 
     @router.patch(
         "/{request_id}/decline",
@@ -34,6 +36,7 @@ class RequestCBV:
     async def decline_request_status(
         self,
         request_id: UUID,
+        request: Request,
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
-        return await self.request_service.decline_request(request_id)
+        return await self.request_service.decline_request(request_id, request.app.state.bot_instance.bot)

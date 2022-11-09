@@ -7,8 +7,9 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.api.response_models.task import LongTaskResponse
 from src.core.db.db import get_session
-from src.core.db.models import Photo, UserTask
+from src.core.db.models import Photo, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -83,6 +84,26 @@ class UserTaskRepository(AbstractRepository):
             select(UserTask.task_id).select_from(UserTask).where(UserTask.status == UserTask.Status.UNDER_REVIEW)
         )
         return all_tasks_id_under_review.all()
+
+    async def get_tasks_by_usertask_ids(self, usertask_ids: list[UUID]) -> list[LongTaskResponse]:
+        """Получить список заданий с подробностями на каждого участника по usertask_id."""
+        tasks = await self._session.execute(
+            select(
+                Task.id.label("task_id"),
+                Task.url.label("task_url"),
+                Task.description.label("task_description"),
+                User.telegram_id.label("user_telegram_id"),
+            )
+            .where(UserTask.id.in_(usertask_ids))
+            .join(UserTask.task)
+            .join(UserTask.user)
+        )
+        tasks = tasks.all()
+        task_infos = []
+        for task in tasks:
+            task_info = LongTaskResponse(**task)
+            task_infos.append(task_info)
+        return task_infos
 
     async def create_all(self, user_tasks_list: list[UserTask]) -> UserTask:
         self._session.add_all(user_tasks_list)

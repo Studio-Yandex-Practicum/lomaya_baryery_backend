@@ -5,11 +5,18 @@ from typing import Any
 
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
+from telegram.ext import Application
 
 from src.api.request_models.request import Status
+from src.api.response_models.task import LongTaskResponse
 from src.bot.services import BotService
 from src.core.db.models import UserTask
-from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
+from src.core.db.repository import (
+    ShiftRepository,
+    TaskRepository,
+    UserRepository,
+    UserTaskRepository,
+)
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
@@ -39,20 +46,25 @@ class UserTaskService:
         task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
         request_repository: RequestRepository = Depends(),
+        user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = BotService()
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
         self.__task_service = task_service
         self.__request_service = request_service
         self.__request_repository = request_repository
+        self.__user_repository = user_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.__user_task_repository.get(id)
 
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
+
+    async def get_today_active_usertasks(self) -> list[LongTaskResponse]:
+        usertask_ids = await self.__shift_repository.get_today_active_user_task_ids()
+        return await self.__user_task_repository.get_tasks_by_usertask_ids(usertask_ids)
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
@@ -67,7 +79,7 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def approve_task(self, task_id: UUID) -> None:
+    async def approve_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
@@ -75,16 +87,18 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        await self.__telegram_bot.notify_approved_task(user_task)
+        __telegram_bot = BotService(bot)
+        await __telegram_bot.notify_approved_task(user_task)
         return
 
-    async def decline_task(self, task_id: UUID) -> None:
+    async def decline_task(self, task_id: UUID, bot: Application.bot) -> None:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         user_task = await self.__user_task_repository.get(task_id)
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(task_id, user_task)
-        await self.__telegram_bot.notify_declined_task(user_task.user.telegram_id)
+        __telegram_bot = BotService(bot)
+        await __telegram_bot.notify_declined_task(user_task.user.telegram_id)
         return
 
     async def __check_task_status(self, status: str) -> None:
