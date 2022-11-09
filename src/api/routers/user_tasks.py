@@ -93,15 +93,15 @@ class UserTasksCBV:
         return report
 
     @router.get(
-        "/{shift_id}/{status}",
+        "/",
         response_model=list[UserTaskStatusByShiftResponse],
         summary="Получения списка задач на проверку по полям status и shift_id.",
     )
     async def get_tasks_by_status(
         *,
         self,
-        shift_id: UUID,
-        status: UserTask.Status,
+        shift_id: UUID = None,
+        status: UserTask.Status = None,
     ) -> list[UserTaskStatusByShiftResponse]:
         """
         Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.

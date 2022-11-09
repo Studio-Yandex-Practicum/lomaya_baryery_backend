@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, case, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -125,8 +125,9 @@ class UserTaskRepository(AbstractRepository):
         self,
         shift_id: UUID,
         status: UserTask.Status
-    ) -> list[dict]:
+    ) -> list[DataForStatusByShift]:
         """Получить отчет участника по id с url фото выполненного задания."""
+        print(UserTask.shift_id)
         user_by_status = await self.__session.execute(
             select(Shift.id, Shift.status, Shift.started_at,
                    UserTask.id, UserTask.created_at,
@@ -136,13 +137,20 @@ class UserTaskRepository(AbstractRepository):
                    Photo.url
                    )
             .where(
-                and_(
-                    UserTask.shift_id == shift_id,
-                    UserTask.status == status
+                case(
+                    (and_(shift_id is None, status is not None),
+                     and_(UserTask.shift_id.is_not(None), UserTask.status == status)),
+                    (and_(shift_id is not None, status is None),
+                     and_(UserTask.shift_id == shift_id, UserTask.status.is_not(None))),
+                    (and_(shift_id is None, status is None), UserTask.shift_id.is_not(None)),
+                    else_=and_(
+                        UserTask.shift_id == shift_id,
+                        UserTask.status == status
+                    )
                 )
             )
             .join(Shift).join(User).join(Task).join(Photo)
-            .order_by(Shift.started_at)
+            .order_by(desc(Shift.started_at))
         )
         filtered_result = user_by_status.all()
         if not filtered_result:
