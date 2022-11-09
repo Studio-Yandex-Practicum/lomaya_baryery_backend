@@ -5,7 +5,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import Status
 from src.bot.services import BotService
-from src.core.db.repository.request_repository import RequestRepository
+from src.core.db.repository import RequestRepository
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
 

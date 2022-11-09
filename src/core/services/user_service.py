@@ -33,9 +33,7 @@ async def validate_user_create(user: UserCreateRequest, user_repository: UserRep
 
 class UserService:
     def __init__(
-        self,
-        user_repository: UserRepository = Depends(),
-        request_repository: RequestRepository = Depends(),
+        self, user_repository: UserRepository = Depends(), request_repository: RequestRepository = Depends()
     ) -> None:
         self.user_repository = user_repository
         self.request_repository = request_repository

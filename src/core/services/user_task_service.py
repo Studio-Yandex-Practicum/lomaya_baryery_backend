@@ -9,10 +9,8 @@ from pydantic.schema import UUID
 from src.api.request_models.request import Status
 from src.bot.services import BotService
 from src.core.db.models import UserTask
+from src.core.db.repository import ShiftRepository, TaskRepository, UserTaskRepository
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.db.repository.shift_repository import ShiftRepository
-from src.core.db.repository.task_repository import TaskRepository
-from src.core.db.repository.user_task_repository import UserTaskRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 
