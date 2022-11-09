@@ -120,7 +120,7 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_last_tasks_status_count(self, user_id: UUID, task_amount: int, status: UserTask.Status) -> int:
+    async def get_member_last_tasks_status_count(self, user_id: UUID, task_amount: int, status: UserTask.Status) -> int:
         """Возвращает количество искомого статуса из последних полученных задач участника.
 
         Аргументы:

@@ -8,7 +8,7 @@ class Status(str, enum.Enum):
 
     APPROVED = "approved"
     DECLINED = "declined"
-    BLOCKED = "blocked"
+    EXCLUDED = "excluded"
 
 
 class RequestStatusUpdateRequest(BaseModel):

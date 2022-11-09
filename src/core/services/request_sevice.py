@@ -38,7 +38,7 @@ class RequestService:
         await __telegram_bot.notify_declined_request(request.user)
         return
 
-    async def exclude_user(self, user_id: UUID, shift_id: UUID, bot: Application.bot) -> None:
+    async def exclude_member(self, user_id: UUID, shift_id: UUID, bot: Application.bot) -> None:
         """Исключает участника из смены, высылает уведомление в телеграм."""
         request = await self.get_request_with_user_and_shift_by_user_id_and_shift_id(user_id, shift_id)
         if request.status is Request.Status.EXCLUDED:
@@ -46,7 +46,7 @@ class RequestService:
         request.status = Request.Status.EXCLUDED
         await self.__request_repository.update(request.id, request)
         __telegram_bot = BotService(bot)
-        await __telegram_bot.notify_excluded_request(request.user)
+        await __telegram_bot.notify_excluded_member(request.user)
 
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""

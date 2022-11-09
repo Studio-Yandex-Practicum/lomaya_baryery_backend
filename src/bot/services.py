@@ -60,7 +60,7 @@ class BotService:
         )
         await self.bot.send_message(telegram_id, text)
 
-    async def notify_excluded_request(self, user: models.User) -> None:
+    async def notify_excluded_member(self, user: models.User) -> None:
         text = (
             "К сожалению, мы заблокировали Ваше участие в смене из-за неактивности - "
             "Вы не отправили ни одного отчета на несколько последних заданий подряд. "

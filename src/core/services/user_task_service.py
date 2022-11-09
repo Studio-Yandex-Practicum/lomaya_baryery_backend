@@ -139,7 +139,7 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def check_user_activity(self, user_id: UUID, shift_id: UUID) -> None:
+    async def check_member_activity(self, user_id: UUID, shift_id: UUID) -> None:
         """Проверяет пропускает ли участник подряд отправку отчета к полученным заданиям.
 
         При положительном результате исключает участника из смены.
@@ -148,8 +148,8 @@ class UserTaskService:
             user_id (UUID): id участника смены
             shift_id (UUID): id смены участника
         """
-        status_count = await self.__user_task_repository.get_user_last_tasks_status_count(
+        status_count = await self.__user_task_repository.get_member_last_tasks_status_count(
             user_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE, UserTask.Status.WAIT_REPORT
         )
         if status_count >= settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE:
-            await self.__request_service.exclude_user(user_id, shift_id)
+            await self.__request_service.exclude_member(user_id, shift_id)
