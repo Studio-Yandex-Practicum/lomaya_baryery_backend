@@ -3,13 +3,13 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select, case, desc
+from sqlalchemy import and_, or_, select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
 from src.core.db.db import get_session
-from src.core.db.DTO_models import DataForStatusByShift
+from src.core.db.DTO_models import DataForStatusByShiftDB
 from src.core.db.models import Photo, Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
@@ -121,13 +121,21 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_task_status_by_shift_id(
+    async def get_user_tasks_by_shift_id_and_status(
         self,
         shift_id: UUID,
         status: UserTask.Status
-    ) -> list[DataForStatusByShift]:
+    ) -> list[DataForStatusByShiftDB]:
         """Получить отчет участника по id с url фото выполненного задания."""
-        print(UserTask.shift_id)
+        if not shift_id:
+            shift_id_filter = UserTask.shift_id.is_not(None)
+        else:
+            shift_id_filter = UserTask.shift_id == shift_id
+        if not status:
+            status_filter = UserTask.status.is_not(None)
+        else:
+            status_filter = UserTask.status == status
+
         user_by_status = await self.__session.execute(
             select(Shift.id, Shift.status, Shift.started_at,
                    UserTask.id, UserTask.created_at,
@@ -137,17 +145,7 @@ class UserTaskRepository(AbstractRepository):
                    Photo.url
                    )
             .where(
-                case(
-                    (and_(shift_id is None, status is not None),
-                     and_(UserTask.shift_id.is_not(None), UserTask.status == status)),
-                    (and_(shift_id is not None, status is None),
-                     and_(UserTask.shift_id == shift_id, UserTask.status.is_not(None))),
-                    (and_(shift_id is None, status is None), UserTask.shift_id.is_not(None)),
-                    else_=and_(
-                        UserTask.shift_id == shift_id,
-                        UserTask.status == status
-                    )
-                )
+                and_(shift_id_filter, status_filter)
             )
             .join(Shift).join(User).join(Task).join(Photo)
             .order_by(desc(Shift.started_at))
@@ -157,5 +155,5 @@ class UserTaskRepository(AbstractRepository):
             raise ValueError(f"Такой смены {shift_id} с таким статусом {status} не может быть")
         result = []
         for u in filtered_result:
-            result.append(DataForStatusByShift(*u))
+            result.append(DataForStatusByShiftDB(*u))
         return result

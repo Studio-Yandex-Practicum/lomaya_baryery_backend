@@ -6,7 +6,7 @@ from pydantic.schema import UUID
 from src.api.response_models.shift import ShiftResponse
 from src.api.response_models.task import TaskInfoResponse
 from src.api.response_models.user import UserInfoResponse
-from src.core.db.models import UserTask
+from src.core.db.models import Shift, UserTask
 
 
 class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
@@ -38,7 +38,7 @@ class UserTaskResponse(BaseModel):
 
 class UserTaskStatusByShiftResponse(BaseModel):
     shift_id: UUID
-    shift_status: str
+    shift_status: Shift.Status
     shift_started_at: date
     user_task_id: UUID
     user_task_created_at: date

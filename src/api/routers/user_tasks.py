@@ -98,7 +98,6 @@ class UserTasksCBV:
         summary="Получения списка задач на проверку по полям status и shift_id.",
     )
     async def get_tasks_by_status(
-        *,
         self,
         shift_id: UUID = None,
         status: UserTask.Status = None,
