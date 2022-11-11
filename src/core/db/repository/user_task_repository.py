@@ -125,7 +125,7 @@ class UserTaskRepository(AbstractRepository):
         self,
         shift_id: UUID,
         status: UserTask.Status
-    ) -> list[DataForStatusByShiftDB]:
+    ) -> tuple[DataForStatusByShiftDB]:
         """Получить отчет участника по id с url фото выполненного задания."""
         if not shift_id:
             shift_id_filter = UserTask.shift_id.is_not(None)
@@ -153,7 +153,7 @@ class UserTaskRepository(AbstractRepository):
         filtered_result = user_by_status.all()
         if not filtered_result:
             raise ValueError(f"Такой смены {shift_id} с таким статусом {status} не может быть")
-        result = []
+        result = ()
         for u in filtered_result:
-            result.append(DataForStatusByShiftDB(*u))
+            result += (DataForStatusByShiftDB(*u),)
         return result

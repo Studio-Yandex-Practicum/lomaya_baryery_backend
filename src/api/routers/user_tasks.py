@@ -101,7 +101,7 @@ class UserTasksCBV:
         self,
         shift_id: UUID = None,
         status: UserTask.Status = None,
-    ) -> list[UserTaskStatusByShiftResponse]:
+    ) -> tuple[UserTaskStatusByShiftResponse]:
         """
         Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
 

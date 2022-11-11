@@ -139,7 +139,7 @@ class UserTaskService:
 
     async def get_user_task_by_shift_id_and_status(
         self, shift_id: UUID, status: UserTask.Status
-    ) -> list[DataForStatusByShiftDB]:
+    ) -> tuple[DataForStatusByShiftDB]:
         return await (
             self.__user_task_repository
             .get_user_tasks_by_shift_id_and_status(shift_id, status)
