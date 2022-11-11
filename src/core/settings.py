@@ -39,15 +39,11 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
-    
+
     @property
     def bot_persistence_file_path(self):
         """Получить путь к файлу для сохранения состояния бота."""
-        return (
-            f"{BASE_DIR}/"
-            f"src/bot/"
-            f"{self.BOT_PERSISTENCE_FILE}"
-        )
+        return f"{BASE_DIR}/" f"src/bot/" f"{self.BOT_PERSISTENCE_FILE}"
 
     class Config:
         env_file = ENV_FILE
