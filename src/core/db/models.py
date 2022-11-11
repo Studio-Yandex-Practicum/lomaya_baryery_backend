@@ -35,6 +35,8 @@ class Base:
 class Shift(Base):
     """Смена."""
 
+    FINAL_MESSAGE = ""
+
     class Status(str, enum.Enum):
         """Статус смены."""
 
@@ -50,6 +52,8 @@ class Shift(Base):
     )
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
+    title = Column(String(100), nullable=False, server_default="")
+    final_message = Column(String(150), nullable=False, server_default="", default=FINAL_MESSAGE)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("User", back_populates="shifts", secondary="requests")
