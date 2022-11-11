@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
+    BOT_PERSISTENCE_FILE: str
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -37,6 +38,15 @@ class Settings(BaseSettings):
             f"postgresql+asyncpg://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
+        )
+    
+    @property
+    def bot_persistence_file_path(self):
+        """Получить путь к файлу для сохранения состояния бота."""
+        return (
+            f"{BASE_DIR}/"
+            f"src/bot/"
+            f"{self.BOT_PERSISTENCE_FILE}"
         )
 
     class Config:
