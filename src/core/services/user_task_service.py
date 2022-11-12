@@ -8,6 +8,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import Status
+from src.api.request_models.user_task import UserTaskUpdateRequest
 from src.api.response_models.task import LongTaskResponse
 from src.bot.services import BotService
 from src.core.db.models import UserTask
@@ -137,3 +138,10 @@ class UserTaskService:
                     )
                 )
         await self.__user_task_repository.create_all(result)
+
+    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
+        """Получить задачу для изменения статуса и photo_id."""
+        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
+
+    async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
+        return await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))

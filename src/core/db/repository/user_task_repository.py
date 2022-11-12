@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, false, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -119,3 +119,15 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.merge(user_task)
         await self.__session.commit()
         return user_task
+
+    async def get_new_undeleted_by_user_id(self, user_id: UUID) -> Optional[UserTask]:
+        """Получить наиболее раннюю задачу со статусом new и без признака удаления."""
+        statement = (
+            select(UserTask)
+            .where(
+                and_(UserTask.deleted == false(), UserTask.status == UserTask.Status.NEW, UserTask.user_id == user_id)
+            )
+            .order_by(UserTask.day_number)
+        )
+        user_tasks = await self.session.execute(statement)
+        return user_tasks.scalars().first()

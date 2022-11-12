@@ -39,6 +39,13 @@ class Settings(BaseSettings):
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
 
+    @property
+    def user_reports_dir(self):
+        """Получить директорию для сохранения фотоотчета."""
+        user_reports_dir = BASE_DIR / 'data' / 'user_reports'
+        Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
+        return user_reports_dir
+
     class Config:
         env_file = ENV_FILE
 
