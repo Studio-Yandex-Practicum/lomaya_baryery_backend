@@ -72,7 +72,6 @@ class ShiftRepository(AbstractRepository):
         )
         return db_list_request.all()
 
-
     async def get_shifts_with_total_users(
         self,
         status: Optional[Shift.Status],
@@ -98,7 +97,6 @@ class ShiftRepository(AbstractRepository):
         )
         shifts = await self.session.execute(shifts)
         return shifts.all()
-
 
     async def get_today_active_user_task_ids(self) -> list[UUID]:
         task_date = datetime.now().date()

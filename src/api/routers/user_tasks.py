@@ -2,10 +2,9 @@ from datetime import date
 from http import HTTPStatus
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
-from fastapi import Request
 
 from src.api.response_models.user_task import (
     UserTaskResponse,

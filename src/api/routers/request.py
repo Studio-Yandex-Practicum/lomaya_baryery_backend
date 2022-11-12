@@ -1,9 +1,8 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
-from fastapi import Request
 
 from src.api.response_models.request import RequestResponse
 from src.core.services.request_sevice import RequestService
