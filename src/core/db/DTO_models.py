@@ -6,7 +6,7 @@ from src.core.db.models import Shift
 
 
 @dataclass
-class DataForStatusByShiftDB():
+class FullUserTaskDto():
     shift_id: UUID
     shift_status: Shift.Status
     shift_started_at: date

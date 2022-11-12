@@ -9,7 +9,7 @@ from pydantic.schema import UUID
 from src.api.request_models.request import Status
 from src.api.response_models.task import LongTaskResponse
 from src.bot import services
-from src.core.db.DTO_models import DataForStatusByShiftDB
+from src.core.db import DTO_models
 from src.core.db.models import UserTask
 from src.core.db.repository import (
     ShiftRepository,
@@ -139,7 +139,7 @@ class UserTaskService:
 
     async def get_user_task_by_shift_id_and_status(
         self, shift_id: UUID, status: UserTask.Status
-    ) -> tuple[DataForStatusByShiftDB]:
+    ) -> list[DTO_models.FullUserTaskDto]:
         return await (
             self.__user_task_repository
             .get_user_tasks_by_shift_id_and_status(shift_id, status)
