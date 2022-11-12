@@ -9,7 +9,7 @@ from pydantic.schema import UUID
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
-    UserTaskStatusByShiftResponse
+    UserTaskSummaryResponse
 )
 from src.core.db.models import UserTask
 from src.core.services.shift_service import ShiftService
@@ -94,14 +94,14 @@ class UserTasksCBV:
 
     @router.get(
         "/",
-        response_model=list[UserTaskStatusByShiftResponse],
+        response_model=list[UserTaskSummaryResponse],
         summary="Получения списка заданий пользователя по полям status и shift_id.",
     )
-    async def get_tasks_by_status(
+    async def get_user_task_summary(
         self,
         shift_id: UUID = None,
         status: UserTask.Status = None,
-    ) -> tuple[UserTaskStatusByShiftResponse]:
+    ) -> list[UserTaskSummaryResponse]:
         """
         Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
 
@@ -114,5 +114,5 @@ class UserTasksCBV:
         """
         return await (
             self.user_task_service
-            .get_user_task_by_shift_id_and_status(shift_id, status)
+            .get_user_task_summary(shift_id, status)
         )

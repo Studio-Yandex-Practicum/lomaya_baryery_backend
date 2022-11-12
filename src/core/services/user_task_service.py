@@ -137,10 +137,9 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def get_user_task_by_shift_id_and_status(
+    async def get_user_task_summary(
         self, shift_id: UUID, status: UserTask.Status
     ) -> list[DTO_models.FullUserTaskDto]:
         return await (
-            self.__user_task_repository
-            .get_user_tasks_by_shift_id_and_status(shift_id, status)
+            self.__user_task_repository.get_user_task_summary(shift_id, status)
         )

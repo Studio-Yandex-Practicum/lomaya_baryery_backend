@@ -36,7 +36,7 @@ class UserTaskResponse(BaseModel):
         orm_mode = True
 
 
-class UserTaskStatusByShiftResponse(BaseModel):
+class UserTaskSummaryResponse(BaseModel):
     shift_id: UUID
     shift_status: Shift.Status
     shift_started_at: date

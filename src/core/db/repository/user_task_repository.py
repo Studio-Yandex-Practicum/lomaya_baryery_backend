@@ -121,7 +121,7 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_tasks_by_shift_id_and_status(
+    async def get_user_task_summary(
         self,
         shift_id: UUID,
         status: UserTask.Status
