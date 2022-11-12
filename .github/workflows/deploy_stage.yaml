@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - develop
-    types: [closed]
+    types: [ closed ]
   push:
     branches:
       - feature/ci_cd
@@ -99,22 +99,22 @@ jobs:
       name: Stage
     needs: deploy
     steps:
-    - name: Making migrations
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          cd ${{ env.DEPLOY_PATH }}
-          docker image prune -f
-          docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-          docker compose --file docker-compose.yaml stop
-          docker compose --file docker-compose.yaml rm backend
-          docker run -it --name backend ${{ env.IMAGE_NAME }}:latest
-          docker exec backend python -m pip install --upgrade pip
-          docker exec backend pip install -r requirements.txt
-          docker exec backend /LOMAYABARYERY/alembic upgrade head
+      - name: Making migrations
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            docker image prune -f
+            docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker compose --file docker-compose.yaml stop
+            docker compose --file docker-compose.yaml rm backend
+            docker run -it --name backend ${{ env.IMAGE_NAME }}:latest
+            docker exec backend python -m pip install --upgrade pip
+            docker exec backend pip install -r requirements.txt
+            docker exec backend /LOMAYABARYERY/alembic upgrade head
 
   start_application:
     name: Start application
@@ -132,3 +132,36 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker compose --file docker-compose.yaml up -d
+
+      - name: Perform Health Check
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            curl -s 'http://localhost:8080/healthcheck' | \
+                python -c "
+            import sys
+            import json
+
+            JSON = json.load(sys.stdin)
+            result = 0
+            for value in JSON.values():
+                if value != [True, ]:
+                    result += 1
+            if result:
+                print(1)
+            else:
+                print(0)"
+#   Альтернативный запуск
+#   Если в корне home/${{ secrets.USERNAME }}
+#   будут healthcheck.sh и healthcheck.py
+#      - name: Perform Health Check
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USERNAME }}
+#          key: ${{ secrets.SSH_KEY }}
+#          script: |
+#            healthcheck.sh
