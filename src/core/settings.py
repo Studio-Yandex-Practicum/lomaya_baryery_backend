@@ -42,7 +42,7 @@ class Settings(BaseSettings):
 
     @property
     def bot_persistence_dir_path(self):
-        """Получить дикторию для сохранения файла с состоянием бота."""
+        """Получить директорию для сохранения файла с состоянием бота."""
         return os.path.join(BASE_DIR, "src/bot/")
 
     class Config:
