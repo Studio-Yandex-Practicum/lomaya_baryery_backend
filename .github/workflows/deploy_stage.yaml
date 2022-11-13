@@ -146,22 +146,10 @@ jobs:
             import json
 
             JSON = json.load(sys.stdin)
-            result = 0
+            results = 0
             for value in JSON.values():
                 if value != [True, ]:
-                    result += 1
-            if result:
-                print(1)
-            else:
-                print(0)"
-#   Альтернативный запуск
-#   Если в корне home/${{ secrets.USERNAME }}
-#   будут healthcheck.sh и healthcheck.py
-#      - name: Perform Health Check
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          script: |
-#            healthcheck.sh
+                    results += value
+            if results:
+                print(*results, sep='\n')
+            "
