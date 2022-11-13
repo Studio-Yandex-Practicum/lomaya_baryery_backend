@@ -132,3 +132,25 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker compose --file docker-compose.yaml up -d
+
+      - name: Perform Health Check
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            curl -s 'http://localhost:8080/healthcheck' | \
+                python -c "
+            import sys
+            import json
+
+            JSON = json.load(sys.stdin)
+            results = [
+                value for value in JSON.values()
+                if value != [True, ]
+                ]
+            if results:
+                print(f'FAIL {len(results)} tests:\n')
+                print(*[error for _, error in results], sep='\n')
+            "
