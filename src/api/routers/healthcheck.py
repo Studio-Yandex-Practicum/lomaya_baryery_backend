@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
-from fastapi import Request
 
 from src.api.response_models.healthcheck import HealthcheckResponse
 from src.core.services.healthcheck_service import HealthcheckService
@@ -21,5 +20,4 @@ class HealthcheckCBV:
     )
     async def get_current_status(self, request: Request) -> HealthcheckResponse:
         """Запускает сервис проверки состояния Бота, АПИ, БД."""
-
         return await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)

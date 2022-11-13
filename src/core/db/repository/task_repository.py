@@ -25,7 +25,7 @@ class TaskRepository(AbstractRepository):
             # FIXME: написать и использовать кастомное исключение
             raise LookupError(f"Объект Task c {id=} не найден.")
         return task
-        
+
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""
         task_ids = await self.__session.execute(select(Task.id))
