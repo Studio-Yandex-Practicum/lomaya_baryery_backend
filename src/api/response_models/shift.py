@@ -33,6 +33,7 @@ class ShiftDtoRespone(BaseModel):
     phone: str
     request_id: UUID
     status: Request.Status
+    title: str
 
     class Config:
         orm_mode = True
