@@ -139,17 +139,16 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def check_member_activity(self, user_id: UUID, shift_id: UUID) -> None:
-        """Проверяет пропускает ли участник подряд отправку отчета к полученным заданиям.
+    async def check_members_activity(self, bot: Application.bot) -> None:
+        """Проверяет участников во всех запущенных сменах.
 
-        При положительном результате исключает участника из смены.
-
-        Аргументы:
-            user_id (UUID): id участника смены
-            shift_id (UUID): id смены участника
+        Если участники не посылают отчет о выполненом задании указанное
+        в нвстройках количество раз подряд, то они будут исключены из своих смен.
         """
-        status_count = await self.__user_task_repository.get_member_last_tasks_status_count(
-            user_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE, UserTask.Status.WAIT_REPORT
+        shift_ids = await self.__shift_repository.get_started_shifts_ids()
+        user_ids_to_exclude = await self.__user_task_repository.get_members_ids_for_excluding(
+            shift_ids, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
-        if status_count >= settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE:
-            await self.__request_service.exclude_member(user_id, shift_id)
+        if len(user_ids_to_exclude) > 0:
+            await self.__request_service.exclude_members(user_ids_to_exclude, shift_ids, bot)
+            await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_ids)

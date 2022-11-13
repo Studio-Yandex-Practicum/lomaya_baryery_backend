@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -120,22 +120,48 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_member_last_tasks_status_count(self, user_id: UUID, task_amount: int, status: UserTask.Status) -> int:
-        """Возвращает количество искомого статуса из последних полученных задач участника.
+    async def get_members_ids_for_excluding(self, shift_ids: list[UUID], task_amount: int) -> list[UUID]:
+        """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
 
         Аргументы:
-            user_id (UUID): id участника
-            task_amount (int): количество последних задач участника
-            status (UserTask.Status): искомый статус заданий
+            shift_ids (list[UUID]): список id стартоваваших смен
+            task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
         """
-        subqry = (
-            select(UserTask.status)
-            .where(
-                and_(UserTask.user_id == user_id, UserTask.status != UserTask.Status.NEW, UserTask.deleted.is_(False))
+        subquery_rank = (
+            select(
+                func.rank().over(order_by=UserTask.task_date.desc(), partition_by=UserTask.user_id).label('rnk'),
+                UserTask.user_id,
+                UserTask.status,
             )
-            .order_by(desc(UserTask.task_date))
-            .limit(task_amount)
+            .where(
+                and_(
+                    UserTask.shift_id.in_(shift_ids),
+                    UserTask.status != UserTask.Status.NEW,
+                    UserTask.deleted.is_(False),
+                )
+            )
             .subquery()
         )
-        statement = select(func.count(subqry.c.status)).where(subqry.c.status == status)
-        return (await self.__session.scalars(statement)).first()
+        subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
+        statement = (
+            select(subquery_last_statuses.c.user_id, func.count(subquery_last_statuses.c.status).label('status_count'))
+            .where(subquery_last_statuses.c.status == UserTask.Status.WAIT_REPORT)
+            .having(func.count(subquery_last_statuses.c.status) >= task_amount)
+            .group_by(subquery_last_statuses.c.user_id)
+        )
+        return (await self.__session.scalars(statement)).all()
+
+    async def set_usertasks_deleted(self, user_ids: list[UUID], shift_ids: list[UUID]) -> None:
+        """Переводит задания участников указанных в user_ids в сменах в списке shift_ids в статус удаленных.
+
+        Аргументы:
+            user_ids (list[UUID]): список id участников
+            shift_ids (list[UUID]): список id смен
+        """
+        statement = (
+            update(UserTask)
+            .where(and_(UserTask.user_id.in_(user_ids), UserTask.shift_id.in_(shift_ids)))
+            .values(deleted=True)
+        )
+        await self.__session.execute(statement)
+        await self.__session.commit()

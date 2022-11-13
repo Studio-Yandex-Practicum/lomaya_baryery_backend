@@ -70,25 +70,32 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_request_with_user_and_shift_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> UUID:
-        """Возвращает заявку участника на смену по id участника и смены вместе со связанными сущностями user и shift.
+    async def get_requests_by_users_ids_and_shifts_ids(
+        self, users_ids: list[UUID], shifts_ids: list[UUID]
+    ) -> list[Request]:
+        """Возвращает список заявок участников.
+
+        Заявки принадлежат участникам с id в списке users_ids, участвующих в сменах с id из списка shifts_ids.
 
         Аргументы:
-            user_id (UUID): id пользователя,
-            shift_id (UUID): id смены, в которой участвует пользователь.
+            users_ids (list[UUID]): список id участников
+            shifts_ids (list[UUID]): список id смен
         """
         statement = (
             select(Request)
             .where(
                 and_(
-                    Request.user_id == user_id,
-                    Request.shift_id == shift_id,
-                    Request.deleted.is_(False),
+                    Request.user_id.in_(users_ids),
+                    Request.shift_id.in_(shifts_ids),
+                    Request.status == Request.Status.APPROVED,
                 )
             )
-            .options(
-                selectinload(Request.user),
-                selectinload(Request.shift),
-            )
+            .options(selectinload(Request.user))
         )
-        return (await self.session.scalars(statement)).first()
+        return (await self.session.scalars(statement)).all()
+
+    async def bulk_excluded_status_update(self, requests: list[Request]) -> None:
+        for request in requests:
+            request.status = Request.Status.EXCLUDED
+            await self.session.merge(request)
+        await self.session.commit()

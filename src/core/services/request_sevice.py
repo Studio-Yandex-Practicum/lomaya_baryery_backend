@@ -6,7 +6,6 @@ from telegram.ext import Application
 
 from src.api.request_models.request import Status
 from src.bot.services import BotService
-from src.core.db.models import Request
 from src.core.db.repository import RequestRepository
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
@@ -38,22 +37,15 @@ class RequestService:
         await __telegram_bot.notify_declined_request(request.user)
         return
 
-    async def exclude_member(self, user_id: UUID, shift_id: UUID, bot: Application.bot) -> None:
-        """Исключает участника из смены, высылает уведомление в телеграм."""
-        request = await self.get_request_with_user_and_shift_by_user_id_and_shift_id(user_id, shift_id)
-        if request.status is Request.Status.EXCLUDED:
-            raise HTTPException(HTTPStatus.NOT_FOUND, REVIEWED_REQUEST.format(request.status))
-        request.status = Request.Status.EXCLUDED
-        await self.__request_repository.update(request.id, request)
-        __telegram_bot = BotService(bot)
-        await __telegram_bot.notify_excluded_member(request.user)
-
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.__request_repository.get_shift_user_ids(shift_id)
 
-    async def get_request_with_user_and_shift_by_user_id_and_shift_id(self, user_id: UUID, shift_id: UUID) -> Request:
-        """Возвращает заявку участника по id участника и смены вместе со связанными сущностями user и shift."""
-        return await self.__request_repository.get_request_with_user_and_shift_by_user_id_and_shift_id(
-            user_id, shift_id
-        )
+    async def exclude_members(self, user_ids: list[UUID], shift_ids: list[UUID], bot: Application.bot) -> None:
+        requests = await self.__request_repository.get_requests_by_users_ids_and_shifts_ids(user_ids, shift_ids)
+        if len(requests) == 0:
+            raise LookupError(f'Заявки не найдены для участников с id {user_ids} в сменах с id {shift_ids}')
+        await self.__request_repository.bulk_excluded_status_update(requests)
+        __telegram_bot = BotService(bot)
+        for request in requests:
+            await __telegram_bot.notify_excluded_member(request.user)
