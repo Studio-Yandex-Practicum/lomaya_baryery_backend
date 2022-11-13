@@ -3,9 +3,9 @@ from http import HTTPStatus
 
 import aiohttp
 from fastapi import Depends
+from telegram.ext import Application
 
 from src.api.response_models.healthcheck import HealthcheckResponse
-from src.bot.services import BotService
 from src.core.db.repository import UserTaskRepository
 from src.core.settings import settings
 
@@ -13,12 +13,11 @@ from src.core.settings import settings
 class HealthcheckService:
     def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
         self.__user_task_repository = user_task_repository
-        self.__telegram_bot = BotService()
 
-    async def __get_bot_status(self) -> tuple:
+    async def __get_bot_status(self, bot: Application.bot) -> tuple:
         """Проверка, что бот запустился и работает корректно."""
         try:
-            await self.__telegram_bot.bot.get_me()
+            await bot.get_me()
             return (True,)
         except Exception as bot_error:
             logging.exception(bot_error)
@@ -41,9 +40,9 @@ class HealthcheckService:
             logging.exception(db_error)
             return False, f"{db_error}"
 
-    async def get_healthcheck_status(self) -> HealthcheckResponse:
+    async def get_healthcheck_status(self, bot: Application.bot) -> HealthcheckResponse:
         return HealthcheckResponse(
-            bot_status=await self.__get_bot_status(),
+            bot_status=await self.__get_bot_status(bot),
             api_status=await self.__get_api_status(),
             db_status=await self.__get_db_status(),
         )
