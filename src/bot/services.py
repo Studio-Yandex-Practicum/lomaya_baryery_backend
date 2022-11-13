@@ -1,6 +1,8 @@
 from datetime import datetime as dt
 
 from telegram.ext import Application
+
+from src.api.request_models.request import RequestDeclineRequest
 from src.core import settings
 from src.core.db import models
 
@@ -19,18 +21,20 @@ class BotService:
         text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
         await self.bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_request(self, user: models.User) -> None:
+    async def notify_declined_request(self, user: models.User, decline_request_data: RequestDeclineRequest) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка отклонена.
         """
-        text = (
-            f"К сожалению, на данный момент мы не можем зарегистрировать вас"
-            f" в проекте. Вы можете написать на почту "
-            f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
-            f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
-            f"{settings.ORGANIZATIONS_GROUP}"
-        )
+        text = decline_request_data.message
+        if not text:
+            text = (
+                f"К сожалению, на данный момент мы не можем зарегистрировать вас"
+                f" в проекте. Вы можете написать на почту "
+                f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
+                f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
+                f"{settings.ORGANIZATIONS_GROUP}"
+            )
         await self.bot.send_message(user.telegram_id, text)
 
     async def notify_approved_task(self, user_task: models.UserTask) -> None:
