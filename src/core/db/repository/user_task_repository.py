@@ -3,13 +3,14 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import and_, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
+from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Task, User, UserTask
+from src.core.db.models import Photo, Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -119,6 +120,29 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.merge(user_task)
         await self.__session.commit()
         return user_task
+
+    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
+        """Получить отчет участника по id с url фото выполненного задания."""
+        stmt = select(
+            Shift.id,
+            Shift.status,
+            Shift.started_at,
+            UserTask.id,
+            UserTask.created_at,
+            User.name,
+            User.surname,
+            UserTask.task_id,
+            Task.description,
+            Task.url,
+            Photo.url,
+        )
+        if shift_id:
+            stmt = stmt.where(UserTask.shift_id == shift_id)
+        if status:
+            stmt = stmt.where(UserTask.status == status)
+        stmt = stmt.join(Shift).join(User).join(Task).join(Photo).order_by(desc(Shift.started_at))
+        user_tasks = await self.__session.execute(stmt)
+        return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
     async def get_members_ids_for_excluding(self, shift_ids: list[UUID], task_amount: int) -> list[UUID]:
         """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
