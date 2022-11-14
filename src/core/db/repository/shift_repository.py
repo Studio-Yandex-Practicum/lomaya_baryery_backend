@@ -14,14 +14,15 @@ from src.core.db.models import Request, Shift, User, UserTask
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
+from .abstract_repository import DatabaseModel
+
 
 class ShiftRepository(AbstractRepository):
     """Репозиторий для работы с моделью Shift."""
 
-    _model = Shift
-
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session), model: DatabaseModel = Shift) -> None:
         self._session = session
+        self._model = model
 
     async def get_with_users(self, id: UUID) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))

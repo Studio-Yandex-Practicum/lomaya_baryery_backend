@@ -8,14 +8,15 @@ from src.core.db.db import get_session
 from src.core.db.models import Shift, User
 from src.core.db.repository import AbstractRepository
 
+from .abstract_repository import DatabaseModel
+
 
 class UserRepository(AbstractRepository):
     """Репозиторий для работы с моделью User."""
 
-    _model = User
-
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session), model: DatabaseModel = User) -> None:
         self._session = session
+        self._model = model
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
         user = await self._session.execute(select(User).where(telegram_id == telegram_id))

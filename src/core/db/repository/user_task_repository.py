@@ -12,14 +12,15 @@ from src.core.db.db import get_session
 from src.core.db.models import Photo, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
+from .abstract_repository import DatabaseModel
+
 
 class UserTaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью UserTask."""
 
-    _model = UserTask
-
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session), model: DatabaseModel = UserTask) -> None:
         self._session = session
+        self._model = model
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
         user_task = await self._session.execute(

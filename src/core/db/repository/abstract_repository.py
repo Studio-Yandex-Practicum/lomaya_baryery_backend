@@ -11,11 +11,10 @@ DatabaseModel = TypeVar("DatabaseModel")
 class AbstractRepository(abc.ABC):
     """Абстрактный класс, для реализации паттерна Repository."""
 
-    _model = None
-
     @abc.abstractmethod
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession, model: DatabaseModel) -> None:
         self._session = session
+        self._model = model
 
     async def get_or_none(self, id: UUID) -> Optional[DatabaseModel]:
         """Получает из базы объект модели по ID. В случае отсутствия возвращает None."""

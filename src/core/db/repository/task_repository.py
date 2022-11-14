@@ -8,14 +8,15 @@ from src.core.db.db import get_session
 from src.core.db.models import Task, User
 from src.core.db.repository import AbstractRepository
 
+from .abstract_repository import DatabaseModel
+
 
 class TaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью Task."""
 
-    _model = Task
-
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session), model: DatabaseModel = Task) -> None:
         self._session = session
+        self._model = model
 
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""

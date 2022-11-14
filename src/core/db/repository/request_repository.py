@@ -10,14 +10,15 @@ from src.core.db.db import get_session
 from src.core.db.models import Request
 from src.core.db.repository import AbstractRepository
 
+from .abstract_repository import DatabaseModel
+
 
 class RequestRepository(AbstractRepository):
     """Репозиторий для работы с моделью Request."""
 
-    _model = Request
-
-    def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
+    def __init__(self, session: AsyncSession = Depends(get_session), model: DatabaseModel = Request) -> None:
         self._session = session
+        self._model = model
 
     async def get(self, id: UUID) -> Request:
         request = await self._session.execute(
