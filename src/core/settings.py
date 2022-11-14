@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
-    BOT_PERSISTENCE_FILE: str = 'bot_persistence_file'
+    BOT_PERSISTENCE_FILE: str = str(Path(BASE_DIR, "src", "bot", "bot_persistence_file"))
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -39,11 +39,6 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
-
-    @property
-    def bot_persistence_dir_path(self):
-        """Получить директорию для сохранения файла с состоянием бота."""
-        return os.path.join(BASE_DIR, "src/bot/")
 
     class Config:
         env_file = ENV_FILE
