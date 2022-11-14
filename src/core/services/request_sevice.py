@@ -5,7 +5,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import Status
-from src.bot.services import BotService
+from src.bot import services
 from src.core.db.repository import RequestRepository
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
@@ -14,6 +14,7 @@ REVIEWED_REQUEST = "Заявка была обработана, статус з�
 class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
         self.__request_repository = request_repository
+        self.__telegram_bot = services.BotService()
 
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
