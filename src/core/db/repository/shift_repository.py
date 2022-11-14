@@ -108,7 +108,7 @@ class ShiftRepository(AbstractRepository):
         )
         return active_task_ids.scalars().all()
 
-    async def get_started_shifts_ids(self) -> list[UUID]:
-        """Возвращает список id начавшихся смен."""
+    async def get_started_shift_id(self) -> list[UUID]:
+        """Возвращает id активной на данный момент смены."""
         statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED, Shift.deleted.is_(False)))
-        return (await self.session.scalars(statement)).all()
+        return (await self.session.scalars(statement)).first()

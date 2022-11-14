@@ -121,8 +121,10 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
-        """Получить отчет участника по id с url фото выполненного задания."""
+    async def get_summaries_of_user_tasks(
+        self, shift_id: UUID, status: UserTask.Status
+    ) -> list[DTO_models.FullUserTaskDto]:
+        """Получить отчеты участников по id смены с url фото выполненного задания."""
         stmt = select(
             Shift.id,
             Shift.status,
@@ -144,11 +146,11 @@ class UserTaskRepository(AbstractRepository):
         user_tasks = await self.__session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
-    async def get_members_ids_for_excluding(self, shift_ids: list[UUID], task_amount: int) -> list[UUID]:
+    async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
         """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
 
         Аргументы:
-            shift_ids (list[UUID]): список id стартоваваших смен
+            shift_id (UUID): id стартовавшей смены
             task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
         """
         subquery_rank = (
@@ -159,7 +161,7 @@ class UserTaskRepository(AbstractRepository):
             )
             .where(
                 and_(
-                    UserTask.shift_id.in_(shift_ids),
+                    UserTask.shift_id == shift_id,
                     UserTask.status != UserTask.Status.NEW,
                     UserTask.deleted.is_(False),
                 )
@@ -175,16 +177,21 @@ class UserTaskRepository(AbstractRepository):
         )
         return (await self.__session.scalars(statement)).all()
 
-    async def set_usertasks_deleted(self, user_ids: list[UUID], shift_ids: list[UUID]) -> None:
-        """Переводит задания участников указанных в user_ids в сменах в списке shift_ids в статус удаленных.
+    async def set_usertasks_deleted(self, user_ids: list[UUID], shift_id: UUID) -> None:
+        """Переводит задания участников указанных в user_ids в смене с id shift_id в статус удаленных.
 
         Аргументы:
             user_ids (list[UUID]): список id участников
-            shift_ids (list[UUID]): список id смен
+            shift_id (UUID): id смены
         """
         statement = (
             update(UserTask)
-            .where(and_(UserTask.user_id.in_(user_ids), UserTask.shift_id.in_(shift_ids)))
+            .where(
+                and_(
+                    UserTask.user_id.in_(user_ids),
+                    UserTask.shift_id == shift_id,
+                )
+            )
             .values(deleted=True)
         )
         await self.__session.execute(statement)

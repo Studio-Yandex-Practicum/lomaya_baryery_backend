@@ -141,19 +141,27 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
-        return await (self.__user_task_repository.get_user_task_summary(shift_id, status))
+    async def get_summaries_of_user_tasks(
+        self,
+        shift_id: UUID,
+        status: UserTask.Status,
+    ) -> list[DTO_models.FullUserTaskDto]:
+        """Получает из БД список отчетов участников.
+
+        Список берется по id смены и/или статусу заданий с url фото выполненного задания.
+        """
+        return await self.__user_task_repository.get_summaries_of_user_tasks(shift_id, status)
 
     async def check_members_activity(self, bot: Application.bot) -> None:
         """Проверяет участников во всех запущенных сменах.
 
         Если участники не посылают отчет о выполненом задании указанное
-        в нвстройках количество раз подряд, то они будут исключены из своих смен.
+        в настройках количество раз подряд, то они будут исключены из своих смен.
         """
-        shift_ids = await self.__shift_repository.get_started_shifts_ids()
+        shift_id = await self.__shift_repository.get_started_shift_id()
         user_ids_to_exclude = await self.__user_task_repository.get_members_ids_for_excluding(
-            shift_ids, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
+            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
         if len(user_ids_to_exclude) > 0:
-            await self.__request_service.exclude_members(user_ids_to_exclude, shift_ids, bot)
-            await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_ids)
+            await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
+            await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_id)

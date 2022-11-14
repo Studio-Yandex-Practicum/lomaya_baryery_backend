@@ -42,10 +42,16 @@ class RequestService:
         """Получить id одобренных участников смены."""
         return await self.__request_repository.get_shift_user_ids(shift_id)
 
-    async def exclude_members(self, user_ids: list[UUID], shift_ids: list[UUID], bot: Application.bot) -> None:
-        requests = await self.__request_repository.get_requests_by_users_ids_and_shifts_ids(user_ids, shift_ids)
+    async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
+        """Исключает участников смены.
+
+        Аргументы:
+            user_ids (list[UUID]): список id участников подлежащих исключению
+            shift_id (UUID): id активной смены
+        """
+        requests = await self.__request_repository.get_requests_by_users_ids_and_shifts_id(user_ids, shift_id)
         if len(requests) == 0:
-            raise LookupError(f'Заявки не найдены для участников с id {user_ids} в сменах с id {shift_ids}')
+            raise LookupError(f'Заявки не найдены для участников с id {user_ids} в смене с id {shift_id}')
         await self.__request_repository.bulk_excluded_status_update(requests)
         __telegram_bot = services.BotService(bot)
         for request in requests:

@@ -70,23 +70,21 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_requests_by_users_ids_and_shifts_ids(
-        self, users_ids: list[UUID], shifts_ids: list[UUID]
-    ) -> list[Request]:
+    async def get_requests_by_users_ids_and_shifts_id(self, users_ids: list[UUID], shift_id: UUID) -> list[Request]:
         """Возвращает список заявок участников.
 
-        Заявки принадлежат участникам с id в списке users_ids, участвующих в сменах с id из списка shifts_ids.
+        Заявки принадлежат участникам с id в списке users_ids, участвующих в смене с id shift_id.
 
         Аргументы:
             users_ids (list[UUID]): список id участников
-            shifts_ids (list[UUID]): список id смен
+            shift_id (UUID): id смены
         """
         statement = (
             select(Request)
             .where(
                 and_(
                     Request.user_id.in_(users_ids),
-                    Request.shift_id.in_(shifts_ids),
+                    Request.shift_id == shift_id,
                     Request.status == Request.Status.APPROVED,
                 )
             )
@@ -95,6 +93,11 @@ class RequestRepository(AbstractRepository):
         return (await self.session.scalars(statement)).all()
 
     async def bulk_excluded_status_update(self, requests: list[Request]) -> None:
+        """Массово изменяет статус заявок на excluded.
+
+        Аргументы:
+            requests (list[Request]): список заявок участников, подлежащих исключению
+        """
         for request in requests:
             request.status = Request.Status.EXCLUDED
             await self.session.merge(request)
