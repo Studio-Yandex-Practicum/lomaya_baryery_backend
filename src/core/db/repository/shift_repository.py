@@ -43,7 +43,7 @@ class ShiftRepository(AbstractRepository):
         return shift
 
     async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
+        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
         request = await self.session.execute(statement)
         request = request.scalars().first()
         if request is None:
@@ -72,7 +72,6 @@ class ShiftRepository(AbstractRepository):
         )
         return db_list_request.all()
 
-
     async def get_shifts_with_total_users(
         self,
         status: Optional[Shift.Status],
@@ -98,7 +97,6 @@ class ShiftRepository(AbstractRepository):
         )
         shifts = await self.session.execute(shifts)
         return shifts.all()
-
 
     async def get_today_active_user_task_ids(self) -> list[UUID]:
         task_date = datetime.now().date()

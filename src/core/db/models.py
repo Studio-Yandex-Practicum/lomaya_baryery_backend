@@ -96,7 +96,7 @@ class User(Base):
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
-    user_tasks = relationship("UserTask", back_populates="user")
+    user_tasks = relationship("UserTask", back_populates="user", order_by="UserTask.task_date")
     shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
 
     def __repr__(self):
