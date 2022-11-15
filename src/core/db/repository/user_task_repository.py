@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, desc, func, or_, select, update
+from sqlalchemy import and_, case, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -169,10 +169,12 @@ class UserTaskRepository(AbstractRepository):
             .subquery()
         )
         subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
+        case_statement = case(
+            (subquery_last_statuses.c.status == UserTask.Status.WAIT_REPORT, 1),
+        )
         statement = (
-            select(subquery_last_statuses.c.user_id, func.count(subquery_last_statuses.c.status).label('status_count'))
-            .where(subquery_last_statuses.c.status == UserTask.Status.WAIT_REPORT)
-            .having(func.count(subquery_last_statuses.c.status) >= task_amount)
+            select(subquery_last_statuses.c.user_id)
+            .having(func.count(case_statement) >= task_amount)
             .group_by(subquery_last_statuses.c.user_id)
         )
         return (await self.__session.scalars(statement)).all()
