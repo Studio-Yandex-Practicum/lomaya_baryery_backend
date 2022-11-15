@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
@@ -75,35 +75,33 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
     """Сохранить фото отчёта на диск в /data/user_reports."""
     file = await update.message.photo[-1].get_file()
-    _, ext = os.path.splitext(file.file_path)
-    file_name = file.file_unique_id.replace('-', '') + ext
+    file_name = file.file_unique_id.replace('-', '') + Path(file.file_path).suffix
     await file.download(custom_path=(settings.user_reports_dir / file_name))
     return str(file.file_path)
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
     """Обработка полученного фото."""
-    file_path = await download_photo_report_callback(update, context)
-    photo_obj = PhotoCreateRequest(url=f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}')
     session_gen = get_session()
     session = await session_gen.asend(None)
     photo_service = PhotoService(PhotoRepository(session))
+    file_path = await download_photo_report_callback(update, context)
+    photo_obj = PhotoCreateRequest(url=f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}')
     try:
         photo = await photo_service.create_new_photo(photo_obj)
-        await update.message.reply_text("Отчёт отправлен на проверку.")
-
-        user_service = UserService(UserRepository(session), RequestRepository(session))
-        user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-
-        user_task_service = UserTaskService(UserTaskRepository(session), TaskRepository(session))
-        user_task = await user_task_service.get_user_task_to_change_status_photo_id(user.id)
-        if user_task:
-            update_user_task_dict = {
-                "status": UserTask.Status.UNDER_REVIEW.value,
-                "photo_id": photo.id,
-            }
-            user_task = await user_task_service.update_user_task(
-                user_task.id, UserTaskUpdateRequest(**update_user_task_dict)
-            )
     except IntegrityError:
         await update.message.reply_text("Отчёт уже есть в системе.")
+
+    user_service = UserService(UserRepository(session), RequestRepository(session))
+    user_task_service = UserTaskService(UserTaskRepository(session), TaskRepository(session))
+    user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+    user_task = await user_task_service.get_user_task_to_change_status_photo_id(user.id)
+    if user_task:
+        update_user_task_dict = {
+            "status": UserTask.Status.UNDER_REVIEW.value,
+            "photo_id": photo.id,
+        }
+        user_task = await user_task_service.update_user_task(
+            user_task.id, UserTaskUpdateRequest(**update_user_task_dict)
+        )
+    await update.message.reply_text("Отчёт отправлен на проверку.")

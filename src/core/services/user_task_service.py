@@ -90,7 +90,7 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        __telegram_bot = BotService(bot)
+        __telegram_bot = services.BotService(bot)
         await __telegram_bot.notify_approved_task(user_task)
         return
 
@@ -100,7 +100,7 @@ class UserTaskService:
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(task_id, user_task)
-        __telegram_bot = BotService(bot)
+        __telegram_bot = services.BotService(bot)
         await __telegram_bot.notify_declined_task(user_task.user.telegram_id)
         return
 
@@ -141,16 +141,12 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def get_user_task_summary(
-        self, shift_id: UUID, status: UserTask.Status
-    ) -> list[DTO_models.FullUserTaskDto]:
-        return await (
-            self.__user_task_repository.get_user_task_summary(shift_id, status)
-        )
+    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
+        return await (self.__user_task_repository.get_user_task_summary(shift_id, status))
 
     async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
         """Получить задачу для изменения статуса и photo_id."""
-        return await self.user_task_repository.get_new_undeleted_by_user_id(user_id=user_id)
+        return await self.__user_task_repository.get_new_user_task_by_user_id(user_id=user_id)
 
     async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
-        return await self.user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
+        return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))

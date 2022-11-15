@@ -3,13 +3,13 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, false, or_, select, desc
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
-from src.core.db.db import get_session
 from src.core.db import DTO_models
+from src.core.db.db import get_session
 from src.core.db.models import Photo, Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
@@ -121,19 +121,21 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_task_summary(
-        self,
-        shift_id: UUID,
-        status: UserTask.Status
-    ) -> list[DTO_models.FullUserTaskDto]:
+    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
         """Получить отчет участника по id с url фото выполненного задания."""
-        stmt = select(Shift.id, Shift.status, Shift.started_at,
-                      UserTask.id, UserTask.created_at,
-                      User.name, User.surname,
-                      UserTask.task_id,
-                      Task.description, Task.url,
-                      Photo.url
-                      )
+        stmt = select(
+            Shift.id,
+            Shift.status,
+            Shift.started_at,
+            UserTask.id,
+            UserTask.created_at,
+            User.name,
+            User.surname,
+            UserTask.task_id,
+            Task.description,
+            Task.url,
+            Photo.url,
+        )
         if shift_id:
             stmt = stmt.where(UserTask.shift_id == shift_id)
         if status:
@@ -142,14 +144,12 @@ class UserTaskRepository(AbstractRepository):
         user_tasks = await self.__session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
-        async def get_new_undeleted_by_user_id(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить наиболее раннюю задачу со статусом new и без признака удаления."""
+    async def get_new_user_task_by_user_id(self, user_id: UUID) -> Optional[UserTask]:
+        """Получить наиболее раннюю задачу со статусом new."""
         statement = (
             select(UserTask)
-            .where(
-                and_(UserTask.deleted == false(), UserTask.status == UserTask.Status.NEW, UserTask.user_id == user_id)
-            )
-            .order_by(UserTask.day_number)
+            .where(and_(UserTask.status == UserTask.Status.NEW, UserTask.user_id == user_id))
+            .order_by(UserTask.task_date)
         )
-        user_tasks = await self.session.execute(statement)
+        user_tasks = await self.__session.execute(statement)
         return user_tasks.scalars().first()
