@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - feature/ci_cd
+      - fix/HOTFIX
 
 env:
   REGISTRY: ghcr.io
