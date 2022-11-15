@@ -111,7 +111,7 @@ jobs:
           docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
           docker compose --file docker-compose.yaml stop
           docker compose --file docker-compose.yaml rm backend
-          docker run -it --name backend ${{ env.IMAGE_NAME }}:latest
+          docker run -it --name backend  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
           docker exec backend python -m pip install --upgrade pip
           docker exec backend pip install -r requirements.txt
           docker exec backend /LOMAYABARYERY/alembic upgrade head
