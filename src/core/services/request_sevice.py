@@ -14,7 +14,6 @@ REVIEWED_REQUEST = "Заявка была обработана, статус з�
 class RequestService:
     def __init__(self, request_repository: RequestRepository = Depends()) -> None:
         self.__request_repository = request_repository
-        self.__telegram_bot = services.BotService()
 
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
