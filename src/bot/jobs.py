@@ -1,7 +1,9 @@
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from src.core.services.user_task_service import UserTaskService as user_task_service
+from src.core.services.user_task_service import UserTaskService
+
+user_task_service = UserTaskService
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
