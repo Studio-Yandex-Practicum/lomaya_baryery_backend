@@ -120,4 +120,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd ${{ env.DEPLOY_PATH }}
             docker compose exec -w ${{ env.WORK_DIR }} backend alembic upgrade head
