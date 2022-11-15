@@ -93,36 +93,36 @@ jobs:
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
 
-  # making_migrations:
-  #   name: Making migrations
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: Stage
-  #   needs: deploy
-  #   steps:
-  #   - name: Making migrations
-  #     uses: appleboy/ssh-action@master
-  #     with:
-  #       host: ${{ secrets.HOST }}
-  #       username: ${{ secrets.USERNAME }}
-  #       key: ${{ secrets.SSH_KEY }}
-  #       script: |
-  #         cd ${{ env.DEPLOY_PATH }}
-  #         docker image prune -f
-  #         docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-  #         docker compose --file docker-compose.yaml stop backend
-  #         docker compose --file docker-compose.yaml rm backend
-  #         docker run -it --name backend  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-  #         docker exec backend python -m pip install --upgrade pip
-  #         docker exec backend pip install -r requirements.txt
-  #         docker exec -w ${{ env.WORK_DIR }} backend alembic upgrade head
+  making_migrations:
+    name: Making migrations
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+    needs: deploy
+    steps:
+    - name: Making migrations
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd ${{ env.DEPLOY_PATH }}
+          docker image prune -f
+          docker pull ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+          docker compose --file docker-compose.yaml stop backend
+          docker compose --file docker-compose.yaml rm backend
+          docker run -it --name backend  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+          docker exec backend python -m pip install --upgrade pip
+          docker exec backend pip install -r requirements.txt
+          docker exec -w ${{ env.WORK_DIR }} backend alembic upgrade head
 
   start_application:
     name: Start application
     runs-on: ubuntu-latest
     environment:
       name: Stage
-    needs: deploy
+    needs: making_migrations
     steps:
       - name: Start appication
         uses: appleboy/ssh-action@master
@@ -132,8 +132,4 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
-            docker image prune -f
-            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-            docker compose --file docker-compose.yaml stop
-            docker compose --file docker-compose.yaml rm backend
             docker compose --file docker-compose.yaml up -d
