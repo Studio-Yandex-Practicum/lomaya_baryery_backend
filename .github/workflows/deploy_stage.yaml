@@ -83,7 +83,8 @@ jobs:
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_HOST=postgres >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
