@@ -109,25 +109,25 @@ class UserTaskService:
         if status is UserTask.Status.NEW:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
 
-    # TODO переписать
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
     ) -> None:
         """Раздача участникам заданий на 3 месяца.
 
-        Задачи раздаются случайным образом.
+        Перед раздачей задачи перемешиваются один раз случайным образом.
+        Всем участникам на каждый день смены назначается одна и та же задача.
+
         Метод запускается при старте смены.
         """
         current_shift = await self.__shift_repository.get(shift_id)
+        number_days = (current_shift.finished_at - current_shift.created_at).days
+        all_dates = tuple((current_shift.created_at + timedelta(day)) for day in range(number_days))
         task_ids_list = await self.__task_service.get_task_ids_list()
+        random.shuffle(task_ids_list)
         user_ids_list = await self.__request_service.get_approved_shift_user_ids(shift_id)
-
         result = []
         for user_id in user_ids_list:
-            random.shuffle(task_ids_list)
-            number_days = (current_shift.finished_at - current_shift.created_at).days
-            all_dates = tuple((current_shift.created_at + timedelta(day)) for day in range(number_days))
             for one_date in all_dates:
                 result.append(
                     UserTask(

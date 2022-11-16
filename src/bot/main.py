@@ -2,7 +2,13 @@ from datetime import time
 from urllib.parse import urljoin
 
 import pytz
-from telegram.ext import Application, ApplicationBuilder, CommandHandler
+from telegram.ext import (
+    AIORateLimiter,
+    Application,
+    ApplicationBuilder,
+    CommandHandler,
+    PicklePersistence,
+)
 
 from src.api.routers.hello import TELEGRAM_WEBHOOK_ENDPOINT
 from src.bot.handlers import start
@@ -12,7 +18,14 @@ from src.core.settings import settings
 
 def create_bot() -> Application:
     """Создать бота."""
-    bot_instance = ApplicationBuilder().token(settings.BOT_TOKEN).build()
+    bot_persistence = PicklePersistence(filepath=settings.BOT_PERSISTENCE_FILE)
+    bot_instance = (
+        ApplicationBuilder()
+        .token(settings.BOT_TOKEN)
+        .rate_limiter(AIORateLimiter())
+        .persistence(persistence=bot_persistence)
+        .build()
+    )
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.job_queue.run_daily(
         send_daily_task_job, time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow"))
