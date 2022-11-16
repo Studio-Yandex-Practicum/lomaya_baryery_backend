@@ -171,4 +171,3 @@ class UserTaskService:
 
     async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
         return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
-

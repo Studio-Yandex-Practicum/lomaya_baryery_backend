@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from pydantic import ValidationError
-from sqlalchemy.exc import IntegrityError
 from telegram import (
     KeyboardButton,
     ReplyKeyboardMarkup,
@@ -93,14 +92,15 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         return
     photo_service = PhotoService(PhotoRepository(session))
     file_path = await download_photo_report_callback(update, context)
-    photo_obj = PhotoCreateRequest(url=f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}')
-    try:
-        photo = await photo_service.create_new_photo(photo_obj)
-    except IntegrityError:
+    photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
+    photo = await photo_service.get_photo_by_url(photo_url)
+    if photo:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
         )
         return
+    photo_obj = PhotoCreateRequest(url=photo_url)
+    photo = await photo_service.create_new_photo(photo_obj)
     update_user_task_dict = {
         "status": UserTask.Status.UNDER_REVIEW.value,
         "photo_id": photo.id,

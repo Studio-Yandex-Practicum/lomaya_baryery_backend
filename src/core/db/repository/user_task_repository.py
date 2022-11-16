@@ -198,7 +198,7 @@ class UserTaskRepository(AbstractRepository):
         )
         await self.__session.execute(statement)
         await self.__session.commit()
-        
+
     async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
         """Получить сегодняшнюю задачу со статусом new/declined."""
         task_date = datetime.now().date()

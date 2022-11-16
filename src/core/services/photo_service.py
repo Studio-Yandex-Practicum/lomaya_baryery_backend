@@ -19,3 +19,6 @@ class PhotoService:
 
     async def update_photo(self, id: UUID, update_photo_data: PhotoUpdateRequest) -> Photo:
         return await self.photo_repository.update(id=id, photo=Photo(**update_photo_data.dict()))
+
+    async def get_photo_by_url(self, url: str) -> Photo:
+        return await self.photo_repository.get_by_url(url=url)
