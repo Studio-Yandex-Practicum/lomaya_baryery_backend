@@ -1,7 +1,7 @@
 """added wait_report status to UserTask and excluded status to Request
 
 Revision ID: 0ae05a7f87ee
-Revises: 415099a58080
+Revises: 54c6488c59cc
 Create Date: 2022-10-27 11:00:27.330285
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '0ae05a7f87ee'
-down_revision = '415099a58080'
+down_revision = '54c6488c59cc'
 branch_labels = None
 depends_on = None
 
