@@ -29,3 +29,8 @@ class ShiftCreateRequest(RequestBase):
         if value.date() > (date.today() + timedelta(days=120)):
             raise ValueError("Дата окончания не может быть больше 4-х месяцев")
         return value
+
+
+class ShiftUpdateRequest(ShiftCreateRequest):
+    title: str = ""
+    final_message: str = ""

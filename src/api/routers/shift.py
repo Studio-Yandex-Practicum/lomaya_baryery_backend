@@ -5,7 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.shift import ShiftCreateRequest, ShiftSortRequest
+from src.api.request_models.shift import (
+    ShiftCreateRequest,
+    ShiftSortRequest,
+    ShiftUpdateRequest,
+)
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
@@ -74,7 +78,7 @@ class ShiftCBV:
     async def update_shift(
         self,
         shift_id: UUID,
-        update_shift_data: ShiftCreateRequest,
+        update_shift_data: ShiftUpdateRequest,
     ) -> ShiftResponse:
         """Обновить информацию о смене с указанным ID.
 
