@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
+    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -30,6 +31,9 @@ class Settings(BaseSettings):
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
 
+    # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
+    SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
+
     @property
     def database_url(self):
         """Получить ссылку для подключения к DB."""
@@ -38,6 +42,13 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
+
+    @property
+    def user_reports_dir(self):
+        """Получить директорию для сохранения фотоотчета."""
+        user_reports_dir = BASE_DIR / 'data' / 'user_reports'
+        Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
+        return user_reports_dir
 
     class Config:
         env_file = ENV_FILE
