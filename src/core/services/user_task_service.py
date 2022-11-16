@@ -49,7 +49,7 @@ class UserTaskService:
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = services.BotService()
+        # self.__telegram_bot = services.BotService()
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -89,7 +89,7 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        __telegram_bot = BotService(bot)
+        __telegram_bot = services.BotService(bot)
         await __telegram_bot.notify_approved_task(user_task)
         return
 
@@ -99,7 +99,7 @@ class UserTaskService:
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(task_id, user_task)
-        __telegram_bot = BotService(bot)
+        __telegram_bot = services.BotService(bot)
         await __telegram_bot.notify_declined_task(user_task.user.telegram_id)
         return
 
@@ -140,9 +140,5 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def get_user_task_summary(
-        self, shift_id: UUID, status: UserTask.Status
-    ) -> list[DTO_models.FullUserTaskDto]:
-        return await (
-            self.__user_task_repository.get_user_task_summary(shift_id, status)
-        )
+    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
+        return await (self.__user_task_repository.get_user_task_summary(shift_id, status))
