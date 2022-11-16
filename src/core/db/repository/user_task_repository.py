@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -144,12 +144,15 @@ class UserTaskRepository(AbstractRepository):
         user_tasks = await self.__session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
-    async def get_new_user_task_by_user_id(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить наиболее раннюю задачу со статусом new."""
-        statement = (
-            select(UserTask)
-            .where(and_(UserTask.status == UserTask.Status.NEW, UserTask.user_id == user_id))
-            .order_by(UserTask.task_date)
+    async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
+        """Получить сегодняшнюю задачу со статусом new/declined."""
+        task_date = datetime.now().date()
+        statement = select(UserTask).where(
+            and_(
+                UserTask.user_id == user_id,
+                UserTask.task_date == task_date,
+                or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.DECLINED),
+            )
         )
-        user_tasks = await self.__session.execute(statement)
-        return user_tasks.scalars().first()
+        user_task = await self.__session.execute(statement)
+        return user_task.scalars().first()

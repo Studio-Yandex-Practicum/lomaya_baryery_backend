@@ -144,9 +144,9 @@ class UserTaskService:
     async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
         return await (self.__user_task_repository.get_user_task_summary(shift_id, status))
 
-    async def get_user_task_to_change_status_photo_id(self, user_id: UUID) -> UserTask:
+    async def get_today_user_task(self, user_id: UUID) -> UserTask:
         """Получить задачу для изменения статуса и photo_id."""
-        return await self.__user_task_repository.get_new_user_task_by_user_id(user_id=user_id)
+        return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
 
     async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
         return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
