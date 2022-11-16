@@ -49,7 +49,6 @@ class UserTaskService:
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = services.BotService()
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
