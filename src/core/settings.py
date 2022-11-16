@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
+    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -29,6 +30,9 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
+
+    # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
+    SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
 
     @property
     def database_url(self):

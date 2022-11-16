@@ -3,13 +3,13 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, or_, select, desc
+from sqlalchemy import and_, case, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
-from src.core.db.db import get_session
 from src.core.db import DTO_models
+from src.core.db.db import get_session
 from src.core.db.models import Photo, Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
@@ -121,19 +121,23 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_task_summary(
-        self,
-        shift_id: UUID,
-        status: UserTask.Status
+    async def get_summaries_of_user_tasks(
+        self, shift_id: UUID, status: UserTask.Status
     ) -> list[DTO_models.FullUserTaskDto]:
-        """Получить отчет участника по id с url фото выполненного задания."""
-        stmt = select(Shift.id, Shift.status, Shift.started_at,
-                      UserTask.id, UserTask.created_at,
-                      User.name, User.surname,
-                      UserTask.task_id,
-                      Task.description, Task.url,
-                      Photo.url
-                      )
+        """Получить отчеты участников по id смены с url фото выполненного задания."""
+        stmt = select(
+            Shift.id,
+            Shift.status,
+            Shift.started_at,
+            UserTask.id,
+            UserTask.created_at,
+            User.name,
+            User.surname,
+            UserTask.task_id,
+            Task.description,
+            Task.url,
+            Photo.url,
+        )
         if shift_id:
             stmt = stmt.where(UserTask.shift_id == shift_id)
         if status:
@@ -141,3 +145,56 @@ class UserTaskRepository(AbstractRepository):
         stmt = stmt.join(Shift).join(User).join(Task).join(Photo).order_by(desc(Shift.started_at))
         user_tasks = await self.__session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
+
+    async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
+        """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
+
+        Аргументы:
+            shift_id (UUID): id стартовавшей смены
+            task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
+        """
+        subquery_rank = (
+            select(
+                func.rank().over(order_by=UserTask.task_date.desc(), partition_by=UserTask.user_id).label('rnk'),
+                UserTask.user_id,
+                UserTask.status,
+            )
+            .where(
+                and_(
+                    UserTask.shift_id == shift_id,
+                    UserTask.status != UserTask.Status.NEW,
+                    UserTask.deleted.is_(False),
+                )
+            )
+            .subquery()
+        )
+        subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
+        case_statement = case(
+            (subquery_last_statuses.c.status == UserTask.Status.WAIT_REPORT, 1),
+        )
+        statement = (
+            select(subquery_last_statuses.c.user_id)
+            .having(func.count(case_statement) >= task_amount)
+            .group_by(subquery_last_statuses.c.user_id)
+        )
+        return (await self.__session.scalars(statement)).all()
+
+    async def set_usertasks_deleted(self, user_ids: list[UUID], shift_id: UUID) -> None:
+        """Переводит задания участников указанных в user_ids в смене с id shift_id в статус удаленных.
+
+        Аргументы:
+            user_ids (list[UUID]): список id участников
+            shift_id (UUID): id смены
+        """
+        statement = (
+            update(UserTask)
+            .where(
+                and_(
+                    UserTask.user_id.in_(user_ids),
+                    UserTask.shift_id == shift_id,
+                )
+            )
+            .values(deleted=True)
+        )
+        await self.__session.execute(statement)
+        await self.__session.commit()
