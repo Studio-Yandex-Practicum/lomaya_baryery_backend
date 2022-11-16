@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -24,6 +25,10 @@ class PhotoRepository(AbstractRepository):
             # FIXME: написать и использовать кастомное исключение
             raise LookupError(f"Объект Photo c {id=} не найден.")
         return photo
+
+    async def get_by_url(self, url: str) -> Optional[Photo]:
+        photo = await self.session.execute(select(Photo).where(Photo.url == url))
+        return photo.scalars().first()
 
     async def create(self, photo: Photo) -> Photo:
         self.session.add(photo)

@@ -52,3 +52,7 @@ class UserService:
 
     async def get_users_in_active_shift(self) -> list[User]:
         return await self.__user_repository.get_users_in_active_shift()
+
+    async def get_user_by_telegram_id(self, telegram_id: int) -> User:
+        """Получить участника проекта по его telegram_id."""
+        return await self.user_repository.get_by_telegram_id(telegram_id)

@@ -7,11 +7,13 @@ from telegram.ext import (
     Application,
     ApplicationBuilder,
     CommandHandler,
+    MessageHandler,
     PicklePersistence,
 )
+from telegram.ext.filters import PHOTO
 
 from src.api.routers.hello import TELEGRAM_WEBHOOK_ENDPOINT
-from src.bot.handlers import start
+from src.bot.handlers import photo_handler, start
 from src.bot.jobs import send_daily_task_job, send_no_report_reminder_job
 from src.core.settings import settings
 
@@ -27,6 +29,7 @@ def create_bot() -> Application:
         .build()
     )
     bot_instance.add_handler(CommandHandler("start", start))
+    bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.job_queue.run_daily(
         send_daily_task_job, time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow"))
     )
