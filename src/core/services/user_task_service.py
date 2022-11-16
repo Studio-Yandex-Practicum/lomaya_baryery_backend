@@ -22,6 +22,7 @@ from src.core.db.repository import (
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
+from src.core.settings import settings
 
 REVIEWED_TASK = "Задание уже проверено, статус задания: {}."
 WAIT_REPORT_TASK = "К заданию нет отчета участника, статус задания: {}."
@@ -50,7 +51,7 @@ class UserTaskService:
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
     ) -> None:
-        self.__telegram_bot = services.BotService()
+        self.__telegram_bot = services.BotService
         self.__user_task_repository = user_task_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
@@ -90,8 +91,7 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
-        __telegram_bot = services.BotService(bot)
-        await __telegram_bot.notify_approved_task(user_task)
+        await self.__telegram_bot(bot).notify_approved_task(user_task)
         return
 
     async def decline_task(self, task_id: UUID, bot: Application.bot) -> None:
@@ -100,8 +100,7 @@ class UserTaskService:
         await self.__check_task_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(task_id, user_task)
-        __telegram_bot = services.BotService(bot)
-        await __telegram_bot.notify_declined_task(user_task.user.telegram_id)
+        await self.__telegram_bot(bot).notify_declined_task(user_task.user.telegram_id)
         return
 
     async def __check_task_status(self, status: str) -> None:
@@ -111,25 +110,25 @@ class UserTaskService:
         if status is UserTask.Status.NEW:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
 
-    # TODO переписать
     async def distribute_tasks_on_shift(
         self,
         shift_id: UUID,
     ) -> None:
         """Раздача участникам заданий на 3 месяца.
 
-        Задачи раздаются случайным образом.
+        Перед раздачей задачи перемешиваются один раз случайным образом.
+        Всем участникам на каждый день смены назначается одна и та же задача.
+
         Метод запускается при старте смены.
         """
         current_shift = await self.__shift_repository.get(shift_id)
+        number_days = (current_shift.finished_at - current_shift.created_at).days
+        all_dates = tuple((current_shift.created_at + timedelta(day)) for day in range(number_days))
         task_ids_list = await self.__task_service.get_task_ids_list()
+        random.shuffle(task_ids_list)
         user_ids_list = await self.__request_service.get_approved_shift_user_ids(shift_id)
-
         result = []
         for user_id in user_ids_list:
-            random.shuffle(task_ids_list)
-            number_days = (current_shift.finished_at - current_shift.created_at).days
-            all_dates = tuple((current_shift.created_at + timedelta(day)) for day in range(number_days))
             for one_date in all_dates:
                 result.append(
                     UserTask(
@@ -141,8 +140,30 @@ class UserTaskService:
                 )
         await self.__user_task_repository.create_all(result)
 
-    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
-        return await (self.__user_task_repository.get_user_task_summary(shift_id, status))
+    async def get_summaries_of_user_tasks(
+        self,
+        shift_id: UUID,
+        status: UserTask.Status,
+    ) -> list[DTO_models.FullUserTaskDto]:
+        """Получает из БД список отчетов участников.
+
+        Список берется по id смены и/или статусу заданий с url фото выполненного задания.
+        """
+        return await self.__user_task_repository.get_summaries_of_user_tasks(shift_id, status)
+
+    async def check_members_activity(self, bot: Application.bot) -> None:
+        """Проверяет участников во всех запущенных сменах.
+
+        Если участники не посылают отчет о выполненом задании указанное
+        в настройках количество раз подряд, то они будут исключены из смены.
+        """
+        shift_id = await self.__shift_repository.get_started_shift_id()
+        user_ids_to_exclude = await self.__user_task_repository.get_members_ids_for_excluding(
+            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
+        )
+        if len(user_ids_to_exclude) > 0:
+            await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
+            await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_id)
 
     async def get_today_user_task(self, user_id: UUID) -> UserTask:
         """Получить задачу для изменения статуса и photo_id."""
@@ -150,3 +171,4 @@ class UserTaskService:
 
     async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
         return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
+

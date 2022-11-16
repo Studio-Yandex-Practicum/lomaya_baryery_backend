@@ -2,15 +2,14 @@ from datetime import date
 from http import HTTPStatus
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
-from fastapi import Request
 
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
-    UserTaskSummaryResponse
+    UserTaskSummaryResponse,
 )
 from src.core.db.models import UserTask
 from src.core.services.shift_service import ShiftService
@@ -115,7 +114,4 @@ class UserTasksCBV:
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **user_task.status**: статус задачи
         """
-        return await (
-            self.user_task_service
-            .get_user_task_summary(shift_id, status)
-        )
+        return await self.user_task_service.get_summaries_of_user_tasks(shift_id, status)

@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, desc, or_, select
+from sqlalchemy import and_, case, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -121,8 +121,10 @@ class UserTaskRepository(AbstractRepository):
         await self.__session.commit()
         return user_task
 
-    async def get_user_task_summary(self, shift_id: UUID, status: UserTask.Status) -> list[DTO_models.FullUserTaskDto]:
-        """Получить отчет участника по id с url фото выполненного задания."""
+    async def get_summaries_of_user_tasks(
+        self, shift_id: UUID, status: UserTask.Status
+    ) -> list[DTO_models.FullUserTaskDto]:
+        """Получить отчеты участников по id смены с url фото выполненного задания."""
         stmt = select(
             Shift.id,
             Shift.status,
@@ -144,6 +146,59 @@ class UserTaskRepository(AbstractRepository):
         user_tasks = await self.__session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
+    async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
+        """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
+
+        Аргументы:
+            shift_id (UUID): id стартовавшей смены
+            task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
+        """
+        subquery_rank = (
+            select(
+                func.rank().over(order_by=UserTask.task_date.desc(), partition_by=UserTask.user_id).label('rnk'),
+                UserTask.user_id,
+                UserTask.status,
+            )
+            .where(
+                and_(
+                    UserTask.shift_id == shift_id,
+                    UserTask.status != UserTask.Status.NEW,
+                    UserTask.deleted.is_(False),
+                )
+            )
+            .subquery()
+        )
+        subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
+        case_statement = case(
+            (subquery_last_statuses.c.status == UserTask.Status.WAIT_REPORT, 1),
+        )
+        statement = (
+            select(subquery_last_statuses.c.user_id)
+            .having(func.count(case_statement) >= task_amount)
+            .group_by(subquery_last_statuses.c.user_id)
+        )
+        return (await self.__session.scalars(statement)).all()
+
+    async def set_usertasks_deleted(self, user_ids: list[UUID], shift_id: UUID) -> None:
+        """Переводит задания участников указанных в user_ids в смене с id shift_id в статус удаленных.
+
+        Аргументы:
+            user_ids (list[UUID]): список id участников
+            shift_id (UUID): id смены
+        """
+        statement = (
+            update(UserTask)
+            .where(
+                and_(
+                    UserTask.user_id.in_(user_ids),
+                    UserTask.shift_id == shift_id,
+                )
+            )
+            .values(deleted=True)
+        )
+        await self.__session.execute(statement)
+        await self.__session.commit()
+        
     async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
         """Получить сегодняшнюю задачу со статусом new/declined."""
         task_date = datetime.now().date()

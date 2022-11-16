@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
 
+    # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
+    SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
+
     @property
     def database_url(self):
         """Получить ссылку для подключения к DB."""

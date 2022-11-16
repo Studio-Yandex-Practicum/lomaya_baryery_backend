@@ -115,6 +115,7 @@ class Request(Base):
         DECLINED = "declined"
         PENDING = "pending"
         REPEATED_REQUEST = "repeated request"
+        EXCLUDED = "excluded"
 
     __tablename__ = "requests"
 
@@ -141,6 +142,7 @@ class UserTask(Base):
         UNDER_REVIEW = "under_review"
         APPROVED = "approved"
         DECLINED = "declined"
+        WAIT_REPORT = "wait_report"
 
     __tablename__ = "user_tasks"
 

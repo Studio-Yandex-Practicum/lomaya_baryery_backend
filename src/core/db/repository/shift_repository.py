@@ -38,7 +38,7 @@ class ShiftRepository(AbstractRepository):
 
     async def update(self, id: UUID, shift: Shift) -> Shift:
         shift.id = id
-        shift = await self.session.merge(shift)
+        await self.session.merge(shift)
         await self.session.commit()
         return shift
 
@@ -72,7 +72,6 @@ class ShiftRepository(AbstractRepository):
         )
         return db_list_request.all()
 
-
     async def get_shifts_with_total_users(
         self,
         status: Optional[Shift.Status],
@@ -99,7 +98,6 @@ class ShiftRepository(AbstractRepository):
         shifts = await self.session.execute(shifts)
         return shifts.all()
 
-
     async def get_today_active_user_task_ids(self) -> list[UUID]:
         task_date = datetime.now().date()
         active_task_ids = await self.session.execute(
@@ -109,3 +107,8 @@ class ShiftRepository(AbstractRepository):
             .join(Shift.requests)
         )
         return active_task_ids.scalars().all()
+
+    async def get_started_shift_id(self) -> list[UUID]:
+        """Возвращает id активной на данный момент смены."""
+        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED, Shift.deleted.is_(False)))
+        return (await self.session.scalars(statement)).first()

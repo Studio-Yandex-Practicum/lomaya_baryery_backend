@@ -33,8 +33,7 @@ class UserRepository(AbstractRepository):
         user_in_active_shift = await self.session.execute(
             select(User).where(Shift.status == Shift.Status.STARTED.value).join(User.shifts)
         )
-        users_in_active_shift = user_in_active_shift.scalars().all()
-        return users_in_active_shift
+        return user_in_active_shift.scalars().all()
 
     async def get(self, id: UUID) -> User:
         user = await self.get_or_none(id)
