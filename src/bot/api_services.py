@@ -12,7 +12,7 @@ from src.core.services.user_service import UserService
 from src.core.services.user_task_service import UserTaskService
 
 
-async def get_registration_service_callback(sessions) -> UserService | None:
+async def get_registration_service_callback(sessions):
     async for session in sessions:  # noqa
         request_repository = RequestRepository(session)
         user_repository = UserRepository(session)
