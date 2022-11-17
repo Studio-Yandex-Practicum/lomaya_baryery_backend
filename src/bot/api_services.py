@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -14,7 +14,7 @@ from src.core.services.user_service import UserService
 from src.core.services.user_task_service import UserTaskService
 
 
-async def get_registration_service_callback(sessions) -> Union[UserService, None]:
+async def get_registration_service_callback(sessions) -> Optional[UserService]:
     async for session in sessions:  # noqa
         request_repository = RequestRepository(session)
         user_repository = UserRepository(session)
