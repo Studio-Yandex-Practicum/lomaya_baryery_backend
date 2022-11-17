@@ -12,6 +12,7 @@ class ShiftResponse(BaseModel):
     status: Shift.Status
     started_at: date
     finished_at: date
+    title: str
 
     class Config:
         orm_mode = True
