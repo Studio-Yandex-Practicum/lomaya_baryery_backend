@@ -8,6 +8,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import Status
+from src.api.request_models.user_task import UserTaskUpdateRequest
 from src.api.response_models.task import LongTaskResponse
 from src.bot import services
 from src.core.db import DTO_models
@@ -163,3 +164,10 @@ class UserTaskService:
         if len(user_ids_to_exclude) > 0:
             await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
             await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_id)
+
+    async def get_today_user_task(self, user_id: UUID) -> UserTask:
+        """Получить задачу для изменения статуса и photo_id."""
+        return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
+
+    async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
+        return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
