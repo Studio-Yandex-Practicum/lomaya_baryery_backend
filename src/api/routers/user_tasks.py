@@ -2,15 +2,16 @@ from datetime import date
 from http import HTTPStatus
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
-from fastapi import Request
 
 from src.api.response_models.user_task import (
     UserTaskResponse,
     UserTasksAndShiftResponse,
+    UserTaskSummaryResponse,
 )
+from src.core.db.models import UserTask
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_task_service import UserTaskService
 
@@ -92,3 +93,25 @@ class UserTasksCBV:
         report["shift"] = shift
         report["tasks"] = tasks
         return report
+
+    @router.get(
+        "/",
+        response_model=list[UserTaskSummaryResponse],
+        summary="Получения списка заданий пользователя по полям status и shift_id.",
+    )
+    async def get_user_task_summary(
+        self,
+        shift_id: UUID = None,
+        status: UserTask.Status = None,
+    ) -> list[UserTaskSummaryResponse]:
+        """
+        Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
+
+        Список формируется по убыванию поля started_at.
+
+        В запросе передаётся:
+
+        - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
+        - **user_task.status**: статус задачи
+        """
+        return await self.user_task_service.get_summaries_of_user_tasks(shift_id, status)

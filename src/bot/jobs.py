@@ -1,7 +1,7 @@
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from src.core.services.user_task_service import UserTaskService as user_task_service
+from src.bot.api_services import get_user_task_service_callback
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
@@ -18,7 +18,9 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 async def send_daily_task_job(context: CallbackContext) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
-    user_tasks = await user_task_service().get_today_active_usertasks()
+    user_task_service = await get_user_task_service_callback()
+    await user_task_service.check_members_activity(context.bot)
+    user_tasks = await user_task_service.get_today_active_usertasks()
     for task in user_tasks:
         await context.bot.send_photo(
             chat_id=task.user_telegram_id,
