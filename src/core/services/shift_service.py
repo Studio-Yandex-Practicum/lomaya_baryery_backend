@@ -4,7 +4,11 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from src.api.request_models.shift import ShiftCreateRequest, ShiftSortRequest
+from src.api.request_models.shift import (
+    ShiftCreateRequest,
+    ShiftSortRequest,
+    ShiftUpdateRequest,
+)
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftUsersResponse,
@@ -14,6 +18,13 @@ from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import NotFoundException
 from src.core.services.user_task_service import UserTaskService
+
+FINAL_MESSAGE = (
+    "Привет, {name} {surname}!"
+    "Незаметно пролетели 3 месяца проекта. Мы рады, что ты принял участие и, надеемся, многому научился!"
+    "В этой смене ты заработал {numbers_lombaryers} ламборьерчиков."
+    "Ты можешь снова принять участие в проекте - регистрация на новый поток проекта будет доступна уже завтра!"
+)
 
 
 class ShiftService:
@@ -27,14 +38,16 @@ class ShiftService:
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
+        shift.final_message = FINAL_MESSAGE
+        shift.title = ""
         shift.status = Shift.Status.PREPARING
         return await self.__shift_repository.create(shift=shift)
 
     async def get_shift(self, id: UUID) -> Shift:
         return await self.__shift_repository.get(id)
 
-    async def update_shift(self, id: UUID, update_shift_data: ShiftCreateRequest) -> Shift:
-        return await self.__shift_repository.update(id=id, shift=Shift(**update_shift_data.dict()))
+    async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
+        return await self.__shift_repository.update(id=id, shift=Shift(**update_shift_data.dict(exclude_unset=True)))
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)

@@ -38,7 +38,7 @@ class ShiftRepository(AbstractRepository):
 
     async def update(self, id: UUID, shift: Shift) -> Shift:
         shift.id = id
-        await self.session.merge(shift)
+        shift = await self.session.merge(shift)
         await self.session.commit()
         return shift
 
@@ -83,6 +83,8 @@ class ShiftRepository(AbstractRepository):
                 (Shift.status),
                 (Shift.started_at),
                 (Shift.finished_at),
+                (Shift.title),
+                (Shift.final_message),
                 (func.count(Request.user_id).label("total_users")),
             )
             .join(Request.shift)
