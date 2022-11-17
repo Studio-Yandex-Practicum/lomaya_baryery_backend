@@ -11,7 +11,6 @@ DatabaseModel = TypeVar("DatabaseModel")
 class AbstractRepository(abc.ABC):
     """Абстрактный класс, для реализации паттерна Repository."""
 
-    @abc.abstractmethod
     def __init__(self, session: AsyncSession, model: DatabaseModel) -> None:
         self._session = session
         self._model = model

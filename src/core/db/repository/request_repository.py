@@ -15,7 +15,7 @@ class RequestRepository(AbstractRepository):
     """Репозиторий для работы с моделью Request."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=Request)
+        super().__init__(session, Request)
 
     async def get(self, id: UUID) -> Request:
         request = await self._session.execute(

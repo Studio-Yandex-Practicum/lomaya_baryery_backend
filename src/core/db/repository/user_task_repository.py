@@ -18,7 +18,7 @@ class UserTaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью UserTask."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=UserTask)
+        super().__init__(session, UserTask)
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
         user_task = await self._session.execute(

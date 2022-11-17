@@ -13,7 +13,7 @@ class TaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью Task."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=Task)
+        super().__init__(session, Task)
 
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""

@@ -19,7 +19,7 @@ class ShiftRepository(AbstractRepository):
     """Репозиторий для работы с моделью Shift."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=Shift)
+        super().__init__(session, Shift)
 
     async def get_with_users(self, id: UUID) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))

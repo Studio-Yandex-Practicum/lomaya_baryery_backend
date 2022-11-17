@@ -13,7 +13,7 @@ class PhotoRepository(AbstractRepository):
     """Репозиторий для работы с моделью Photo."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=Photo)
+        super().__init__(session, Photo)
 
     async def get_by_url(self, url: str) -> Optional[Photo]:
         photo = await self._session.execute(select(Photo).where(Photo.url == url))

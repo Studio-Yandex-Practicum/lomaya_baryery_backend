@@ -13,7 +13,7 @@ class UserRepository(AbstractRepository):
     """Репозиторий для работы с моделью User."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        AbstractRepository.__init__(self, session, model=User)
+        super().__init__(session, User)
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
         user = await self._session.execute(select(User).where(telegram_id == telegram_id))
