@@ -62,6 +62,8 @@ class ShiftCBV:
 
         - **shift_id**: уникальный индентификатор смены
         - **status**: статус смены (started|finished|preparing|cancelled)
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         """
@@ -85,6 +87,8 @@ class ShiftCBV:
         - **shift_id**: уникальный индентификатор смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         """
         return await self.shift_service.update_shift(shift_id, update_shift_data)
 
@@ -176,6 +180,8 @@ class ShiftCBV:
 
         - **id**: id смены
         - **status**: статус смены
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
