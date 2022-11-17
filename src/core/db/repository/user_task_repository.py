@@ -18,10 +18,10 @@ class UserTaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью UserTask."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.__session = session
+        super().__init__(session, UserTask)
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        user_task = await self.__session.execute(
+        user_task = await self._session.execute(
             select(UserTask)
             .where(UserTask.id == id)
             .options(
@@ -43,7 +43,7 @@ class UserTaskRepository(AbstractRepository):
         id: UUID,
     ) -> dict:
         """Получить отчет участника по id с url фото выполненного задания."""
-        user_task = await self.__session.execute(
+        user_task = await self._session.execute(
             select(
                 UserTask.user_id,
                 UserTask.id,
@@ -64,7 +64,7 @@ class UserTaskRepository(AbstractRepository):
         task_date: date,
     ) -> list[tuple[int]]:
         """Получить список кортежей с id всех UserTask, id всех юзеров и id задач этих юзеров."""
-        user_tasks_info = await self.__session.execute(
+        user_tasks_info = await self._session.execute(
             select(UserTask.id, UserTask.user_id, UserTask.task_id)
             .where(
                 and_(
@@ -79,14 +79,14 @@ class UserTaskRepository(AbstractRepository):
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
-        all_tasks_id_under_review = await self.__session.execute(
+        all_tasks_id_under_review = await self._session.execute(
             select(UserTask.task_id).select_from(UserTask).where(UserTask.status == UserTask.Status.UNDER_REVIEW)
         )
         return all_tasks_id_under_review.all()
 
     async def get_tasks_by_usertask_ids(self, usertask_ids: list[UUID]) -> list[LongTaskResponse]:
         """Получить список заданий с подробностями на каждого участника по usertask_id."""
-        tasks = await self.__session.execute(
+        tasks = await self._session.execute(
             select(
                 Task.id.label("task_id"),
                 Task.url.label("task_url"),
@@ -104,22 +104,10 @@ class UserTaskRepository(AbstractRepository):
             task_infos.append(task_info)
         return task_infos
 
-    async def create(self, user_task: UserTask) -> UserTask:
-        self.__session.add(user_task)
-        await self.__session.commit()
-        await self.__session.refresh(user_task)
-        return user_task
-
     async def create_all(self, user_tasks_list: list[UserTask]) -> UserTask:
-        self.__session.add_all(user_tasks_list)
-        await self.__session.commit()
+        self._session.add_all(user_tasks_list)
+        await self._session.commit()
         return user_tasks_list
-
-    async def update(self, id: UUID, user_task: UserTask) -> UserTask:
-        user_task.id = id
-        await self.__session.merge(user_task)
-        await self.__session.commit()
-        return user_task
 
     async def get_summaries_of_user_tasks(
         self, shift_id: UUID, status: UserTask.Status
@@ -143,7 +131,7 @@ class UserTaskRepository(AbstractRepository):
         if status:
             stmt = stmt.where(UserTask.status == status)
         stmt = stmt.join(Shift).join(User).join(Task).join(Photo).order_by(desc(Shift.started_at))
-        user_tasks = await self.__session.execute(stmt)
+        user_tasks = await self._session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
     async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
@@ -177,7 +165,7 @@ class UserTaskRepository(AbstractRepository):
             .having(func.count(case_statement) >= task_amount)
             .group_by(subquery_last_statuses.c.user_id)
         )
-        return (await self.__session.scalars(statement)).all()
+        return (await self._session.scalars(statement)).all()
 
     async def set_usertasks_deleted(self, user_ids: list[UUID], shift_id: UUID) -> None:
         """Переводит задания участников указанных в user_ids в смене с id shift_id в статус удаленных.
@@ -196,8 +184,8 @@ class UserTaskRepository(AbstractRepository):
             )
             .values(deleted=True)
         )
-        await self.__session.execute(statement)
-        await self.__session.commit()
+        await self._session.execute(statement)
+        await self._session.commit()
 
     async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
         """Получить сегодняшнюю задачу со статусом new/declined."""
@@ -209,5 +197,5 @@ class UserTaskRepository(AbstractRepository):
                 or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.DECLINED),
             )
         )
-        user_task = await self.__session.execute(statement)
+        user_task = await self._session.execute(statement)
         return user_task.scalars().first()

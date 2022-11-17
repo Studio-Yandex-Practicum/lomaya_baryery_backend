@@ -19,31 +19,10 @@ class ShiftRepository(AbstractRepository):
     """Репозиторий для работы с моделью Shift."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.session = session
-
-    async def get_or_none(self, id: UUID) -> Optional[Shift]:
-        return await self.session.get(Shift, id)
-
-    async def get(self, id: UUID) -> Shift:
-        shift = await self.get_or_none(id)
-        if shift is None:
-            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
-        return shift
-
-    async def create(self, shift: Shift) -> Shift:
-        self.session.add(shift)
-        await self.session.commit()
-        await self.session.refresh(shift)
-        return shift
-
-    async def update(self, id: UUID, shift: Shift) -> Shift:
-        shift.id = id
-        shift = await self.session.merge(shift)
-        await self.session.commit()
-        return shift
+        super().__init__(session, Shift)
 
     async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users))
+        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
         request = await self.session.execute(statement)
         request = request.scalars().first()
         if request is None:
@@ -51,7 +30,7 @@ class ShiftRepository(AbstractRepository):
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
-        db_list_request = await self.session.execute(
+        db_list_request = await self._session.execute(
             select(
                 (Request.user_id),
                 (Request.id.label("request_id")),
@@ -97,12 +76,12 @@ class ShiftRepository(AbstractRepository):
             )
             .order_by(sort or Shift.started_at.desc())
         )
-        shifts = await self.session.execute(shifts)
+        shifts = await self._session.execute(shifts)
         return shifts.all()
 
     async def get_today_active_user_task_ids(self) -> list[UUID]:
         task_date = datetime.now().date()
-        active_task_ids = await self.session.execute(
+        active_task_ids = await self._session.execute(
             select(UserTask.id)
             .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
             .join(Shift.user_tasks)
@@ -113,4 +92,4 @@ class ShiftRepository(AbstractRepository):
     async def get_started_shift_id(self) -> list[UUID]:
         """Возвращает id активной на данный момент смены."""
         statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED, Shift.deleted.is_(False)))
-        return (await self.session.scalars(statement)).first()
+        return (await self._session.scalars(statement)).first()

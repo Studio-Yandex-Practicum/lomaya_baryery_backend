@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
@@ -14,26 +13,16 @@ class TaskRepository(AbstractRepository):
     """Репозиторий для работы с моделью Task."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.__session = session
-
-    async def get_or_none(self, id: UUID) -> Optional[Task]:
-        return await self.__session.get(Task, id)
-
-    async def get(self, id: UUID) -> Task:
-        task = await self.get_or_none(id)
-        if task is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Task c {id=} не найден.")
-        return task
+        super().__init__(session, Task)
 
     async def get_task_ids_list(self) -> list[UUID]:
         """Список всех task_id."""
-        task_ids = await self.__session.execute(select(Task.id))
+        task_ids = await self._session.execute(select(Task.id))
         return task_ids.scalars().all()
 
     async def get_tasks_report(self, user_id: UUID, task_id: UUID) -> dict:
         """Получить список задач с информацией о юзерах."""
-        task_summary_info = await self.__session.execute(
+        task_summary_info = await self._session.execute(
             select(
                 User.name,
                 User.surname,
@@ -45,16 +34,5 @@ class TaskRepository(AbstractRepository):
             .where(User.id == user_id, Task.id == task_id)
         )
         task_summary_info = task_summary_info.all()
-        return dict(*task_summary_info)
-
-    async def create(self, task: Task) -> Task:
-        self.__session.add(task)
-        await self.__session.commit()
-        await self.__session.refresh(task)
-        return task
-
-    async def update(self, id: UUID, task: Task) -> Task:
-        task.id = id
-        await self.__session.merge(task)
-        await self.__session.commit()
+        task = dict(*task_summary_info)
         return task

@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
@@ -16,13 +15,10 @@ class RequestRepository(AbstractRepository):
     """Репозиторий для работы с моделью Request."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
-        self.session = session
-
-    async def get_or_none(self, id: UUID) -> Optional[Request]:
-        return await self.session.get(Request, id)
+        super().__init__(session, Request)
 
     async def get(self, id: UUID) -> Request:
-        request = await self.session.execute(
+        request = await self._session.execute(
             select(Request)
             .where(Request.id == id)
             .options(
@@ -39,7 +35,7 @@ class RequestRepository(AbstractRepository):
         return request
 
     async def get_by_user_and_shift(self, user_id: UUID, shift_id: UUID) -> Request:
-        request = await self.session.execute(
+        request = await self._session.execute(
             select(Request).where(Request.user_id == user_id, Request.shift_id == shift_id)
         )
         return request.scalars().first()
@@ -49,23 +45,11 @@ class RequestRepository(AbstractRepository):
             request.numbers_lombaryers = 1
         else:
             request.numbers_lombaryers += 1
-        await self.session.merge(request)
-        await self.session.commit()
-
-    async def create(self, request: Request) -> Request:
-        self.session.add(request)
-        await self.session.commit()
-        await self.session.refresh(request)
-        return request
-
-    async def update(self, id: UUID, request: Request) -> Request:
-        request.id = id
-        await self.session.merge(request)
-        await self.session.commit()
-        return request
+        await self._session.merge(request)
+        await self._session.commit()
 
     async def get_shift_user_ids(self, shift_id: UUID, status: str = Request.Status.APPROVED.value) -> list[UUID]:
-        users_ids = await self.session.execute(
+        users_ids = await self._session.execute(
             select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
         )
         return users_ids.scalars().all()
@@ -90,7 +74,7 @@ class RequestRepository(AbstractRepository):
             )
             .options(selectinload(Request.user))
         )
-        return (await self.session.scalars(statement)).all()
+        return (await self._session.scalars(statement)).all()
 
     async def bulk_excluded_status_update(self, requests: list[Request]) -> None:
         """Массово изменяет статус заявок на excluded.
@@ -100,5 +84,5 @@ class RequestRepository(AbstractRepository):
         """
         for request in requests:
             request.status = Request.Status.EXCLUDED
-            await self.session.merge(request)
-        await self.session.commit()
+            await self._session.merge(request)
+        await self._session.commit()

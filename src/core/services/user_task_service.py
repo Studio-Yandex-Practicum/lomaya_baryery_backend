@@ -170,4 +170,4 @@ class UserTaskService:
         return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
 
     async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
-        return await self.__user_task_repository.update(id=id, user_task=UserTask(**update_user_task_data.dict()))
+        return await self.__user_task_repository.update(id=id, instance=UserTask(**update_user_task_data.dict()))
