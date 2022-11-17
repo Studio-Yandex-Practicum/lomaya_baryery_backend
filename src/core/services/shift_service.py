@@ -28,13 +28,13 @@ class ShiftService:
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         shift.status = Shift.Status.PREPARING
-        return await self.__shift_repository.create(shift=shift)
+        return await self.__shift_repository.create(instance=shift)
 
     async def get_shift(self, id: UUID) -> Shift:
         return await self.__shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftCreateRequest) -> Shift:
-        return await self.__shift_repository.update(id=id, shift=Shift(**update_shift_data.dict()))
+        return await self.__shift_repository.update(id=id, instance=Shift(**update_shift_data.dict()))
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
