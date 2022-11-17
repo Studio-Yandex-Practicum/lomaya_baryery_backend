@@ -1,7 +1,8 @@
 import enum
 from datetime import date, datetime, timedelta
+from typing import Optional
 
-from pydantic import validator
+from pydantic import Field, validator
 
 from src.api.request_models.request_base import RequestBase
 
@@ -32,5 +33,7 @@ class ShiftCreateRequest(RequestBase):
 
 
 class ShiftUpdateRequest(ShiftCreateRequest):
-    title: str = ""
-    final_message: str = ""
+    started_at: Optional[datetime] = Field(None)
+    finished_at: Optional[datetime] = Field(None)
+    title: Optional[str] = Field(None, max_length=100)
+    final_message: Optional[str] = Field(None, max_length=400)
