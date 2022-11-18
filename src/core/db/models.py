@@ -51,7 +51,7 @@ class Shift(Base):
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
-    final_message = Column(String(150), nullable=False)
+    final_message = Column(String(400), nullable=False)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)

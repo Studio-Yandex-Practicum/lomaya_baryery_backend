@@ -29,5 +29,4 @@ class UserRepository(AbstractRepository):
         user_in_active_shift = await self._session.execute(
             select(User).where(Shift.status == Shift.Status.STARTED.value).join(User.shifts)
         )
-        users_in_active_shift = user_in_active_shift.scalars().all()
-        return users_in_active_shift
+        return user_in_active_shift.scalars().all()
