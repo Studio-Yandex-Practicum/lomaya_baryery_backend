@@ -133,13 +133,9 @@ class UserTaskService:
                     UserTask(
                         user_id=user_id,
                         shift_id=shift_id,
-                        task_id=task_ids_list[one_date.day - 1],
+                        task_id=task_ids_list[one_date.day % 10],
                         task_date=one_date,
-                        # -----
-                        # Статус сейчас является обязательным полем в модели.
-                        # Поставил значение "New", но возможно должно быть не так.
-                        status=UserTask.Status.NEW.value
-                        # -----
+                        status=UserTask.Status.NEW.value,
                     )
                 )
         await self.__user_task_repository.create_all(result)

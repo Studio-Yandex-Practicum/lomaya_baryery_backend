@@ -51,25 +51,16 @@ class ShiftService:
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
-        if shift.status in (Shift.Status.STARTED.value, Shift.Status.FINISHED.value, Shift.Status.CANCELING.value):
+        if shift.status != Shift.Status.PREPARING.value:
+            print('got it!')
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
-        # -----
-        # Здесь запуск функции распределения заданий будет использовать
-        # значение объекта смены started_at, указанное при создании(!) смены.
-        # Ниже в словаре update_shift_dict задается новое значение
-        # которое при запуске(!) смены окажется другим (может даже значительно).
-        # Надо продумать этот момент с датами создания/запуска смены и,
-        # соответственно её окончания.
-        await self.__user_task_service.distribute_tasks_on_shift(id)
-        # -----
 
         # TODO добавить вызов метода рассылки участникам первого задания
 
-        update_shift_dict = {
-            "started_at": datetime.now(),
-            "status": Shift.Status.STARTED.value,
-        }
-        return await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        update_shift_dict = {"started_at": datetime.now().date(), "status": Shift.Status.STARTED.value}
+        updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        await self.__user_task_service.distribute_tasks_on_shift(id)
+        return updated_shift
 
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
         shift = await self.__shift_repository.get_with_users(id)
