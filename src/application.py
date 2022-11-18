@@ -22,7 +22,7 @@ def create_app() -> FastAPI:
 
     origins = ["*"]
 
-    app.mount("/static", StaticFiles(directory="src/html"), name="html template")
+    app.mount(settings.STATIC_URL, StaticFiles(directory=settings.STATIC_PATH), name="static")
 
     app.add_middleware(
         CORSMiddleware,

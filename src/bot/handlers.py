@@ -50,7 +50,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.APPLICATION_URL + "/static/registration.html"),
+                web_app=WebAppInfo(url=f"{settings.APPLICATION_URL}/static/registration.html"),
             )
         ),
     )
@@ -69,7 +69,9 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             reply_markup=ReplyKeyboardRemove(),
         )
     except (ValidationError, ValueError) as e:
-        await update.message.reply_text(f"Ошибка при валидации данных: {e}")
+        if isinstance(e, ValidationError):
+            e = "\n".join([error['msg'] for error in json.loads(e.json())])
+        await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
