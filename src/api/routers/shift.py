@@ -100,11 +100,16 @@ class ShiftCBV:
 
         - **shift_id**: уникальный индентификатор смены
         """
+        # -----
+        # Исправил, как требовалсь по заданию. Но получается, что
+        # тут перехватывается LookupError брошенный из абстрактного класса,
+        # и бросается кастомный NotFoundException. Так и должно быть?
         try:
-            shift = await self.shift_service.start_shift(shift_id)
+            await self.shift_service.get_shift(shift_id)
         except Exception:
             raise NotFoundException(object_name=Shift.__doc__, object_id=shift_id)
-        return shift
+        return await self.shift_service.start_shift(shift_id)
+        # -----
 
     @router.get(
         "/{shift_id}/users",

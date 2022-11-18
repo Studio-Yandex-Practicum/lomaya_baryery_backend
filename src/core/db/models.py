@@ -159,7 +159,14 @@ class UserTask(Base):
     task = relationship("Task", back_populates="user_tasks")
     photo = relationship("Photo", back_populates="user_tasks")
 
+    # -----
+    # Из-за этой проверки на уникальность один и тот же юзер
+    # на одной и той же смене не может иметь повторяющихся заданий.
+    # Если смена у нас 3 месяца, то одно задание может повторяться
+    # до 3-х раз за смену! Надо убирать, делать миграцию.
+    # Локально у себя проверил - помогло. Юзерам таски назначились.
     __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
+    # -----
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
