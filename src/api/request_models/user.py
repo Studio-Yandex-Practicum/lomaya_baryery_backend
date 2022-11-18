@@ -53,8 +53,7 @@ class UserCreateRequest(BaseModel):
 
     @validator("date_of_birth", pre=True)
     def validate_date_of_birth(cls, value: str):
-        value = datetime.strptime(value, DATE_FORMAT).date()
-        return value
+        return datetime.strptime(value, DATE_FORMAT).date()
 
 
 class RequestCreateRequest(BaseModel):
