@@ -5,7 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.shift import ShiftCreateRequest, ShiftSortRequest
+from src.api.request_models.shift import (
+    ShiftCreateRequest,
+    ShiftSortRequest,
+    ShiftUpdateRequest,
+)
 from src.api.response_models.shift import (
     ShiftDtoRespone,
     ShiftResponse,
@@ -58,6 +62,8 @@ class ShiftCBV:
 
         - **shift_id**: уникальный индентификатор смены
         - **status**: статус смены (started|finished|preparing|cancelled)
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         """
@@ -74,13 +80,15 @@ class ShiftCBV:
     async def update_shift(
         self,
         shift_id: UUID,
-        update_shift_data: ShiftCreateRequest,
+        update_shift_data: ShiftUpdateRequest,
     ) -> ShiftResponse:
         """Обновить информацию о смене с указанным ID.
 
         - **shift_id**: уникальный индентификатор смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         """
         return await self.shift_service.update_shift(shift_id, update_shift_data)
 
@@ -172,6 +180,8 @@ class ShiftCBV:
 
         - **id**: id смены
         - **status**: статус смены
+        - **title**: название смены
+        - **final_message**: шаблон сообщения о завершении смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены

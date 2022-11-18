@@ -32,14 +32,14 @@ class ShiftRepository(AbstractRepository):
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         db_list_request = await self._session.execute(
             select(
-                (Request.user_id),
-                (Request.id.label("request_id")),
-                (Request.status),
-                (User.name),
-                (User.surname),
-                (User.date_of_birth),
-                (User.city),
-                (User.phone_number.label("phone")),
+                Request.user_id,
+                Request.id.label("request_id"),
+                Request.status,
+                User.name,
+                User.surname,
+                User.date_of_birth,
+                User.city,
+                User.phone_number.label("phone"),
             )
             .join(Request.user)
             .where(
@@ -62,6 +62,8 @@ class ShiftRepository(AbstractRepository):
                 (Shift.status),
                 (Shift.started_at),
                 (Shift.finished_at),
+                (Shift.title),
+                (Shift.final_message),
                 (func.count(Request.user_id).label("total_users")),
             )
             .join(Request.shift)
