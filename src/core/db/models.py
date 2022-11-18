@@ -159,7 +159,7 @@ class UserTask(Base):
     task = relationship("Task", back_populates="user_tasks")
     photo = relationship("Photo", back_populates="user_tasks")
 
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_date", name="_user_task_uc"),)
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
