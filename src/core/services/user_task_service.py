@@ -133,7 +133,7 @@ class UserTaskService:
                     UserTask(
                         user_id=user_id,
                         shift_id=shift_id,
-                        task_id=task_ids_list[one_date.day % 10],
+                        task_id=task_ids_list[one_date.day - 1],
                         task_date=one_date,
                         status=UserTask.Status.NEW.value,
                     )

@@ -52,7 +52,6 @@ class ShiftService:
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
         if shift.status != Shift.Status.PREPARING.value:
-            print('got it!')
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
 
         # TODO добавить вызов метода рассылки участникам первого задания
