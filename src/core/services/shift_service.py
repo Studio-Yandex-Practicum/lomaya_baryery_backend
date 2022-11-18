@@ -59,7 +59,7 @@ class ShiftService:
         update_shift_dict = {"started_at": datetime.now().date(), "status": Shift.Status.STARTED.value}
         updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
         await self.__user_task_service.distribute_tasks_on_shift(id)
-        return updated_shift
+        return updated_shift  # noqa: R504
 
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
         shift = await self.__shift_repository.get_with_users(id)
