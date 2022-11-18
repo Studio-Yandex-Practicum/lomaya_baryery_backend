@@ -41,16 +41,6 @@ class ShiftService:
         shift.final_message = FINAL_MESSAGE
         shift.title = ""
         shift.status = Shift.Status.PREPARING
-        # -----
-        # Сейчас, чтобы смена создалась нужно добавить эти два поля вручную,
-        # т.к. они являются обязательными в модели Shift и при этом
-        # нигде ранее не задаются. Надо придумать, где они будут задаваться, кем и когда.
-        # Проверял локально - помогает.
-
-        # shift.title = 'title'
-        # shift.final_message = 'final_message'
-
-        # -----
         return await self.__shift_repository.create(instance=shift)
 
     async def get_shift(self, id: UUID) -> Shift:
@@ -77,15 +67,6 @@ class ShiftService:
 
         update_shift_dict = {
             "started_at": datetime.now(),
-            # -----
-            # Без finished_at валидация для pydantic модели ShiftResponse не проходит:
-            # pydantic.error_wrappers.ValidationError: 1 validation errors for ShiftResponse
-            # response -> finished_at
-            # none is not an allowed value (type=type_error.none.not_allowed)"
-            # Для проверки ставил значение окончания смены заданное при ее создании. Помогло,
-            # но в связи с вышеописанной проблемой возможно должно вычисляться по другому.
-            # "finished_at": shift.finished_at,
-            # -----
             "status": Shift.Status.STARTED.value,
         }
         return await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
