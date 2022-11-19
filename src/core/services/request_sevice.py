@@ -44,3 +44,17 @@ class RequestService:
     async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
         """Получить id одобренных участников смены."""
         return await self.__request_repository.get_shift_user_ids(shift_id)
+
+    async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
+        """Исключает участников смены.
+
+        Аргументы:
+            user_ids (list[UUID]): список id участников подлежащих исключению
+            shift_id (UUID): id активной смены
+        """
+        requests = await self.__request_repository.get_requests_by_users_ids_and_shifts_id(user_ids, shift_id)
+        if len(requests) == 0:
+            raise LookupError(f'Заявки не найдены для участников с id {user_ids} в смене с id {shift_id}')
+        await self.__request_repository.bulk_excluded_status_update(requests)
+        for request in requests:
+            await self.__telegram_bot(bot).notify_excluded_member(request.user)

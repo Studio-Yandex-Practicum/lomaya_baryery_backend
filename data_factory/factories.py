@@ -122,3 +122,4 @@ class TaskFactory(BaseFactory):
 
     url = factory.Sequence(lambda n: f"tasks/{n}")
     description = factory.Faker("paragraph", nb_sentences=2)
+

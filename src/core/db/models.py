@@ -51,7 +51,7 @@ class Shift(Base):
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
-    final_message = Column(String(150), nullable=False)
+    final_message = Column(String(400), nullable=False)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
@@ -98,7 +98,7 @@ class User(Base):
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
-    user_tasks = relationship("UserTask", back_populates="user")
+    user_tasks = relationship("UserTask", back_populates="user", order_by="UserTask.task_date")
     shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
 
     def __repr__(self):
@@ -115,6 +115,7 @@ class Request(Base):
         DECLINED = "declined"
         PENDING = "pending"
         REPEATED_REQUEST = "repeated request"
+        EXCLUDED = "excluded"
 
     __tablename__ = "requests"
 
@@ -141,6 +142,7 @@ class UserTask(Base):
         UNDER_REVIEW = "under_review"
         APPROVED = "approved"
         DECLINED = "declined"
+        WAIT_REPORT = "wait_report"
 
     __tablename__ = "user_tasks"
 
@@ -157,7 +159,7 @@ class UserTask(Base):
     task = relationship("Task", back_populates="user_tasks")
     photo = relationship("Photo", back_populates="user_tasks")
 
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_id", name="_user_task_uc"),)
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_date", name="_user_task_uc"),)
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"

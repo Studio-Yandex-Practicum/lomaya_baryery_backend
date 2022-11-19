@@ -10,6 +10,8 @@ from src.core.db.models import Request, Shift
 class ShiftResponse(BaseModel):
     id: UUID
     status: Shift.Status
+    title: str
+    final_message: str
     started_at: date
     finished_at: date
 
