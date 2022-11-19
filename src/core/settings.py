@@ -52,6 +52,11 @@ class Settings(BaseSettings):
         Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
         return user_reports_dir
 
+    @property
+    def registration_template_url(self) -> str:
+        """Получить ссылку для получения HTML шаблона регистрации."""
+        return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
+
     class Config:
         env_file = ENV_FILE
 

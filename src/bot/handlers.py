@@ -50,7 +50,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=f"{settings.APPLICATION_URL}/static/registration.html"),
+                web_app=WebAppInfo(url=settings.registration_template_url),
             )
         ),
     )
@@ -70,7 +70,7 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValidationError):
-            e = "\n".join(tuple(error['msg'] for error in json.loads(e.json())))
+            e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
 
 
