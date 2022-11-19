@@ -70,7 +70,7 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValidationError):
-            e = "\n".join([error['msg'] for error in json.loads(e.json())])
+            e = "\n".join(tuple(error['msg'] for error in json.loads(e.json())))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
 
 
