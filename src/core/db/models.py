@@ -60,18 +60,6 @@ class Shift(Base):
         return f"<Shift: {self.id}, status: {self.status}>"
 
 
-class Photo(Base):
-    """Фотографии выполненных заданий."""
-
-    __tablename__ = "photos"
-
-    url = Column(String(length=150), unique=True, nullable=False)
-    user_tasks = relationship("UserTask", back_populates="photo")
-
-    def __repr__(self):
-        return f"<Photo: {self.id}, url: {self.url}>"
-
-
 class Task(Base):
     """Модель для описания задания."""
 
@@ -153,11 +141,12 @@ class UserTask(Base):
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    photo_id = Column(UUID(as_uuid=True), ForeignKey(Photo.id), nullable=True)
+    report_url = Column(String(length=150), unique=True, nullable=False)
+    uploaded_at = Column(DATE, nullable=True)
+    is_repeated = Column(Boolean(), nullable=False)
     user = relationship("User", back_populates="user_tasks")
     shift = relationship("Shift", back_populates="user_tasks")
     task = relationship("Task", back_populates="user_tasks")
-    photo = relationship("Photo", back_populates="user_tasks")
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_date", name="_user_task_uc"),)
 
