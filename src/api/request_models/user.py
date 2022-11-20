@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from src.core.db.models import Request
 
 VALID_TEXT = "^[а-яА-ЯёЁ][а-яА-ЯёЁ -]*[а-яА-ЯёЁ]$"
 INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
+DATE_FORMAT = "%d.%m.%Y"
 
 
 class UserCreateRequest(BaseModel):
@@ -48,6 +50,10 @@ class UserCreateRequest(BaseModel):
         if not phonenumbers.is_valid_number(parsed_number):
             raise ValueError(invalid_phone_number)
         return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)[1:]
+
+    @validator("date_of_birth", pre=True)
+    def validate_date_of_birth(cls, value: str):
+        return datetime.strptime(value, DATE_FORMAT).date()
 
 
 class RequestCreateRequest(BaseModel):
