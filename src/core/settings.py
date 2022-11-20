@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
+    STATIC_URL: str = "/static"
+    STATIC_PATH: str = "src/html"
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -49,6 +51,11 @@ class Settings(BaseSettings):
         user_reports_dir = BASE_DIR / 'data' / 'user_reports'
         Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
         return user_reports_dir
+
+    @property
+    def registration_template_url(self) -> str:
+        """Получить ссылку для получения HTML шаблона регистрации."""
+        return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
 
     class Config:
         env_file = ENV_FILE

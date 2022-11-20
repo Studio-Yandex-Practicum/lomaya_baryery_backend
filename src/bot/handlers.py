@@ -40,6 +40,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     )
 
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    await register(update, context)
 
 
 async def register(update: Update, context: CallbackContext) -> None:
@@ -49,7 +50,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.APPLICATION_URL + "/lomaya_baryery_backend/src/html/registration.html"),
+                web_app=WebAppInfo(url=settings.registration_template_url),
             )
         ),
     )
@@ -67,8 +68,10 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             text="Процесс регистрации занимает некоторое время - вам придет уведомление",
             reply_markup=ReplyKeyboardRemove(),
         )
-    except ValidationError as e:
-        await update.message.reply_text(f"Ошибка при валидации данных: {e}")
+    except (ValidationError, ValueError) as e:
+        if isinstance(e, ValidationError):
+            e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
+        await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
