@@ -14,6 +14,7 @@ from src.bot import services
 from src.core.db import DTO_models
 from src.core.db.models import UserTask
 from src.core.db.repository import (
+    MemberRepository,
     ShiftRepository,
     TaskRepository,
     UserRepository,
@@ -50,6 +51,7 @@ class UserTaskService:
         request_service: RequestService = Depends(),
         request_repository: RequestRepository = Depends(),
         user_repository: UserRepository = Depends(),
+        member_repository: MemberRepository = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__user_task_repository = user_task_repository
@@ -59,6 +61,7 @@ class UserTaskService:
         self.__request_service = request_service
         self.__request_repository = request_repository
         self.__user_repository = user_repository
+        self.__member_repository = member_repository
 
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.__user_task_repository.get(id)
@@ -91,6 +94,8 @@ class UserTaskService:
         await self.__user_task_repository.update(task_id, user_task)
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
+        member = await self.__member_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
+        await self.__member_repository.add_one_lombaryer(member)
         await self.__telegram_bot(bot).notify_approved_task(user_task)
         return
 

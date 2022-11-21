@@ -55,6 +55,7 @@ class Shift(Base):
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
+    members = relationship("Member", back_populates="shift")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -100,6 +101,7 @@ class User(Base):
     requests = relationship("Request", back_populates="user")
     user_tasks = relationship("UserTask", back_populates="user", order_by="UserTask.task_date")
     shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
+    members = relationship("Member", back_populates="user")
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
@@ -163,3 +165,23 @@ class UserTask(Base):
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+
+
+class Member(Base):
+    class Status(str, enum.Enum):
+        """Статус участника смены."""
+
+        ACTIVE = "active"
+        EXCLUDED = "excluded"
+
+    __tablename__ = "members"
+
+    status = Column(
+        Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
+    numbers_lombaryers = Column(Integer)
+
+    def __repr__(self):
+        return f"<Member: {self.id}, status: {self.status}>"
