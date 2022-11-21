@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - fix/stage_deploy
+      - fix/registration
 
 env:
   REGISTRY: ghcr.io
@@ -92,6 +92,19 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
+
+      - name: Create localhost SSL for bot WebApp
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+              openssl req -x509 -out localhost.crt -keyout localhost.key \
+              -newkey rsa:2048 -nodes -sha256 \
+              -subj '/CN=localhost' -extensions EXT -config <( \
+              printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 
   start_application:
     name: Start application

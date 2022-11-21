@@ -55,7 +55,10 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку для получения HTML шаблона регистрации."""
-        return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
+        # TODO подумать как можно реализовать другими средствами
+        # Временная реализация с https, чтобы работало на тесте
+        # Cсылка на описание проблемы https://www.notion.so/WebApp-Telegram-API-eee8bf6ebcbe492e835bf166ead50fd7
+        return f"https://127.0.0.1:8080{self.STATIC_URL}/registration.html"
 
     class Config:
         env_file = ENV_FILE
