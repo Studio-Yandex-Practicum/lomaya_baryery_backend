@@ -11,6 +11,8 @@ from src.core.db.models import Shift
 from src.core.settings import settings
 
 STARTED_SHIFT_DURATION = 30
+MAX_USER_BIRTH_DATE = datetime.date(2012, 1, 1)
+MIN_USER_BIRTH_DATE = datetime.date(2016, 1, 1)
 
 engine = create_engine(settings.database_url.replace("+asyncpg", "+psycopg2"))
 SESSION = scoped_session(sessionmaker(bind=engine))
@@ -30,7 +32,7 @@ class UserFactory(BaseFactory):
     name = factory.Faker("first_name")
     surname = factory.Faker("last_name")
     date_of_birth = factory.Faker(
-        "date_between_dates", date_start=datetime.date(2012, 1, 1), date_end=datetime.date(2016, 1, 1)
+        "date_between_dates", date_start=MAX_USER_BIRTH_DATE, date_end=MIN_USER_BIRTH_DATE
     )
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
@@ -45,27 +47,29 @@ class ShiftFactory(BaseFactory):
     id = factory.Faker("uuid4")
     status = factory.Iterator([status for status in models.Shift.Status])
     title = factory.Faker("text", max_nb_chars=25)
-    final_message = factory.Faker("text", max_nb_chars=25)
+    final_message = factory.Faker("text", max_nb_chars=80)
 
     @factory.lazy_attribute
     def started_at(self):
-        if self.status == "started":
+        if self.status == Shift.Status.STARTED:
             started_at = datetime.date.today() - timedelta(days=STARTED_SHIFT_DURATION)
             return started_at
-        if self.status == "finished":
+        if self.status == Shift.Status.FINISHED:
             last_started_shift = SESSION.execute(select(Shift).order_by(Shift.started_at))
             last_started_shift = last_started_shift.scalars().first()
             started_at = last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
             return started_at
-        if self.status == "preparing":
-            finished_date_started_shift = SESSION.execute((select(Shift.finished_at).where(Shift.status == "started")))
+        if self.status == Shift.Status.PREPARING:
+            finished_date_started_shift = SESSION.execute(
+                (select(Shift.finished_at).where(Shift.status == Shift.Status.STARTED))
+            )
             finished_date_started_shift = finished_date_started_shift.scalars().first()
             started_at = finished_date_started_shift + timedelta(days=random.randrange(4, 7))
             return started_at
 
     @factory.lazy_attribute
     def finished_at(self):
-        finished_at = self.started_at + timedelta(days=random.randrange(90,93))
+        finished_at = self.started_at + timedelta(days=random.randrange(90, 93))
         return finished_at
 
 
