@@ -92,7 +92,7 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-            echo LOCALHOST_URL=https://127.0.0.1:8000
+            echo LOCALHOST_URL=https://127.0.0.1:8000 >> .env
 
       - name: Create localhost SSL for bot WebApp
         uses: appleboy/ssh-action@master
