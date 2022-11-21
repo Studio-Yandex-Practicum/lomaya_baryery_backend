@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     HEALTHCHECK_API_URL: str
     STATIC_URL: str = "/static"
     STATIC_PATH: str = "src/html"
+    LOCALHOST_URL: str
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -58,7 +59,7 @@ class Settings(BaseSettings):
         # TODO подумать как можно реализовать другими средствами
         # Временная реализация с https, чтобы работало на тесте
         # Cсылка на описание проблемы https://www.notion.so/WebApp-Telegram-API-eee8bf6ebcbe492e835bf166ead50fd7
-        return f"https://127.0.0.1:8080{self.STATIC_URL}/registration.html"
+        return f"{self.LOCALHOST_URL}{self.STATIC_URL}/registration.html"
 
     class Config:
         env_file = ENV_FILE
