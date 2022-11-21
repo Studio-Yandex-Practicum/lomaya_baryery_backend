@@ -31,6 +31,19 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
+      - name: Create localhost SSL for bot WebApp
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            openssl req -x509 -out localhost.crt -keyout localhost.key \
+              -newkey rsa:4096 -nodes -sha256 \
+              -subj '/CN=localhost' -extensions EXT -config <( \
+              printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+
       - name: Docker login
         uses: docker/login-action@v1
         with:
@@ -93,19 +106,6 @@ jobs:
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo REGISTRATION_TEMPLATE_URL=https://127.0.0.1:8000/registration_template >> .env
-
-      - name: Create localhost SSL for bot WebApp
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ${{ env.DEPLOY_PATH }}
-            openssl req -x509 -out localhost.crt -keyout localhost.key \
-              -newkey rsa:4096 -nodes -sha256 \
-              -subj '/CN=localhost' -extensions EXT -config <( \
-              printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 
   start_application:
     name: Start application
