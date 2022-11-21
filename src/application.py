@@ -1,12 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 from src.api.routers import (
     healthcheck_router,
+    registration_router,
     request_router,
     router,
     shift_router,
@@ -23,9 +22,6 @@ def create_app() -> FastAPI:
 
     origins = ["*"]
 
-    app.mount(settings.STATIC_URL, StaticFiles(directory=settings.STATIC_PATH), name="static")
-
-    app.add_middleware(HTTPSRedirectMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -39,6 +35,7 @@ def create_app() -> FastAPI:
     app.include_router(shift_router)
     app.include_router(request_router)
     app.include_router(healthcheck_router)
+    app.include_router(registration_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 

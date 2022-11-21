@@ -50,7 +50,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                web_app=WebAppInfo(url=settings.REGISTRATION_TEMPLATE_URL),
             )
         ),
     )
