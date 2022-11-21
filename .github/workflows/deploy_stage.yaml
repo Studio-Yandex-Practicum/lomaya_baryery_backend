@@ -95,11 +95,7 @@ jobs:
             echo REGISTRATION_TEMPLATE_URL=https://127.0.0.1:8000/registration_template >> .env
 
       - name: Create localhost SSL for bot WebApp
-        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             openssl req -x509 -out localhost.crt -keyout localhost.key \
