@@ -87,7 +87,7 @@ jobs:
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
-            echo APPLICATION_URL=${{ secrets.HOST }} >> .env
+            echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
