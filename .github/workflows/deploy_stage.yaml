@@ -102,9 +102,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
-            openssl version -a
             openssl req -x509 -out localhost.crt -keyout localhost.key \
-              -newkey rsa:2048 -nodes -sha256 \
+              -newkey rsa:4096 -nodes -sha256 \
               -subj '/CN=localhost' -extensions EXT -config <( \
               printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 

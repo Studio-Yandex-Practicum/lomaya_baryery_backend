@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
 
     app.mount(settings.STATIC_URL, StaticFiles(directory=settings.STATIC_PATH), name="static")
 
+    app.add_middleware(HTTPSRedirectMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
