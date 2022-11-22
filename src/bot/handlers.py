@@ -45,12 +45,13 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def register(update: Update, context: CallbackContext) -> None:
     """Инициализация формы регистрации."""
+    register_url = await settings.registration_template_url
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                web_app=WebAppInfo(url=register_url),
             )
         ),
     )

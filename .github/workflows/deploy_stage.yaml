@@ -92,20 +92,7 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-            echo APPLICATION_PORT=8000 >> .env
-
-      - name: Create localhost SSL for bot WebApp
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ${{ env.DEPLOY_PATH }}
-            openssl req -x509 -out localhost.crt -keyout localhost.key \
-              -newkey rsa:4096 -nodes -sha256 \
-              -subj '/CN=localhost' -extensions EXT -config <( \
-              printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+            echo NGROK_LOCAL_URL=http://127.0.0.1:4551/api/tunnels >> .env
 
   start_application:
     name: Start application
@@ -127,10 +114,6 @@ jobs:
             docker compose --file docker-compose.yaml stop
             docker compose --file docker-compose.yaml rm backend
             docker compose --file docker-compose.yaml up -d
-            docker compose --file docker-compose.yaml stop
-            docker compose cp localhost.crt backend:${{ env.WORK_DIR }}
-            docker compose cp localhost.key backend:${{ env.WORK_DIR }}
-            docker compose --file docker-compose.yaml start
       - name: Making migrations
         uses: appleboy/ssh-action@master
         with:

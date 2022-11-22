@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
+import aiohttp
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
@@ -30,7 +32,7 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
-    APPLICATION_PORT: int
+    NGROK_LOCAL_URL: str
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -52,12 +54,18 @@ class Settings(BaseSettings):
         return user_reports_dir
 
     @property
-    def registration_template_url(self):
+    async def registration_template_url(self) -> str:
         """URL для шаблона регистрации."""
         prefix = "registration_template"
         if self.BOT_WEBHOOK_MODE:
-            return f"https://{self.APPLICATION_URL}{prefix}"
-        return f"https://{self.APPLICATION_URL}:{self.APPLICATION_PORT}/{prefix}"
+            url = urlparse(f"{self.APPLICATION_URL}/{prefix}", "https")
+        # Для теста получаем url на котором работает ngrok
+        else:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(settings.NGROK_LOCAL_URL) as response:
+                    res_json = await response.json()
+                    url = urlparse(f"{res_json['tunnels'][0]['public_url']}/{prefix}", "https")
+        return url.geturl()
 
     class Config:
         env_file = ENV_FILE

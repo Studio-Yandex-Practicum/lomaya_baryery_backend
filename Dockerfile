@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD uvicorn run:app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile localhost.key --ssl-certfile=localhost.crt
+CMD uvicorn run:app --host 0.0.0.0 --port 8000 --reload
