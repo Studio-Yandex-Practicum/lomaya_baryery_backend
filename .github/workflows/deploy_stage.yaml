@@ -113,7 +113,7 @@ jobs:
             docker image prune -f
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
             docker compose --file docker-compose.yaml stop
-            docker compose --file docker-compose.yaml rm backend
+            docker compose --file docker-compose.yaml rm backend ngrok
             docker compose --file docker-compose.yaml up -d
       - name: Making migrations
         uses: appleboy/ssh-action@master
