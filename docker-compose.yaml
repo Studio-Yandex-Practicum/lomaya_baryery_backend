@@ -16,14 +16,6 @@ services:
     env_file:
       - .env
 
-  ngrok:
-    image: shkoliar/ngrok:latest
-    container_name: ngrok
-    ports:
-      - 4551:4551
-    environment:
-      - PORT=8000
-
   backend:
     env_file:
       - .env
@@ -34,4 +26,15 @@ services:
       - "8000:8000"
     depends_on:
       - postgres
-      - ngrok
+
+  ngrok:
+    image: shkoliar/ngrok:latest
+    container_name: ngrok
+    ports:
+      - 4551:4551
+    links:
+      - backend
+    environment:
+      - PORT=8000
+    depends_on:
+      - backend

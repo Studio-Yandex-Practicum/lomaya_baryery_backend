@@ -24,6 +24,7 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.services.photo_service import PhotoService
+from src.core.services.registration_service import RegistrationService
 from src.core.services.user_service import UserService
 from src.core.services.user_task_service import UserTaskService
 from src.core.settings import settings
@@ -46,6 +47,10 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def register(update: Update, context: CallbackContext) -> None:
     """Инициализация формы регистрации."""
     register_url = await settings.registration_template_url
+    # Для теста получаем url на котором работает ngrok
+    if not register_url:
+        registration_service = RegistrationService()
+        register_url = await registration_service.get_registration_ngrok_url()
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
