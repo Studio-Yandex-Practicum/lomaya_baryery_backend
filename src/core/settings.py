@@ -56,8 +56,8 @@ class Settings(BaseSettings):
         """URL для шаблона регистрации."""
         prefix = "registration_template"
         if self.BOT_WEBHOOK_MODE:
-            return f"{self.APPLICATION_URL}{prefix}"
-        return f"{self.APPLICATION_URL}:{self.APPLICATION_PORT}/{prefix}"
+            return f"https://{self.APPLICATION_URL}{prefix}"
+        return f"https://{self.APPLICATION_URL}:{self.APPLICATION_PORT}/{prefix}"
 
     class Config:
         env_file = ENV_FILE
