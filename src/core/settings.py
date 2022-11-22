@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
-    REGISTRATION_TEMPLATE_URL: str
+    APPLICATION_PORT: int
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -50,6 +50,14 @@ class Settings(BaseSettings):
         user_reports_dir = BASE_DIR / 'data' / 'user_reports'
         Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
         return user_reports_dir
+
+    @property
+    def registration_template_url(self):
+        """URL для шаблона регистрации."""
+        prefix = "registration_template"
+        if self.BOT_WEBHOOK_MODE:
+            return f"{self.APPLICATION_URL}{prefix}"
+        return f"{self.APPLICATION_URL}:{self.APPLICATION_PORT}/{prefix}"
 
     class Config:
         env_file = ENV_FILE
