@@ -66,6 +66,10 @@ class UserTaskService:
     async def get_user_task_with_photo_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_photo_url(id)
 
+    async def check_photo_url_exists(self, url: str) -> bool:
+        user_task = await self.__user_task_repository.get_by_photo_url(url)
+        return user_task is not None
+
     async def get_today_active_usertasks(self) -> list[LongTaskResponse]:
         usertask_ids = await self.__shift_repository.get_today_active_user_task_ids()
         return await self.__user_task_repository.get_tasks_by_usertask_ids(usertask_ids)

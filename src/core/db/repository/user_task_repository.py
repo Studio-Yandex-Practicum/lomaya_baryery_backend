@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Shift, Task, User, UserTask
+from src.core.db.models import Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
 
 
@@ -26,7 +26,6 @@ class UserTaskRepository(AbstractRepository):
             .where(UserTask.id == id)
             .options(
                 selectinload(UserTask.user),
-                selectinload(UserTask.photo),
             )
         )
         return user_task.scalars().first()
@@ -37,6 +36,10 @@ class UserTaskRepository(AbstractRepository):
             # FIXME: написать и использовать кастомное исключение
             raise LookupError(f"Объект UserTask c {id=} не найден.")
         return user_task
+
+    async def get_by_photo_url(self, url: str) -> UserTask:
+        user_tasks = await self._session.execute(select(UserTask).where(UserTask.report_url == url))
+        return user_tasks.scalars.first()
 
     async def get_user_task_with_photo_url(
         self,
@@ -50,10 +53,8 @@ class UserTaskRepository(AbstractRepository):
                 UserTask.task_id,
                 UserTask.task_date,
                 UserTask.status,
-                Photo.url.label("photo_url"),
-            )
-            .join(Photo)
-            .where(UserTask.id == id, Photo.id == UserTask.photo_id)
+                UserTask.report_url.label("photo_url"),
+            ).where(UserTask.id == id)
         )
         user_task = user_task.all()
         return dict(*user_task)
@@ -124,13 +125,13 @@ class UserTaskRepository(AbstractRepository):
             UserTask.task_id,
             Task.description,
             Task.url,
-            Photo.url,
+            UserTask.report_url.label("photo_url"),
         )
         if shift_id:
             stmt = stmt.where(UserTask.shift_id == shift_id)
         if status:
             stmt = stmt.where(UserTask.status == status)
-        stmt = stmt.join(Shift).join(User).join(Task).join(Photo).order_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
         user_tasks = await self._session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
