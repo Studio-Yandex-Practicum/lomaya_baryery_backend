@@ -1,16 +1,17 @@
+from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Member
+from src.core.db.models import Member, Request
 from src.core.db.repository import AbstractRepository
 
 
 class MemberRepository(AbstractRepository):
-    """Репозиторий для работы с моделью Request."""
+    """Репозиторий для работы с моделью Member."""
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Member)
@@ -28,3 +29,23 @@ class MemberRepository(AbstractRepository):
             member.numbers_lombaryers += 1
         await self._session.merge(member)
         await self._session.commit()
+
+    async def create_members(self, shift_id: UUID) -> None:
+        approved_requests = await self._session.execute(
+            select(Request).where(Request.status == Request.Status.APPROVED.value)
+        )
+        approved_requests = approved_requests.scalars().all()
+        if not approved_requests:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail=(f"Для смены id={shift_id} " f"заявки со статусом {Request.Status.APPROVED.value} не найдены."),
+            )
+        for request in approved_requests:
+            member_data = {
+                'user_id': request.user_id,
+                'shift_id': shift_id,
+                'numbers_lombaryers': 0,
+                'status': Member.Status.ACTIVE.value,
+            }
+            new_member = Member(**member_data)
+            await self.create(new_member)

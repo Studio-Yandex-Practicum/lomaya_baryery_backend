@@ -15,7 +15,7 @@ from src.api.response_models.shift import (
     ShiftWithTotalUsersResponse,
 )
 from src.core.db.models import Request, Shift
-from src.core.db.repository import ShiftRepository
+from src.core.db.repository import MemberRepository, ShiftRepository
 from src.core.exceptions import NotFoundException
 from src.core.services.user_task_service import UserTaskService
 
@@ -31,9 +31,11 @@ class ShiftService:
     def __init__(
         self,
         shift_repository: ShiftRepository = Depends(),
+        member_repository: MemberRepository = Depends(),
         user_task_service: UserTaskService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
+        self.__member_repository = member_repository
         self.__user_task_service = user_task_service
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
@@ -58,6 +60,7 @@ class ShiftService:
 
         update_shift_dict = {"started_at": datetime.now().date(), "status": Shift.Status.STARTED.value}
         updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        await self.__member_repository.create_members(id)
         await self.__user_task_service.distribute_tasks_on_shift(id)
         return updated_shift  # noqa: R504
 
