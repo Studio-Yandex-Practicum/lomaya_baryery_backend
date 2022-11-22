@@ -141,8 +141,8 @@ class UserTask(Base):
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    report_url = Column(String(length=150), unique=True, nullable=False)
-    uploaded_at = Column(DATE, nullable=True)
+    report_url = Column(String(length=4096), unique=True, nullable=False)
+    uploaded_at = Column(TIMESTAMP, nullable=True)
     is_repeated = Column(Boolean(), nullable=False)
     user = relationship("User", back_populates="user_tasks")
     shift = relationship("Shift", back_populates="user_tasks")
