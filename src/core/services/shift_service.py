@@ -61,6 +61,14 @@ class ShiftService:
         await self.__user_task_service.distribute_tasks_on_shift(id)
         return updated_shift  # noqa: R504
 
+    async def finish_shift(self, id: UUID) -> Shift:
+        shift = await self.__shift_repository.get(id)
+        if shift.status == Shift.Status.FINISHED.value:
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+        update_shift_dict = {"finished_at": datetime.now().date(), "status": Shift.Status.FINISHED.value}
+        updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        return updated_shift
+
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
         shift = await self.__shift_repository.get_with_users(id)
         users = shift.users
