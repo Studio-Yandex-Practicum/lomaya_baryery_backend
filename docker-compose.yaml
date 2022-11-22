@@ -3,6 +3,7 @@ version: '3.3'
 volumes:
   postgres_data_stage:
 
+
 services:
   postgres:
     image: postgres:13.2
@@ -23,5 +24,7 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    volumes:
+      - ./:/LOMAYA_BARYERY_BACKEND
     depends_on:
       - postgres
