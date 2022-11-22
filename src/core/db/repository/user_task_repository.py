@@ -39,7 +39,7 @@ class UserTaskRepository(AbstractRepository):
 
     async def get_by_photo_url(self, url: str) -> UserTask:
         user_tasks = await self._session.execute(select(UserTask).where(UserTask.report_url == url))
-        return user_tasks.scalars.first()
+        return user_tasks.scalars().first()
 
     async def get_user_task_with_photo_url(
         self,
