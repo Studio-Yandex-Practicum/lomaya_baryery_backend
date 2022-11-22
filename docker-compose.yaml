@@ -35,6 +35,9 @@ services:
     links:
       - backend
     environment:
+      - DOMAIN=backend
       - PORT=8000
+      - AUTH_TOKEN=${NGROK_AUTH_TOKEN}
+      - BIND_TLS=true
     depends_on:
       - backend

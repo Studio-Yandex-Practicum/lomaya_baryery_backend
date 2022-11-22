@@ -93,6 +93,7 @@ jobs:
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo NGROK_LOCAL_URL=http://127.0.0.1:4551/api/tunnels >> .env
+            echo NGROK_AUTH_TOKEN=2HUe0ZFrPQS1jsGl023ju7PmARn_3noqbN46jjeqV42EibHCg >> .env
 
   start_application:
     name: Start application
