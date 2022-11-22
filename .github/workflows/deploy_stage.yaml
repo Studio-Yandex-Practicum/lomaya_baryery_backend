@@ -126,7 +126,6 @@ jobs:
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
             docker compose --file docker-compose.yaml stop
             docker compose --file docker-compose.yaml rm backend
-            docker cp .env backend:${{ env.WORK_DIR }}
             docker cp localhost.crt backend:${{ env.WORK_DIR }}
             docker cp localhost.key backend:${{ env.WORK_DIR }}
             docker compose --file docker-compose.yaml up -d
