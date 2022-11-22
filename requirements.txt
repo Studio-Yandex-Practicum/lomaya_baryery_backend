@@ -60,3 +60,6 @@ uvicorn==0.18.3 ; python_version >= "3.8" and python_version < "4.0"
 virtualenv==20.16.5 ; python_version >= "3.8" and python_version < "4.0"
 yarl==1.8.1 ; python_version >= "3.8" and python_version < "4.0"
 zipp==3.9.0 ; python_version >= "3.8" and python_version < "3.9"
+alembic-autogen-check~=1.1.1
+sqlmodel~=0.0.8
+factory-boy==3.2.1
