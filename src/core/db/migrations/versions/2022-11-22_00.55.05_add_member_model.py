@@ -26,7 +26,6 @@ def upgrade():
     sa.Column('deleted', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
-    # sa.Column('status', sa.Enum('active', 'excluded', name='member_status'), nullable=False),
     sa.Column('status', STATUS_ENUM, nullable=False),
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('shift_id', postgresql.UUID(as_uuid=True), nullable=True),
