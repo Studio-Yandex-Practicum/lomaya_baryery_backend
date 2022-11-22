@@ -122,3 +122,12 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker compose exec -w ${{ env.WORK_DIR }} backend alembic upgrade head
+      - name: Get the status of healthcheck
+        uses: appleboy/ssh-action@master
+        uses: im-open/url-status-check@v1.1.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          url: 'http://localhost:8080/healthcheck'
+          fail-on-bad-status: true

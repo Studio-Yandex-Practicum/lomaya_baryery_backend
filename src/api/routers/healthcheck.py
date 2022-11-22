@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi_restful.cbv import cbv
 from fastapi import Request
 
@@ -21,5 +23,9 @@ class HealthcheckCBV:
     )
     async def get_current_status(self, request: Request) -> HealthcheckResponse:
         """Запускает сервис проверки состояния Бота, АПИ, БД."""
-
-        return await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)
+        all_status = await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)
+        all_status_dict = all_status.dict()
+        for stat in all_status_dict.values():
+            if not stat[0]:
+                raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=all_status_dict)
+        return all_status
