@@ -44,7 +44,7 @@ class UserTasksCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
-        return await self.user_task_service.get_user_task_with_photo_url(user_task_id)
+        return await self.user_task_service.get_user_task_with_report_url(user_task_id)
 
     @router.patch(
         "/{user_task_id}/approve",

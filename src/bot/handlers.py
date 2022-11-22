@@ -92,7 +92,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         return
     file_path = await download_photo_report_callback(update, context)
     photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
-    photo_exists = await user_task_service.check_photo_url_exists(photo_url)
+    photo_exists = await user_task_service.check_report_url_exists(photo_url)
     if photo_exists:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
