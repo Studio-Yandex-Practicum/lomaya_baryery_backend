@@ -41,8 +41,19 @@ class HealthcheckService:
             return False, f"{db_error}"
 
     async def get_healthcheck_status(self, bot: Application.bot) -> HealthcheckResponse:
+        errors=[]
+        bot_status, *bot_error=await self.__get_bot_status(bot)
+        if bot_error:
+            errors.append(bot_error)
+        api_status, *api_error=await self.__get_api_status()
+        if api_error:
+            errors.append(api_error)
+        db_status, *db_error=await self.__get_db_status()
+        if db_error:
+            errors.append(db_error)
         return HealthcheckResponse(
-            bot_status=await self.__get_bot_status(bot),
-            api_status=await self.__get_api_status(),
-            db_status=await self.__get_db_status(),
+            bot_status=bot_status,
+            api_status=api_status,
+            db_status=db_status,
+            errors=errors
         )

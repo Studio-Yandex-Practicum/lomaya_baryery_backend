@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class HealthcheckResponse(BaseModel):
     """Модель для вывода статусов ручки /healthcheck."""
 
-    bot_status: tuple
-    api_status: tuple
-    db_status: tuple
+    bot_status: bool
+    api_status: bool
+    db_status: bool
+    errors: list
