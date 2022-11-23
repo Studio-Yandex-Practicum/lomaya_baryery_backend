@@ -25,6 +25,6 @@ class HealthcheckCBV:
         """Запускает сервис проверки состояния Бота, АПИ, БД."""
         all_status = await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)
         all_status_dict = all_status.dict()
-        if len(all_status_dict['errors'])>0:
+        if len(all_status_dict['errors']) > 0:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=all_status_dict)
         return all_status
