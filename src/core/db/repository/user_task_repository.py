@@ -131,7 +131,7 @@ class UserTaskRepository(AbstractRepository):
             stmt = stmt.where(UserTask.shift_id == shift_id)
         if status:
             stmt = stmt.where(UserTask.status == status)
-        stmt = stmt.join(Shift).join(User).join(Task).ophotorder_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
         user_tasks = await self._session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
