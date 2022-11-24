@@ -32,13 +32,13 @@ class MemberRepository(AbstractRepository):
 
     async def create_members(self, shift_id: UUID) -> None:
         approved_requests = await self._session.execute(
-            select(Request).where(Request.status == Request.Status.APPROVED.value)
+            select(Request).where(Request.status == Request.Status.APPROVED.value, Request.shift_id == shift_id)
         )
         approved_requests = approved_requests.scalars().all()
         if not approved_requests:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail=(f"Для смены id={shift_id} " f"заявки со статусом {Request.Status.APPROVED.value} не найдены."),
+                detail=f"Для смены id={shift_id} заявки со статусом {Request.Status.APPROVED.value} не найдены.",
             )
         for request in approved_requests:
             member_data = {

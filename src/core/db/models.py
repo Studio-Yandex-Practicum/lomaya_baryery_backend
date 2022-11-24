@@ -168,6 +168,8 @@ class UserTask(Base):
 
 
 class Member(Base):
+    """Модель участников смены."""
+
     class Status(str, enum.Enum):
         """Статус участника смены."""
 
@@ -182,6 +184,8 @@ class Member(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
     numbers_lombaryers = Column(Integer)
+
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
 
     def __repr__(self):
         return f"<Member: {self.id}, status: {self.status}>"
