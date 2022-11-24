@@ -140,6 +140,8 @@ class UserTaskService:
                         task_id=task_ids_list[one_date.day - 1],
                         task_date=one_date,
                         status=UserTask.Status.NEW.value,
+                        report_url="",
+                        is_repeated=False,
                     )
                 )
         await self.__user_task_repository.create_all(result)
