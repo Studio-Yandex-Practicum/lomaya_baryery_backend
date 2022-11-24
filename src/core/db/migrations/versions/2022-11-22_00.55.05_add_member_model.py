@@ -32,7 +32,8 @@ def upgrade():
     sa.Column('numbers_lombaryers', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'shift_id', name='_user_shift_uc'),
     )
     # ### end Alembic commands ###
 
