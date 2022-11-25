@@ -95,7 +95,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         return
     photo_service = PhotoService(PhotoRepository(session))
     file_path = await download_photo_report_callback(update, context)
-    photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
+    photo_url = f'{settings.user_reports_dir}/{file_path}'
     photo = await photo_service.get_photo_by_url(photo_url)
     if photo:
         await update.message.reply_text(
