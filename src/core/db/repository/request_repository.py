@@ -86,3 +86,9 @@ class RequestRepository(AbstractRepository):
             request.status = Request.Status.EXCLUDED
             await self._session.merge(request)
         await self._session.commit()
+
+    async def get_approved_requests_by_shift(self, shift_id: UUID) -> list[Request]:
+        approved_requests = await self._session.execute(
+            select(Request).where(Request.status == Request.Status.APPROVED.value, Request.shift_id == shift_id)
+        )
+        return approved_requests.scalars().all()
