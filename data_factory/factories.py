@@ -43,13 +43,6 @@ class ShiftFactory(BaseFactory):
     final_message = ""
 
 
-class PhotoFactory(BaseFactory):
-    class Meta:
-        model = models.Photo
-
-    url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
-
-
 class TaskFactory(BaseFactory):
     class Meta:
         model = models.Task
@@ -79,7 +72,6 @@ class UserTaskFactory(BaseFactory):
         user = factory.SubFactory(UserFactory)
         shift = factory.SubFactory(ShiftFactory)
         task = factory.SubFactory(TaskFactory)
-        photo = factory.SubFactory(PhotoFactory)
 
     user_id = factory.SelfAttribute("user.id")
     shift_id = factory.SelfAttribute("shift.id")
@@ -90,4 +82,4 @@ class UserTaskFactory(BaseFactory):
         date_end=factory.SelfAttribute("..shift.finished_at"),
     )
     status = factory.Iterator([status for status in models.UserTask.Status])
-    photo_id = factory.SelfAttribute("photo.id")
+    photo_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")

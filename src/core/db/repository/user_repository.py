@@ -16,7 +16,7 @@ class UserRepository(AbstractRepository):
         super().__init__(session, User)
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
-        user = await self._session.execute(select(User).where(telegram_id == telegram_id))
+        user = await self._session.execute(select(User).where(User.telegram_id == telegram_id))
         return user.scalars().first()
 
     async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
