@@ -48,9 +48,7 @@ class Settings(BaseSettings):
     @property
     def user_reports_dir(self):
         """Получить директорию для сохранения фотоотчета."""
-        user_reports_dir = BASE_DIR / 'data' / 'user_reports'
-        Path(user_reports_dir).mkdir(parents=True, exist_ok=True)
-        return user_reports_dir
+        return BASE_DIR / 'data' / 'user_reports'
 
     @property
     def registration_template_url(self) -> str:
