@@ -14,6 +14,7 @@ from src.api.response_models.shift import (
     ShiftUsersResponse,
     ShiftWithTotalUsersResponse,
 )
+from src.bot import services
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import NotFoundException
@@ -35,6 +36,7 @@ class ShiftService:
     ) -> None:
         self.__shift_repository = shift_repository
         self.__user_task_service = user_task_service
+        self.__telegram_bot = services.BotService
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
@@ -61,13 +63,15 @@ class ShiftService:
         await self.__user_task_service.distribute_tasks_on_shift(id)
         return updated_shift  # noqa: R504
 
-    async def finish_shift(self, id: UUID) -> Shift:
+    async def finish_shift(self, bot, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
         if shift.status == Shift.Status.FINISHED.value:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         update_shift_dict = {"finished_at": datetime.now().date(), "status": Shift.Status.FINISHED.value}
         updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
-        return updated_shift
+        for user in updated_shift.users:
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, updated_shift.final_message)
+        return updated_shift  # noqa: R504
 
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
         shift = await self.__shift_repository.get_with_users(id)
