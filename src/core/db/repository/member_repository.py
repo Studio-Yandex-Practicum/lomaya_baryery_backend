@@ -20,16 +20,3 @@ class MemberRepository(AbstractRepository):
             select(Member).where(Member.user_id == user_id, Member.shift_id == shift_id)
         )
         return member.scalars().first()
-
-    async def add_one_lombaryer(self, member: Member) -> None:
-        if not member.numbers_lombaryers:
-            member.numbers_lombaryers = 1
-        else:
-            member.numbers_lombaryers += 1
-        await self._session.merge(member)
-        await self._session.commit()
-
-    async def create_all(self, member_list: tuple[Member]) -> tuple[Member]:
-        self._session.add_all(member_list)
-        await self._session.commit()
-        return member_list

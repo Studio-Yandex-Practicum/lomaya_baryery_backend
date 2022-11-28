@@ -122,6 +122,33 @@ class Request(Base):
         return f"<Request: {self.id}, status: {self.status}>"
 
 
+class Member(Base):
+    """Модель участников смены."""
+
+    class Status(str, enum.Enum):
+        """Статус участника смены."""
+
+        ACTIVE = "active"
+        EXCLUDED = "excluded"
+
+    __tablename__ = "members"
+
+    status = Column(
+        Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]),
+        default=Status.ACTIVE.value,
+        nullable=False,
+    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    numbers_lombaryers = Column(Integer, default=0, nullable=False)
+    user_tasks = relationship("UserTask", back_populates="member")
+
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
+
+    def __repr__(self):
+        return f"<Member: {self.id}, status: {self.status}>"
+
+
 class UserTask(Base):
     """Ежедневные задания."""
 
@@ -139,6 +166,8 @@ class UserTask(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
+    member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
+    member = relationship("Member", back_populates="user_tasks")
     task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
@@ -150,31 +179,7 @@ class UserTask(Base):
     shift = relationship("Shift", back_populates="user_tasks")
     task = relationship("Task", back_populates="user_tasks")
 
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_date", name="_user_task_uc"),)
+    __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
-
-
-class Member(Base):
-    """Модель участников смены."""
-
-    class Status(str, enum.Enum):
-        """Статус участника смены."""
-
-        ACTIVE = "active"
-        EXCLUDED = "excluded"
-
-    __tablename__ = "members"
-
-    status = Column(
-        Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
-    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
-    numbers_lombaryers = Column(Integer)
-
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
-
-    def __repr__(self):
-        return f"<Member: {self.id}, status: {self.status}>"

@@ -99,7 +99,8 @@ class UserTaskService:
         request = await self.__request_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
         await self.__request_repository.add_one_lombaryer(request)
         member = await self.__member_repository.get_by_user_and_shift(user_task.user_id, user_task.shift_id)
-        await self.__member_repository.add_one_lombaryer(member)
+        member.numbers_lombaryers += 1
+        await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(user_task)
         return
 
