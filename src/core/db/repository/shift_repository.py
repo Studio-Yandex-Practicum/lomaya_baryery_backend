@@ -58,21 +58,18 @@ class ShiftRepository(AbstractRepository):
     ) -> list:
         shifts = (
             select(
-                (Shift.id),
-                (Shift.status),
-                (Shift.started_at),
-                (Shift.finished_at),
-                (Shift.title),
-                (Shift.final_message),
-                (func.count(Request.user_id).label("total_users")),
+                Shift.id,
+                Shift.status,
+                Shift.started_at,
+                Shift.finished_at,
+                Shift.title,
+                Shift.final_message,
+                func.count(Request.user_id).label('total_users'),
             )
-            .join(Request.shift)
+            .outerjoin(Shift.requests)
             .group_by(Shift.id)
             .where(
-                and_(
-                    or_(status is None, Shift.status == status),
-                    Request.status == Request.Status.APPROVED.value,
-                )
+                or_(status is None, Shift.status == status),
             )
             .order_by(sort or Shift.started_at.desc())
         )

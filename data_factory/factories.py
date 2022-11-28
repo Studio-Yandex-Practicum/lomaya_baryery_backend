@@ -82,4 +82,10 @@ class UserTaskFactory(BaseFactory):
         date_end=factory.SelfAttribute("..shift.finished_at"),
     )
     status = factory.Iterator([status for status in models.UserTask.Status])
+    # -----
+    # Чтобы корректно добавлялись фейковые данные, нужно добавить поля:
+    # report_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
+    # is_repeated = factory.Faker('pybool')
+    # и убрать:
     photo_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
+    # -----

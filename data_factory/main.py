@@ -8,7 +8,11 @@ FAKE_DATA_QUANTITY = 10
 
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
+    # -----
+    # Нужно убрать таблицу photos, т.к. её больше нет:
     session.execute("""TRUNCATE TABLE photos, requests, shifts, tasks, user_tasks, users""")
+    # session.execute("""TRUNCATE TABLE requests, shifts, tasks, user_tasks, users""")
+    # -----
     session.commit()
 
 
