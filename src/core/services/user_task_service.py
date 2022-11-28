@@ -66,8 +66,12 @@ class UserTaskService:
     async def get_user_task(self, id: UUID) -> UserTask:
         return await self.__user_task_repository.get(id)
 
-    async def get_user_task_with_photo_url(self, id: UUID) -> dict:
-        return await self.__user_task_repository.get_user_task_with_photo_url(id)
+    async def get_user_task_with_report_url(self, id: UUID) -> dict:
+        return await self.__user_task_repository.get_user_task_with_report_url(id)
+
+    async def check_report_url_exists(self, url: str) -> bool:
+        user_task = await self.__user_task_repository.get_by_report_url(url)
+        return user_task is not None
 
     async def get_today_active_usertasks(self) -> list[LongTaskResponse]:
         usertask_ids = await self.__shift_repository.get_today_active_user_task_ids()
@@ -141,6 +145,8 @@ class UserTaskService:
                         task_id=task_ids_list[one_date.day - 1],
                         task_date=one_date,
                         status=UserTask.Status.NEW.value,
+                        report_url="",
+                        is_repeated=False,
                     )
                 )
         await self.__user_task_repository.create_all(result)
