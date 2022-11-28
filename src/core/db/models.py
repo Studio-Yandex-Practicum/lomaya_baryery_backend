@@ -181,7 +181,7 @@ class Member(Base):
     status = Column(
         Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
     numbers_lombaryers = Column(Integer)
 
