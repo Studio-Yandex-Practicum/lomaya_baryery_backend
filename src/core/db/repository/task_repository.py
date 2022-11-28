@@ -33,6 +33,4 @@ class TaskRepository(AbstractRepository):
             .select_from(User, Task)
             .where(User.id == user_id, Task.id == task_id)
         )
-        task_summary_info = task_summary_info.all()
-        task = dict(*task_summary_info)
-        return task
+        return dict(*task_summary_info.all())

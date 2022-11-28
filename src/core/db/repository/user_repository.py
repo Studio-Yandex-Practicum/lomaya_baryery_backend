@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import Depends
-from sqlalchemy import exists, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -16,12 +16,12 @@ class UserRepository(AbstractRepository):
         super().__init__(session, User)
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
-        user = await self._session.execute(select(User).where(telegram_id == telegram_id))
+        user = await self._session.execute(select(User).where(User.telegram_id == telegram_id))
         return user.scalars().first()
 
     async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
         user_exists = await self._session.execute(
-            exists().where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id))
+            select(select(User).where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id)).exists())
         )
         return user_exists.scalar()
 
@@ -29,5 +29,4 @@ class UserRepository(AbstractRepository):
         user_in_active_shift = await self._session.execute(
             select(User).where(Shift.status == Shift.Status.STARTED.value).join(User.shifts)
         )
-        users_in_active_shift = user_in_active_shift.scalars().all()
-        return users_in_active_shift
+        return user_in_active_shift.scalars().all()

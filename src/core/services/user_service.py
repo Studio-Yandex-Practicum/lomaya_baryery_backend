@@ -41,7 +41,7 @@ class UserService:
     async def user_registration(self, user_data: dict):
         """Регистрация пользователя. Отправка запроса на участие в смене."""
         user_scheme = UserCreateRequest(**user_data)
-        await validate_user_create(user_scheme, self.user_repository)
+        await validate_user_create(user_scheme, self.__user_repository)
         user = User(**user_scheme.dict())
         await self.__user_repository.create(user)
         request = await self.__request_repository.get_or_none(user.id)
@@ -55,4 +55,4 @@ class UserService:
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""
-        return await self.user_repository.get_by_telegram_id(telegram_id)
+        return await self.__user_repository.get_by_telegram_id(telegram_id)
