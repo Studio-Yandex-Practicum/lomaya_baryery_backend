@@ -18,3 +18,11 @@ class NotFoundException(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+
+
+class TaskNotFoundError(Exception):
+    pass
+
+
+class UnexpectedReportError(Exception):
+    pass
