@@ -2,6 +2,7 @@ aiohttp==3.8.3
 aiolimiter==1.0.0
 aiosignal==1.2.0
 alembic==1.7.7
+alembic-autogen-check~=1.1.1
 anyio==3.6.1
 apscheduler==3.9.1
 async-timeout==4.0.2
