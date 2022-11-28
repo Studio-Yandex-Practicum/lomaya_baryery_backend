@@ -23,7 +23,7 @@ class ShiftRepository(AbstractRepository):
 
     async def get_with_users(self, id: UUID) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
-        request = await self.session.execute(statement)
+        request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)

@@ -68,9 +68,10 @@ class ShiftService:
         if shift.status == Shift.Status.FINISHED.value:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         update_shift_dict = {"finished_at": datetime.now().date(), "status": Shift.Status.FINISHED.value}
-        updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        updated_shift = await self.__shift_repository.get_with_users(id=id)
         for user in updated_shift.users:
-            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, updated_shift.final_message)
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, updated_shift)
         return updated_shift  # noqa: R504
 
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
