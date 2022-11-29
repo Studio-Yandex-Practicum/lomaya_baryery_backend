@@ -1,3 +1,4 @@
+import datetime
 import enum
 import uuid
 
@@ -152,3 +153,8 @@ class UserTask(Base):
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+
+    def start_review(self, photo_url: str):
+        self.status = UserTask.Status.UNDER_REVIEW.value
+        self.report_url = photo_url
+        self.uploaded_at = datetime.datetime.now()
