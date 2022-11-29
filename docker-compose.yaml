@@ -27,8 +27,8 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
-      - nginx_config:/LOMAYA_BARYERY_BACKEND/src/nginx/
+      - static_value:/${WORK_DIR}/src/static/
+      - nginx_config:/${WORK_DIR}/src/nginx/
 
   nginx:
     image: nginx:1.23.2-alpine
