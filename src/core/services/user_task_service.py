@@ -1,5 +1,5 @@
 import random
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from http import HTTPStatus
 from typing import Any
 
@@ -8,7 +8,6 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import Status
-from src.api.request_models.user_task import UserTaskUpdateRequest
 from src.api.response_models.task import LongTaskResponse
 from src.bot import services
 from src.core.db import DTO_models
@@ -20,7 +19,7 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.exceptions import TaskNotFoundError, UnexpectedReportError
+from src.core.exceptions import DuplicateReportError, InappropriateTaskStatusError
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -67,9 +66,10 @@ class UserTaskService:
     async def get_user_task_with_report_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_report_url(id)
 
-    async def check_report_url_exists(self, url: str) -> bool:
+    async def check_duplicate_report(self, url: str) -> None:
         user_task = await self.__user_task_repository.get_by_report_url(url)
-        return user_task is not None
+        if user_task:
+            raise DuplicateReportError()
 
     async def get_today_active_usertasks(self) -> list[LongTaskResponse]:
         usertask_ids = await self.__shift_repository.get_today_active_user_task_ids()
@@ -176,20 +176,14 @@ class UserTaskService:
         """Получить задачу для изменения статуса и photo_id."""
         return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
 
-    async def add_report(self, photo_url: str, user_id: UUID) -> UserTask:
-        user_task = await self.get_today_user_task(user_id)
-        if not user_task:
-            raise TaskNotFoundError
-        photo_exists = await self.check_report_url_exists(photo_url)
-        if photo_exists:
-            raise UnexpectedReportError
-        return await self.__user_task_repository.update(
-            id=user_task.id,
-            instance=UserTask(
-                status=UserTask.Status.UNDER_REVIEW.value, report_url=photo_url, uploaded_at=datetime.now()
-            ),
-        )
-
-    async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
-        print("Эта функция должна быть удалена, не используйте её.")
-        return await self.__user_task_repository.update(id=id, instance=UserTask(**update_user_task_data.dict()))
+    async def add_report(self, user_id: UUID, photo_url: str) -> UserTask:
+        user_task = await self.__user_task_repository.get_current_user_task(user_id)
+        if user_task.status not in (
+            UserTask.Status.NEW.value,
+            UserTask.Status.WAIT_REPORT.value,
+            UserTask.Status.DECLINED.value,
+        ):
+            raise InappropriateTaskStatusError()
+        await self.check_duplicate_report(photo_url)
+        user_task.start_review(photo_url)
+        return await self.__user_task_repository.update(id=user_task.id, instance=user_task)

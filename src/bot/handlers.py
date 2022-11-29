@@ -19,7 +19,11 @@ from src.core.db.repository import (
     UserRepository,
     UserTaskRepository,
 )
-from src.core.exceptions import TaskNotFoundError, UnexpectedReportError
+from src.core.exceptions import (
+    CurrentTaskNotFoundError,
+    DuplicateReportError,
+    InappropriateTaskStatusError,
+)
 from src.core.services.user_service import UserService
 from src.core.services.user_task_service import UserTaskService
 from src.core.settings import settings
@@ -89,11 +93,16 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
 
     try:
-        await user_task_service.add_report(photo_url, user.id)
+        await user_task_service.add_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
-    except TaskNotFoundError:
-        await update.message.reply_text("Не требуется отправка отчета.")
-    except UnexpectedReportError:
+
+    except CurrentTaskNotFoundError:
+        await update.message.reply_text("Сейчас заданий нет.")
+    except InappropriateTaskStatusError:
+        await update.message.reply_text(
+            "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
+        )
+    except DuplicateReportError:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
         )
