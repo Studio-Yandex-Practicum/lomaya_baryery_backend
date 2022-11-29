@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
     STATIC_URL: str = "/static"
-    STATIC_PATH: str = "src/html"
+    STATIC_PATH: str = "src/static"
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку для получения HTML шаблона регистрации."""
+        """Получить ссылку для на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
 
     class Config:

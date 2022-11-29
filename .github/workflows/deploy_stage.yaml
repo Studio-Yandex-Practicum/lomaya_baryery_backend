@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - hotfix/start-app
+      - fix/stage_deploy
 
 env:
   REGISTRY: ghcr.io
