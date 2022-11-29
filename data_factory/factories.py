@@ -73,13 +73,6 @@ class ShiftFactory(BaseFactory):
         return finished_at
 
 
-class PhotoFactory(BaseFactory):
-    class Meta:
-        model = models.Photo
-
-    url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
-
-
 class TaskFactory(BaseFactory):
     class Meta:
         model = models.Task
