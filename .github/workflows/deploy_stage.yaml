@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - fix/stage_deploy
+      - fix/registration_new
 
 env:
   REGISTRY: ghcr.io
