@@ -20,9 +20,19 @@ class NotFoundException(ApplicationException):
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
 
 
-class TaskNotFoundError(Exception):
+class CurrentTaskNotFoundError(Exception):
+    """Не найдено текущей задачи для пользователя."""
+
     pass
 
 
-class UnexpectedReportError(Exception):
+class InappropriateTaskStatusError(Exception):
+    """Статус задания пользователя не позволяет выполнить операцию."""
+
+    pass
+
+
+class DuplicateReportError(Exception):
+    """Отчет с таким фото уже отправлялся ранее."""
+
     pass
