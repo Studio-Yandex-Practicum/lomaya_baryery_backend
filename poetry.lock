@@ -611,7 +611,7 @@ socks = ["httpx[socks]"]
 
 [[package]]
 name = "pytz"
-version = "2022.4"
+version = "2022.6"
 description = "World timezone definitions, modern and historical"
 category = "main"
 optional = false
@@ -835,7 +835,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "95df85c16a3d27124cf72f5cf335ec8b9a56b40fc3501a63605ad631d403a78c"
+content-hash = "cc5e7dbbe58103a6ae28471c8023a88e1e2aaeba2c6b345597eb990f8ce3a88f"
 
 [metadata.files]
 aiohttp = [
@@ -1482,8 +1482,8 @@ python-telegram-bot = [
     {file = "python_telegram_bot-20.0a4-py3-none-any.whl", hash = "sha256:79ce5a179017baeae362382c86c19951413a277ac8dd3f736824da36432ed2e9"},
 ]
 pytz = [
-    {file = "pytz-2022.4-py2.py3-none-any.whl", hash = "sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91"},
-    {file = "pytz-2022.4.tar.gz", hash = "sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174"},
+    {file = "pytz-2022.6-py2.py3-none-any.whl", hash = "sha256:222439474e9c98fced559f1709d89e6c9cbf8d79c794ff3eb9f8800064291427"},
+    {file = "pytz-2022.6.tar.gz", hash = "sha256:e89512406b793ca39f5971bc999cc538ce125c0e51c27941bef4568b460095e2"},
 ]
 pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0-py2.py3-none-any.whl", hash = "sha256:8314c9692a636c8eb3bda879b9f119e350e93223ae83e70e80c31675a0fdc1a6"},
