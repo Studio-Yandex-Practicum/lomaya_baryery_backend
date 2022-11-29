@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data_factory.factories import (SESSION, UserFactory,
-                                    ShiftFactory, PhotoFactory, TaskFactory, RequestFactory)
+                                    ShiftFactory, TaskFactory, RequestFactory)
 
 from src.core.db.models import Shift, User, Request
 
@@ -37,7 +37,7 @@ def get_random_user_ids(count: int) -> list:
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute("""TRUNCATE TABLE photos, requests, shifts, tasks, user_tasks, users""")
+    session.execute("""TRUNCATE TABLE requests, shifts, tasks, user_tasks, users""")
     session.commit()
 
 
@@ -50,9 +50,6 @@ def generate_fake_data() -> None:
 
         logger.info("Создание заданий...")
         TaskFactory.create_batch(31)
-
-        logger.info("Создание фотографий...")
-        PhotoFactory.create_batch(10)
 
         logger.info("Создание активной смены...")
         started_shift = ShiftFactory.create(status=Shift.Status.STARTED)
@@ -69,7 +66,7 @@ def generate_fake_data() -> None:
                                   status=Request.Status.DECLINED)
 
         logger.info("Создание завершенной смены...")
-        finished_shifts = ShiftFactory.create_batch(2, status=Shift.Status.FINISHED)
+        finished_shifts = ShiftFactory.create_batch(1, status=Shift.Status.FINISHED)
         for finished_shift in finished_shifts:
             user_ids = get_random_user_ids(30)
 

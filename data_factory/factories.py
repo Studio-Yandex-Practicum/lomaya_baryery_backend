@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.core.db import models
-from src.core.db.models import Shift, UserTask, Task, Photo
+from src.core.db.models import Shift, UserTask, Task
 from src.core.settings import settings
 
 STARTED_SHIFT_DURATION = 30
@@ -116,6 +116,9 @@ class UserTaskFactory(BaseFactory):
     class Meta:
         model = models.UserTask
 
+    is_repeated = factory.Faker('pybool')
+    report_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
+
     @factory.lazy_attribute
     def status(self):
         if self.task_date < datetime.date.today():
@@ -131,8 +134,8 @@ class UserTaskFactory(BaseFactory):
             select(Task.id).order_by(func.random()))
         return task_ids.scalars().first()
 
-    @factory.lazy_attribute
-    def photo_id(self):
-        photo_ids = SESSION.execute(
-            select(Photo.id).order_by(func.random()))
-        return photo_ids.scalars().first()
+    # @factory.lazy_attribute
+    # def photo_id(self):
+    #     photo_ids = SESSION.execute(
+    #         select(Photo.id).order_by(func.random()))
+    #     return photo_ids.scalars().first()
