@@ -39,6 +39,6 @@ services:
       - backend
     volumes:
       - static_value:/var/html/static/
-      - ./src/nginx/default.confdefault.conf:/etc/nginx/conf.d/default.conf
+      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf
     env_file:
       - .env
