@@ -1,4 +1,5 @@
 from datetime import time
+from pathlib import Path
 from urllib.parse import urljoin
 
 import pytz
@@ -20,6 +21,7 @@ from src.core.settings import settings
 
 def create_bot() -> Application:
     """Создать бота."""
+    Path(settings.user_reports_dir).mkdir(parents=True, exist_ok=True)
     bot_persistence = PicklePersistence(filepath=settings.BOT_PERSISTENCE_FILE)
     bot_instance = (
         ApplicationBuilder()
