@@ -6,8 +6,9 @@ import aiohttp
 from fastapi import Depends, HTTPException
 from telegram.ext import Application
 
-from src.api.response_models.healthcheck import (
-    HealthcheckResponse, PartHealthcheck, ComponentsHealthcheck)
+from src.api.response_models.healthcheck import (ComponentsHealthcheck,
+                                                 HealthcheckResponse,
+                                                 PartHealthcheck)
 from src.core.db.repository import UserTaskRepository
 from src.core.settings import settings
 

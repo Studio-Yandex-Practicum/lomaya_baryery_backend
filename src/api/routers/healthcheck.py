@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
-from fastapi import Request
 
 from src.api.response_models.healthcheck import HealthcheckResponse
 from src.core.services.healthcheck_service import HealthcheckService
