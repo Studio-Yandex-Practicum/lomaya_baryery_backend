@@ -9,8 +9,8 @@ volumes:
 services:
   postgres:
     image: postgres:13.2
-    restart: always
     container_name: postgres_stage
+    restart: always
     volumes:
       - postgres_data_stage:/var/lib/postgresql/data/
     ports:
@@ -19,16 +19,15 @@ services:
       - .env
 
   backend:
-    env_file:
-      - .env
-    container_name: lomaya_baryery_backend
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
+    container_name: lomaya_baryery_backend
     restart: always
     depends_on:
       - postgres
     volumes:
       - static_value:/${WORK_DIR}/src/static/
-      - nginx_config:/${WORK_DIR}/src/nginx/
+    env_file:
+      - .env
 
   nginx:
     image: nginx:1.23.2-alpine
@@ -36,10 +35,10 @@ services:
     restart: always
     ports:
       - "80:80"
-    volumes:
-      - static_value:/var/html/static/
-      - nginx_config:/etc/nginx/conf.d/
     depends_on:
       - backend
+    volumes:
+      - static_value:/var/html/static/
+      - ./default.conf:/etc/nginx/conf.d/default.conf
     env_file:
       - .env
