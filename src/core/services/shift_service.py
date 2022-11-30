@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -17,6 +18,7 @@ from src.api.response_models.shift import (
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import NotFoundException
+from src.core.services.task_service import TaskService
 from src.core.services.user_task_service import UserTaskService
 
 FINAL_MESSAGE = (
@@ -32,15 +34,23 @@ class ShiftService:
         self,
         shift_repository: ShiftRepository = Depends(),
         user_task_service: UserTaskService = Depends(),
+        task_service: TaskService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__user_task_service = user_task_service
+        self.__task_service = task_service
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         shift.final_message = FINAL_MESSAGE
         shift.title = ""
         shift.status = Shift.Status.PREPARING
+        task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
+        random.shuffle(task_ids_list)
+        task_ids_dict = {}
+        for number in range(len(task_ids_list)):
+            task_ids_dict[str(number + 1)] = task_ids_list[number]
+        shift.tasks = task_ids_dict
         return await self.__shift_repository.create(instance=shift)
 
     async def get_shift(self, id: UUID) -> Shift:
