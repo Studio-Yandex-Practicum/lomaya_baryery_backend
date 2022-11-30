@@ -26,7 +26,7 @@ class CurrentTaskNotFoundError(Exception):
     pass
 
 
-class InappropriateTaskStatusError(Exception):
+class CannotAcceptReportError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
     pass

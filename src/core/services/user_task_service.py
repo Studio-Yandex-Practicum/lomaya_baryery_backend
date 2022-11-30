@@ -19,7 +19,7 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.exceptions import DuplicateReportError, InappropriateTaskStatusError
+from src.core.exceptions import CannotAcceptReportError, DuplicateReportError
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -183,7 +183,7 @@ class UserTaskService:
             UserTask.Status.WAIT_REPORT.value,
             UserTask.Status.DECLINED.value,
         ):
-            raise InappropriateTaskStatusError()
+            raise CannotAcceptReportError()
         await self.check_duplicate_report(photo_url)
         user_task.start_review(photo_url)
         return await self.__user_task_repository.update(id=user_task.id, instance=user_task)

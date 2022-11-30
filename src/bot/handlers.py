@@ -20,9 +20,9 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.exceptions import (
+    CannotAcceptReportError,
     CurrentTaskNotFoundError,
     DuplicateReportError,
-    InappropriateTaskStatusError,
 )
 from src.core.services.user_service import UserService
 from src.core.services.user_task_service import UserTaskService
@@ -98,7 +98,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
-    except InappropriateTaskStatusError:
+    except CannotAcceptReportError:
         await update.message.reply_text(
             "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
         )
