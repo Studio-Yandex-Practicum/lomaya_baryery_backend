@@ -1,5 +1,6 @@
 import enum
 import uuid
+from datetime import datetime
 
 from sqlalchemy import (
     DATE,
@@ -17,6 +18,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
+
+from src.core.exceptions import NotFoundException
 
 
 @as_declarative()
@@ -58,6 +61,11 @@ class Shift(Base):
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
+
+    def finish_shift(self, shift):
+        if shift.status != Shift.Status.STARTED.value:
+            raise NotFoundException(object_name=self.__doc__, object_id=id)
+        return {"finished_at": datetime.now().date(), "status": self.Status.FINISHED.value}
 
 
 class Task(Base):

@@ -65,9 +65,7 @@ class ShiftService:
 
     async def finish_shift(self, bot, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
-        if shift.status != Shift.Status.STARTED.value:
-            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
-        update_shift_dict = {"finished_at": datetime.now().date(), "status": Shift.Status.FINISHED.value}
+        update_shift_dict = shift.finish_shift(shift=shift)
         await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
         updated_shift = await self.__shift_repository.get_with_users(id=id)
         for user in updated_shift.users:
