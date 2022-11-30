@@ -25,7 +25,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static_value:/${WORK_DIR}/src/static/
+      - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
     env_file:
       - .env
 
