@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+from itertools import cycle
 from typing import Optional
 from uuid import UUID
 
@@ -43,14 +44,15 @@ class ShiftService:
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         shift.final_message = FINAL_MESSAGE
-        shift.title = ""
         shift.status = Shift.Status.PREPARING
         task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
         random.shuffle(task_ids_list)
-        task_ids_dict = {}
-        for number in range(len(task_ids_list)):
-            task_ids_dict[str(number + 1)] = task_ids_list[number]
-        shift.tasks = task_ids_dict
+        month_tasks = {}
+        for day, task_id in enumerate(cycle(task_ids_list), start=1):
+            month_tasks[day] = task_id
+            if day == 31:
+                break
+        shift.tasks = month_tasks
         return await self.__shift_repository.create(instance=shift)
 
     async def get_shift(self, id: UUID) -> Shift:

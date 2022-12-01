@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     Enum,
+    Identity,
     Integer,
     String,
     UniqueConstraint,
@@ -49,7 +50,7 @@ class Shift(Base):
     status = Column(
         Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    sequence_number = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    sequence_number = Column(Integer, Identity(start=1, cycle=True), primary_key=True)
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
