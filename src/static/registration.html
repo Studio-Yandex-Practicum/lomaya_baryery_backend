@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ломая барьеры</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background: var(--tg-theme-bg-color) !important;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      text-rendering: optimizeLegibility;
+    }
+
+    .form {
+      max-width: 450px;
+      padding: 20px;
+      margin: 0 auto;
+    }
+
+    .input-field input[type="text"]:focus+label {
+      color: var(--tg-theme-button-color) !important;
+    }
+
+    .input-field input[type="text"]:focus {
+      border-bottom: 1px solid var(--tg-theme-button-color) !important;
+      box-shadow: 0 1px 0 0 var(--tg-theme-button-color) !important;
+    }
+
+    .input-field input[type="text"].invalid+label {
+      color: #e53935 !important;
+    }
+
+    .input-field input[type="text"].invalid {
+      border-bottom: 1px solid #e53935 !important;
+      box-shadow: 0 1px 0 0 #e53935 !important;
+    }
+
+    .helper-text {
+      color: #e53935 !important;
+    }
+
+    .input-field input[type="text"].valid {
+      border-bottom: 1px solid #9e9e9e;
+      box-shadow: none;
+    }
+
+    .input-field input[type="text"] {
+      color: var(--tg-theme-text-color) !important;
+    }
+
+    .datepicker-modal {
+      top: 5% !important;
+    }
+
+    .datepicker-date-display {
+      background-color: var(--tg-theme-button-color) !important;
+    }
+
+    .datepicker-calendar-container {
+      background: var(--tg-theme-bg-color) !important;
+    }
+
+    .datepicker-table td {
+      color: var(--tg-theme-text-color) !important;
+    }
+
+    .datepicker-table td.is-disabled {
+      color: #9e9e9e !important;
+    }
+
+    .datepicker-table td.is-selected {
+      background-color: var(--tg-theme-button-color) !important;
+      color: var(--tg-theme-button-text-color) !important;
+    }
+
+    .datepicker-table td.is-today,
+    .datepicker-cancel,
+    .datepicker-done {
+      color: var(--tg-theme-button-color) !important;
+    }
+
+    .datepicker-table td.is-today.is-selected {
+      color: var(--tg-theme-button-text-color) !important;
+    }
+
+    .dropdown-content li>a,
+    .dropdown-content li>span {
+      color: var(--tg-theme-text-color) !important;
+    }
+
+    .datepicker-controls button>svg {
+      fill: var(--tg-theme-text-color) !important;
+    }
+
+    .datepicker-controls button:focus {
+      background-color: transparent;
+    }
+
+    .browser-default {
+      outline: none !important;
+      background: var(--tg-theme-bg-color) !important;
+      border: none !important;
+      max-height: 50px !important;
+      color: var(--tg-theme-text-color) !important;
+      cursor: pointer;
+      box-shadow: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <form class="form row">
+      <div class="input-field col s12">
+        <input id="name" name="name" type="text" class="validate" minlength="2" maxlength="50" required>
+        <label for="name">Имя</label>
+        <span class="helper-text name"></span>
+      </div>
+      <div class="input-field col s12">
+        <input id="surname" name="surname" type="text" class="validate" minlength="2" maxlength="50" required>
+        <label for="surname">Фамилия</label>
+        <span class="helper-text surname"></span>
+      </div>
+      <div class="input-field col s12">
+        <input id="date_of_birth" name="date_of_birth" type="text" class="datepicker validate" autocomplete="off"
+          minlength="10" maxlength="10" required>
+        <label for="date_of_birth">Дата рождения</label>
+        <span class="helper-text date_of_birth"></span>
+      </div>
+      <div class="input-field col s12">
+        <input id="city" name="city" type="text" class="validate" minlength="2" maxlength="50" required>
+        <label for="city">Город</label>
+        <span class="helper-text city"></span>
+      </div>
+      <div class="input-field col s12">
+        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maxlength="11"
+          required>
+        <label for="phone_number">Телефон</label>
+        <span class="helper-text phone_number"></span>
+      </div>
+    </form>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+  <script>
+    dayjs.extend(dayjs_plugin_customParseFormat);
+
+    // datepicker options
+    const i18nOptions = {
+      cancel: "Отменить",
+      done: "Ок",
+      months: [
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь",
+      ],
+      monthsShort: [
+        "Янв",
+        "Фев",
+        "Мар",
+        "Апр",
+        "Май",
+        "Июн",
+        "Июл",
+        "Авг",
+        "Сен",
+        "Окт",
+        "Ноя",
+        "Дек",
+      ],
+      weekdays: [
+        "Воскресенье",
+        "Понедельник",
+        "Вторник",
+        "Среда",
+        "Четверг",
+        "Пятница",
+        "Суббота",
+      ],
+      weekdaysShort: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+      weekdaysAbbrev: ["Вc", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+    };
+
+    // validation settings and check actions
+    const validationConfig = {
+      name: {
+        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        isCapitalize: true,
+      },
+      surname: {
+        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        isCapitalize: true,
+      },
+      date_of_birth: {
+        pattern: /[^\d.]/g,
+        isCapitalize: false,
+      },
+      city: {
+        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        isCapitalize: true,
+      },
+      phone_number: {
+        pattern: /[^\d]/g,
+        isCapitalize: false,
+      },
+    };
+
+    const errMsg = {
+      name: {
+        required: "Пожалуйста, укажите имя",
+        min: "Введите не менее 2 символов",
+      },
+      surname: {
+        required: "Пожалуйста, укажите фамилию",
+        min: "Введите не менее 2 символов",
+      },
+      date_of_birth: {
+        required: "Пожалуйста, укажите дату рождения",
+        invalidDate: "Введите дату в формате дд.мм.гггг",
+      },
+      city: {
+        required: "Пожалуйста, укажите название города",
+        min: "Введите не менее 2 символов",
+      },
+      phone_number: {
+        required: "Пожалуйста, укажите номер телефона",
+        min: "Введите номер телефона без разделителей (включая 8)",
+      },
+    };
+
+    const dateFormatDayjs = "DD.MM.YYYY";
+    const disabledTgButtonColor = "#9e9e9e";
+    const disabledTgButtonTextColor = "#eceff1";
+
+    const setValid = (element, errElement) => {
+      element.classList.remove("invalid");
+      errElement.textContent = "";
+    };
+
+    const setInvalid = (element, errElement, errName) => {
+      element.classList.add("invalid");
+      errElement.textContent = errMsg[element.name][errName];
+    };
+
+    const checkInputValidity = (
+      element,
+      errElement,
+      pattern,
+      isCapitalize
+    ) => {
+      let newValue = element.value;
+      const minlength = element.getAttribute("minlength");
+
+      if (pattern) {
+        newValue = newValue.trimStart().replace(pattern, "");
+      }
+
+      if (isCapitalize && newValue) {
+        newValue = newValue
+          .split(" ")
+          .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : ""))
+          .join(" ");
+      }
+
+      if (!newValue) {
+        setInvalid(element, errElement, "required");
+      } else if (
+        element.name === "date_of_birth" &&
+        !dayjs(newValue, dateFormatDayjs, true).isValid()
+      ) {
+        setInvalid(element, errElement, "invalidDate");
+      } else if (minlength && newValue.length < minlength) {
+        setInvalid(element, errElement, "min");
+      } else {
+        setValid(element, errElement);
+      }
+
+      element.value = newValue;
+    };
+
+    const toggleSubmitState = (
+      inputs,
+      tgMainButton,
+      defaultButtonColor,
+      defaultButtonTextColor
+    ) => {
+      const isValidationError = Array.from(inputs).some(
+        (input) =>
+          !input.validity.valid || input.classList.contains("invalid")
+      );
+
+      if (isValidationError) {
+        tgMainButton.setParams({
+          is_active: false,
+          color: disabledTgButtonColor,
+          text_color: disabledTgButtonTextColor,
+        });
+      } else {
+        tgMainButton.setParams({
+          is_active: true,
+          color: defaultButtonColor,
+          text_color: defaultButtonTextColor,
+        });
+      }
+    };
+
+    const setValidation = (
+      inputs,
+      tgMainButton,
+      defaultButtonColor,
+      defaultButtonTextColor
+    ) => {
+      toggleSubmitState(
+        inputs,
+        tgMainButton,
+        defaultButtonColor,
+        defaultButtonTextColor
+      );
+
+      inputs.forEach((input) => {
+        const { pattern, isCapitalize } = validationConfig[input.name];
+
+        const errElement = document.querySelector(
+          `.helper-text.${input.name}`
+        );
+
+        const check = () => {
+          checkInputValidity(input, errElement, pattern, isCapitalize);
+          toggleSubmitState(
+            inputs,
+            tgMainButton,
+            defaultButtonColor,
+            defaultButtonTextColor
+          );
+        };
+
+        input.oninput = () => check();
+        input.onblur = () => check();
+        input.onchange = () => check();
+        input.onpaste = () => check();
+      });
+    };
+
+    // send data to server
+    const showTgButton = (tgMainButton) => {
+      tgMainButton.setText("Зарегистрироваться в проекте");
+      tgMainButton.show();
+    };
+
+    const handleSubmit = (inputs, tg) => {
+      tg.MainButton.disable();
+
+      const data = Array.from(inputs).reduce((data, input) => {
+        data[input.name] = input.value.trim();
+        return data;
+      }, {});
+
+      tg.sendData(JSON.stringify(data));
+      tg.close();
+    };
+
+    // content loaded, main actions
+    document.addEventListener("DOMContentLoaded", function () {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+
+      const tgMainButton = tg.MainButton;
+      const defaultButtonColor = tg.themeParams.button_color;
+      const defaultButtonTextColor = tg.themeParams.button_text_color;
+
+      const inputElements = document.querySelectorAll(".validate");
+      const datePickerElement = document.querySelector(".datepicker");
+
+      const today = new Date();
+      const currentYear = today.getFullYear();
+
+      const datePickerInstance = M.Datepicker.init(datePickerElement, {
+        format: "dd.mm.yyyy",
+        maxDate: today,
+        yearRange: [1945, currentYear],
+        firstDay: 1,
+        i18n: { ...i18nOptions },
+        onDraw() {
+          const selects = document.querySelectorAll(".datepicker-select");
+          selects.forEach((select) => {
+            select.classList.add("browser-default");
+          });
+
+          const selectInputs = document.querySelectorAll(".select-dropdown");
+          selectInputs.forEach((input) => {
+            input.remove();
+          });
+        },
+      });
+
+      setValidation(
+        inputElements,
+        tgMainButton,
+        defaultButtonColor,
+        defaultButtonTextColor
+      );
+
+      tgMainButton.onClick(() => handleSubmit(inputElements, tg));
+      showTgButton(tgMainButton);
+    });
+  </script>
+</body>
+
+</html>

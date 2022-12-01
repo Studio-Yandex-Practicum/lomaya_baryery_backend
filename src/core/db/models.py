@@ -4,11 +4,13 @@ from datetime import datetime
 
 from sqlalchemy import (
     DATE,
+    JSON,
     TIMESTAMP,
     BigInteger,
     Boolean,
     Column,
     Enum,
+    Identity,
     Integer,
     String,
     UniqueConstraint,
@@ -51,10 +53,12 @@ class Shift(Base):
     status = Column(
         Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
+    sequence_number = Column(Integer, Identity(start=1, cycle=True), primary_key=True)
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
     final_message = Column(String(400), nullable=False)
+    tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
     users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
