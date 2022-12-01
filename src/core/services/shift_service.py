@@ -59,8 +59,7 @@ class ShiftService:
         return await self.__shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        shift = Shift(**update_shift_data.dict(exclude_unset=True))
-        return await self.__shift_repository.update(id, shift)
+        return await self.__shift_repository.update(id, Shift(**update_shift_data.dict(exclude_unset=True)))
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
