@@ -14,7 +14,6 @@ class ShiftResponse(BaseModel):
     final_message: str
     started_at: date
     finished_at: date
-    title: str
 
     class Config:
         orm_mode = True
@@ -36,11 +35,11 @@ class ShiftDtoRespone(BaseModel):
     phone: str
     request_id: UUID
     status: Request.Status
-    title: str
 
     class Config:
         orm_mode = True
 
 
 class ShiftWithTotalUsersResponse(ShiftResponse):
+    sequence_number: int
     total_users: int

@@ -18,7 +18,7 @@ class ShiftSortRequest(str, enum.Enum):
 class ShiftCreateRequest(RequestBase):
     started_at: datetime
     finished_at: datetime
-    title: str
+    title: str = Field(..., max_length=50)
 
     @validator("started_at")
     def validate_started_later_than_now(cls, value: datetime) -> datetime:
