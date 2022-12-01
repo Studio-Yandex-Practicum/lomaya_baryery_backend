@@ -64,6 +64,7 @@ class ShiftRepository(AbstractRepository):
                 Shift.finished_at,
                 Shift.title,
                 Shift.final_message,
+                Shift.sequence_number,
                 func.count(Request.user_id).label('total_users'),
             )
             .outerjoin(Shift.requests)
