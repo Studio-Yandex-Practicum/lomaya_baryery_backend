@@ -5,14 +5,14 @@ from pydantic import BaseModel
 
 
 class PartHealthcheck(BaseModel):
-    """Модель для вывода статусов каждой части приложения ручки /healthcheck."""
+    """Model for the statuses of each part of the app"""
 
     status: bool
     errors: Optional[list[str]]
 
 
 class ComponentsHealthcheck(BaseModel):
-    """Модель статусов всех частей ручки /healthcheck."""
+    """Model for all stratuses of the application"""
 
     bot: PartHealthcheck
     api: PartHealthcheck
@@ -20,7 +20,7 @@ class ComponentsHealthcheck(BaseModel):
 
 
 class HealthcheckResponse(BaseModel):
-    """Общая модель для вывода статусов ручки /healthcheck."""
+    """Model for displaying statuses from /healthcheck."""
 
     timestamp: datetime
     components: ComponentsHealthcheck
