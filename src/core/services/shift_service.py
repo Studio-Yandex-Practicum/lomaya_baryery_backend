@@ -1,5 +1,4 @@
 import random
-from datetime import datetime
 from itertools import cycle
 from typing import Optional
 from uuid import UUID
@@ -16,16 +15,16 @@ from src.api.response_models.shift import (
     ShiftUsersResponse,
     ShiftWithTotalUsersResponse,
 )
+from src.bot import services
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
-from src.core.exceptions import NotFoundException
 from src.core.services.task_service import TaskService
 from src.core.services.user_task_service import UserTaskService
 
 FINAL_MESSAGE = (
-    "Привет, {name} {surname}!"
-    "Незаметно пролетели 3 месяца проекта. Мы рады, что ты принял участие и, надеемся, многому научился!"
-    "В этой смене ты заработал {numbers_lombaryers} ломбарьерчиков."
+    "Привет, {name} {surname}! "
+    "Незаметно пролетели 3 месяца проекта. Мы рады, что ты принял участие и, надеемся, многому научился! "
+    "В этой смене ты заработал {numbers_lombaryers} ломбарьерчиков. "
     "Ты можешь снова принять участие в проекте - регистрация на новый поток проекта будет доступна уже завтра!"
 )
 
@@ -40,6 +39,7 @@ class ShiftService:
         self.__shift_repository = shift_repository
         self.__user_task_service = user_task_service
         self.__task_service = task_service
+        self.__telegram_bot = services.BotService
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
@@ -59,28 +59,26 @@ class ShiftService:
         return await self.__shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        return await self.__shift_repository.update(id=id, instance=Shift(**update_shift_data.dict(exclude_unset=True)))
+        shift = Shift(**update_shift_data.dict(exclude_unset=True))
+        return await self.__shift_repository.update(id, shift)
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
-        if shift.status != Shift.Status.PREPARING.value:
-            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+        await shift.start()
 
         # TODO добавить вызов метода рассылки участникам первого задания
 
-        update_shift_dict = {"started_at": datetime.now().date(), "status": Shift.Status.STARTED.value}
-        updated_shift = await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
+        await self.__shift_repository.update(id, shift)
         await self.__user_task_service.distribute_tasks_on_shift(id)
-        return updated_shift  # noqa: R504
+        return shift
 
     async def finish_shift(self, bot, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get(id)
-        update_shift_dict = shift.finish_shift(shift=shift)
-        await self.__shift_repository.update(id=id, instance=Shift(**update_shift_dict))
-        updated_shift = await self.__shift_repository.get_with_users(id=id)
-        for user in updated_shift.users:
-            await self.__telegram_bot(bot).notify_that_shift_is_finished(user)
-        return updated_shift
+        shift = await self.__shift_repository.get_with_users(id)
+        await shift.finish()
+        await self.__shift_repository.update(id, shift)
+        for user in shift.users:
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, shift.final_message)
+        return shift
 
     async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
         shift = await self.__shift_repository.get_with_users(id)

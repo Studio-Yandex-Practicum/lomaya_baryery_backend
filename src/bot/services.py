@@ -74,12 +74,7 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_that_shift_is_finished(self, user: models.User) -> None:
+    async def notify_that_shift_is_finished(self, user: models.User, message: str) -> None:
         """Уведомляет участников об окончании смены."""
-        final_message = (
-            "Привет, {user.name} {user.surname}!"
-            "Незаметно пролетели 3 месяца проекта. Мы рады, что ты принял участие и, надеемся, многому научился!"
-            "В этой смене ты заработал {user.numbers_lombaryers} ломбарьерчиков."
-            "Ты можешь снова принять участие в проекте - регистрация на новый поток проекта будет доступна уже завтра!"
-        )
-        await self.__bot.send_message(user.telegram_id, final_message)
+        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=user.numbers_lombaryers)
+        await self.__bot.send_message(user.telegram_id, text)

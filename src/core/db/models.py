@@ -21,7 +21,10 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
 
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import (
+    ShiftFinishForbiddenException,
+    ShiftStartForbiddenException,
+)
 
 
 @as_declarative()
@@ -53,7 +56,7 @@ class Shift(Base):
     status = Column(
         Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    sequence_number = Column(Integer, Identity(start=1, cycle=True), primary_key=True)
+    sequence_number = Column(Integer, Identity(start=1, cycle=True))
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
@@ -66,10 +69,17 @@ class Shift(Base):
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
 
-    def finish_shift(self, shift):
-        if shift.status != Shift.Status.STARTED.value:
-            raise NotFoundException(object_name=self.__doc__, object_id=id)
-        return {"finished_at": datetime.now().date(), "status": self.Status.FINISHED.value}
+    async def start(self):
+        if self.status != Shift.Status.PREPARING.value:
+            raise ShiftStartForbiddenException(object_name=self.title, object_id=self.id)
+        self.status = Shift.Status.STARTED.value
+        self.started_at = datetime.now().date()
+
+    async def finish(self):
+        if self.status != Shift.Status.STARTED.value:
+            raise ShiftFinishForbiddenException(object_name=self.title, object_id=self.id)
+        self.status = Shift.Status.FINISHED.value
+        self.finished_at = datetime.now().date()
 
 
 class Task(Base):
