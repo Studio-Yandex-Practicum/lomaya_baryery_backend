@@ -42,8 +42,8 @@ services:
       - URL=mspiridonov.tk
       - VALIDATION=http
     ports:
-      - "443:443"
-      - "80:80"
+      - "443:8000"
+      - "80:8000"
     depends_on:
       - backend
     volumes:
