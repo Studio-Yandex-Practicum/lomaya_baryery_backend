@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - fix/stage_deploy
+      - develop
 
 env:
   REGISTRY: ghcr.io
@@ -61,13 +61,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
-      - name: Copy docker-compose file
+      - name: Copy docker-compose and nginx files
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.yaml"
+          source: "docker-compose.yaml,src/nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
