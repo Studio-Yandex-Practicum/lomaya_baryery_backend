@@ -39,15 +39,15 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Moscow
-      - URL=mspiridonov.tk
+      - URL=lombaryery.tk
       - VALIDATION=http
     ports:
-      - "443:8000"
-      - "80:8000"
+      - "443:443"
+      - "80:80"
     depends_on:
       - backend
     volumes:
-      - static_value:/config/static/
-      - ./src/nginx/default.conf:/config/nginx/proxy-confs/lombaryery.subfolder.conf
+      - static_value:/var/html/static/
+      - ./src/nginx/default.conf:/config/nginx/site-confs/default.conf
     env_file:
       - .env

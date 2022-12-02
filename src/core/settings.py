@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
@@ -19,6 +20,7 @@ class Settings(BaseSettings):
     BOT_WEBHOOK_MODE: bool = False
     BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
     APPLICATION_URL: str
+    DOMAIN_NAME: str
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -52,7 +54,7 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
+        return urlparse(f"{self.DOMAIN_NAME}{self.STATIC_URL}/registration.html", "https").geturl()
 
     class Config:
         env_file = ENV_FILE
