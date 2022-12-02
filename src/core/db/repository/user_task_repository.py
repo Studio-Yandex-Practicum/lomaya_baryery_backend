@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -12,6 +12,8 @@ from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import CurrentTaskNotFoundError
+from src.core.settings import settings
 
 
 class UserTaskRepository(AbstractRepository):
@@ -200,3 +202,17 @@ class UserTaskRepository(AbstractRepository):
         )
         user_task = await self._session.execute(statement)
         return user_task.scalars().first()
+
+    async def get_current_user_task(self, user_id: UUID) -> UserTask:
+        now = datetime.now()
+        task_date = now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
+        user_tasks = await self._session.execute(
+            select(UserTask).where(
+                UserTask.user_id == user_id,
+                UserTask.task_date == task_date,
+            )
+        )
+        user_task = user_tasks.scalars().first()
+        if not user_task:
+            raise CurrentTaskNotFoundError()
+        return user_task

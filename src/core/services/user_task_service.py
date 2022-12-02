@@ -8,7 +8,6 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import Status
-from src.api.request_models.user_task import UserTaskUpdateRequest
 from src.api.response_models.task import LongTaskResponse
 from src.bot import services
 from src.core.db import DTO_models
@@ -20,6 +19,7 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.db.repository.request_repository import RequestRepository
+from src.core.exceptions import DuplicateReportError
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -66,9 +66,10 @@ class UserTaskService:
     async def get_user_task_with_report_url(self, id: UUID) -> dict:
         return await self.__user_task_repository.get_user_task_with_report_url(id)
 
-    async def check_report_url_exists(self, url: str) -> bool:
+    async def check_duplicate_report(self, url: str) -> None:
         user_task = await self.__user_task_repository.get_by_report_url(url)
-        return user_task is not None
+        if user_task:
+            raise DuplicateReportError()
 
     async def get_today_active_usertasks(self) -> list[LongTaskResponse]:
         usertask_ids = await self.__shift_repository.get_today_active_user_task_ids()
@@ -175,5 +176,8 @@ class UserTaskService:
         """Получить задачу для изменения статуса и photo_id."""
         return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
 
-    async def update_user_task(self, id: UUID, update_user_task_data: UserTaskUpdateRequest) -> UserTask:
-        return await self.__user_task_repository.update(id=id, instance=UserTask(**update_user_task_data.dict()))
+    async def send_report(self, user_id: UUID, photo_url: str) -> UserTask:
+        user_task = await self.__user_task_repository.get_current_user_task(user_id)
+        await self.check_duplicate_report(photo_url)
+        user_task.send_report(photo_url)
+        return await self.__user_task_repository.update(user_task.id, user_task)

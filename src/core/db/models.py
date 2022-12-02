@@ -1,3 +1,4 @@
+import datetime
 import enum
 import uuid
 
@@ -19,6 +20,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
+
+from src.core.exceptions import CannotAcceptReportError
 
 
 @as_declarative()
@@ -156,3 +159,14 @@ class UserTask(Base):
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+
+    def send_report(self, photo_url: str):
+        if self.status not in (
+            UserTask.Status.NEW.value,
+            UserTask.Status.WAIT_REPORT.value,
+            UserTask.Status.DECLINED.value,
+        ):
+            raise CannotAcceptReportError()
+        self.status = UserTask.Status.UNDER_REVIEW.value
+        self.report_url = photo_url
+        self.uploaded_at = datetime.datetime.now()
