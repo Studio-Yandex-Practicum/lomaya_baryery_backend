@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     BOT_WEBHOOK_MODE: bool = False
     BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
     APPLICATION_URL: str
-    DOMAIN_NAME: str
+    DOMAIN_NAME: str = "https://lombaryery.tk"
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
