@@ -10,17 +10,16 @@ from src.core.db import models
 from src.core.db.models import Shift, UserTask, Task
 from src.core.settings import settings
 
-STARTED_SHIFT_DURATION = 30
 MAX_USER_BIRTH_DATE = datetime.date(1986, 1, 1)
 MIN_USER_BIRTH_DATE = datetime.date(2016, 1, 1)
 
 engine = create_engine(settings.database_url.replace("+asyncpg", "+psycopg2"))
-SESSION = scoped_session(sessionmaker(bind=engine))
+session = scoped_session(sessionmaker(bind=engine))
 
 
 class BaseFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
-        sqlalchemy_session = SESSION
+        sqlalchemy_session = session
         sqlalchemy_session_persistence = "commit"
 
 
@@ -52,15 +51,20 @@ class ShiftFactory(BaseFactory):
     @factory.lazy_attribute
     def started_at(self):
         if self.status == Shift.Status.STARTED:
-            started_at = datetime.date.today() - timedelta(days=STARTED_SHIFT_DURATION)
+            # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
+            started_at = datetime.date.today() - timedelta(days=30)
             return started_at
         if self.status == Shift.Status.FINISHED:
-            last_started_shift = SESSION.execute(select(Shift).order_by(Shift.started_at))
+            # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
+            # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и
+            # продолжительность смены 90 дней)
+            last_started_shift = session.execute(select(Shift).order_by(Shift.started_at))
             last_started_shift = last_started_shift.scalars().first()
             started_at = last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
             return started_at
         if self.status == Shift.Status.PREPARING:
-            finished_date_started_shift = SESSION.execute(
+            # берется дата окончания активной смены, добавляется рандомный промежуток между сменами
+            finished_date_started_shift = session.execute(
                 (select(Shift.finished_at).where(Shift.status == Shift.Status.STARTED))
             )
             finished_date_started_shift = finished_date_started_shift.scalars().first()
@@ -91,7 +95,7 @@ class RequestFactory(BaseFactory):
 
     @factory.post_generation
     def add_several_user_tasks(self, created, count, **kwargs):
-        start_date = SESSION.execute(select(Shift.started_at).where(Shift.id == self.shift_id))
+        start_date = session.execute(select(Shift.started_at).where(Shift.id == self.shift_id))
         start_date = start_date.scalars().first()
         all_dates = list((start_date + timedelta(day)) for day in range(91))
         for date in all_dates:
@@ -130,12 +134,6 @@ class UserTaskFactory(BaseFactory):
 
     @factory.lazy_attribute
     def task_id(self):
-        task_ids = SESSION.execute(
+        task_ids = session.execute(
             select(Task.id).order_by(func.random()))
         return task_ids.scalars().first()
-
-    # @factory.lazy_attribute
-    # def photo_id(self):
-    #     photo_ids = SESSION.execute(
-    #         select(Photo.id).order_by(func.random()))
-    #     return photo_ids.scalars().first()

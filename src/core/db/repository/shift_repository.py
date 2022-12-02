@@ -23,7 +23,7 @@ class ShiftRepository(AbstractRepository):
 
     async def get_with_users(self, id: UUID) -> Shift:
         statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
-        request = await self.session.execute(statement)
+        request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
@@ -58,21 +58,19 @@ class ShiftRepository(AbstractRepository):
     ) -> list:
         shifts = (
             select(
-                (Shift.id),
-                (Shift.status),
-                (Shift.started_at),
-                (Shift.finished_at),
-                (Shift.title),
-                (Shift.final_message),
-                (func.count(Request.user_id).label("total_users")),
+                Shift.id,
+                Shift.status,
+                Shift.started_at,
+                Shift.finished_at,
+                Shift.title,
+                Shift.final_message,
+                Shift.sequence_number,
+                func.count(Request.user_id).label('total_users'),
             )
-            .join(Request.shift)
+            .outerjoin(Shift.requests)
             .group_by(Shift.id)
             .where(
-                and_(
-                    or_(status is None, Shift.status == status),
-                    Request.status == Request.Status.APPROVED.value,
-                )
+                or_(status is None, Shift.status == status),
             )
             .order_by(sort or Shift.started_at.desc())
         )

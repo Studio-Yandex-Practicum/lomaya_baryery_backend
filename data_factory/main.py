@@ -9,7 +9,7 @@ from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from data_factory.factories import (SESSION, UserFactory,
+from data_factory.factories import (session, UserFactory,
                                     ShiftFactory, TaskFactory, RequestFactory)
 
 from src.core.db.models import Shift, User, Request
@@ -29,7 +29,7 @@ logger = get_logger('fill_db.log')
 
 
 def get_random_user_ids(count: int) -> list:
-    user_ids = SESSION.execute(select(User.id).order_by(func.random()).limit(count))
+    user_ids = session.execute(select(User.id).order_by(func.random()).limit(count))
     user_ids = user_ids.scalars().all()
     return user_ids
 
@@ -96,7 +96,7 @@ def fill_command(delete) -> None:
         )
         if input(msg).lower().strip() not in ("y", "yes"):
             return
-        truncate_tables(SESSION)
+        truncate_tables(session)
         generate_fake_data()
     else:
         try:
