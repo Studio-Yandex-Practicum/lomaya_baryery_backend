@@ -130,7 +130,6 @@ class UserTask(Base):
     class Status(str, enum.Enum):
         """Статус задачи у пользователя."""
 
-        NEW = "new"
         UNDER_REVIEW = "under_review"
         APPROVED = "approved"
         DECLINED = "declined"
