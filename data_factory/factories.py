@@ -55,14 +55,14 @@ class ShiftFactory(BaseFactory):
         if self.status == Shift.Status.STARTED:
             # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
             return datetime.date.today() - timedelta(days=30)
-        if self.status == Shift.Status.FINISHED:
+        elif self.status == Shift.Status.FINISHED:
             # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
             # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и
             # продолжительность смены 90 дней)
             last_started_shift = session.execute(select(Shift).order_by(Shift.started_at))
             last_started_shift = last_started_shift.scalars().first()
             return last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
-        if self.status == Shift.Status.PREPARING:
+        elif self.status == Shift.Status.PREPARING:
             # берется дата окончания активной смены, добавляется рандомный промежуток между сменами
             finished_date_started_shift = session.execute(
                 (select(Shift.finished_at).where(Shift.status == Shift.Status.STARTED))
@@ -77,7 +77,7 @@ class ShiftFactory(BaseFactory):
     @classmethod
     def _setup_next_sequence(cls):
         starting_seq_num = 1
-        return starting_seq_num
+        return starting_seq_num # noqa: R504
 
     @factory.lazy_attribute
     def tasks(self):
@@ -144,7 +144,7 @@ class UserTaskFactory(BaseFactory):
     def status(self):
         if self.task_date < datetime.date.today():
             return random.choice([UserTask.Status.APPROVED, UserTask.Status.DECLINED])
-        if self.task_date == datetime.date.today():
+        elif self.task_date == datetime.date.today():
             return UserTask.Status.UNDER_REVIEW
 
     @factory.lazy_attribute
