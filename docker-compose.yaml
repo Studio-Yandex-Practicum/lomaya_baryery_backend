@@ -48,6 +48,6 @@ services:
       - backend
     volumes:
       - static_value:/config/static/
-      - ./src/nginx/default.conf:/etc/nginx/conf.d/lombaryery.subfolder.conf
+      - ./src/nginx/default.conf:/config/nginx/proxy-confs/lombaryery.subfolder.conf
     env_file:
       - .env
