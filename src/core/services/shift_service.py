@@ -17,7 +17,7 @@ from src.api.response_models.shift import (
     ShiftWithTotalUsersResponse,
 )
 from src.core.db.models import Request, Shift
-from src.core.db.repository import MemberRepository, ShiftRepository
+from src.core.db.repository import ShiftRepository
 from src.core.exceptions import NotFoundException
 from src.core.services.task_service import TaskService
 from src.core.services.user_task_service import UserTaskService
@@ -34,12 +34,10 @@ class ShiftService:
     def __init__(
         self,
         shift_repository: ShiftRepository = Depends(),
-        member_repository: MemberRepository = Depends(),
         user_task_service: UserTaskService = Depends(),
         task_service: TaskService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
-        self.__member_repository = member_repository
         self.__user_task_service = user_task_service
         self.__task_service = task_service
 
