@@ -91,7 +91,6 @@ class User(Base):
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
-    user_tasks = relationship("UserTask", back_populates="user", order_by="UserTask.task_date")
     shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
     members = relationship("Member", back_populates="user")
 
@@ -167,9 +166,10 @@ class UserTask(Base):
 
     __tablename__ = "user_tasks"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift = relationship("Shift", back_populates="user_tasks")
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
+    task = relationship("Task", back_populates="user_tasks")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
     member = relationship("Member", back_populates="user_tasks")
     task_date = Column(DATE, nullable=False)
@@ -179,9 +179,6 @@ class UserTask(Base):
     report_url = Column(String(length=4096), unique=True, nullable=False)
     uploaded_at = Column(TIMESTAMP, nullable=True)
     is_repeated = Column(Boolean(), nullable=False)
-    user = relationship("User", back_populates="user_tasks")
-    shift = relationship("Shift", back_populates="user_tasks")
-    task = relationship("Task", back_populates="user_tasks")
 
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 

@@ -15,8 +15,8 @@ class MemberRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Member)
 
-    async def get_by_user_and_shift(self, user_id: UUID, shift_id: UUID) -> Member:
+    async def get_by_user_and_shift(self, shift_id: UUID, user_id: UUID) -> Member:
         member = await self._session.execute(
-            select(Member).where(Member.user_id == user_id, Member.shift_id == shift_id)
+            select(Member).where(Member.shift_id == shift_id, Member.user_id == user_id)
         )
         return member.scalars().first()
