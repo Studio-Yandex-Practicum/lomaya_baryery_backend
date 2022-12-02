@@ -19,7 +19,7 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.exceptions import CannotAcceptReportError, DuplicateReportError
+from src.core.exceptions import DuplicateReportError
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -176,14 +176,8 @@ class UserTaskService:
         """Получить задачу для изменения статуса и photo_id."""
         return await self.__user_task_repository.get_new_or_declined_today_user_task(user_id=user_id)
 
-    async def add_report(self, user_id: UUID, photo_url: str) -> UserTask:
+    async def send_report(self, user_id: UUID, photo_url: str) -> UserTask:
         user_task = await self.__user_task_repository.get_current_user_task(user_id)
-        if user_task.status not in (
-            UserTask.Status.NEW.value,
-            UserTask.Status.WAIT_REPORT.value,
-            UserTask.Status.DECLINED.value,
-        ):
-            raise CannotAcceptReportError()
         await self.check_duplicate_report(photo_url)
-        user_task.start_review(photo_url)
-        return await self.__user_task_repository.update(id=user_task.id, instance=user_task)
+        user_task.send_report(photo_url)
+        return await self.__user_task_repository.update(user_task.id, user_task)

@@ -93,7 +93,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
 
     try:
-        await user_task_service.add_report(user.id, photo_url)
+        await user_task_service.send_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
 
     except CurrentTaskNotFoundError:
