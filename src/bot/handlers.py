@@ -90,7 +90,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user_task_service = UserTaskService(UserTaskRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     file_path = await download_photo_report_callback(update, context)
-    photo_url = f'https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}'
+    photo_url = f'{settings.APPLICATION_URL}/{settings.user_reports_dir}/{file_path}'
 
     try:
         await user_task_service.send_report(user.id, photo_url)
