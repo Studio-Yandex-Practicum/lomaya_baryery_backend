@@ -61,4 +61,3 @@ uvicorn==0.18.3
 virtualenv==20.16.5
 yarl==1.8.1
 zipp==3.9.0
-

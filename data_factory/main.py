@@ -30,8 +30,7 @@ logger = get_logger('fill_db.log')
 
 def get_random_user_ids(count: int) -> list:
     user_ids = session.execute(select(User.id).order_by(func.random()).limit(count))
-    user_ids = user_ids.scalars().all()
-    return user_ids
+    return user_ids.scalars().all()
 
 
 def truncate_tables(session: Session) -> None:
@@ -81,7 +80,18 @@ def generate_fake_data() -> None:
                                       status=Request.Status.DECLINED)
 
         logger.info("Создание новой смены...")
-        ShiftFactory.create(status=Shift.Status.PREPARING)
+        preparing_shift = ShiftFactory.create(status=Shift.Status.PREPARING)
+        user_ids = get_random_user_ids(30)
+
+        logger.info("Создание одобренных заявок для новой смены...")
+        for user_id in user_ids[:15]:
+            RequestFactory.create(user_id=user_id, shift_id=preparing_shift.id,
+                                  status=Request.Status.APPROVED)
+
+        logger.info("Создание отклоненных заявок для новой смены...")
+        for user_id in user_ids[15:]:
+            RequestFactory.create(user_id=user_id, shift_id=preparing_shift.id,
+                                  status=Request.Status.DECLINED)
 
     logger.info("Создание тестовых данных завершено!")
 

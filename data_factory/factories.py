@@ -1,4 +1,5 @@
 import datetime
+import json
 from datetime import timedelta
 import random
 
@@ -47,34 +48,48 @@ class ShiftFactory(BaseFactory):
     status = factory.Iterator([status for status in models.Shift.Status])
     title = factory.Faker("text", max_nb_chars=25)
     final_message = factory.Faker("text", max_nb_chars=80)
+    sequence_number = factory.Sequence(int)
 
     @factory.lazy_attribute
     def started_at(self):
         if self.status == Shift.Status.STARTED:
             # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
-            started_at = datetime.date.today() - timedelta(days=30)
-            return started_at
+            return datetime.date.today() - timedelta(days=30)
         if self.status == Shift.Status.FINISHED:
             # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
             # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и
             # продолжительность смены 90 дней)
             last_started_shift = session.execute(select(Shift).order_by(Shift.started_at))
             last_started_shift = last_started_shift.scalars().first()
-            started_at = last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
-            return started_at
+            return last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
         if self.status == Shift.Status.PREPARING:
             # берется дата окончания активной смены, добавляется рандомный промежуток между сменами
             finished_date_started_shift = session.execute(
                 (select(Shift.finished_at).where(Shift.status == Shift.Status.STARTED))
             )
             finished_date_started_shift = finished_date_started_shift.scalars().first()
-            started_at = finished_date_started_shift + timedelta(days=random.randrange(4, 7))
-            return started_at
+            return finished_date_started_shift + timedelta(days=random.randrange(4, 7))
 
     @factory.lazy_attribute
     def finished_at(self):
-        finished_at = self.started_at + timedelta(days=90)
-        return finished_at
+        return self.started_at + timedelta(days=90)
+
+    @classmethod
+    def _setup_next_sequence(cls):
+        starting_seq_num = 1
+        return starting_seq_num
+
+    @factory.lazy_attribute
+    def tasks(self):
+        task_ids = session.execute(select(Task.id).order_by(func.random()))
+        task_ids = task_ids.scalars().all()
+        task = {}
+        count = 1
+        for task_id in task_ids:
+            uuid_str = str(task_id)
+            task[count] = uuid_str
+            count += 1
+        return json.dumps(task)
 
 
 class TaskFactory(BaseFactory):
@@ -82,7 +97,7 @@ class TaskFactory(BaseFactory):
         model = models.Task
 
     url = factory.Sequence(lambda n: f"tasks/{n}")
-    description = factory.Faker("paragraph", nb_sentences=2)
+    description = factory.Faker("paragraph", nb_sentences=1)
 
 
 class RequestFactory(BaseFactory):
@@ -99,13 +114,15 @@ class RequestFactory(BaseFactory):
         start_date = start_date.scalars().first()
         all_dates = list((start_date + timedelta(day)) for day in range(91))
         for date in all_dates:
-            if created and count:
-                UserTaskFactory.create_batch(
-                    count,
-                    user_id=self.user_id,
-                    shift_id=self.shift_id,
-                    task_date=date,
-                )
+            if date <= datetime.date.today():
+
+                if created and count:
+                    UserTaskFactory.create_batch(
+                        count,
+                        user_id=self.user_id,
+                        shift_id=self.shift_id,
+                        task_date=date,
+                    )
 
     @classmethod
     def complex_create(cls, count, **kwargs):
@@ -126,11 +143,9 @@ class UserTaskFactory(BaseFactory):
     @factory.lazy_attribute
     def status(self):
         if self.task_date < datetime.date.today():
-            return UserTask.Status.APPROVED
+            return random.choice([UserTask.Status.APPROVED, UserTask.Status.DECLINED])
         if self.task_date == datetime.date.today():
             return UserTask.Status.UNDER_REVIEW
-        else:
-            return UserTask.Status.NEW
 
     @factory.lazy_attribute
     def task_id(self):
