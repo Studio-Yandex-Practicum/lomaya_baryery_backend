@@ -92,7 +92,7 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-            echo DOMAIN_NAME=lombaryery.tk >> .env
+            echo DOMAIN_NAME=https://lombaryery.tk >> .env
 
   start_application:
     name: Start application

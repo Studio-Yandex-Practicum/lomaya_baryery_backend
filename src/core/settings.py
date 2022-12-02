@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from urllib.parse import urlparse
 
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
@@ -54,7 +53,7 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
-        return urlparse(f"{self.DOMAIN_NAME}{self.STATIC_URL}/registration.html", "https").geturl()
+        return f"{self.DOMAIN_NAME}{self.STATIC_URL}/registration.html"
 
     class Config:
         env_file = ENV_FILE
