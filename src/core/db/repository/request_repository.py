@@ -40,14 +40,6 @@ class RequestRepository(AbstractRepository):
         )
         return request.scalars().first()
 
-    async def add_one_lombaryer(self, request: Request) -> None:
-        if not request.numbers_lombaryers:
-            request.numbers_lombaryers = 1
-        else:
-            request.numbers_lombaryers += 1
-        await self._session.merge(request)
-        await self._session.commit()
-
     async def get_shift_user_ids(self, shift_id: UUID, status: str = Request.Status.APPROVED.value) -> list[UUID]:
         users_ids = await self._session.execute(
             select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
@@ -86,3 +78,9 @@ class RequestRepository(AbstractRepository):
             request.status = Request.Status.EXCLUDED
             await self._session.merge(request)
         await self._session.commit()
+
+    async def get_approved_requests_by_shift(self, shift_id: UUID) -> list[Request]:
+        approved_requests = await self._session.execute(
+            select(Request).where(Request.shift_id == shift_id, Request.status == Request.Status.APPROVED.value)
+        )
+        return approved_requests.scalars().all()
