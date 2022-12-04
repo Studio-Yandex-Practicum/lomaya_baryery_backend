@@ -44,6 +44,7 @@ class ShiftService:
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         shift.final_message = FINAL_MESSAGE
+        shift.title = Shift.title
         shift.status = Shift.Status.PREPARING
         task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
         random.shuffle(task_ids_list)
