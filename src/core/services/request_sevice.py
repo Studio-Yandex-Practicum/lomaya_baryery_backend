@@ -6,14 +6,20 @@ from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest, Status
 from src.bot import services
-from src.core.db.repository import RequestRepository
+from src.core.db.models import Member
+from src.core.db.repository import MemberRepository, RequestRepository
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
 
 
 class RequestService:
-    def __init__(self, request_repository: RequestRepository = Depends()) -> None:
+    def __init__(
+        self,
+        request_repository: RequestRepository = Depends(),
+        member_repository: MemberRepository = Depends(),
+    ) -> None:
         self.__request_repository = request_repository
+        self.__member_repository = member_repository
         self.__telegram_bot = services.BotService
 
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
@@ -23,6 +29,8 @@ class RequestService:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
         request.status = Status.APPROVED
         await self.__request_repository.update(request_id, request)
+        member = Member(user_id=request.user_id, shift_id=request.shift_id)
+        await self.__member_repository.create(member)
         await self.__telegram_bot(bot).notify_approved_request(request.user)
         return
 

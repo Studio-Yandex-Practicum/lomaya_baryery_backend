@@ -73,3 +73,8 @@ class BotService:
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
         await self.__bot.send_message(user.telegram_id, text)
+
+    async def notify_that_shift_is_finished(self, user: models.User, message: str) -> None:
+        """Уведомляет участников об окончании смены."""
+        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=user.numbers_lombaryers)
+        await self.__bot.send_message(user.telegram_id, text)
