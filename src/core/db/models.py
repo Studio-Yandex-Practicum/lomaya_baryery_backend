@@ -73,13 +73,13 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartForbiddenException(object_name=self.title, object_id=self.id)
+            raise ShiftStartForbiddenException(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
     async def finish(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftFinishForbiddenException(object_name=self.title, object_id=self.id)
+            raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
