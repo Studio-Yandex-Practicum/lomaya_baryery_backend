@@ -64,9 +64,6 @@ class ShiftService:
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)
         await shift.start()
-
-        # TODO добавить вызов метода рассылки участникам первого задания
-
         await self.__shift_repository.update(id, shift)
         await self.__user_task_service.distribute_tasks_on_shift(id)
         return shift
