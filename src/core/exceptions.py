@@ -39,12 +39,12 @@ class DuplicateReportError(Exception):
 
 
 class ShiftStartForbiddenException(ApplicationException):
-    def __init__(self, object_name: str, object_id: UUID):
+    def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно начать смену {object_name} с id: {object_id}. Проверьте статус смены"
+        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
 class ShiftFinishForbiddenException(ApplicationException):
-    def __init__(self, object_name: str, object_id: UUID):
+    def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно завершить смену {object_name} с id: {object_id}. Проверьте статус смены"
+        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
