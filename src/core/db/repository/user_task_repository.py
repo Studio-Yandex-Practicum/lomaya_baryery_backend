@@ -71,7 +71,7 @@ class UserTaskRepository(AbstractRepository):
                 and_(
                     UserTask.shift_id == shift_id,
                     UserTask.task_date == task_date,
-                    or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
+                    UserTask.status == UserTask.Status.UNDER_REVIEW,
                 )
             )
             .order_by(UserTask.id)
@@ -151,7 +151,6 @@ class UserTaskRepository(AbstractRepository):
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.status != UserTask.Status.NEW,
                     UserTask.deleted.is_(False),
                 )
             )
@@ -188,14 +187,14 @@ class UserTaskRepository(AbstractRepository):
         await self._session.execute(statement)
         await self._session.commit()
 
-    async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить сегодняшнюю задачу со статусом new/declined."""
+    async def get_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
+        """Получить сегодняшнюю задачу со статусом declined."""
         task_date = datetime.now().date()
         statement = select(UserTask).where(
             and_(
                 UserTask.user_id == user_id,
                 UserTask.task_date == task_date,
-                or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.DECLINED),
+                UserTask.status == UserTask.Status.DECLINED,
             )
         )
         user_task = await self._session.execute(statement)
