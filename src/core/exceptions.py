@@ -36,3 +36,15 @@ class DuplicateReportError(Exception):
     """Отчет с таким фото уже отправлялся ранее."""
 
     pass
+
+
+class ShiftStartForbiddenException(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class ShiftFinishForbiddenException(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
