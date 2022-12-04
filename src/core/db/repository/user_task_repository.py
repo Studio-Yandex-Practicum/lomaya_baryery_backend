@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, case, desc, func, or_, select, update
+from sqlalchemy import and_, case, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 

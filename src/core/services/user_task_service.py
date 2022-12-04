@@ -1,5 +1,4 @@
-import random
-from datetime import date, timedelta
+from datetime import date
 from http import HTTPStatus
 from typing import Any
 
@@ -118,7 +117,6 @@ class UserTaskService:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
         if status is UserTask.Status.NEW:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
-
 
     async def get_summaries_of_user_tasks(
         self,
