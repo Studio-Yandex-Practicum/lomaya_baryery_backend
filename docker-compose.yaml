@@ -30,14 +30,12 @@ services:
       - .env
 
   swag:
-    image: lscr.io/linuxserver/swag
+    image: linuxserver/swag
     container_name: swag
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=Europe/Moscow
       - URL=lombaryery.tk
       - VALIDATION=http
@@ -48,6 +46,6 @@ services:
       - backend
     volumes:
       - static_value:/var/html/static/
-      - ./src/nginx/default.conf:/config/nginx/site-confs/default.conf
+      - ./nginx/default.conf:/config/nginx/site-confs/default.conf
     env_file:
       - .env

@@ -7,7 +7,7 @@ on:
     types: [closed]
   push:
     branches:
-      - fix/certificate
+      - develop
 
 env:
   REGISTRY: ghcr.io
@@ -67,7 +67,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.yaml,src/nginx/default.conf"
+          source: "docker-compose.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
@@ -91,9 +91,7 @@ jobs:
             echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
-            # echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-            echo HEALTHCHECK_API_URL=https://lombaryery.tk/docs >> .env
-            echo DOMAIN_NAME=https://lombaryery.tk >> .env
+            echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
 
   start_application:
     name: Start application

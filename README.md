@@ -323,12 +323,11 @@ python run_bot.py
  Запуск
  </summary><br />
 
-Для запуска бота в режиме `webhook` нужно установить переменной окружения `BOT_WEBHOOK_MODE` значение `true`, а также указать домен, на котором развернуто приложение в переменных `APPLICATION_URL` и `DOMAIN_NAME`:
+Для запуска бота в режиме `webhook` нужно установить переменной окружения `BOT_WEBHOOK_MODE` значение `true`, а также указать домен, на котором развернуто приложение в переменной `APPLICATION_URL`:
 
 ```
 BOT_WEBHOOK_MODE=true
-APPLICATION_URL=https://example.com
-DOMAIN_NAME=https://example.ngrok.io
+APPLICATION_URL=https://example.ngrok.io
 ```
 
 </details>
@@ -352,10 +351,9 @@ DOMAIN_NAME=https://example.ngrok.io
  ```shell
  ngrok http 8080
  ```
- - в переменной окружения `APPLICATION_URL` и `DOMAIN_NAME` указать адрес (`https`), предоставленный сервисом `ngrok`:
+ - в переменной окружения `APPLICATION_URL` указать адрес (`https`), предоставленный сервисом `ngrok`:
  ```dotenv
  APPLICATION_URL=https://1234-56-78-9.eu.ngrok.io # пример
- DOMAIN_NAME=https://1234-56-78-9.eu.ngrok.io # пример
  ```
  - Запустить приложение с ботом в режиме webhook (см. выше)
   ```shell
@@ -385,13 +383,11 @@ APPLICATION_URL= # домен, на котором развернуто прил
 SEND_NEW_TASK_HOUR=8  # время отправки нового задания
 SEND_NO_REPORT_REMINDER_HOUR=20  # время отправки напоминания об отчёте
 HEALTHCHECK_API_URL=http://127.0.0.1:8080/docs # эндпоинт для проверки API
-DOMAIN_NAME=  # доменное имя тестового или ngrok сервера для работы шаблона регистрации
 
 ```
 Перед запуском проекта необходимо создать копию файла
 ```.env.example```, назвав его ```.env``` и установить значения:
  - `BOT_TOKEN` - токен бота;
  - `APPLICATION_URL` - домен, на котором развернуто приложение;
- - `DOMAIN_NAME` - домен, полученный от ngrok.
 
 </details>
