@@ -189,19 +189,6 @@ class UserTaskRepository(AbstractRepository):
         await self._session.execute(statement)
         await self._session.commit()
 
-    async def get_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить сегодняшнюю задачу со статусом declined."""
-        task_date = datetime.now().date()
-        statement = select(UserTask).where(
-            and_(
-                UserTask.user_id == user_id,
-                UserTask.task_date == task_date,
-                UserTask.status == UserTask.Status.DECLINED,
-            )
-        )
-        user_task = await self._session.execute(statement)
-        return user_task.scalars().first()
-
     async def get_current_user_task(self, user_id: UUID) -> UserTask:
         now = datetime.now()
         task_date = now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)

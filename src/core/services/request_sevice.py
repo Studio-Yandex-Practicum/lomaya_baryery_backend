@@ -49,10 +49,6 @@ class RequestService:
         await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
         return
 
-    async def get_approved_shift_user_ids(self, shift_id: UUID) -> list[UUID]:
-        """Получить id одобренных участников смены."""
-        return await self.__request_repository.get_shift_user_ids(shift_id)
-
     async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
         """Исключает участников смены.
 

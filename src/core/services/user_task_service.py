@@ -115,8 +115,6 @@ class UserTaskService:
         """Уточнение статуса задания."""
         if status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
-        if status is UserTask.Status.NEW:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=NEW_TASK.format(status))
 
     async def get_summaries_of_user_tasks(
         self,
@@ -142,10 +140,6 @@ class UserTaskService:
         if len(user_ids_to_exclude) > 0:
             await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
             await self.__user_task_repository.set_usertasks_deleted(user_ids_to_exclude, shift_id)
-
-    async def get_today_user_task(self, user_id: UUID) -> UserTask:
-        """Получить задачу для изменения статуса и photo_id."""
-        return await self.__user_task_repository.get_declined_today_user_task(user_id=user_id)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> UserTask:
         user_task = await self.__user_task_repository.get_current_user_task(user_id)

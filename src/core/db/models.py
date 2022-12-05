@@ -205,7 +205,6 @@ class UserTask(Base):
 
     def send_report(self, photo_url: str):
         if self.status not in (
-            UserTask.Status.NEW.value,
             UserTask.Status.WAIT_REPORT.value,
             UserTask.Status.DECLINED.value,
         ):
