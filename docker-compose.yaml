@@ -29,16 +29,23 @@ services:
     env_file:
       - .env
 
-  nginx:
-    image: nginx:1.23.2-alpine
-    container_name: nginx
-    restart: always
+  swag:
+    image: linuxserver/swag
+    container_name: swag
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=Europe/Moscow
+      - URL=lombaryery.tk
+      - VALIDATION=http
     ports:
+      - "443:443"
       - "80:80"
     depends_on:
       - backend
     volumes:
       - static_value:/var/html/static/
-      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/config/nginx/site-confs/default.conf
     env_file:
       - .env

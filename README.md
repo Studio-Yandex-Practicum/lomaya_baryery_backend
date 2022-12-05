@@ -265,7 +265,7 @@ def downgrade():
 ```shell
 py -m data_factory.main
 ```
-#### !!! Внимание!!! 
+#### !!! Внимание!!!
 Использование в указанной команде флага `--delete`приведет к удалению
 существующих в таблицах данных!
 
@@ -331,7 +331,7 @@ python run_bot.py
 
 ```
 BOT_WEBHOOK_MODE=true
-APPLICATION_URL=https://example.com
+APPLICATION_URL=https://example.ngrok.io
 ```
 
 </details>
@@ -386,9 +386,12 @@ BOT_WEBHOOK_MODE=False # запустить бота в режиме webhook(tru
 APPLICATION_URL= # домен, на котором развернуто приложение
 SEND_NEW_TASK_HOUR=8  # время отправки нового задания
 SEND_NO_REPORT_REMINDER_HOUR=20  # время отправки напоминания об отчёте
+HEALTHCHECK_API_URL=http://127.0.0.1:8080/docs # эндпоинт для проверки API
 
 ```
 Перед запуском проекта необходимо создать копию файла
-```.env.example```, назвав его ```.env``` и установить значение токена бота
+```.env.example```, назвав его ```.env``` и установить значения:
+ - `BOT_TOKEN` - токен бота;
+ - `APPLICATION_URL` - домен, на котором развернуто приложение;
 
 </details>

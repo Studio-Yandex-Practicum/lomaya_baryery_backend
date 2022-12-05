@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
-    STATIC_URL: str = "/static"
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -52,7 +51,7 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}{self.STATIC_URL}/registration.html"
+        return f"{self.APPLICATION_URL}/static/registration.html"
 
     class Config:
         env_file = ENV_FILE

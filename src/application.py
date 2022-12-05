@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.api.routers import (
     healthcheck_router,
@@ -20,6 +21,9 @@ def create_app() -> FastAPI:
     app = FastAPI()
 
     origins = ["*"]
+
+    # для локального тестирования монтируем статику
+    app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
     app.add_middleware(
         CORSMiddleware,
