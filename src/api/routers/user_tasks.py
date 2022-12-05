@@ -57,7 +57,7 @@ class UserTasksCBV:
         request: Request,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и принят."""
-        return await self.user_task_service.approve_task(user_task_id, request.app.state.bot_instance.bot)
+        return await self.user_task_service.approve_report(user_task_id, request.app.state.bot_instance.bot)
 
     @router.patch("/{user_task_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
     async def decline_task_status(
@@ -66,7 +66,7 @@ class UserTasksCBV:
         request: Request,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и отклонен."""
-        return await self.user_task_service.decline_task(user_task_id, request.app.state.bot_instance.bot)
+        return await self.user_task_service.decline_report(user_task_id, request.app.state.bot_instance.bot)
 
     @router.get(
         "/{shift_id}/{task_date}/new",
