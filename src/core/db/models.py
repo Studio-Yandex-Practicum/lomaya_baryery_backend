@@ -65,7 +65,6 @@ class Shift(Base):
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
-    users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
     members = relationship("Member", back_populates="shift")
 
     def __repr__(self):
@@ -108,9 +107,7 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
-    numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
-    shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
     members = relationship("Member", back_populates="user")
 
     def __repr__(self):
@@ -132,13 +129,12 @@ class Request(Base):
     __tablename__ = "requests"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    user = relationship("User", back_populates="requests")
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
+    shift = relationship("Shift", back_populates="requests")
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    numbers_lombaryers = Column(Integer)
-    user = relationship("User", back_populates="requests")
-    shift = relationship("Shift", back_populates="requests")
 
     def __repr__(self):
         return f"<Request: {self.id}, status: {self.status}>"
@@ -161,7 +157,9 @@ class Member(Base):
         nullable=False,
     )
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    user = relationship("User", back_populates="members")
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
     user_tasks = relationship("UserTask", back_populates="member")
 
@@ -177,7 +175,6 @@ class UserTask(Base):
     class Status(str, enum.Enum):
         """Статус задачи у пользователя."""
 
-        NEW = "new"
         UNDER_REVIEW = "under_review"
         APPROVED = "approved"
         DECLINED = "declined"
@@ -206,7 +203,6 @@ class UserTask(Base):
 
     def send_report(self, photo_url: str):
         if self.status not in (
-            UserTask.Status.NEW.value,
             UserTask.Status.WAIT_REPORT.value,
             UserTask.Status.DECLINED.value,
         ):
