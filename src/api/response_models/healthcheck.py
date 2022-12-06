@@ -8,8 +8,8 @@ class ComponentItemHealthcheck(BaseModel):
     """Model for the statuses of each part of the app"""
 
     name: str
-    status: bool=True
-    errors: Optional[list[str]]=[]
+    status: bool = True
+    errors: Optional[list[str]] = []
 
 
 class HealthcheckResponse(BaseModel):
