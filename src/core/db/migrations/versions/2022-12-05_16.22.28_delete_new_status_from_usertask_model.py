@@ -1,7 +1,7 @@
 """delete NEW status from usertask model
 
 Revision ID: 6343307e2c50
-Revises: b681bd3175cc
+Revises: 2e9a6c2fe267
 Create Date: 2022-12-05 16:22:28.746542
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '6343307e2c50'
-down_revision = 'b681bd3175cc'
+down_revision = '2e9a6c2fe267'
 branch_labels = None
 depends_on = None
 
@@ -29,6 +29,7 @@ target_table = sa.sql.table('user_tasks',
 
 
 def upgrade():
+    op.execute(target_table.delete().where(target_table.c.status=='new'))
     op.execute(f"ALTER TYPE {name} RENAME TO {tmp_name}")
 
     NEW_ENUM.create(op.get_bind())
