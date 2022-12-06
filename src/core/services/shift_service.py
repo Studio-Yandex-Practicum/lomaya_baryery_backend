@@ -65,7 +65,6 @@ class ShiftService:
         shift = await self.__shift_repository.get(id)
         await shift.start()
         await self.__shift_repository.update(id, shift)
-        await self.__user_task_service.distribute_tasks_on_shift(id)
         return shift
 
     async def finish_shift(self, bot, id: UUID) -> Shift:

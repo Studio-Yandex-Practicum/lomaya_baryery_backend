@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, case, desc, func, or_, select, update
+from sqlalchemy import and_, case, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -73,7 +73,7 @@ class UserTaskRepository(AbstractRepository):
                 and_(
                     UserTask.shift_id == shift_id,
                     UserTask.task_date == task_date,
-                    or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
+                    UserTask.status == UserTask.Status.UNDER_REVIEW,
                 )
             )
             .order_by(UserTask.id)
@@ -153,7 +153,6 @@ class UserTaskRepository(AbstractRepository):
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.status != UserTask.Status.NEW,
                     UserTask.deleted.is_(False),
                 )
             )
@@ -189,19 +188,6 @@ class UserTaskRepository(AbstractRepository):
         )
         await self._session.execute(statement)
         await self._session.commit()
-
-    async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить сегодняшнюю задачу со статусом new/declined."""
-        task_date = datetime.now().date()
-        statement = select(UserTask).where(
-            and_(
-                UserTask.user_id == user_id,
-                UserTask.task_date == task_date,
-                or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.DECLINED),
-            )
-        )
-        user_task = await self._session.execute(statement)
-        return user_task.scalars().first()
 
     async def get_current_user_task(self, user_id: UUID) -> UserTask:
         now = datetime.now()
