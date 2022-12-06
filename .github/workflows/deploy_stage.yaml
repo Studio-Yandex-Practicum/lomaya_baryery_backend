@@ -129,5 +129,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          url: 'http://localhost:80/healthcheck'
+          url: 'http://${{ env.APPLICATION_URL }}/healthcheck'
           fail-on-bad-status: true

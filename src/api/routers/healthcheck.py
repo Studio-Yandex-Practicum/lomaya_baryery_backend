@@ -23,10 +23,9 @@ class HealthcheckCBV:
     )
     async def __get_current_status(self, request: Request) -> HealthcheckResponse:
         """Запускает сервис проверки состояния Бота, АПИ, БД."""
-        result = await self.healthcheck_service.get_healthcheck_status(
-            request.app.state.bot_instance.bot)
-        for component in result.components.dict().values():
-            if not component['status']:
+        result = await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)
+        for component in result.components:
+            if not component.status:
                 raise HTTPException(
                     status_code=HTTPStatus.BAD_REQUEST, detail=jsonable_encoder(result))
         return result

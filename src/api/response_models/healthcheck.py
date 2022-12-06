@@ -7,20 +7,13 @@ from pydantic import BaseModel
 class ComponentItemHealthcheck(BaseModel):
     """Model for the statuses of each part of the app"""
 
-    status: bool
-    errors: Optional[list[str]]
-
-
-class ComponentsHealthcheck(BaseModel):
-    """Model for all stratuses of the application"""
-
-    bot: ComponentItemHealthcheck
-    api: ComponentItemHealthcheck
-    db: ComponentItemHealthcheck
+    name: str
+    status: bool=True
+    errors: Optional[list[str]]=[]
 
 
 class HealthcheckResponse(BaseModel):
     """Model for displaying statuses from /healthcheck."""
 
     timestamp: datetime
-    components: ComponentsHealthcheck
+    components: list[ComponentItemHealthcheck]
