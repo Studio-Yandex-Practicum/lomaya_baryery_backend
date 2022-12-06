@@ -45,15 +45,16 @@ def truncate_tables(session: Session) -> None:
 
 
 def create_approved_requests_and_members_with_user_tasks(user_ids: list[UUID], shift: Shift):
-    for user_id in user_ids[: len(user_ids) // 2]:
+    half_numbers_users = len(user_ids) // 2
+    for user_id in user_ids[:half_numbers_users]:
         RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id, status=Request.Status.APPROVED)
 
         MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id, status=Member.Status.ACTIVE)
 
 
 def create_declined_requests(user_ids: list[UUID], shift: Shift):
-    n = len(user_ids) // 2
-    for user_id in user_ids[n:]:
+    half_numbers_users = len(user_ids) // 2
+    for user_id in user_ids[half_numbers_users:]:
         RequestFactory.create(user_id=user_id, shift_id=shift.id, status=Request.Status.DECLINED)
 
 
