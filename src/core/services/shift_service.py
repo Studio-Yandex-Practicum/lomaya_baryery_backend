@@ -12,14 +12,13 @@ from src.api.request_models.shift import (
 )
 from src.api.response_models.shift import (
     ShiftDtoRespone,
-    ShiftUsersResponse,
+    ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
 from src.bot import services
-from src.core.db.models import Request, Shift
+from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.services.task_service import TaskService
-from src.core.services.user_task_service import UserTaskService
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -33,11 +32,9 @@ class ShiftService:
     def __init__(
         self,
         shift_repository: ShiftRepository = Depends(),
-        user_task_service: UserTaskService = Depends(),
         task_service: TaskService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
-        self.__user_task_service = user_task_service
         self.__task_service = task_service
         self.__telegram_bot = services.BotService
 
@@ -68,17 +65,17 @@ class ShiftService:
         return shift
 
     async def finish_shift(self, bot, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_users(id)
+        shift = await self.__shift_repository.get_with_members(id)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
-        for user in shift.users:
-            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, shift.final_message)
+        for member in shift.members:
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message)
         return shift
 
-    async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
-        shift = await self.__shift_repository.get_with_users(id)
-        users = shift.users
-        return ShiftUsersResponse(shift=shift, users=users)
+    async def get_members_list(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
+        shift = await self.__shift_repository.get_with_members(id, member_status)
+        members = shift.members
+        return ShiftMembersResponse(shift=shift, members=members)
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
