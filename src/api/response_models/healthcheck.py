@@ -1,9 +1,19 @@
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
-class HealthcheckResponse(BaseModel):
-    """Модель для вывода статусов ручки /healthcheck."""
+class ComponentItemHealthcheck(BaseModel):
+    """Model for the statuses of each part of the app"""
 
-    bot_status: tuple
-    api_status: tuple
-    db_status: tuple
+    name: str
+    status: bool = True
+    errors: Optional[list[str]] = []
+
+
+class HealthcheckResponse(BaseModel):
+    """Model for displaying statuses from /healthcheck."""
+
+    timestamp: datetime
+    components: list[ComponentItemHealthcheck]
