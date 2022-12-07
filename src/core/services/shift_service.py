@@ -65,7 +65,7 @@ class ShiftService:
         return shift
 
     async def finish_shift(self, bot, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_members(id)
+        shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
         for member in shift.members:
