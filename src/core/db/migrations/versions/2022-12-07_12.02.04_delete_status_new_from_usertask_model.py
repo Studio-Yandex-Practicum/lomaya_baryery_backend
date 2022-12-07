@@ -1,8 +1,8 @@
-"""delete NEW status from usertask model
+"""delete_status_new_from_usertask_model
 
-Revision ID: 6343307e2c50
+Revision ID: b8b12d5ba254
 Revises: 2e9a6c2fe267
-Create Date: 2022-12-05 16:22:28.746542
+Create Date: 2022-12-07 12:02:04.620323
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6343307e2c50'
+revision = 'b8b12d5ba254'
 down_revision = '2e9a6c2fe267'
 branch_labels = None
 depends_on = None
