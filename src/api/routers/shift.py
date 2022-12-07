@@ -13,11 +13,11 @@ from src.api.request_models.shift import (
 )
 from src.api.response_models.shift import (
     ShiftDtoRespone,
+    ShiftMembersResponse,
     ShiftResponse,
-    ShiftUsersResponse,
     ShiftWithTotalUsersResponse,
 )
-from src.core.db.models import Request, Shift
+from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -112,23 +112,22 @@ class ShiftCBV:
 
     @router.get(
         "/{shift_id}/users",
-        response_model=ShiftUsersResponse,
+        response_model=ShiftMembersResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Получить список пользователей смены",
         response_description="Информация о смене",
     )
-    async def get_shift_users(
-        self,
-        shift_id: UUID,
-    ) -> ShiftUsersResponse:
+    async def get_shift_members(
+        self, shift_id: UUID, member_status: Optional[Member.Status] = None
+    ) -> ShiftMembersResponse:
         """
         Получить список пользователей смены.
 
         - **shift**: Информация о смене
-        - **users**: Список всех одобренных пользователей смены.
+        - **memebers**: Список всех одобренных пользователей смены.
         """
-        return await self.shift_service.get_users_list(shift_id)
+        return await self.shift_service.get_members_list(shift_id, member_status)
 
     @router.get(
         '/{shift_id}/requests',
