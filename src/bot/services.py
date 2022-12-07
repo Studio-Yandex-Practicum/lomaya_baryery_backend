@@ -21,7 +21,7 @@ class BotService:
         text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_request(self, telegram_id: int, decline_request_data: RequestDeclineRequest) -> None:
+    async def notify_declined_request(self, user: models.User, decline_request_data: RequestDeclineRequest) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка отклонена.
@@ -35,7 +35,7 @@ class BotService:
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
                 f"{settings.ORGANIZATIONS_GROUP}"
             )
-        await self.__bot.send_message(telegram_id, text)
+        await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_approved_task(self, user: models.User, user_task: models.UserTask) -> None:
         """Уведомление участника о проверенном задании.
