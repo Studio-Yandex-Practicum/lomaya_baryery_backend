@@ -2,12 +2,15 @@ version: '3.3'
 
 volumes:
   postgres_data_stage:
+  static_value:
+  nginx_config:
+
 
 services:
   postgres:
     image: postgres:13.2
-    restart: always
     container_name: postgres_stage
+    restart: always
     volumes:
       - postgres_data_stage:/var/lib/postgresql/data/
     ports:
@@ -16,12 +19,33 @@ services:
       - .env
 
   backend:
-    env_file:
-      - .env
-    container_name: lomaya_baryery_backend
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
+    container_name: lomaya_baryery_backend
     restart: always
-    ports:
-      - "8000:8000"
     depends_on:
       - postgres
+    volumes:
+      - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
+    env_file:
+      - .env
+
+  swag:
+    image: linuxserver/swag
+    container_name: swag
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=Europe/Moscow
+      - URL=lombaryery.tk
+      - VALIDATION=http
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - static_value:/var/html/static/
+      - ./nginx/default.conf:/config/nginx/site-confs/default.conf
+    env_file:
+      - .env

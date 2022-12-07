@@ -1,13 +1,16 @@
 import enum
 import uuid
+from datetime import datetime
 
 from sqlalchemy import (
     DATE,
+    JSON,
     TIMESTAMP,
     BigInteger,
     Boolean,
     Column,
     Enum,
+    Identity,
     Integer,
     String,
     UniqueConstraint,
@@ -17,6 +20,12 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
+
+from src.core.exceptions import (
+    CannotAcceptReportError,
+    ShiftFinishForbiddenException,
+    ShiftStartForbiddenException,
+)
 
 
 @as_declarative()
@@ -48,28 +57,30 @@ class Shift(Base):
     status = Column(
         Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
+    sequence_number = Column(Integer, Identity(start=1, cycle=True))
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(100), nullable=False)
     final_message = Column(String(400), nullable=False)
+    tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     user_tasks = relationship("UserTask", back_populates="shift")
-    users = relationship("User", back_populates="shifts", secondary="requests", viewonly=True)
+    members = relationship("Member", back_populates="shift")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
 
+    async def start(self):
+        if self.status != Shift.Status.PREPARING.value:
+            raise ShiftStartForbiddenException(shift_name=self.title, shift_id=self.id)
+        self.status = Shift.Status.STARTED.value
+        self.started_at = datetime.now().date()
 
-class Photo(Base):
-    """Фотографии выполненных заданий."""
-
-    __tablename__ = "photos"
-
-    url = Column(String(length=150), unique=True, nullable=False)
-    user_tasks = relationship("UserTask", back_populates="photo")
-
-    def __repr__(self):
-        return f"<Photo: {self.id}, url: {self.url}>"
+    async def finish(self):
+        if self.status != Shift.Status.STARTED.value:
+            raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
+        self.status = Shift.Status.FINISHED.value
+        self.finished_at = datetime.now().date()
 
 
 class Task(Base):
@@ -96,10 +107,8 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
-    numbers_lombaryers = Column(Integer)
     requests = relationship("Request", back_populates="user")
-    user_tasks = relationship("UserTask", back_populates="user", order_by="UserTask.task_date")
-    shifts = relationship("Shift", back_populates="users", secondary="requests", viewonly=True)
+    members = relationship("Member", back_populates="user")
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
@@ -120,16 +129,44 @@ class Request(Base):
     __tablename__ = "requests"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    user = relationship("User", back_populates="requests")
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
+    shift = relationship("Shift", back_populates="requests")
     status = Column(
         Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    numbers_lombaryers = Column(Integer)
-    user = relationship("User", back_populates="requests")
-    shift = relationship("Shift", back_populates="requests")
 
     def __repr__(self):
         return f"<Request: {self.id}, status: {self.status}>"
+
+
+class Member(Base):
+    """Модель участников смены."""
+
+    class Status(str, enum.Enum):
+        """Статус участника смены."""
+
+        ACTIVE = "active"
+        EXCLUDED = "excluded"
+
+    __tablename__ = "members"
+
+    status = Column(
+        Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]),
+        default=Status.ACTIVE.value,
+        nullable=False,
+    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    user = relationship("User", back_populates="members")
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift = relationship("Shift", back_populates="members")
+    numbers_lombaryers = Column(Integer, default=0, nullable=False)
+    user_tasks = relationship("UserTask", back_populates="member")
+
+    __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
+
+    def __repr__(self):
+        return f"<Member: {self.id}, status: {self.status}>"
 
 
 class UserTask(Base):
@@ -138,7 +175,6 @@ class UserTask(Base):
     class Status(str, enum.Enum):
         """Статус задачи у пользователя."""
 
-        NEW = "new"
         UNDER_REVIEW = "under_review"
         APPROVED = "approved"
         DECLINED = "declined"
@@ -146,20 +182,31 @@ class UserTask(Base):
 
     __tablename__ = "user_tasks"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift = relationship("Shift", back_populates="user_tasks")
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
+    task = relationship("Task", back_populates="user_tasks")
+    member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
+    member = relationship("Member", back_populates="user_tasks")
     task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    photo_id = Column(UUID(as_uuid=True), ForeignKey(Photo.id), nullable=True)
-    user = relationship("User", back_populates="user_tasks")
-    shift = relationship("Shift", back_populates="user_tasks")
-    task = relationship("Task", back_populates="user_tasks")
-    photo = relationship("Photo", back_populates="user_tasks")
+    report_url = Column(String(length=4096), unique=True, nullable=False)
+    uploaded_at = Column(TIMESTAMP, nullable=True)
+    is_repeated = Column(Boolean(), nullable=False)
 
-    __table_args__ = (UniqueConstraint("user_id", "shift_id", "task_date", name="_user_task_uc"),)
+    __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
     def __repr__(self):
         return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+
+    def send_report(self, photo_url: str):
+        if self.status not in (
+            UserTask.Status.WAIT_REPORT.value,
+            UserTask.Status.DECLINED.value,
+        ):
+            raise CannotAcceptReportError()
+        self.status = UserTask.Status.UNDER_REVIEW.value
+        self.report_url = photo_url
+        self.uploaded_at = datetime.now()

@@ -1,17 +1,19 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, case, desc, func, or_, select, update
+from sqlalchemy import and_, case, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Photo, Shift, Task, User, UserTask
+from src.core.db.models import Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import CurrentTaskNotFoundError
+from src.core.settings import settings
 
 
 class UserTaskRepository(AbstractRepository):
@@ -26,7 +28,6 @@ class UserTaskRepository(AbstractRepository):
             .where(UserTask.id == id)
             .options(
                 selectinload(UserTask.user),
-                selectinload(UserTask.photo),
             )
         )
         return user_task.scalars().first()
@@ -38,7 +39,11 @@ class UserTaskRepository(AbstractRepository):
             raise LookupError(f"Объект UserTask c {id=} не найден.")
         return user_task
 
-    async def get_user_task_with_photo_url(
+    async def get_by_report_url(self, url: str) -> UserTask:
+        user_tasks = await self._session.execute(select(UserTask).where(UserTask.report_url == url))
+        return user_tasks.scalars().first()
+
+    async def get_user_task_with_report_url(
         self,
         id: UUID,
     ) -> dict:
@@ -50,10 +55,8 @@ class UserTaskRepository(AbstractRepository):
                 UserTask.task_id,
                 UserTask.task_date,
                 UserTask.status,
-                Photo.url.label("photo_url"),
-            )
-            .join(Photo)
-            .where(UserTask.id == id, Photo.id == UserTask.photo_id)
+                UserTask.report_url.label("photo_url"),
+            ).where(UserTask.id == id)
         )
         user_task = user_task.all()
         return dict(*user_task)
@@ -70,7 +73,7 @@ class UserTaskRepository(AbstractRepository):
                 and_(
                     UserTask.shift_id == shift_id,
                     UserTask.task_date == task_date,
-                    or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.UNDER_REVIEW),
+                    UserTask.status == UserTask.Status.UNDER_REVIEW,
                 )
             )
             .order_by(UserTask.id)
@@ -124,13 +127,13 @@ class UserTaskRepository(AbstractRepository):
             UserTask.task_id,
             Task.description,
             Task.url,
-            Photo.url,
+            UserTask.report_url.label("photo_url"),
         )
         if shift_id:
             stmt = stmt.where(UserTask.shift_id == shift_id)
         if status:
             stmt = stmt.where(UserTask.status == status)
-        stmt = stmt.join(Shift).join(User).join(Task).join(Photo).order_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
         user_tasks = await self._session.execute(stmt)
         return [DTO_models.FullUserTaskDto(*user_task) for user_task in user_tasks.all()]
 
@@ -150,7 +153,6 @@ class UserTaskRepository(AbstractRepository):
             .where(
                 and_(
                     UserTask.shift_id == shift_id,
-                    UserTask.status != UserTask.Status.NEW,
                     UserTask.deleted.is_(False),
                 )
             )
@@ -187,15 +189,16 @@ class UserTaskRepository(AbstractRepository):
         await self._session.execute(statement)
         await self._session.commit()
 
-    async def get_new_or_declined_today_user_task(self, user_id: UUID) -> Optional[UserTask]:
-        """Получить сегодняшнюю задачу со статусом new/declined."""
-        task_date = datetime.now().date()
-        statement = select(UserTask).where(
-            and_(
+    async def get_current_user_task(self, user_id: UUID) -> UserTask:
+        now = datetime.now()
+        task_date = now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
+        user_tasks = await self._session.execute(
+            select(UserTask).where(
                 UserTask.user_id == user_id,
                 UserTask.task_date == task_date,
-                or_(UserTask.status == UserTask.Status.NEW, UserTask.status == UserTask.Status.DECLINED),
             )
         )
-        user_task = await self._session.execute(statement)
-        return user_task.scalars().first()
+        user_task = user_tasks.scalars().first()
+        if not user_task:
+            raise CurrentTaskNotFoundError()
+        return user_task

@@ -22,7 +22,8 @@ def create_app() -> FastAPI:
 
     origins = ["*"]
 
-    app.mount(settings.STATIC_URL, StaticFiles(directory=settings.STATIC_PATH), name="static")
+    # для локального тестирования монтируем статику
+    app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
     app.add_middleware(
         CORSMiddleware,
