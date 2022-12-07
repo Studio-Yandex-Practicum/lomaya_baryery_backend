@@ -74,8 +74,7 @@ class ShiftService:
 
     async def get_members_list(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
         shift = await self.__shift_repository.get_with_members(id, member_status)
-        members = shift.members
-        return ShiftMembersResponse(shift=shift, members=members)
+        return ShiftMembersResponse(shift=shift, members=shift.members)
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
