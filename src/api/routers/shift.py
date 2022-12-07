@@ -169,6 +169,7 @@ class ShiftCBV:
     )
     async def get_all_shifts(
         self,
+        request: FastAPIRequest,
         status: Optional[Shift.Status] = None,
         sort: Optional[ShiftSortRequest] = None,
     ) -> list[ShiftWithTotalUsersResponse]:
@@ -182,7 +183,7 @@ class ShiftCBV:
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
-        return await self.shift_service.list_all_shifts(status, sort)
+        return await self.shift_service.list_all_shifts(status, sort, request)
 
     @router.patch(
         "/{shift_id}/finish",

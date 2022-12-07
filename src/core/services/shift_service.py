@@ -4,6 +4,11 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
+from fastapi import Request as FastAPIRequest
+from fastapi import exceptions
+from fastapi.dependencies.models import Dependant
+from pydantic.error_wrappers import ErrorWrapper
+from pydantic.errors import PydanticValueError
 
 from src.api.request_models.shift import (
     ShiftCreateRequest,
@@ -84,6 +89,20 @@ class ShiftService:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(
-        self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
+        self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest], request: FastAPIRequest
     ) -> list[ShiftWithTotalUsersResponse]:
+        errors = []
+        dependant: Dependant = request.scope["route"].dependant
+        allowed_params = [param.alias for dependency in dependant.dependencies for param in dependency.query_params]
+        allowed_params += [modelfield.alias for modelfield in dependant.query_params]
+        for requested_param in request.query_params.keys():
+            if requested_param not in allowed_params:
+                errors.append(
+                    ErrorWrapper(
+                        PydanticValueError(msg_template="Extra query parameters are not allowed"),
+                        loc=("query", requested_param),
+                    )
+                )
+        if len(errors) > 0:
+            raise exceptions.RequestValidationError(errors, body=request.body)
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
