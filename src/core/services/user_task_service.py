@@ -26,7 +26,6 @@ from src.core.settings import settings
 
 REVIEWED_TASK = "Задание уже проверено, статус задания: {}."
 WAIT_REPORT_TASK = "К заданию нет отчета участника, статус задания: {}."
-NEW_TASK = "Задание не было отправлено участнику, статус задания: {}."
 
 
 class UserTaskService:
@@ -90,16 +89,16 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def approve_report(self, user_task_id: UUID, bot: Application.bot) -> None:
+    async def approve_report(self, report_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
-        user_task = await self.__user_task_repository.get(user_task_id)
+        user_task = await self.__user_task_repository.get(report_id)
         self.__can_change_status(user_task.status)
         user_task.status = Status.APPROVED
-        await self.__user_task_repository.update(user_task_id, user_task)
-        member = await self.__member_repository.get_by_user_and_shift(user_task.shift_id, user_task.user_id)
+        await self.__user_task_repository.update(report_id, user_task)
+        member = await self.__member_repository.get_with_user_info(user_task.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_approved_task(user_task)
+        await self.__telegram_bot(bot).notify_approved_task(member.user.telegram_id, user_task)
         return
 
     async def decline_report(self, user_task_id: UUID, bot: Application.bot) -> None:
@@ -108,13 +107,16 @@ class UserTaskService:
         self.__can_change_status(user_task.status)
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(user_task_id, user_task)
-        await self.__telegram_bot(bot).notify_declined_task(user_task.user.telegram_id)
+        member = await self.__member_repository.get_with_user_info(user_task.member_id)
+        await self.__telegram_bot(bot).notify_declined_task(member.user.telegram_id)
         return
 
     def __can_change_status(self, status: UserTask.Status) -> None:
         """Уточнение статуса задания."""
         if status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
+        if status is UserTask.Status.WAIT_REPORT:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=WAIT_REPORT_TASK.format(status))
 
     async def get_summaries_of_user_tasks(
         self,

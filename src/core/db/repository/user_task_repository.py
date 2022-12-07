@@ -5,14 +5,13 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, case, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Shift, Task, User, UserTask
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError
+from src.core.exceptions import CurrentTaskNotFoundError, NotFoundException
 from src.core.settings import settings
 
 
@@ -23,20 +22,13 @@ class UserTaskRepository(AbstractRepository):
         super().__init__(session, UserTask)
 
     async def get_or_none(self, id: UUID) -> Optional[UserTask]:
-        user_task = await self._session.execute(
-            select(UserTask)
-            .where(UserTask.id == id)
-            .options(
-                selectinload(UserTask.user),
-            )
-        )
+        user_task = await self._session.execute(select(UserTask).where(UserTask.id == id))
         return user_task.scalars().first()
 
     async def get(self, id: UUID) -> UserTask:
         user_task = await self.get_or_none(id)
-        if user_task is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект UserTask c {id=} не найден.")
+        if not user_task:
+            raise NotFoundException
         return user_task
 
     async def get_by_report_url(self, url: str) -> UserTask:

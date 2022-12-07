@@ -21,7 +21,7 @@ class BotService:
         text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_request(self, user: models.User, decline_request_data: RequestDeclineRequest) -> None:
+    async def notify_declined_request(self, telegram_id: int, decline_request_data: RequestDeclineRequest) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка отклонена.
@@ -35,20 +35,20 @@ class BotService:
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
                 f"{settings.ORGANIZATIONS_GROUP}"
             )
-        await self.__bot.send_message(user.telegram_id, text)
+        await self.__bot.send_message(telegram_id, text)
 
-    async def notify_approved_task(self, user_task: models.UserTask) -> None:
+    async def notify_approved_task(self, telegram_id: int, user_task: models.UserTask) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = dt.strftime(user_task.photo.created_at, FORMAT_PHOTO_DATE)
+        photo_date = dt.strftime(user_task.uploaded_at, FORMAT_PHOTO_DATE)
         text = (
             f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следуюее задание придет в 8.00 мск."
         )
-        await self.__bot.send_message(user_task.user.telegram_id, text)
+        await self.__bot.send_message(telegram_id, text)
 
     async def notify_declined_task(self, telegram_id: str) -> None:
         """Уведомление участника о проверенном задании.
