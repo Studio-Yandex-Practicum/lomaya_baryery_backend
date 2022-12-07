@@ -8,7 +8,7 @@ from src.core.db.models import Member, UserTask
 
 
 class MemeberTaskShortResponse(BaseModel):
-    """Cхема, для передачи её в информацию о конкретной смене."""
+    """Cхема для отображения краткой информации об отчете (UserTask) участника смены (Shift)."""
 
     task_id: UUID
     status: UserTask.Status
@@ -19,7 +19,7 @@ class MemeberTaskShortResponse(BaseModel):
 
 
 class MemberResponse(BaseModel):
-    """Модель участника смены для ответа."""
+    """Схема для отображения информации об участнике смены (Shift)."""
 
     id: UUID
     status: Member.Status
