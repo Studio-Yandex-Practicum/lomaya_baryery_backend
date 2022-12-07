@@ -30,12 +30,14 @@ class ShiftRepository(AbstractRepository):
             id (UUID) - id смены (shift)
             member_status (Optional[Member.Status]) - статус участника смены.
         """
-        filter_members_by_status = or_(member_status is None, Member.status == member_status)
+        member_stmt = Shift.members
+        if member_status is not None:
+            member_stmt = member_stmt.and_(Member.status == member_status)
         statement = (
             select(Shift)
             .where(Shift.id == id)
-            .options(selectinload(Shift.members.and_(filter_members_by_status)).selectinload(Member.user_tasks))
-            .options(selectinload(Shift.members.and_(filter_members_by_status)).selectinload(Member.user))
+            .options(selectinload(member_stmt).selectinload(Member.user_tasks))
+            .options(selectinload(member_stmt).selectinload(Member.user))
         )
         request = await self._session.execute(statement)
         request = request.scalars().first()
