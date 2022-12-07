@@ -50,7 +50,7 @@ class BotService:
         )
         await self.__bot.send_message(telegram_id, text)
 
-    async def notify_declined_task(self, telegram_id: str) -> None:
+    async def notify_declined_task(self, telegram_id: int) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.

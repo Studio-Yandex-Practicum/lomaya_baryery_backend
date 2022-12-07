@@ -28,7 +28,7 @@ class UserTaskRepository(AbstractRepository):
     async def get(self, id: UUID) -> UserTask:
         user_task = await self.get_or_none(id)
         if not user_task:
-            raise NotFoundException
+            raise NotFoundException(object_name=UserTask.__doc__, object_id=id)
         return user_task
 
     async def get_by_report_url(self, url: str) -> UserTask:
