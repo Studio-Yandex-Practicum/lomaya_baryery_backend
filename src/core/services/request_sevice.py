@@ -32,7 +32,7 @@ class RequestService:
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
         await self.__member_repository.create(member)
         await self.__telegram_bot(bot).notify_approved_request(request.user)
-        return request
+        return
 
     async def decline_request(
         self,
@@ -47,7 +47,7 @@ class RequestService:
         request.status = Status.DECLINED
         await self.__request_repository.update(request_id, request)
         await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
-        return request
+        return
 
     async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
         """Исключает участников смены.
