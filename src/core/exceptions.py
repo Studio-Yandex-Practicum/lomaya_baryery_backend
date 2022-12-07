@@ -48,3 +48,15 @@ class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class ReviewedUserTaskException(ApplicationException):
+    def __init__(self, status: UUID):
+        self.status_code = HTTPStatus.NOT_FOUND
+        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
+
+
+class WaitingReportUserTaskException(ApplicationException):
+    def __init__(self, status: UUID):
+        self.status_code = HTTPStatus.NOT_FOUND
+        self.detail = "К заданию нет отчета участника, статус задания: {}.".format(status)

@@ -37,7 +37,7 @@ class BotService:
             )
         await self.__bot.send_message(telegram_id, text)
 
-    async def notify_approved_task(self, telegram_id: int, user_task: models.UserTask) -> None:
+    async def notify_approved_task(self, user: models.User, user_task: models.UserTask) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
@@ -48,9 +48,9 @@ class BotService:
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следуюее задание придет в 8.00 мск."
         )
-        await self.__bot.send_message(telegram_id, text)
+        await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_task(self, telegram_id: int) -> None:
+    async def notify_declined_task(self, user: models.User) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
@@ -61,7 +61,7 @@ class BotService:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
-        await self.__bot.send_message(telegram_id, text)
+        await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_member(self, user: models.User) -> None:
         """Уведомляет участника об исключении из смены."""

@@ -1,8 +1,7 @@
 from datetime import date
-from http import HTTPStatus
 from typing import Any
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
 
@@ -19,7 +18,11 @@ from src.core.db.repository import (
     UserTaskRepository,
 )
 from src.core.db.repository.request_repository import RequestRepository
-from src.core.exceptions import DuplicateReportError
+from src.core.exceptions import (
+    DuplicateReportError,
+    ReviewedUserTaskException,
+    WaitingReportUserTaskException,
+)
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -89,16 +92,16 @@ class UserTaskService:
             tasks.append(task)
         return tasks
 
-    async def approve_report(self, report_id: UUID, bot: Application.bot) -> None:
+    async def approve_report(self, user_task_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
-        user_task = await self.__user_task_repository.get(report_id)
+        user_task = await self.__user_task_repository.get(user_task_id)
         self.__can_change_status(user_task.status)
         user_task.status = Status.APPROVED
-        await self.__user_task_repository.update(report_id, user_task)
+        await self.__user_task_repository.update(user_task_id, user_task)
         member = await self.__member_repository.get_with_user_info(user_task.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_approved_task(member.user.telegram_id, user_task)
+        await self.__telegram_bot(bot).notify_approved_task(member.user, user_task)
         return
 
     async def decline_report(self, user_task_id: UUID, bot: Application.bot) -> None:
@@ -108,15 +111,15 @@ class UserTaskService:
         user_task.status = Status.DECLINED
         await self.__user_task_repository.update(user_task_id, user_task)
         member = await self.__member_repository.get_with_user_info(user_task.member_id)
-        await self.__telegram_bot(bot).notify_declined_task(member.user.telegram_id)
+        await self.__telegram_bot(bot).notify_declined_task(member.user)
         return
 
     def __can_change_status(self, status: UserTask.Status) -> None:
         """Уточнение статуса задания."""
         if status in (UserTask.Status.APPROVED, UserTask.Status.DECLINED):
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
+            raise ReviewedUserTaskException(status=status)
         if status is UserTask.Status.WAIT_REPORT:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=WAIT_REPORT_TASK.format(status))
+            raise WaitingReportUserTaskException(status=status)
 
     async def get_summaries_of_user_tasks(
         self,
