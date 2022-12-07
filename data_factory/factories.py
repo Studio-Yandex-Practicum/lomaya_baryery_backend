@@ -147,6 +147,9 @@ class MemberFactory(BaseFactory):
                         member_id=self.id,
                         shift_id=self.shift_id,
                         task_date=date,
+                        uploaded_at=datetime.datetime.combine(
+                            date, datetime.time(hour=random.randrange(0, 24), minute=random.randrange(0, 60))
+                        ),
                     )
 
     @classmethod
