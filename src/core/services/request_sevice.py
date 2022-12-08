@@ -5,7 +5,7 @@ from pydantic.schema import UUID
 from telegram.error import BadRequest
 from telegram.ext import Application
 
-from src.api.request_models.request import RequestDeclineRequest, Status
+from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
 from src.bot import services
 from src.core.db.models import Member, Request
@@ -48,7 +48,7 @@ class RequestService:
         except BadRequest:
             raise SendTelegramNotifyException(request.user.id, request.user.name, request.user.telegram_id)
         else:
-            request.status = Status.APPROVED
+            request.status = Request.Status.APPROVED
             await self.__request_repository.update(request_id, request)
             member = Member(user_id=request.user_id, shift_id=request.shift_id)
             await self.__member_repository.create(member)
@@ -69,7 +69,7 @@ class RequestService:
         except BadRequest:
             raise SendTelegramNotifyException(request.user.id, request.user.name, request.user.telegram_id)
         else:
-            request.status = Status.DECLINED
+            request.status = Request.Status.DECLINED
             await self.__request_repository.update(request_id, request)
         return await self.__create_request_response_model(request)
 
