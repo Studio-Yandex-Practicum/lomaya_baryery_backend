@@ -36,7 +36,7 @@ class RequestService:
             phone_number=request.user.phone_number,
             status=request.status,
         )
-        return request_response
+        return request_response  # noqa: R504
 
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
