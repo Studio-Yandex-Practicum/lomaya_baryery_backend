@@ -48,3 +48,15 @@ class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class SendTelegramNotifyException(ApplicationException):
+    """Невозможно отправить сообщение в telegram."""
+
+    def __init__(self, user_id: UUID, user_name: str, telegram_id: int):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = (
+            "Ошибка при отправке сообщения пользователю - "
+            f"id: {user_id}, name: {user_name}, telegram_id: {telegram_id}. "
+            "Пожалуйста, проверьте, что пользователь с таким telegram_id доступен в telegram."
+        )

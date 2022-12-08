@@ -2,12 +2,15 @@ from http import HTTPStatus
 
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
+from telegram.error import BadRequest
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest, Status
+from src.api.response_models.request import RequestResponse
 from src.bot import services
-from src.core.db.models import Member
+from src.core.db.models import Member, Request
 from src.core.db.repository import MemberRepository, RequestRepository
+from src.core.exceptions import SendTelegramNotifyException
 
 REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
 
@@ -22,17 +25,34 @@ class RequestService:
         self.__member_repository = member_repository
         self.__telegram_bot = services.BotService
 
+    async def __create_request_response_model(self, request: Request):
+        request_response = RequestResponse(
+            request_id=request.id,
+            user_id=request.user.id,
+            name=request.user.name,
+            surname=request.user.surname,
+            date_of_birth=request.user.date_of_birth,
+            city=request.user.city,
+            phone_number=request.user.phone_number,
+            status=request.status,
+        )
+        return request_response
+
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status == Status.APPROVED:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
-        request.status = Status.APPROVED
-        await self.__request_repository.update(request_id, request)
-        member = Member(user_id=request.user_id, shift_id=request.shift_id)
-        await self.__member_repository.create(member)
-        await self.__telegram_bot(bot).notify_approved_request(request.user)
-        return
+        try:
+            await self.__telegram_bot(bot).notify_approved_request(request.user)
+        except BadRequest:
+            raise SendTelegramNotifyException(request.user.id, request.user.name, request.user.telegram_id)
+        else:
+            request.status = Status.APPROVED
+            await self.__request_repository.update(request_id, request)
+            member = Member(user_id=request.user_id, shift_id=request.shift_id)
+            await self.__member_repository.create(member)
+        return await self.__create_request_response_model(request)
 
     async def decline_request(
         self,
@@ -44,10 +64,14 @@ class RequestService:
         request = await self.__request_repository.get(request_id)
         if request.status == Status.DECLINED:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
-        request.status = Status.DECLINED
-        await self.__request_repository.update(request_id, request)
-        await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
-        return
+        try:
+            await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
+        except BadRequest:
+            raise SendTelegramNotifyException(request.user.id, request.user.name, request.user.telegram_id)
+        else:
+            request.status = Status.DECLINED
+            await self.__request_repository.update(request_id, request)
+        return await self.__create_request_response_model(request)
 
     async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
         """Исключает участников смены.
