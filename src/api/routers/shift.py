@@ -4,11 +4,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi import Request as FastAPIRequest
+from fastapi import exceptions
 from fastapi_restful.cbv import cbv
+from pydantic.error_wrappers import ValidationError
 
 from src.api.request_models.shift import (
     ShiftCreateRequest,
-    ShiftSortRequest,
+    ShiftListRequest,
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
@@ -17,7 +19,7 @@ from src.api.response_models.shift import (
     ShiftUsersResponse,
     ShiftWithTotalUsersResponse,
 )
-from src.core.db.models import Request, Shift
+from src.core.db.models import Request
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -168,10 +170,7 @@ class ShiftCBV:
         response_description="Информация о сменах с фильтрацией по статусу и возможностью сортировки",
     )
     async def get_all_shifts(
-        self,
-        request: FastAPIRequest,
-        status: Optional[Shift.Status] = None,
-        sort: Optional[ShiftSortRequest] = None,
+        self, request: FastAPIRequest, request_params: ShiftListRequest = Depends()
     ) -> list[ShiftWithTotalUsersResponse]:
         """Получить список смен с фильтрацией по статусу.
 
@@ -183,7 +182,11 @@ class ShiftCBV:
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
-        return await self.shift_service.list_all_shifts(status, sort, request)
+        try:
+            ShiftListRequest(**request.query_params)
+        except ValidationError as e:
+            raise exceptions.RequestValidationError(e.raw_errors)
+        return await self.shift_service.list_all_shifts(request_params.status, request_params.sort)
 
     @router.patch(
         "/{shift_id}/finish",
