@@ -41,7 +41,7 @@ class RequestService:
     async def approve_request(self, request_id: UUID, bot: Application.bot) -> None:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
-        if request.status == Status.APPROVED:
+        if request.status != Request.Status.PENDING or request.status != Request.Status.REPEATED_REQUEST:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
         try:
             await self.__telegram_bot(bot).notify_approved_request(request.user)
@@ -62,7 +62,7 @@ class RequestService:
     ) -> None:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
-        if request.status == Status.DECLINED:
+        if request.status != Request.Status.PENDING or request.status != Request.Status.REPEATED_REQUEST:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(request.status))
         try:
             await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
