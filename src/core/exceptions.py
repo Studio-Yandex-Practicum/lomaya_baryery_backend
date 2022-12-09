@@ -53,10 +53,9 @@ class ShiftFinishForbiddenException(ApplicationException):
 class SendTelegramNotifyException(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
-    def __init__(self, user_id: UUID, user_name: str, telegram_id: int):
+    def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
-            "Ошибка при отправке сообщения пользователю - "
-            f"id: {user_id}, name: {user_name}, telegram_id: {telegram_id}. "
-            "Пожалуйста, проверьте, что пользователь с таким telegram_id доступен в telegram."
+            f"Возникла ошибка '{exc}' при отправке сообщения пользователю - "
+            f"id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
         )
