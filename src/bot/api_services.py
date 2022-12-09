@@ -2,16 +2,16 @@ from typing import Optional
 
 from src.core.db.db import get_session
 from src.core.db.repository import (
+    ReportRepository,
     RequestRepository,
     ShiftRepository,
     TaskRepository,
     UserRepository,
-    UserTaskRepository,
 )
+from src.core.services.report_service import ReportService
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
-from src.core.services.user_task_service import UserTaskService
 
 
 async def get_registration_service_callback(sessions) -> Optional[UserService]:
@@ -22,17 +22,17 @@ async def get_registration_service_callback(sessions) -> Optional[UserService]:
         return registration_service
 
 
-async def get_user_task_service_callback():
+async def get_report_service_callback():
     async for session in get_session():
         request_repository = RequestRepository(session)
         shift_repository = ShiftRepository(session)
         task_repository = TaskRepository(session)
         user_repository = UserRepository(session)
-        user_task_repository = UserTaskRepository(session)
+        report_repository = ReportRepository(session)
         request_service = RequestService(request_repository)
         task_service = TaskService(task_repository)
-        user_task_service = UserTaskService(
-            user_task_repository,
+        report_service = ReportService(
+            report_repository,
             task_repository,
             shift_repository,
             task_service,
@@ -40,4 +40,4 @@ async def get_user_task_service_callback():
             request_repository,
             user_repository,
         )
-    return user_task_service
+    return report_service

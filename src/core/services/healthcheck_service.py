@@ -6,13 +6,13 @@ from fastapi import Depends
 from telegram.ext import Application
 
 from src.api.response_models.healthcheck import HealthcheckResponse
-from src.core.db.repository import UserTaskRepository
+from src.core.db.repository import ReportRepository
 from src.core.settings import settings
 
 
 class HealthcheckService:
-    def __init__(self, user_task_repository: UserTaskRepository = Depends()) -> None:
-        self.__user_task_repository = user_task_repository
+    def __init__(self, report_repository: ReportRepository = Depends()) -> None:
+        self.__report_repository = report_repository
 
     async def __get_bot_status(self, bot: Application.bot) -> tuple:
         """Проверка, что бот запустился и работает корректно."""
@@ -34,7 +34,7 @@ class HealthcheckService:
     async def __get_db_status(self) -> tuple:
         """Делает запрос к Базе Данных и проверяет, что приходит ответ."""
         try:
-            await self.__user_task_repository.get_all_tasks_id_under_review()
+            await self.__report_repository.get_all_tasks_id_under_review()
             return (True,)
         except Exception as db_error:
             logging.exception(db_error)

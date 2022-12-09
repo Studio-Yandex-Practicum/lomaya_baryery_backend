@@ -6,7 +6,7 @@ from pydantic.schema import UUID
 from src.api.response_models.shift import ShiftResponse
 from src.api.response_models.task import TaskInfoResponse
 from src.api.response_models.user import UserInfoResponse
-from src.core.db.models import Shift, UserTask
+from src.core.db.models import Report, Shift
 
 
 class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
@@ -15,33 +15,33 @@ class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
     id: UUID
 
 
-class UserTasksAndShiftResponse(BaseModel):
+class ReportsAndShiftResponse(BaseModel):
     """Общая модель смены и заданий для ответа."""
 
     shift: ShiftResponse
     tasks: list[UserAndTaskInfoResponse]
 
 
-class UserTaskResponse(BaseModel):
+class ReportResponse(BaseModel):
     """Pydantic-схема, для описания объекта, полученного из БД."""
 
     user_id: UUID
     id: UUID
     task_id: UUID
     task_date: date
-    status: UserTask.Status
+    status: Report.Status
     photo_url: str
 
     class Config:
         orm_mode = True
 
 
-class UserTaskSummaryResponse(BaseModel):
+class ReportSummaryResponse(BaseModel):
     shift_id: UUID
     shift_status: Shift.Status
     shift_started_at: date
-    user_task_id: UUID
-    user_task_created_at: date
+    report_id: UUID
+    report_created_at: date
     user_name: str
     user_surname: str
     task_id: UUID
