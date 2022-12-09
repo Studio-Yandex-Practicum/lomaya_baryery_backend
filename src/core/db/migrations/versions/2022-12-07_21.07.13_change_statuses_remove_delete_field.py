@@ -1,7 +1,7 @@
 """change statuses, remove delete field
 
 Revision ID: 741503bbbd5c
-Revises: ef93521586c2
+Revises: b8b12d5ba254
 Create Date: 2022-12-07 21:07:13.909937
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '741503bbbd5c'
-down_revision = 'ef93521586c2'
+down_revision = 'b8b12d5ba254'
 branch_labels = None
 depends_on = None
 
