@@ -31,7 +31,7 @@ class ShiftRepository(AbstractRepository):
             member_status (Optional[Member.Status]) - статус участника смены.
         """
         member_stmt = Shift.members
-        if member_status is not None:
+        if member_status:
             member_stmt = member_stmt.and_(Member.status == member_status)
         statement = (
             select(Shift)
