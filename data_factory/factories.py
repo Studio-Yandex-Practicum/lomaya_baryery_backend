@@ -116,8 +116,7 @@ class ReportFactory(BaseFactory):
     def status(self):
         if self.task_date < datetime.date.today():
             return random.choice([Report.Status.APPROVED, Report.Status.DECLINED])
-        else:
-            return Report.Status.REVIEWING
+        return Report.Status.REVIEWING
 
     @factory.lazy_attribute
     def task_id(self):
