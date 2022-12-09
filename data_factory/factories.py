@@ -134,7 +134,7 @@ class MemberFactory(BaseFactory):
     numbers_lombaryers = factory.Faker("random_int", min=0, max=92)
 
     @factory.post_generation
-    def add_several_user_tasks(self, created, count, **kwargs):
+    def add_several_reports(self, created, count, **kwargs):
         start_date = session.execute(select(Shift.started_at).where(Shift.id == self.shift_id))
         start_date = start_date.scalars().first()
         all_dates = list((start_date + timedelta(day)) for day in range(91))
@@ -156,6 +156,6 @@ class MemberFactory(BaseFactory):
     def complex_create(cls, count, **kwargs):
         return cls.create_batch(
             count,
-            add_several_user_tasks=1,
+            add_several_reports=1,
             **kwargs,
         )

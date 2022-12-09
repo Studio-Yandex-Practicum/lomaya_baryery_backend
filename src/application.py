@@ -6,10 +6,10 @@ from fastapi.staticfiles import StaticFiles
 
 from src.api.routers import (
     healthcheck_router,
+    report_router,
     request_router,
     router,
     shift_router,
-    user_tasks,
     webhook_router,
 )
 from src.bot.main import start_bot
@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(router)
-    app.include_router(user_tasks)
+    app.include_router(report_router)
     app.include_router(shift_router)
     app.include_router(request_router)
     app.include_router(healthcheck_router)

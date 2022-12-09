@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Request, Shift, User, UserTask
+from src.core.db.models import Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -22,7 +22,7 @@ class ShiftRepository(AbstractRepository):
         super().__init__(session, Shift)
 
     async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
+        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.reports))
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
@@ -77,17 +77,17 @@ class ShiftRepository(AbstractRepository):
         shifts = await self._session.execute(shifts)
         return shifts.all()
 
-    async def get_today_active_user_task_ids(self) -> list[UUID]:
+    async def get_today_active_report_ids(self) -> list[UUID]:
         task_date = datetime.now().date()
         active_task_ids = await self._session.execute(
-            select(UserTask.id)
-            .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
-            .join(Shift.user_tasks)
+            select(Report.id)
+            .where(Report.task_date == task_date, Request.status == Request.Status.APPROVED.value)
+            .join(Shift.reports)
             .join(Shift.requests)
         )
         return active_task_ids.scalars().all()
 
     async def get_started_shift_id(self) -> list[UUID]:
         """Возвращает id активной на данный момент смены."""
-        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED, Shift.deleted.is_(False)))
+        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED))
         return (await self._session.scalars(statement)).first()
