@@ -54,7 +54,7 @@ class ShiftUpdateRequest(ShiftCreateRequest):
     @root_validator(skip_on_failure=True)
     def validate_started_at_and_finished_at_fields_together(cls, values):
         fields_in_request = values['started_at'], values['finished_at']
-        if all(fields_in_request):
+        if all(fields_in_request):  # noqa: R505
             return super().validate_started_at_and_finished_at_fields_together(values)
         elif any(fields_in_request):
             raise ValueError("Нельзя изменять даты начала и окончания отдельно друг от друга")
