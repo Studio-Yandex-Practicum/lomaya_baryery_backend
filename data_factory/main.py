@@ -1,5 +1,6 @@
 import logging
 import sys
+from uuid import UUID
 
 import click
 import factory
@@ -8,13 +9,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data_factory.factories import (
+    MemberFactory,
     RequestFactory,
     ShiftFactory,
     TaskFactory,
     UserFactory,
     session,
 )
-from src.core.db.models import Request, Shift, User
+from src.core.db.models import Member, Request, Shift, User
 
 
 def get_logger(log_filename: str) -> logging.Logger:
@@ -38,11 +40,25 @@ def get_random_user_ids(count: int) -> list:
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute("""TRUNCATE TABLE requests, shifts, tasks, reports, users""")
+    session.execute("""TRUNCATE TABLE requests, shifts, tasks, reports, users, members""")
     session.commit()
 
 
+def create_approved_requests_and_members_with_user_tasks(user_ids: list[UUID], shift: Shift):
+    for user_id in user_ids:
+        RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id, status=Request.Status.APPROVED)
+
+        MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id, status=Member.Status.ACTIVE)
+
+
+def create_declined_requests(user_ids: list[UUID], shift: Shift):
+    for user_id in user_ids:
+        RequestFactory.create(user_id=user_id, shift_id=shift.id, status=Request.Status.DECLINED)
+
+
 def generate_fake_data() -> None:
+    numbers_users = 30
+    half_numbers_users = numbers_users // 2
     logger.info("Генерация фейковых данных...")
     with factory.Faker.override_default_locale("ru_RU"):
 
@@ -54,42 +70,34 @@ def generate_fake_data() -> None:
 
         logger.info("Создание активной смены...")
         started_shift = ShiftFactory.create(status=Shift.Status.STARTED)
-        user_ids = get_random_user_ids(30)
+        user_ids = get_random_user_ids(numbers_users)
 
         logger.info("Создание одобренных заявок и заданий для активной смены...")
-        for user_id in user_ids[:15]:
-            RequestFactory.complex_create(1, user_id=user_id, shift_id=started_shift.id, status=Request.Status.APPROVED)
+        create_approved_requests_and_members_with_user_tasks(user_ids[:half_numbers_users], started_shift)
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        for user_id in user_ids[15:]:
-            RequestFactory.create(user_id=user_id, shift_id=started_shift.id, status=Request.Status.DECLINED)
+        create_declined_requests(user_ids[half_numbers_users:], started_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(1, status=Shift.Status.FINISHED)
         for finished_shift in finished_shifts:
-            user_ids = get_random_user_ids(30)
+            user_ids = get_random_user_ids(numbers_users)
 
             logger.info("Создание одобренных заявок и заданий для завершенной смены...")
-            for user_id in user_ids[:15]:
-                RequestFactory.complex_create(
-                    1, user_id=user_id, shift_id=finished_shift.id, status=Request.Status.APPROVED
-                )
+            create_approved_requests_and_members_with_user_tasks(user_ids[:half_numbers_users], finished_shift)
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            for user_id in user_ids[15:]:
-                RequestFactory.create(user_id=user_id, shift_id=finished_shift.id, status=Request.Status.DECLINED)
+            create_declined_requests(user_ids[half_numbers_users:], finished_shift)
 
         logger.info("Создание новой смены...")
         preparing_shift = ShiftFactory.create(status=Shift.Status.PREPARING)
-        user_ids = get_random_user_ids(30)
+        user_ids = get_random_user_ids(numbers_users)
 
         logger.info("Создание одобренных заявок для новой смены...")
-        for user_id in user_ids[:15]:
-            RequestFactory.create(user_id=user_id, shift_id=preparing_shift.id, status=Request.Status.APPROVED)
+        create_approved_requests_and_members_with_user_tasks(user_ids[:half_numbers_users], preparing_shift)
 
         logger.info("Создание отклоненных заявок для новой смены...")
-        for user_id in user_ids[15:]:
-            RequestFactory.create(user_id=user_id, shift_id=preparing_shift.id, status=Request.Status.DECLINED)
+        create_declined_requests(user_ids[half_numbers_users:], preparing_shift)
 
     logger.info("Создание тестовых данных завершено!")
 
