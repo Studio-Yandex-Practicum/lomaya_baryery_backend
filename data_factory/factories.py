@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.core.db import models
-from src.core.db.models import Shift, Task, UserTask
+from src.core.db.models import Report, Shift, Task
 from src.core.settings import settings
 
 MAX_USER_BIRTH_DATE = datetime.date(1986, 1, 1)
@@ -105,9 +105,9 @@ class RequestFactory(BaseFactory):
     status = factory.Iterator([status for status in models.Request.Status])
 
 
-class UserTaskFactory(BaseFactory):
+class ReportFactory(BaseFactory):
     class Meta:
-        model = models.UserTask
+        model = models.Report
 
     is_repeated = factory.Faker('pybool')
     report_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
@@ -115,9 +115,9 @@ class UserTaskFactory(BaseFactory):
     @factory.lazy_attribute
     def status(self):
         if self.task_date < datetime.date.today():
-            return random.choice([UserTask.Status.APPROVED, UserTask.Status.DECLINED])
-        if self.task_date == datetime.date.today():  # noqa R503
-            return UserTask.Status.UNDER_REVIEW
+            return random.choice([Report.Status.APPROVED, Report.Status.DECLINED])
+        else:
+            return Report.Status.REVIEWING
 
     @factory.lazy_attribute
     def task_id(self):
@@ -142,7 +142,7 @@ class MemberFactory(BaseFactory):
             if date <= datetime.date.today():
 
                 if created and count:
-                    UserTaskFactory.create_batch(
+                    ReportFactory.create_batch(
                         count,
                         member_id=self.id,
                         shift_id=self.shift_id,
