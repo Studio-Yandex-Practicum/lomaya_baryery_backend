@@ -24,7 +24,7 @@ class ShiftRepository(AbstractRepository):
     async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
         """Получить смену (Shift) по её id вместе со связанными данными.
 
-        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> UserTask.
+        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
 
         Аргументы:
             id (UUID) - id смены (shift)
@@ -36,7 +36,7 @@ class ShiftRepository(AbstractRepository):
         statement = (
             select(Shift)
             .where(Shift.id == id)
-            .options(selectinload(member_stmt).selectinload(Member.user_tasks))
+            .options(selectinload(member_stmt).selectinload(Member.reports))
             .options(selectinload(member_stmt).selectinload(Member.user))
         )
         request = await self._session.execute(statement)
