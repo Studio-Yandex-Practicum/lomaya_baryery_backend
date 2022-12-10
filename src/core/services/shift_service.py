@@ -18,6 +18,7 @@ from src.api.response_models.shift import (
 from src.bot import services
 from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
+from src.core.services.report_service import ReportService
 from src.core.services.task_service import TaskService
 
 FINAL_MESSAGE = (
@@ -32,9 +33,11 @@ class ShiftService:
     def __init__(
         self,
         shift_repository: ShiftRepository = Depends(),
+        report_service: ReportService = Depends(),
         task_service: TaskService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
+        self.__report_service = report_service
         self.__task_service = task_service
         self.__telegram_bot = services.BotService
 
