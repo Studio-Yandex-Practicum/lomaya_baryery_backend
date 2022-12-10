@@ -1,9 +1,10 @@
 import random
+from http import HTTPStatus
 from itertools import cycle
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 
 from src.api.request_models.shift import (
     ShiftCreateRequest,
@@ -59,7 +60,28 @@ class ShiftService:
         return await self.__shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        return await self.__shift_repository.update(id, Shift(**update_shift_data.dict(exclude_unset=True)))
+        shift = await self.__shift_repository.get(id)
+        if shift.status in (Shift.Status.CANCELING, Shift.Status.FINISHED):
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN, detail="Нельзя изменять данные закончившейся или отмененной смены"
+            )
+        update_shift_data = update_shift_data.dict(exclude_unset=True)
+        if shift.status == Shift.Status.STARTED and 'started_at' in update_shift_data:
+            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Нельзя изменить дату начала текущей смены")
+        if (
+            'started_at' in update_shift_data
+            and 'finished_at' not in update_shift_data
+            and update_shift_data['started_at'].date() >= shift.finished_at
+        ) or (
+            'finished_at' in update_shift_data
+            and 'started_at' not in update_shift_data
+            and shift.started_at >= update_shift_data['finished_at'].date()
+        ):
+            raise HTTPException(
+                status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+                detail="Дата начала не может быть больше или равняться дате окончания",
+            )
+        return await self.__shift_repository.update(id, Shift(**update_shift_data))
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)

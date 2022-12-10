@@ -34,8 +34,8 @@ class ShiftCreateRequest(RequestBase):
 
     @root_validator(skip_on_failure=True)
     def validate_started_at_and_finished_at_fields_together(cls, values):
-        if values['finished_at'].date() <= values['started_at'].date():
-            raise ValueError("Дата окончания не может быть меньше или равняться дате начала")
+        if values['started_at'].date() >= values['finished_at'].date():
+            raise ValueError("Дата начала не может быть больше или равняться дате окончания")
         return values
 
 
@@ -43,19 +43,10 @@ class ShiftUpdateRequest(ShiftCreateRequest):
     started_at: Optional[datetime] = Field(None)
     finished_at: Optional[datetime] = Field(None)
     title: Optional[str] = Field(None, max_length=100)
-    final_message: Optional[str] = Field(None, max_length=400)
-
-    @validator("final_message")
-    def validate_final_message_field(cls, value: str):
-        if value.isnumeric():
-            raise ValueError("Финальное сообщение не может состоять только из цифр")
-        return value
+    final_message: Optional[str] = Field(None, min_length=10, max_length=400)
 
     @root_validator(skip_on_failure=True)
     def validate_started_at_and_finished_at_fields_together(cls, values):
-        fields_in_request = values['started_at'], values['finished_at']
-        if all(fields_in_request):  # noqa: R505
+        if all((values['started_at'], values['finished_at'])):
             return super().validate_started_at_and_finished_at_fields_together(values)
-        elif any(fields_in_request):
-            raise ValueError("Нельзя изменять даты начала и окончания отдельно друг от друга")
         return values
