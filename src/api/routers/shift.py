@@ -127,7 +127,7 @@ class ShiftCBV:
         - **shift**: Информация о смене
         - **memebers**: Список всех одобренных пользователей смены.
         """
-        return await self.shift_service.get_members_list(shift_id, member_status)
+        return await self.shift_service.get_shift_with_get_members(shift_id, member_status)
 
     @router.get(
         '/{shift_id}/requests',
