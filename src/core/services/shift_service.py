@@ -1,10 +1,10 @@
 import random
-from http import HTTPStatus
+from datetime import date
 from itertools import cycle
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from src.api.request_models.shift import (
     ShiftCreateRequest,
@@ -19,6 +19,7 @@ from src.api.response_models.shift import (
 from src.bot import services
 from src.core.db.models import Request, Shift
 from src.core.db.repository import ShiftRepository
+from src.core.exceptions import ShiftUpdateException
 from src.core.services.task_service import TaskService
 from src.core.services.user_task_service import UserTaskService
 
@@ -60,28 +61,20 @@ class ShiftService:
         return await self.__shift_repository.get(id)
 
     async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        shift = await self.__shift_repository.get(id)
-        if shift.status in (Shift.Status.CANCELING, Shift.Status.FINISHED):
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN, detail="Нельзя изменять данные закончившейся или отмененной смены"
-            )
-        update_shift_data = update_shift_data.dict(exclude_unset=True)
-        if shift.status == Shift.Status.STARTED and 'started_at' in update_shift_data:
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Нельзя изменить дату начала текущей смены")
-        if (
-            'started_at' in update_shift_data
-            and 'finished_at' not in update_shift_data
-            and update_shift_data['started_at'].date() >= shift.finished_at
-        ) or (
-            'finished_at' in update_shift_data
-            and 'started_at' not in update_shift_data
-            and shift.started_at >= update_shift_data['finished_at'].date()
-        ):
-            raise HTTPException(
-                status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-                detail="Дата начала не может быть больше или равняться дате окончания",
-            )
-        return await self.__shift_repository.update(id, Shift(**update_shift_data))
+        shift: Shift = await self.__shift_repository.get(id)
+        if shift.status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
+            if (
+                shift.started_at != update_shift_data.started_at.date()
+                or shift.finished_at != update_shift_data.finished_at.date()
+                or shift.final_message != update_shift_data.final_message
+            ):
+                raise ShiftUpdateException(detail="В закончившейся или отмененной смене можно изменить только название")
+        if shift.status == Shift.Status.STARTED:
+            if shift.started_at != update_shift_data.started_at.date():
+                raise ShiftUpdateException(detail="Нельзя изменить дату начала текущей смены")
+            if update_shift_data.finished_at.date() < date.today():
+                raise ShiftUpdateException(detail="Нельзя установить дату окончания текущей смены прошедшим числом")
+        return await self.__shift_repository.update(id, Shift(**update_shift_data.dict()))
 
     async def start_shift(self, id: UUID) -> Shift:
         shift = await self.__shift_repository.get(id)

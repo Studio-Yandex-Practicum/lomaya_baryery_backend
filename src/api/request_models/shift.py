@@ -1,6 +1,5 @@
 import enum
 from datetime import date, datetime, timedelta
-from typing import Optional
 
 from pydantic import Field, root_validator, validator
 
@@ -18,7 +17,7 @@ class ShiftSortRequest(str, enum.Enum):
 class ShiftCreateRequest(RequestBase):
     started_at: datetime
     finished_at: datetime
-    title: str = Field(..., max_length=50)
+    title: str = Field(..., max_length=100)
 
     @validator("started_at")
     def validate_started_later_than_now(cls, value: datetime) -> datetime:
@@ -40,13 +39,4 @@ class ShiftCreateRequest(RequestBase):
 
 
 class ShiftUpdateRequest(ShiftCreateRequest):
-    started_at: Optional[datetime] = Field(None)
-    finished_at: Optional[datetime] = Field(None)
-    title: Optional[str] = Field(None, max_length=100)
-    final_message: Optional[str] = Field(None, min_length=10, max_length=400)
-
-    @root_validator(skip_on_failure=True)
-    def validate_started_at_and_finished_at_fields_together(cls, values):
-        if all((values['started_at'], values['finished_at'])):
-            return super().validate_started_at_and_finished_at_fields_together(values)
-        return values
+    final_message: str = Field(..., min_length=10, max_length=400)

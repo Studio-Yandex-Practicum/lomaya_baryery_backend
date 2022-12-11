@@ -48,3 +48,9 @@ class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class ShiftUpdateException(ApplicationException):
+    def __init__(self, detail: str):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = detail

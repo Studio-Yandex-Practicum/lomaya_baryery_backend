@@ -50,7 +50,7 @@ class Shift(Base):
         STARTED = "started"
         FINISHED = "finished"
         PREPARING = "preparing"
-        CANCELING = "cancelled"
+        CANCELLED = "cancelled"
 
     __tablename__ = "shifts"
 
