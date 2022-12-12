@@ -4,6 +4,6 @@ from src.api.routers.hello import (  # noqa
     router,
     webhook_router,
 )
+from src.api.routers.report import router as report_router  # noqa
 from src.api.routers.request import router as request_router  # noqa
 from src.api.routers.shift import router as shift_router  # noqa
-from src.api.routers.user_tasks import router as user_tasks  # noqa

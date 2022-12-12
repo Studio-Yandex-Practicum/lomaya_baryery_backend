@@ -14,18 +14,18 @@ from telegram.ext import CallbackContext, ContextTypes
 from src.bot.api_services import get_registration_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
+    ReportRepository,
     RequestRepository,
     TaskRepository,
     UserRepository,
-    UserTaskRepository,
 )
 from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
     DuplicateReportError,
 )
+from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
-from src.core.services.user_task_service import UserTaskService
 from src.core.settings import settings
 
 
@@ -87,13 +87,13 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))
-    user_task_service = UserTaskService(UserTaskRepository(session), TaskRepository(session))
+    report_service = ReportService(ReportRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     file_path = await download_photo_report_callback(update, context)
     photo_url = f'{settings.APPLICATION_URL}/{settings.user_reports_dir}/{file_path}'
 
     try:
-        await user_task_service.send_report(user.id, photo_url)
+        await report_service.send_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
 
     except CurrentTaskNotFoundError:

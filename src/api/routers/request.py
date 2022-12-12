@@ -17,6 +17,7 @@ class RequestCBV:
 
     @router.patch(
         "/{request_id}/approve",
+        response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Одобрить заявку на участие.",
     )
@@ -30,6 +31,7 @@ class RequestCBV:
 
     @router.patch(
         "/{request_id}/decline",
+        response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Отклонить заявку на участие.",
     )

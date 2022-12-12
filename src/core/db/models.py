@@ -33,7 +33,6 @@ class Base:
     """Базовая модель."""
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    deleted = Column(Boolean, default=0)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
     updated_at = Column(
         TIMESTAMP, server_default=func.current_timestamp(), nullable=False, onupdate=func.current_timestamp()
@@ -64,7 +63,7 @@ class Shift(Base):
     final_message = Column(String(400), nullable=False)
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
-    user_tasks = relationship("UserTask", back_populates="shift")
+    reports = relationship("Report", back_populates="shift")
     members = relationship("Member", back_populates="shift")
 
     def __repr__(self):
@@ -90,7 +89,7 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
-    user_tasks = relationship("UserTask", back_populates="task")
+    reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
         return f"<Task: {self.id}, description: {self.description}>"
@@ -161,7 +160,7 @@ class Member(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
-    user_tasks = relationship("UserTask", back_populates="member")
+    reports = relationship("Report", back_populates="member")
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
 
@@ -169,28 +168,28 @@ class Member(Base):
         return f"<Member: {self.id}, status: {self.status}>"
 
 
-class UserTask(Base):
+class Report(Base):
     """Ежедневные задания."""
 
     class Status(str, enum.Enum):
         """Статус задачи у пользователя."""
 
-        UNDER_REVIEW = "under_review"
+        REVIEWING = "reviewing"
         APPROVED = "approved"
         DECLINED = "declined"
-        WAIT_REPORT = "wait_report"
+        WAITING = "waiting"
 
-    __tablename__ = "user_tasks"
+    __tablename__ = "reports"
 
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
-    shift = relationship("Shift", back_populates="user_tasks")
+    shift = relationship("Shift", back_populates="reports")
     task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
-    task = relationship("Task", back_populates="user_tasks")
+    task = relationship("Task", back_populates="reports")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
-    member = relationship("Member", back_populates="user_tasks")
+    member = relationship("Member", back_populates="reports")
     task_date = Column(DATE, nullable=False)
     status = Column(
-        Enum(Status, name="user_task_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
     report_url = Column(String(length=4096), unique=True, nullable=False)
     uploaded_at = Column(TIMESTAMP, nullable=True)
@@ -199,14 +198,14 @@ class UserTask(Base):
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
     def __repr__(self):
-        return f"<UserTask: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+        return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
         if self.status not in (
-            UserTask.Status.WAIT_REPORT.value,
-            UserTask.Status.DECLINED.value,
+            Report.Status.WAITING.value,
+            Report.Status.DECLINED.value,
         ):
             raise CannotAcceptReportError()
-        self.status = UserTask.Status.UNDER_REVIEW.value
+        self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
