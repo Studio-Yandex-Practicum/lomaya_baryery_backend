@@ -37,12 +37,12 @@ class BotService:
             )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_approved_task(self, user: models.User, user_task: models.UserTask) -> None:
+    async def notify_approved_task(self, user: models.User, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = dt.strftime(user_task.uploaded_at, FORMAT_PHOTO_DATE)
+        photo_date = dt.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = (
             f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
