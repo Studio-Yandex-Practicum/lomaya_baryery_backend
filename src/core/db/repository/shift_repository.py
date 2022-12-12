@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -13,6 +12,7 @@ from src.core.db.db import get_session
 from src.core.db.models import Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
+from src.core.utils import get_current_task_date
 
 
 class ShiftRepository(AbstractRepository):
@@ -78,7 +78,7 @@ class ShiftRepository(AbstractRepository):
         return shifts.all()
 
     async def get_today_active_report_ids(self) -> list[UUID]:
-        task_date = datetime.now().date()
+        task_date = get_current_task_date()
         active_task_ids = await self._session.execute(
             select(Report.id)
             .where(Report.task_date == task_date, Request.status == Request.Status.APPROVED.value)

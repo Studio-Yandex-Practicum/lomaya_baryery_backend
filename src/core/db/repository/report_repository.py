@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
@@ -13,7 +13,7 @@ from src.core.db.db import get_session
 from src.core.db.models import Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import CurrentTaskNotFoundError
-from src.core.settings import settings
+from src.core.utils import get_current_task_date
 
 
 class ReportRepository(AbstractRepository):
@@ -167,8 +167,7 @@ class ReportRepository(AbstractRepository):
         return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
-        now = datetime.now()
-        task_date = now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
+        task_date = get_current_task_date()
         reports = await self._session.execute(
             select(Report).where(
                 Report.user_id == user_id,
