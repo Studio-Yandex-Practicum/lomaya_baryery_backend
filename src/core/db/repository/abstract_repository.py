@@ -26,7 +26,7 @@ class AbstractRepository(abc.ABC):
         """Получает объект модели по ID. В случае отсутствия объекта бросает ошибку."""
         db_obj = await self.get_or_none(id)
         if db_obj is None:
-            raise NotFoundException(object_name='в запросе', object_id=id)
+            raise NotFoundException(object_name=self._model.__name__, object_id=id)
         return db_obj
 
     async def create(self, instance: DatabaseModel) -> DatabaseModel:

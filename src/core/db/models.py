@@ -8,6 +8,7 @@ from sqlalchemy import (
     TIMESTAMP,
     BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     Enum,
     Identity,
@@ -59,12 +60,14 @@ class Shift(Base):
     sequence_number = Column(Integer, Identity(start=1, cycle=True))
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
-    title = Column(String(100), nullable=False)
+    title = Column(String(60), nullable=False)
     final_message = Column(String(400), nullable=False)
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     reports = relationship("Report", back_populates="shift")
     members = relationship("Member", back_populates="shift")
+
+    __table_args__ = (CheckConstraint('char_length(title) > 2', name='_title_min_length_cc'),)
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
