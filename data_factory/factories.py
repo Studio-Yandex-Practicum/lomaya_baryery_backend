@@ -9,6 +9,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.core.db import models
 from src.core.db.models import Report, Shift, Task
+from src.core.services.shift_service import FINAL_MESSAGE
 from src.core.settings import settings
 
 MAX_USER_BIRTH_DATE = datetime.date(1986, 1, 1)
@@ -44,7 +45,7 @@ class ShiftFactory(BaseFactory):
     id = factory.Faker("uuid4")
     status = factory.Iterator([status for status in models.Shift.Status])
     title = factory.Faker("text", max_nb_chars=25)
-    final_message = factory.Faker("text", max_nb_chars=80)
+    final_message = FINAL_MESSAGE
     sequence_number = factory.Sequence(int)
 
     @factory.lazy_attribute

@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Report, Request, Shift, User
+from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -21,8 +21,24 @@ class ShiftRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Shift)
 
-    async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.reports))
+    async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
+        """Получить смену (Shift) по её id вместе со связанными данными.
+
+        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+
+        Аргументы:
+            id (UUID) - id смены (shift)
+            member_status (Optional[Member.Status]) - статус участника смены.
+        """
+        member_stmt = Shift.members
+        if member_status:
+            member_stmt = member_stmt.and_(Member.status == member_status)
+        statement = (
+            select(Shift)
+            .where(Shift.id == id)
+            .options(selectinload(member_stmt).selectinload(Member.reports))
+            .options(selectinload(member_stmt).selectinload(Member.user))
+        )
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:

@@ -5,7 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import Shift, User
+from src.core.db.models import User
 from src.core.db.repository import AbstractRepository
 
 
@@ -24,9 +24,3 @@ class UserRepository(AbstractRepository):
             select(select(User).where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id)).exists())
         )
         return user_exists.scalar()
-
-    async def get_users_in_active_shift(self) -> list[User]:
-        user_in_active_shift = await self._session.execute(
-            select(User).where(Shift.status == Shift.Status.STARTED.value).join(User.shifts)
-        )
-        return user_in_active_shift.scalars().all()
