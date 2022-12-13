@@ -78,10 +78,9 @@ class ShiftRepository(AbstractRepository):
         return shifts.all()
 
     async def get_today_active_report_ids(self) -> list[UUID]:
-        task_date = get_current_task_date()
         active_task_ids = await self._session.execute(
             select(Report.id)
-            .where(Report.task_date == task_date, Request.status == Request.Status.APPROVED.value)
+            .where(Report.task_date == get_current_task_date(), Request.status == Request.Status.APPROVED.value)
             .join(Shift.reports)
             .join(Shift.requests)
         )

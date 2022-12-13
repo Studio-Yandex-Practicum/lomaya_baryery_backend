@@ -167,11 +167,10 @@ class ReportRepository(AbstractRepository):
         return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
-        task_date = get_current_task_date()
         reports = await self._session.execute(
             select(Report).where(
-                Report.user_id == user_id,
-                Report.task_date == task_date,
+                Report.member_id == user_id,
+                Report.task_date == get_current_task_date(),
             )
         )
         report = reports.scalars().first()
