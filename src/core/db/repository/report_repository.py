@@ -11,7 +11,7 @@ from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError, NotFoundException
+from src.core.exceptions import CurrentTaskNotFoundError
 from src.core.settings import settings
 
 
@@ -20,16 +20,6 @@ class ReportRepository(AbstractRepository):
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Report)
-
-    async def get_or_none(self, id: UUID) -> Optional[Report]:
-        report = await self._session.execute(select(Report).where(Report.id == id))
-        return report.scalars().first()
-
-    async def get(self, id: UUID) -> Report:
-        report = await self.get_or_none(id)
-        if not report:
-            raise NotFoundException(object_name=Report.__name__, object_id=id)
-        return report
 
     async def get_by_report_url(self, url: str) -> Report:
         reports = await self._session.execute(select(Report).where(Report.report_url == url))
