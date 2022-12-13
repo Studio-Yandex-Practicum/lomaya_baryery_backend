@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.api.response_models.user import UserResponse
+from src.api.response_models.member import MemberResponse
 from src.core.db.models import Request, Shift
 
 
@@ -19,11 +19,11 @@ class ShiftResponse(BaseModel):
         orm_mode = True
 
 
-class ShiftUsersResponse(BaseModel):
+class ShiftMembersResponse(BaseModel):
     """Модель для вывода пользователей смены."""
 
     shift: ShiftResponse
-    users: list[UserResponse]
+    members: list[MemberResponse]
 
 
 class ShiftDtoRespone(BaseModel):

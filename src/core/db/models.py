@@ -59,7 +59,7 @@ class Shift(Base):
     sequence_number = Column(Integer, Identity(start=1, cycle=True))
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
-    title = Column(String(100), nullable=False)
+    title = Column(String(60), nullable=False)
     final_message = Column(String(400), nullable=False)
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")

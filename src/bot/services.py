@@ -46,7 +46,7 @@ class BotService:
         text = (
             f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
-            f"Следуюее задание придет в 8.00 мск."
+            f"Следующее задание придет в 8.00 мск."
         )
         await self.__bot.send_message(report.user.telegram_id, text)
 
@@ -74,7 +74,8 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_that_shift_is_finished(self, user: models.User, message: str) -> None:
+    async def notify_that_shift_is_finished(self, member: models.Member, message: str) -> None:
         """Уведомляет участников об окончании смены."""
-        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=user.numbers_lombaryers)
+        user = member.user
+        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=member.numbers_lombaryers)
         await self.__bot.send_message(user.telegram_id, text)
