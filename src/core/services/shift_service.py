@@ -1,4 +1,3 @@
-import asyncio
 import random
 from itertools import cycle
 from typing import Optional
@@ -18,8 +17,7 @@ from src.api.response_models.shift import (
 )
 from src.bot import services
 from src.core.db.models import Member, Request, Shift
-from src.core.db.repository import ShiftRepository
-from src.core.services.report_service import ReportService
+from src.core.db.repository import ReportRepository, ShiftRepository
 from src.core.services.task_service import TaskService
 
 FINAL_MESSAGE = (
@@ -34,13 +32,13 @@ class ShiftService:
     def __init__(
         self,
         shift_repository: ShiftRepository = Depends(),
-        report_service: ReportService = Depends(),
         task_service: TaskService = Depends(),
+        report_repository: ReportRepository = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
-        self.__report_service = report_service
         self.__task_service = task_service
         self.__telegram_bot = services.BotService
+        self.__report_repository = report_repository
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
@@ -72,11 +70,9 @@ class ShiftService:
         shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
-        notify_tasks = []
-        for member in shift.members:
-            if member.status == Member.Status.ACTIVE:
-                notify_tasks.append(self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message))
-        await asyncio.gather(*notify_tasks)
+        reports = await self.__report_repository.get_waiting_today_by_shift_id(shift.id)
+        await self.__report_repository.bulk_declined_status_update(reports)
+        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
         return shift
 
     async def get_shift_with_get_members(

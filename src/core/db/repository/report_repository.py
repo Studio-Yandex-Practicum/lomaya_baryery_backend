@@ -161,3 +161,17 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
+
+    async def get_waiting_today_by_shift_id(self, shift_id: UUID) -> list[Report]:
+        stmt = select(Report).where(
+            Report.task_date == datetime.now().date(),
+            Report.shift_id == shift_id,
+            Report.status == Report.Status.WAITING,
+        )
+        reports = await self._session.execute(stmt)
+        return reports.scalars().all()
+
+    async def bulk_declined_status_update(self, reports: list[Report]) -> None:
+        for report in reports:
+            report.status = Report.Status.DECLINED
+        await self._session.commit()
