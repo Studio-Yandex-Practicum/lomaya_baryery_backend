@@ -14,16 +14,13 @@ from src.core.db.repository import (
     ReportRepository,
     ShiftRepository,
     TaskRepository,
-    UserRepository,
 )
-from src.core.db.repository.request_repository import RequestRepository
 from src.core.exceptions import (
     DuplicateReportError,
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
 )
 from src.core.services.request_sevice import RequestService
-from src.core.services.task_service import TaskService
 from src.core.settings import settings
 
 
@@ -44,20 +41,14 @@ class ReportService:
         report_repository: ReportRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
-        task_service: TaskService = Depends(),
         request_service: RequestService = Depends(),
-        request_repository: RequestRepository = Depends(),
-        user_repository: UserRepository = Depends(),
         member_repository: MemberRepository = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
-        self.__task_service = task_service
         self.__request_service = request_service
-        self.__request_repository = request_repository
-        self.__user_repository = user_repository
         self.__member_repository = member_repository
 
     async def get_report(self, id: UUID) -> Report:
