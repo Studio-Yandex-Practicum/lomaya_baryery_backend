@@ -7,7 +7,6 @@ from sqlalchemy import and_, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Report, Shift, Task, User
@@ -86,26 +85,6 @@ class ReportRepository(AbstractRepository):
             select(Report.task_id).select_from(Report).where(Report.status == Report.Status.REVIEWING)
         )
         return all_tasks_id_under_review.all()
-
-    async def get_tasks_by_report_ids(self, report_ids: list[UUID]) -> list[LongTaskResponse]:
-        """Получить список заданий с подробностями на каждого участника по report_id."""
-        tasks = await self._session.execute(
-            select(
-                Task.id.label("task_id"),
-                Task.url.label("task_url"),
-                Task.description.label("task_description"),
-                User.telegram_id.label("user_telegram_id"),
-            )
-            .where(Report.id.in_(report_ids))
-            .join(Report.task)
-            .join(Report.user)
-        )
-        tasks = tasks.all()
-        task_infos = []
-        for task in tasks:
-            task_info = LongTaskResponse(**task)
-            task_infos.append(task_info)
-        return task_infos
 
     async def create_all(self, reports_list: list[Report]) -> Report:
         self._session.add_all(reports_list)
