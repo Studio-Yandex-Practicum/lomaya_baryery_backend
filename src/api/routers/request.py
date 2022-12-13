@@ -39,7 +39,7 @@ class RequestCBV:
         self,
         request_id: UUID,
         request: Request,
-        decline_request_data: RequestDeclineRequest = Body(None),
+        decline_request_data: RequestDeclineRequest | None = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(

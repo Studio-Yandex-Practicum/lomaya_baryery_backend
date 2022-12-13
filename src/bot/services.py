@@ -21,13 +21,16 @@ class BotService:
         text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_request(self, user: models.User, decline_request_data: RequestDeclineRequest) -> None:
+    async def notify_declined_request(
+        self, user: models.User, decline_request_data: RequestDeclineRequest | None
+    ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка отклонена.
         """
-        text = decline_request_data.message
-        if not text:
+        if decline_request_data and decline_request_data.message:
+            text = decline_request_data.message
+        else:
             text = (
                 f"К сожалению, на данный момент мы не можем зарегистрировать вас"
                 f" в проекте. Вы можете написать на почту "
