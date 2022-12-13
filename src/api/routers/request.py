@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
@@ -38,8 +38,8 @@ class RequestCBV:
     async def decline_request_status(
         self,
         request_id: UUID,
-        decline_request_data: RequestDeclineRequest,
         request: Request,
+        decline_request_data: RequestDeclineRequest = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(
