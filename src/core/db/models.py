@@ -8,7 +8,6 @@ from sqlalchemy import (
     TIMESTAMP,
     BigInteger,
     Boolean,
-    CheckConstraint,
     Column,
     Enum,
     Identity,
@@ -66,8 +65,6 @@ class Shift(Base):
     requests = relationship("Request", back_populates="shift")
     reports = relationship("Report", back_populates="shift")
     members = relationship("Member", back_populates="shift")
-
-    __table_args__ = (CheckConstraint('char_length(title) > 2', name='_title_min_length_cc'),)
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
