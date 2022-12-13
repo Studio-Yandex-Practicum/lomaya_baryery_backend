@@ -5,7 +5,6 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
@@ -21,23 +20,6 @@ class ReportRepository(AbstractRepository):
 
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Report)
-
-    async def get_or_none(self, id: UUID) -> Optional[Report]:
-        report = await self._session.execute(
-            select(Report)
-            .where(Report.id == id)
-            .options(
-                selectinload(Report.user),
-            )
-        )
-        return report.scalars().first()
-
-    async def get(self, id: UUID) -> Report:
-        report = await self.get_or_none(id)
-        if report is None:
-            # FIXME: написать и использовать кастомное исключение
-            raise LookupError(f"Объект Report c {id=} не найден.")
-        return report
 
     async def get_by_report_url(self, url: str) -> Report:
         reports = await self._session.execute(select(Report).where(Report.report_url == url))
