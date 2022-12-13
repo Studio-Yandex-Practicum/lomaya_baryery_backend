@@ -1,3 +1,4 @@
+import asyncio
 import random
 from itertools import cycle
 from typing import Optional
@@ -71,8 +72,11 @@ class ShiftService:
         shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
+        notify_tasks = []
         for member in shift.members:
-            await self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message)
+            if member.status == Member.Status.ACTIVE:
+                notify_tasks.append(self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message))
+        await asyncio.gather(*notify_tasks)
         return shift
 
     async def get_shift_with_get_members(
