@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import urljoin
 
 from telegram import ReplyKeyboardMarkup
@@ -25,7 +26,8 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     session_generator = get_session()
     report_service = await get_report_service_callback(session_generator)
     await report_service.check_members_activity(context.bot)
-    task, members = await report_service.get_today_task_and_active_members()
+    current_day_of_month = date.today().day
+    task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
     for member in members:
         await context.bot.send_photo(
             chat_id=member.user.telegram_id,
