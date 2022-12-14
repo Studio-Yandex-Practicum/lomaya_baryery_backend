@@ -4,7 +4,7 @@ aiosignal==1.2.0
 alembic==1.7.7
 alembic-autogen-check~=1.1.1
 anyio==3.6.1
-# apscheduler==3.9.1
+apscheduler==3.9.1
 async-timeout==4.0.2
 asyncpg==0.24.0
 attrs==22.1.0

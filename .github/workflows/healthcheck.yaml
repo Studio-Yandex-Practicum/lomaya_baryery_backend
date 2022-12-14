@@ -31,7 +31,7 @@ jobs:
       name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.11
+        python-version: 3.9
     - 
       name: Install and configure Poetry
       uses: snok/install-poetry@v1
@@ -43,6 +43,9 @@ jobs:
     - 
       name: Create env file
       run: ren .env.example .env
+    -
+      name: Run bd
+      run: docker-compose -f docker-compose.local.yaml up
     -
       name: Alembic Upgrade
       run: alembic upgrade heads
