@@ -59,3 +59,15 @@ class SendTelegramNotifyException(ApplicationException):
             f"Возникла ошибка '{exc}' при отправке сообщения пользователю - "
             f"id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
         )
+
+
+class ReportAlreadyReviewedException(ApplicationException):
+    def __init__(self, status: UUID):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
+
+
+class ReportWaitingPhotoException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "К заданию нет отчета участника."

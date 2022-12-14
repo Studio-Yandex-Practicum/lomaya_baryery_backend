@@ -3,10 +3,12 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
 from src.core.db.models import Member
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import NotFoundException
 
 
 class MemberRepository(AbstractRepository):
@@ -20,6 +22,13 @@ class MemberRepository(AbstractRepository):
             select(Member).where(Member.shift_id == shift_id, Member.user_id == user_id)
         )
         return member.scalars().first()
+
+    async def get_with_user(self, id: UUID) -> Member:
+        member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
+        member = member.scalars().first()
+        if not member:
+            raise NotFoundException(object_name=Member.__name__, object_id=id)
+        return member
 
     async def set_members_excluded(self, user_ids: list[UUID], shift_id: UUID) -> None:
         """Устанавливает участникам смены статус excluded.

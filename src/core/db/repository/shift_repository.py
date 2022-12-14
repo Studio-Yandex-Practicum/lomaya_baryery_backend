@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Report, Request, Shift, User
+from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -21,8 +20,24 @@ class ShiftRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Shift)
 
-    async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.reports))
+    async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
+        """Получить смену (Shift) по её id вместе со связанными данными.
+
+        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+
+        Аргументы:
+            id (UUID) - id смены (shift)
+            member_status (Optional[Member.Status]) - статус участника смены.
+        """
+        member_stmt = Shift.members
+        if member_status:
+            member_stmt = member_stmt.and_(Member.status == member_status)
+        statement = (
+            select(Shift)
+            .where(Shift.id == id)
+            .options(selectinload(member_stmt).selectinload(Member.reports))
+            .options(selectinload(member_stmt).selectinload(Member.user))
+        )
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
@@ -76,16 +91,6 @@ class ShiftRepository(AbstractRepository):
         )
         shifts = await self._session.execute(shifts)
         return shifts.all()
-
-    async def get_today_active_report_ids(self) -> list[UUID]:
-        task_date = datetime.now().date()
-        active_task_ids = await self._session.execute(
-            select(Report.id)
-            .where(Report.task_date == task_date, Request.status == Request.Status.APPROVED.value)
-            .join(Shift.reports)
-            .join(Shift.requests)
-        )
-        return active_task_ids.scalars().all()
 
     async def get_started_shift_id(self) -> list[UUID]:
         """Возвращает id активной на данный момент смены."""
