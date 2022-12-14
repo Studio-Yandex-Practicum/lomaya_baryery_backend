@@ -20,7 +20,6 @@ from src.bot import services
 from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import ShiftUpdateException, UpdateShiftForbiddenException
-from src.core.services.report_service import ReportService
 from src.core.services.task_service import TaskService
 
 FINAL_MESSAGE = (
