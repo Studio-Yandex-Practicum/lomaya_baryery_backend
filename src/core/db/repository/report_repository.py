@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Report, Shift, Task, User
+from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import CurrentTaskNotFoundError
 from src.core.utils import get_current_task_date
@@ -167,9 +167,10 @@ class ReportRepository(AbstractRepository):
         return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
+        """Получить текущий отчет по id пользователя."""
         reports = await self._session.execute(
             select(Report).where(
-                Report.member_id == user_id,
+                Report.member_id.in_(select(Member.id).where(Member.user_id == user_id)),
                 Report.task_date == get_current_task_date(),
             )
         )
