@@ -26,6 +26,12 @@ class CurrentTaskNotFoundError(Exception):
     pass
 
 
+class TodayTaskNotFoundError(Exception):
+    """Не найдено ежедневной задачи на текущий день."""
+
+    pass
+
+
 class CannotAcceptReportError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 

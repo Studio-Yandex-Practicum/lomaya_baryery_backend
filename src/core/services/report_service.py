@@ -17,7 +17,7 @@ from src.core.db.repository import (
     ShiftRepository,
     TaskRepository,
 )
-from src.core.exceptions import CurrentTaskNotFoundError, DuplicateReportError
+from src.core.exceptions import DuplicateReportError, TodayTaskNotFoundError
 from src.core.services.request_sevice import RequestService
 from src.core.settings import settings
 
@@ -68,13 +68,13 @@ class ReportService:
         """Получить ежедневное задание и список активных участников смены."""
         current_day_of_month = str(date.today().day)
         shift_id = await self.__shift_repository.get_started_shift_id()
-        shift_with_members = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
-        all_tasks = json.loads(shift_with_members.tasks)
+        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
+        all_tasks = json.loads(shift.tasks)
         today_task_id = all_tasks.get(current_day_of_month)
         task = await self.__task_repository.get_or_none(today_task_id)
-        if task is None:
-            raise CurrentTaskNotFoundError()
-        return task, shift_with_members.members
+        if not task:
+            raise TodayTaskNotFoundError()
+        return task, shift.members
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
