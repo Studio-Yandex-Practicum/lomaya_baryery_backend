@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report, Request, Shift, User
+from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -75,7 +74,7 @@ class ShiftRepository(AbstractRepository):
         shifts = (
             select(
                 Shift.id,
-                Shift.status,
+                Shift.status.label('status'),
                 Shift.started_at,
                 Shift.finished_at,
                 Shift.title,
@@ -92,16 +91,6 @@ class ShiftRepository(AbstractRepository):
         )
         shifts = await self._session.execute(shifts)
         return shifts.all()
-
-    async def get_today_active_report_ids(self) -> list[UUID]:
-        task_date = datetime.now().date()
-        active_task_ids = await self._session.execute(
-            select(Report.id)
-            .where(Report.task_date == task_date, Request.status == Request.Status.APPROVED.value)
-            .join(Shift.reports)
-            .join(Shift.requests)
-        )
-        return active_task_ids.scalars().all()
 
     async def get_started_shift_id(self) -> list[UUID]:
         """Возвращает id активной на данный момент смены."""
