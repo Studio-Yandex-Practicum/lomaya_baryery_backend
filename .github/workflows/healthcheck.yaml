@@ -42,7 +42,7 @@ jobs:
         poetry install
     - 
       name: Create env file
-      run: ren .env.example .env
+      run: mv .env.example .env
     -
       name: Run bd
       run: docker-compose -f docker-compose.local.yaml up
