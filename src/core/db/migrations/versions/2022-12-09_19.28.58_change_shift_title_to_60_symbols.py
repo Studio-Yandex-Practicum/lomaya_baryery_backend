@@ -1,7 +1,7 @@
 """Change shift_title to 60 symbols
 
 Revision ID: 691cdea87322
-Revises: b8b12d5ba254
+Revises: a418e2ead89b
 Create Date: 2022-12-09 19:28:58.525398
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '691cdea87322'
-down_revision = 'b8b12d5ba254'
+down_revision = 'a418e2ead89b'
 branch_labels = None
 depends_on = None
 

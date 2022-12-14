@@ -139,6 +139,7 @@ class ReportService:
         )
         if len(user_ids_to_exclude) > 0:
             await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
+            await self.__member_repository.set_members_excluded(user_ids_to_exclude, shift_id)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
