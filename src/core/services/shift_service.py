@@ -13,11 +13,11 @@ from src.api.request_models.shift import (
 )
 from src.api.response_models.shift import (
     ShiftDtoRespone,
-    ShiftUsersResponse,
+    ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
 from src.bot import services
-from src.core.db.models import Request, Shift
+from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import ShiftUpdateException, UpdateShiftForbiddenException
 from src.core.services.report_service import ReportService
@@ -115,17 +115,18 @@ class ShiftService:
         return shift
 
     async def finish_shift(self, bot, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_users(id)
+        shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
-        for user in shift.users:
-            await self.__telegram_bot(bot).notify_that_shift_is_finished(user, shift.final_message)
+        for member in shift.members:
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message)
         return shift
 
-    async def get_users_list(self, id: UUID) -> ShiftUsersResponse:
-        shift = await self.__shift_repository.get_with_users(id)
-        users = shift.users
-        return ShiftUsersResponse(shift=shift, users=users)
+    async def get_shift_with_get_members(
+        self, id: UUID, member_status: Optional[Member.Status]
+    ) -> ShiftMembersResponse:
+        shift = await self.__shift_repository.get_with_members(id, member_status)
+        return ShiftMembersResponse(shift=shift, members=shift.members)
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
         return await self.__shift_repository.list_all_requests(id=id, status=status)

@@ -21,13 +21,16 @@ class BotService:
         text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_request(self, user: models.User, decline_request_data: RequestDeclineRequest) -> None:
+    async def notify_declined_request(
+        self, user: models.User, decline_request_data: RequestDeclineRequest | None
+    ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка отклонена.
         """
-        text = decline_request_data.message
-        if not text:
+        if decline_request_data and decline_request_data.message:
+            text = decline_request_data.message
+        else:
             text = (
                 f"К сожалению, на данный момент мы не можем зарегистрировать вас"
                 f" в проекте. Вы можете написать на почту "
@@ -37,20 +40,20 @@ class BotService:
             )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_approved_task(self, report: models.Report) -> None:
+    async def notify_approved_task(self, user: models.User, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = dt.strftime(report.photo.created_at, FORMAT_PHOTO_DATE)
+        photo_date = dt.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = (
             f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
-            f"Следуюее задание придет в 8.00 мск."
+            f"Следующее задание придет в 8.00 мск."
         )
-        await self.__bot.send_message(report.user.telegram_id, text)
+        await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_task(self, telegram_id: str) -> None:
+    async def notify_declined_task(self, user: models.User) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
@@ -61,7 +64,7 @@ class BotService:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
-        await self.__bot.send_message(telegram_id, text)
+        await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_member(self, user: models.User) -> None:
         """Уведомляет участника об исключении из смены."""
@@ -74,7 +77,8 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_that_shift_is_finished(self, user: models.User, message: str) -> None:
+    async def notify_that_shift_is_finished(self, member: models.Member, message: str) -> None:
         """Уведомляет участников об окончании смены."""
-        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=user.numbers_lombaryers)
+        user = member.user
+        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=member.numbers_lombaryers)
         await self.__bot.send_message(user.telegram_id, text)

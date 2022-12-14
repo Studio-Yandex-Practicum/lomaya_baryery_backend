@@ -61,6 +61,18 @@ class SendTelegramNotifyException(ApplicationException):
         )
 
 
+class ReportAlreadyReviewedException(ApplicationException):
+    def __init__(self, status: UUID):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
+
+
+class ReportWaitingPhotoException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "К заданию нет отчета участника."
+
+
 class ShiftUpdateException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.BAD_REQUEST
