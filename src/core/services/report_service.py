@@ -5,7 +5,6 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
 
-
 from src.bot import services
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Task
@@ -15,7 +14,6 @@ from src.core.db.repository import (
     ShiftRepository,
     TaskRepository,
 )
-from src.core.db.repository.request_repository import RequestRepository
 from src.core.exceptions import (
     DuplicateReportError,
     ReportAlreadyReviewedException,
