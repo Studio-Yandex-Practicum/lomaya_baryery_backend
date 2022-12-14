@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Report, Shift, Task, User
+from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import CurrentTaskNotFoundError
 from src.core.settings import settings
@@ -32,13 +32,16 @@ class ReportRepository(AbstractRepository):
         """Получить отчет участника по id с url фото выполненного задания."""
         report = await self._session.execute(
             select(
-                Report.user_id,
+                Member.user_id,
                 Report.id,
                 Report.task_id,
                 Report.task_date,
                 Report.status,
                 Report.report_url.label("photo_url"),
-            ).where(Report.id == id)
+            )
+            .where(Report.id == id)
+            .join(Member)
+            .where(Report.member_id == Member.id)
         )
         report = report.all()
         return dict(*report)
@@ -50,7 +53,7 @@ class ReportRepository(AbstractRepository):
     ) -> list[tuple[int]]:
         """Получить список кортежей с id всех Report, id всех юзеров и id задач этих юзеров."""
         reports_info = await self._session.execute(
-            select(Report.id, Report.user_id, Report.task_id)
+            select(Report.id, Member.user_id, Report.task_id)
             .where(
                 and_(
                     Report.shift_id == shift_id,
@@ -58,6 +61,8 @@ class ReportRepository(AbstractRepository):
                     Report.status == Report.Status.REVIEWING,
                 )
             )
+            .join(Member)
+            .where(Report.member_id == Member.id)
             .order_by(Report.id)
         )
         return reports_info.all()
@@ -80,7 +85,8 @@ class ReportRepository(AbstractRepository):
             )
             .where(Report.id.in_(report_ids))
             .join(Report.task)
-            .join(Report.user)
+            .join(Report.member)
+            .join(Member.user)
         )
         tasks = tasks.all()
         task_infos = []
@@ -113,7 +119,7 @@ class ReportRepository(AbstractRepository):
             stmt = stmt.where(Report.shift_id == shift_id)
         if status:
             stmt = stmt.where(Report.status == status)
-        stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(Member).join(User).join(Task).order_by(desc(Shift.started_at))
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
 
