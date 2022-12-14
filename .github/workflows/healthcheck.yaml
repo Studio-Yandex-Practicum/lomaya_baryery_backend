@@ -41,7 +41,7 @@ jobs:
         poetry config virtualenvs.in-project true
         poetry install
         - 
-      name: Create .env file
+      name: Create env file
       run: ren .env.example .env
     -
       name: Alembic Upgrade
