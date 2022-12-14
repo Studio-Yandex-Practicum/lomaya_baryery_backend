@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Union
 
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
@@ -45,7 +46,7 @@ class RequestService:
         self,
         request_id: UUID,
         bot: Application.bot,
-        decline_request_data: RequestDeclineRequest | None,
+        decline_request_data: Union[RequestDeclineRequest, None],
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
