@@ -1,4 +1,3 @@
-import json
 from datetime import date
 from http import HTTPStatus
 from typing import Any
@@ -17,8 +16,9 @@ from src.core.db.repository import (
     ShiftRepository,
     TaskRepository,
 )
-from src.core.exceptions import DuplicateReportError, TodayTaskNotFoundError
+from src.core.exceptions import DuplicateReportError
 from src.core.services.request_sevice import RequestService
+from src.core.services.task_service import TaskService
 from src.core.settings import settings
 
 REVIEWED_TASK = "Задание уже проверено, статус задания: {}."
@@ -43,15 +43,17 @@ class ReportService:
         report_repository: ReportRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
-        request_service: RequestService = Depends(),
         member_repository: MemberRepository = Depends(),
+        request_service: RequestService = Depends(),
+        task_service: TaskService = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
-        self.__request_service = request_service
         self.__member_repository = member_repository
+        self.__request_service = request_service
+        self.__task_service = task_service
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
@@ -64,16 +66,11 @@ class ReportService:
         if report:
             raise DuplicateReportError()
 
-    async def get_today_task_and_active_members(self) -> tuple[Task, list[Member]]:
+    async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
-        current_day_of_month = str(date.today().day)
         shift_id = await self.__shift_repository.get_started_shift_id()
         shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
-        all_tasks = json.loads(shift.tasks)
-        today_task_id = all_tasks.get(current_day_of_month)
-        task = await self.__task_repository.get_or_none(today_task_id)
-        if not task:
-            raise TodayTaskNotFoundError()
+        task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
     # TODO переписать
