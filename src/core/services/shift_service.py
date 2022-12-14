@@ -49,7 +49,7 @@ class ShiftService:
             raise ShiftUpdateException(detail="Нельзя установить дату начала/окончания смены прошедшим числом")
 
     def __check_started_and_finished_dates(self, started_at: date, finished_at: date) -> None:
-        """Проверяет даты начала и окончания смены между собой.
+        """Проверка дат начала и окончания смены между собой.
 
         - Дата начала не больше и не равна дате окончания.
         - Разница между датой начала и окончания не более 4-х месяцев.
@@ -65,8 +65,6 @@ class ShiftService:
         Если update_shift_data не передано в функцию (при создании смены),
         то проверяются даты самой смены.
         """
-        if not update_shift_data:
-            update_shift_data = shift
         if shift.status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
             raise UpdateShiftForbiddenException(detail="Нельзя изменить завершенную или отмененную смену")
         if shift.status == Shift.Status.STARTED:
@@ -74,6 +72,10 @@ class ShiftService:
                 raise UpdateShiftForbiddenException(detail="Нельзя изменить дату начала текущей смены")
             self.__check_date_not_in_past(update_shift_data.finished_at)
             self.__check_started_and_finished_dates(update_shift_data.started_at, update_shift_data.finished_at)
+        if not update_shift_data:
+            # Используется для передачи дат создаваемой смены в проверяющие функции,
+            # т.к. объект update_shift_data при создании смены не передается в функцию.
+            update_shift_data = shift
         if shift.status == Shift.Status.PREPARING:
             self.__check_date_not_in_past(update_shift_data.started_at)
             self.__check_date_not_in_past(update_shift_data.finished_at)
