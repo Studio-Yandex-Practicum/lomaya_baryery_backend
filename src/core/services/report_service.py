@@ -1,12 +1,11 @@
 from datetime import date
-from http import HTTPStatus
 from typing import Any
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
 
-from src.api.request_models.request import Status
+
 from src.bot import services
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Task
@@ -16,14 +15,15 @@ from src.core.db.repository import (
     ShiftRepository,
     TaskRepository,
 )
-from src.core.exceptions import DuplicateReportError
+from src.core.db.repository.request_repository import RequestRepository
+from src.core.exceptions import (
+    DuplicateReportError,
+    ReportAlreadyReviewedException,
+    ReportWaitingPhotoException,
+)
 from src.core.services.request_sevice import RequestService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
-
-REVIEWED_TASK = "Задание уже проверено, статус задания: {}."
-WAIT_REPORT_TASK = "К заданию нет отчета участника, статус задания: {}."
-NEW_TASK = "Задание не было отправлено участнику, статус задания: {}."
 
 
 class ReportService:
@@ -90,27 +90,30 @@ class ReportService:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
-        report.status = Status.APPROVED
+        report.status = Report.Status.APPROVED
         await self.__report_repository.update(report_id, report)
-        member = await self.__member_repository.get_by_user_and_shift(report.shift_id, report.user_id)
+        member = await self.__member_repository.get_with_user(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_approved_task(report)
+        await self.__telegram_bot(bot).notify_approved_task(member.user, report)
         return
 
     async def decline_report(self, report_id: UUID, bot: Application.bot) -> None:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
-        report.status = Status.DECLINED
+        report.status = Report.Status.DECLINED
         await self.__report_repository.update(report_id, report)
-        await self.__telegram_bot(bot).notify_declined_task(report.user.telegram_id)
+        member = await self.__member_repository.get_with_user(report.member_id)
+        await self.__telegram_bot(bot).notify_declined_task(member.user)
         return
 
     def __can_change_status(self, status: Report.Status) -> None:
-        """Уточнение статуса задания."""
+        """Проверка статуса задания перед изменением."""
         if status in (Report.Status.APPROVED, Report.Status.DECLINED):
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_TASK.format(status))
+            raise ReportAlreadyReviewedException(status=status)
+        if status is Report.Status.WAITING:
+            raise ReportWaitingPhotoException
 
     async def get_summaries_of_reports(
         self,
