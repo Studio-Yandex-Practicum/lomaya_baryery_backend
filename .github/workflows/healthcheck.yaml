@@ -1,4 +1,4 @@
-name: Check APP
+name: every push health check
 
 on:
   pull_request:
@@ -43,9 +43,6 @@ jobs:
     - 
       name: Create env file
       run: mv .env.example .env
-    -
-      name: Run bd
-      run: docker-compose -f docker-compose.local.yaml up
     -
       name: Alembic Upgrade
       run: alembic upgrade heads
