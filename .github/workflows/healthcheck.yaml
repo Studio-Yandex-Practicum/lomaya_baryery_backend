@@ -49,7 +49,7 @@ jobs:
       run: poetry run alembic upgrade head
     -
       name: Run Local project
-      run: python run.py
+      run: poetry run python run.py
     - 
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
