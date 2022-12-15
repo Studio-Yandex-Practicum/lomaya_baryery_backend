@@ -46,9 +46,7 @@ jobs:
       run: mv .env.example .env
     -
       name: Alembic Upgrade
-      run: |
-        poetry shell
-        alembic upgrade heads
+      run: poetry run alembic upgrade head
     -
       name: Run Local project
       run: python run.py
