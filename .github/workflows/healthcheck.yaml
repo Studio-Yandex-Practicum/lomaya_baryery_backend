@@ -31,15 +31,17 @@ jobs:
       name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.10
     - 
       name: Install and configure Poetry
       uses: snok/install-poetry@v1
     -
       name: Install Dependencies
-      run: |
+      run:
+        python -V
         poetry config virtualenvs.in-project true
         poetry install
+        poetry update
         poetry shell
     - 
       name: Create env file
