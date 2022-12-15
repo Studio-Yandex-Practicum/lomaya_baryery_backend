@@ -129,18 +129,17 @@ class ReportService:
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
 
     async def check_members_activity(self, bot: Application.bot) -> None:
-        """Проверяет участников во всех запущенных сменах.
+        """Проверяет участников в стартовавшей смене.
 
         Если участники не посылают отчет о выполненом задании указанное
         в настройках количество раз подряд, то они будут исключены из смены.
         """
         shift_id = await self.__shift_repository.get_started_shift_id()
-        user_ids_to_exclude = await self.__report_repository.get_members_ids_for_excluding(
+        members_to_exclude = await self.__member_repository.get_members_for_excluding(
             shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
-        if len(user_ids_to_exclude) > 0:
-            await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
-            await self.__member_repository.set_members_excluded(user_ids_to_exclude, shift_id)
+        if len(members_to_exclude) > 0:
+            await self.__request_service.exclude_members(members_to_exclude, bot)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)

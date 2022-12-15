@@ -1,12 +1,12 @@
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member
+from src.core.db.models import Member, Report
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -30,22 +30,23 @@ class MemberRepository(AbstractRepository):
             raise NotFoundException(object_name=Member.__name__, object_id=id)
         return member
 
-    async def set_members_excluded(self, user_ids: list[UUID], shift_id: UUID) -> None:
-        """Устанавливает участникам смены статус excluded.
+    async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
+        members = self._session.scalars(
+            select(Member)
+            .where(Member.shift_id == shift_id)
+            .group_by(Member)
+            .having(func.max(Report.created_at) <= func.current_date() - task_amount)
+            .join(Report)
+        ).all()
+        return members
+
+    async def update_status_to_exclude(self, members: list[Member]) -> None:
+        """Массово изменяет статус участников на excluded.
 
         Аргументы:
-            user_ids (list[UUID]): список id участников
-            shift_id (UUID): id смены
+            member_ids (list[UUID]): список id участников, подлежащих исключению
         """
-        statement = (
-            update(Member)
-            .where(
-                and_(
-                    Member.user_id.in_(user_ids),
-                    Member.shift_id == shift_id,
-                )
-            )
-            .values(status=Member.Status.EXCLUDED)
-        )
-        await self._session.execute(statement)
+        for member in members:
+            member.status = Member.Status.EXCLUDED
+            await self._session.merge(member)
         await self._session.commit()

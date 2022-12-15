@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -92,7 +92,7 @@ class ShiftRepository(AbstractRepository):
         shifts = await self._session.execute(shifts)
         return shifts.all()
 
-    async def get_started_shift_id(self) -> list[UUID]:
+    async def get_started_shift_id(self) -> UUID:
         """Возвращает id активной на данный момент смены."""
-        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED))
-        return (await self._session.scalars(statement)).first()
+        shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED)).first()
+        return shift_id

@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, case, desc, func, select
+from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.response_models.task import LongTaskResponse
@@ -116,37 +116,6 @@ class ReportRepository(AbstractRepository):
         stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
-
-    async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
-        """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
-
-        Аргументы:
-            shift_id (UUID): id стартовавшей смены
-            task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
-        """
-        subquery_rank = (
-            select(
-                func.rank().over(order_by=Report.task_date.desc(), partition_by=Report.user_id).label('rnk'),
-                Report.user_id,
-                Report.status,
-            )
-            .where(
-                and_(
-                    Report.shift_id == shift_id,
-                )
-            )
-            .subquery()
-        )
-        subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
-        case_statement = case(
-            (subquery_last_statuses.c.status == Report.Status.WAITING, 1),
-        )
-        statement = (
-            select(subquery_last_statuses.c.user_id)
-            .having(func.count(case_statement) >= task_amount)
-            .group_by(subquery_last_statuses.c.user_id)
-        )
-        return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
         """Получить текущий отчет по id пользователя."""
