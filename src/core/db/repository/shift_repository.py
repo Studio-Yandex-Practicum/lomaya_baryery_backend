@@ -94,5 +94,5 @@ class ShiftRepository(AbstractRepository):
 
     async def get_started_shift_id(self) -> UUID:
         """Возвращает id активной на данный момент смены."""
-        shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED)).first()
-        return shift_id
+        shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED))
+        return shift_id.first()

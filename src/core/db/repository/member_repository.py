@@ -37,8 +37,8 @@ class MemberRepository(AbstractRepository):
             .group_by(Member)
             .having(func.max(Report.created_at) <= func.current_date() - task_amount)
             .join(Report)
-        ).all()
-        return members
+        )
+        return members.all()
 
     async def update_status_to_exclude(self, members: list[Member]) -> None:
         """Массово изменяет статус участников на excluded.
