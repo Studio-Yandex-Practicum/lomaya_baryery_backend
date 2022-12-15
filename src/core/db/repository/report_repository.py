@@ -139,6 +139,3 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
-
-
-#

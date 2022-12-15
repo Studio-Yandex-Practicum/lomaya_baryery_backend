@@ -142,6 +142,3 @@ class ReportService:
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
-
-
-#
