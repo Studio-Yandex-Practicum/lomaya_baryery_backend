@@ -42,8 +42,9 @@ jobs:
     -
       name: Install Dependencies
       run: |
-        poetry install
+        poetry lock --no-update
         poetry shell
+        poetry install
     - 
       name: Create env file
       run: mv .env.example .env
