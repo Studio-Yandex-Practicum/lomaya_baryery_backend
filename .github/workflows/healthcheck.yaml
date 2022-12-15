@@ -38,17 +38,16 @@ jobs:
     -
       name: Install Dependencies
       run:
-        python -V
         poetry config virtualenvs.in-project true
         poetry install
-        poetry update
+        # poetry update
         poetry shell
     - 
       name: Create env file
       run: mv .env.example .env
     -
       name: Alembic Upgrade
-      run: alembic upgrade heads
+      run: poetry alembic upgrade heads
     -
       name: Run Local project
       run: python run.py
