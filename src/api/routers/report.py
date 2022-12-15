@@ -34,7 +34,7 @@ class ReportsCBV:
     async def get_user_report(
         self,
         report_id: UUID,
-    ) -> dict:
+    ) -> ReportResponse:
         """Вернуть отчет участника.
 
         - **user_id**:номер участника

@@ -5,7 +5,9 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from src.api.response_models.report import ReportResponse
 from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
@@ -28,23 +30,13 @@ class ReportRepository(AbstractRepository):
     async def get_report_with_report_url(
         self,
         id: UUID,
-    ) -> dict:
+    ) -> ReportResponse:
         """Получить отчет участника по id с url фото выполненного задания."""
         report = await self._session.execute(
-            select(
-                Member.user_id,
-                Report.id,
-                Report.task_id,
-                Report.task_date,
-                Report.status,
-                Report.report_url.label("photo_url"),
-            )
-            .where(Report.id == id)
-            .join(Member)
-            .where(Report.member_id == Member.id)
+            select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
         )
-        report = report.all()
-        return dict(*report)
+        report = report.scalars().first()
+        return ReportResponse.parse_from(report)
 
     async def get_all_ids(
         self,

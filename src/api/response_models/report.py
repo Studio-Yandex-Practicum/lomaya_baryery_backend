@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import date
 
 from pydantic import BaseModel
@@ -34,6 +36,22 @@ class ReportResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @classmethod
+    def parse_from(cls, report_obj: Report) -> ReportResponse:
+        """
+        Парсинг данных из модели Report.
+
+        Модель формируется в методе get_report_with_report_url класса ReportRepository.
+        """
+        return cls(
+            user_id=report_obj.member.user_id,
+            id=report_obj.id,
+            task_id=report_obj.task_id,
+            task_date=report_obj.task_date,
+            status=report_obj.status,
+            photo_url=report_obj.report_url,
+        )
 
 
 class ReportSummaryResponse(BaseModel):
