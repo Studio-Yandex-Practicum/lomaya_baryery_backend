@@ -74,7 +74,7 @@ class ShiftRepository(AbstractRepository):
         shifts = (
             select(
                 Shift.id,
-                Shift.status,
+                Shift.status.label('status'),
                 Shift.started_at,
                 Shift.finished_at,
                 Shift.title,

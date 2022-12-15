@@ -5,18 +5,15 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
 
-from src.api.response_models.task import LongTaskResponse
 from src.bot import services
 from src.core.db import DTO_models
-from src.core.db.models import Report
+from src.core.db.models import Member, Report, Task
 from src.core.db.repository import (
     MemberRepository,
     ReportRepository,
     ShiftRepository,
     TaskRepository,
-    UserRepository,
 )
-from src.core.db.repository.request_repository import RequestRepository
 from src.core.exceptions import (
     DuplicateReportError,
     ReportAlreadyReviewedException,
@@ -44,21 +41,17 @@ class ReportService:
         report_repository: ReportRepository = Depends(),
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
-        task_service: TaskService = Depends(),
-        request_service: RequestService = Depends(),
-        request_repository: RequestRepository = Depends(),
-        user_repository: UserRepository = Depends(),
         member_repository: MemberRepository = Depends(),
+        request_service: RequestService = Depends(),
+        task_service: TaskService = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
-        self.__task_service = task_service
-        self.__request_service = request_service
-        self.__request_repository = request_repository
-        self.__user_repository = user_repository
         self.__member_repository = member_repository
+        self.__request_service = request_service
+        self.__task_service = task_service
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
@@ -71,9 +64,12 @@ class ReportService:
         if report:
             raise DuplicateReportError()
 
-    async def get_today_active_reports(self) -> list[LongTaskResponse]:
-        report_ids = await self.__shift_repository.get_today_active_report_ids()
-        return await self.__report_repository.get_tasks_by_report_ids(report_ids)
+    async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
+        """Получить ежедневное задание и список активных участников смены."""
+        shift_id = await self.__shift_repository.get_started_shift_id()
+        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
+        task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
+        return task, shift.members
 
     # TODO переписать
     async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
