@@ -42,6 +42,7 @@ jobs:
     -
       name: Install Dependencies
       run: |
+        poetry python -V
         poetry lock --no-update
         poetry shell
         poetry install
