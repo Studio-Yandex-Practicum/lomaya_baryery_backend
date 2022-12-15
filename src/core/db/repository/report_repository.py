@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Optional
 from uuid import UUID
 
@@ -42,25 +41,6 @@ class ReportRepository(AbstractRepository):
         )
         report = report.all()
         return dict(*report)
-
-    async def get_all_ids(
-        self,
-        shift_id: UUID,
-        task_date: date,
-    ) -> list[tuple[int]]:
-        """Получить список кортежей с id всех Report, id всех юзеров и id задач этих юзеров."""
-        reports_info = await self._session.execute(
-            select(Report.id, Report.user_id, Report.task_id)
-            .where(
-                and_(
-                    Report.shift_id == shift_id,
-                    Report.task_date == task_date,
-                    Report.status == Report.Status.REVIEWING,
-                )
-            )
-            .order_by(Report.id)
-        )
-        return reports_info.all()
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
