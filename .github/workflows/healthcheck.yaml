@@ -1,0 +1,61 @@
+name: Check APP
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+jobs:
+  healthcheck:
+    name: Check workable app
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lomaya_baryery_db_local
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+    -
+      name: Check out the repo
+      uses: actions/checkout@v2
+    -
+      name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - 
+      name: Install and configure Poetry
+      uses: snok/install-poetry@v1
+    -
+      name: Install Dependencies
+      run: |
+        poetry config virtualenvs.in-project true
+        poetry install
+    - 
+      name: Create env file
+      run: ren .env.example .env
+    -
+      name: Run bd
+      run: docker-compose -f docker-compose.local.yaml up
+    -
+      name: Alembic Upgrade
+      run: alembic upgrade heads
+    -
+      name: Run Local project
+      run: python run.py
+    - 
+      name: Get the status of healthcheck
+      uses: im-open/url-status-check@v1.1.0
+      with:
+        url: 'http://localhost:8080/healthcheck'
+        fail-on-bad-status: true
+      
