@@ -122,9 +122,7 @@ class ShiftService:
             await self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message)
         return shift
 
-    async def get_shift_with_get_members(
-        self, id: UUID, member_status: Optional[Member.Status]
-    ) -> ShiftMembersResponse:
+    async def get_shift_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
         shift = await self.__shift_repository.get_with_members(id, member_status)
         return ShiftMembersResponse(shift=shift, members=shift.members)
 
