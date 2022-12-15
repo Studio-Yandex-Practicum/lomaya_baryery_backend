@@ -35,3 +35,6 @@ async def get_report_service_callback(sessions):
             report_repository, task_repository, shift_repository, member_repository, request_service, task_service
         )
         return report_service
+
+
+#
