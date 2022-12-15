@@ -48,7 +48,7 @@ jobs:
       name: Alembic Upgrade
       run: |
         poetry shell
-        poetry alembic upgrade heads
+        alembic upgrade heads
     -
       name: Run Local project
       run: python run.py
