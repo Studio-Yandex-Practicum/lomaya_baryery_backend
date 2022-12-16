@@ -1,4 +1,3 @@
-from datetime import date, datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -6,13 +5,12 @@ from fastapi import Depends
 from sqlalchemy import and_, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
-from src.core.db.models import Report, Shift, Task, User
+from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import CurrentTaskNotFoundError
-from src.core.settings import settings
+from src.core.utils import get_current_task_date
 
 
 class ReportRepository(AbstractRepository):
@@ -43,51 +41,12 @@ class ReportRepository(AbstractRepository):
         report = report.all()
         return dict(*report)
 
-    async def get_all_ids(
-        self,
-        shift_id: UUID,
-        task_date: date,
-    ) -> list[tuple[int]]:
-        """Получить список кортежей с id всех Report, id всех юзеров и id задач этих юзеров."""
-        reports_info = await self._session.execute(
-            select(Report.id, Report.user_id, Report.task_id)
-            .where(
-                and_(
-                    Report.shift_id == shift_id,
-                    Report.task_date == task_date,
-                    Report.status == Report.Status.REVIEWING,
-                )
-            )
-            .order_by(Report.id)
-        )
-        return reports_info.all()
-
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
         all_tasks_id_under_review = await self._session.execute(
             select(Report.task_id).select_from(Report).where(Report.status == Report.Status.REVIEWING)
         )
         return all_tasks_id_under_review.all()
-
-    async def get_tasks_by_report_ids(self, report_ids: list[UUID]) -> list[LongTaskResponse]:
-        """Получить список заданий с подробностями на каждого участника по report_id."""
-        tasks = await self._session.execute(
-            select(
-                Task.id.label("task_id"),
-                Task.url.label("task_url"),
-                Task.description.label("task_description"),
-                User.telegram_id.label("user_telegram_id"),
-            )
-            .where(Report.id.in_(report_ids))
-            .join(Report.task)
-            .join(Report.user)
-        )
-        tasks = tasks.all()
-        task_infos = []
-        for task in tasks:
-            task_info = LongTaskResponse(**task)
-            task_infos.append(task_info)
-        return task_infos
 
     async def create_all(self, reports_list: list[Report]) -> Report:
         self._session.add_all(reports_list)
@@ -149,29 +108,14 @@ class ReportRepository(AbstractRepository):
         return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
-        now = datetime.now()
-        task_date = now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
+        """Получить текущий отчет по id пользователя."""
         reports = await self._session.execute(
             select(Report).where(
-                Report.user_id == user_id,
-                Report.task_date == task_date,
+                Report.member_id.in_(select(Member.id).where(Member.user_id == user_id)),
+                Report.task_date == get_current_task_date(),
             )
         )
         report = reports.scalars().first()
         if not report:
             raise CurrentTaskNotFoundError()
         return report
-
-    async def get_waiting_today_by_shift_id(self, shift_id: UUID) -> list[Report]:
-        stmt = select(Report).where(
-            Report.task_date == datetime.now().date(),
-            Report.shift_id == shift_id,
-            Report.status == Report.Status.WAITING,
-        )
-        reports = await self._session.execute(stmt)
-        return reports.scalars().all()
-
-    async def bulk_declined_status_update(self, reports: list[Report]) -> None:
-        for report in reports:
-            report.status = Report.Status.DECLINED
-        await self._session.commit()

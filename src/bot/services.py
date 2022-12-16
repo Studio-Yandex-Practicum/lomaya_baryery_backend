@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime as dt
 
 from telegram.ext import Application
@@ -80,11 +79,8 @@ class BotService:
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
-        send_message_tasks = []
         for member in shift.members:
-            if member.status == models.Member.Status.ACTIVE:
-                text = shift.final_message.format(
-                    name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
-                )
-                send_message_tasks.append(self.__bot.send_message(member.user.telegram_id, text))
-        await asyncio.gather(*send_message_tasks)
+            text = shift.final_message.format(
+                name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
+            )
+            await self.__bot.send_message(member.user.telegram_id, text)
