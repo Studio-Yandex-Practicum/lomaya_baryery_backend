@@ -18,7 +18,7 @@ from src.api.response_models.shift import (
 )
 from src.bot import services
 from src.core.db.models import Member, Request, Shift
-from src.core.db.repository import ReportRepository, ShiftRepository
+from src.core.db.repository import ShiftRepository
 from src.core.exceptions import ShiftUpdateException, UpdateShiftForbiddenException
 from src.core.services.task_service import TaskService
 
@@ -35,12 +35,10 @@ class ShiftService:
         self,
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
-        report_repository: ReportRepository = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__task_service = task_service
         self.__telegram_bot = services.BotService
-        self.__report_repository = report_repository
 
     def __check_date_not_in_past(self, date: date) -> None:
         """Проверка, что дата не является прошедшим числом."""
