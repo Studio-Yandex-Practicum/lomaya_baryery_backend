@@ -1,6 +1,3 @@
-from datetime import date
-from typing import Any
-
 from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
@@ -30,10 +27,6 @@ class ReportService:
     Внутри реализованы методы для формирования итогового
     отчета с информацией о смене и непроверенных задачах пользователей
     с привязкой к смене и дню.
-
-    Метод 'get_tasks_report' формирует отчет с информацией о задачах
-    и юзерах.
-    Метод 'get' возвращает экземпляр Report по id.
     """
 
     def __init__(
@@ -70,19 +63,6 @@ class ReportService:
         shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
-
-    # TODO переписать
-    async def get_tasks_report(self, shift_id: UUID, task_date: date) -> list[dict[str, Any]]:
-        """Формирует итоговый список 'tasks' с информацией о задачах и юзерах."""
-        report_ids = await self.__report_repository.get_all_ids(shift_id, task_date)
-        tasks = []
-        if not report_ids:
-            return tasks
-        for report_id, user_id, task_id in report_ids:
-            task = await self.__task_repository.get_tasks_report(user_id, task_id)
-            task["id"] = report_id
-            tasks.append(task)
-        return tasks
 
     async def approve_report(self, report_id: UUID, bot: Application.bot) -> None:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
