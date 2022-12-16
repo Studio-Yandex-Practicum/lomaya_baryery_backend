@@ -3,7 +3,6 @@ from datetime import date
 from pydantic import BaseModel
 from pydantic.schema import UUID
 
-from src.api.response_models.shift import ShiftResponse
 from src.api.response_models.task import TaskInfoResponse
 from src.api.response_models.user import UserInfoResponse
 from src.core.db.models import Report, Shift
@@ -13,13 +12,6 @@ class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
     """Модель для ответа с обобщенной информацией о задании и юзере."""
 
     id: UUID
-
-
-class ReportsAndShiftResponse(BaseModel):
-    """Общая модель смены и заданий для ответа."""
-
-    shift: ShiftResponse
-    tasks: list[UserAndTaskInfoResponse]
 
 
 class ReportResponse(BaseModel):

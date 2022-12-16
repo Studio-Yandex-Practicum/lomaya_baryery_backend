@@ -1,16 +1,10 @@
-from datetime import date
 from http import HTTPStatus
-from typing import Union
 
-from fastapi import APIRouter, Depends, Path, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.response_models.report import (
-    ReportResponse,
-    ReportsAndShiftResponse,
-    ReportSummaryResponse,
-)
+from src.api.response_models.report import ReportResponse, ReportSummaryResponse
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
@@ -67,32 +61,6 @@ class ReportsCBV:
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и отклонен."""
         return await self.report_service.decline_report(report_id, request.app.state.bot_instance.bot)
-
-    @router.get(
-        "/{shift_id}/{task_date}/new",
-        response_model=ReportsAndShiftResponse,
-        summary="Получить непроверенные и новые задания.",
-    )
-    async def get_new_and_under_review_tasks(
-        self,
-        shift_id: UUID = Path(..., title="ID смены"),
-        task_date: date = Path(..., title="Дата получения задания"),
-    ) -> dict[str, Union[dict, list]]:
-        """Получить непроверенные и новые задания.
-
-        Запрос информации о непроверенных и новых
-        заданиях участников по состоянию на указанный день
-        в определенной смене:
-
-        - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
-        - **task_date**: дата получения задания, формат yyyy mm dd
-        """
-        shift = await self.shift_service.get_shift(shift_id)
-        tasks = await self.report_service.get_tasks_report(shift_id, task_date)
-        report = dict()
-        report["shift"] = shift
-        report["tasks"] = tasks
-        return report
 
     @router.get(
         "/",
