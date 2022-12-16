@@ -1,5 +1,4 @@
 from datetime import datetime as dt
-from typing import Union
 
 from telegram.ext import Application
 
@@ -23,7 +22,7 @@ class BotService:
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_declined_request(
-        self, user: models.User, decline_request_data: Union[RequestDeclineRequest, None]
+        self, user: models.User, decline_request_data: RequestDeclineRequest | None
     ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 

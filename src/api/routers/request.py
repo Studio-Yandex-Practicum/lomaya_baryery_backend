@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Union
 
 from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
@@ -7,7 +6,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
-from src.core.services.request_sevice import RequestService
+from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
 
@@ -40,7 +39,7 @@ class RequestCBV:
         self,
         request_id: UUID,
         request: Request,
-        decline_request_data: Union[RequestDeclineRequest, None] = Body(None),
+        decline_request_data: RequestDeclineRequest | None = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(

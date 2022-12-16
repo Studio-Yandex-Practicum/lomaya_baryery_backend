@@ -33,9 +33,14 @@ class MemberRepository(AbstractRepository):
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
         members = self._session.scalars(
             select(Member)
-            .where(Member.shift_id == shift_id)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.status == Report.Status.WAITING,
+                Report.task_date >= func.current_date() - task_amount,
+            )
             .group_by(Member)
-            .having(func.max(Report.created_at) <= func.current_date() - task_amount)
+            .having(func.count() == task_amount)
             .join(Report)
         )
         return members.all()

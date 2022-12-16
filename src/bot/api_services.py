@@ -9,7 +9,7 @@ from src.core.db.repository import (
     UserRepository,
 )
 from src.core.services.report_service import ReportService
-from src.core.services.request_sevice import RequestService
+from src.core.services.request_service import RequestService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 

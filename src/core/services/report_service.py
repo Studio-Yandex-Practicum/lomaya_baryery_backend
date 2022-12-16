@@ -19,7 +19,7 @@ from src.core.exceptions import (
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
 )
-from src.core.services.request_sevice import RequestService
+from src.core.services.member_service import MemberService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
 
@@ -42,16 +42,16 @@ class ReportService:
         task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
         member_repository: MemberRepository = Depends(),
-        request_service: RequestService = Depends(),
         task_service: TaskService = Depends(),
+        member_service: MemberService = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
         self.__member_repository = member_repository
-        self.__request_service = request_service
         self.__task_service = task_service
+        self.__member_service = member_service
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
@@ -131,11 +131,11 @@ class ReportService:
         в настройках количество раз подряд, то они будут исключены из смены.
         """
         shift_id = await self.__shift_repository.get_started_shift_id()
-        members_to_exclude = await self.__member_repository.get_members_for_excluding(
+        members_for_exclude = await self.__member_repository.get_members_for_excluding(
             shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
-        if len(members_to_exclude) > 0:
-            await self.__request_service.exclude_members(members_to_exclude, bot)
+        if members_for_exclude:
+            await self.__member_service.exclude_members(members_for_exclude, bot)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
