@@ -41,12 +41,15 @@ jobs:
         python -V
         poetry config virtualenvs.in-project true
         poetry install
+    -
+      name: Alembic Upgrade
+      run: poetry run alembic upgrade head
     - 
       name: Create env file
       run: mv .env.example .env
     -
-      name: Alembic Upgrade
-      run: poetry run alembic upgrade head
+      name: Run Local project
+      run: poetry run python run.py
     - 
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
