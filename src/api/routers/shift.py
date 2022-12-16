@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
@@ -191,9 +191,11 @@ class ShiftCBV:
         summary="Завершение смены",
         response_description="Информация о завершенной смене",
     )
-    async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
+    async def finish_shift(
+        self, request: FastAPIRequest, shift_id: UUID, background_tasks: BackgroundTasks
+    ) -> ShiftResponse:
         """Закончить смену.
 
         - **shift_id**: уникальный индентификатор смены
         """
-        return await self.shift_service.finish_shift(request.app.state.bot_instance.bot, shift_id)
+        return await self.shift_service.finish_shift(request.app.state.bot_instance.bot, shift_id, background_tasks)
