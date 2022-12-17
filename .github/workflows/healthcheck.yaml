@@ -45,8 +45,28 @@ jobs:
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
     - 
-      name: Create env file
-      run: mv .env.example .env
+      name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            rm -f .env
+            touch .env
+            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
+            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+            echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
+            echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
+            echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
+            echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
+            echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
+            echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
     -
       name: Run Local project
       run: poetry run python run.py
