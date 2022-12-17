@@ -31,11 +31,7 @@ class ReportResponse(BaseModel):
 
     @classmethod
     def parse_from(cls, obj: Report) -> ReportResponse:
-        """
-        Парсинг данных из модели Report.
-
-        Модель формируется в методе get_report_with_report_url класса ReportRepository.
-        """
+        """Конвертация данных из модели Report."""
         return cls(
             user_id=obj.member.user_id,
             id=obj.id,
