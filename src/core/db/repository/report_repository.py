@@ -6,7 +6,6 @@ from sqlalchemy import and_, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.response_models.report import ReportResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
@@ -28,7 +27,7 @@ class ReportRepository(AbstractRepository):
     async def get_report_with_report_url(
         self,
         id: UUID,
-    ) -> ReportResponse:
+    ) -> Report:
         """Получить отчет участника по id с url фото выполненного задания."""
         report = await self._session.execute(
             select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
