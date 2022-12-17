@@ -54,11 +54,11 @@ jobs:
         echo DB_HOST=${{ secrets.DB_HOST }} >> .env
         echo DB_PORT=${{ secrets.DB_PORT }} >> .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-        
+        echo BOT_WEBHOOK_MODE=False >> .env
         echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
-        
-        
-        
+        echo SEND_NEW_TASK_HOUR=8 >> .env
+        echo SEND_NO_REPORT_REMINDER_HOUR=20 >> .env
+        echo MIN_AGE=3 >> .env
         echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
     -
       name: Run Local project
