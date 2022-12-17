@@ -4,7 +4,8 @@ from itertools import cycle
 from typing import Optional
 from uuid import UUID
 
-from fastapi import BackgroundTasks, Depends
+from fastapi import Depends
+from telegram.ext import Application
 
 from src.api.request_models.shift import (
     ShiftCreateRequest,
@@ -111,7 +112,7 @@ class ShiftService:
         await self.__shift_repository.update(id, shift)
         return shift
 
-    async def finish_shift(self, bot, id: UUID, background_tasks: BackgroundTasks) -> Shift:
+    async def finish_shift(self, bot: Application, id: UUID) -> Shift:
         shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)

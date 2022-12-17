@@ -24,7 +24,7 @@ class RequestService:
         self.__member_repository = member_repository
         self.__telegram_bot = services.BotService
 
-    async def approve_request(self, request_id: UUID, bot: Application.bot) -> RequestResponse:
+    async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status not in (Request.Status.PENDING, Request.Status.REPEATED_REQUEST):
@@ -44,7 +44,7 @@ class RequestService:
     async def decline_request(
         self,
         request_id: UUID,
-        bot: Application.bot,
+        bot: Application,
         decline_request_data: RequestDeclineRequest | None,
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
@@ -61,7 +61,7 @@ class RequestService:
         await self.__request_repository.update(request_id, request)
         return RequestResponse.parse_from(request)
 
-    async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
+    async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application) -> None:
         """Исключает участников смены.
 
         Аргументы:

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime as dt
 
 from telegram.ext import Application
@@ -10,8 +11,9 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application.bot) -> None:
-        self.__bot = telegram_bot
+    def __init__(self, telegram_bot: Application) -> None:
+        self.__bot = telegram_bot.bot
+        self.__bot_application = telegram_bot
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -79,8 +81,10 @@ class BotService:
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
+        send_message_tasks = []
         for member in shift.members:
             text = shift.final_message.format(
                 name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
             )
-            await self.__bot.send_message(member.user.telegram_id, text)
+            send_message_tasks.append(self.__bot.send_message(member.user.telegram_id, text))
+        self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
