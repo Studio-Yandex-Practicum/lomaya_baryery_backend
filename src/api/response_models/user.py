@@ -23,3 +23,7 @@ class UserInfoResponse(BaseModel):
 
     name: str
     surname: str
+
+
+class UserWithStatusResponse(UserResponse):
+    status: str

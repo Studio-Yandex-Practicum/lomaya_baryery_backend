@@ -1,8 +1,14 @@
 from datetime import date, datetime
+from typing import Optional
 
 from fastapi import Depends
 
-from src.api.request_models.user import RequestCreateRequest, UserCreateRequest
+from src.api.request_models.user import (
+    RequestCreateRequest,
+    UserCreateRequest,
+    UserSortRequest,
+)
+from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
@@ -53,3 +59,8 @@ class UserService:
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""
         return await self.__user_repository.get_by_telegram_id(telegram_id)
+
+    async def list_all_users(
+        self, status: Optional[Request.Status], sort: Optional[UserSortRequest]
+    ) -> list[UserWithStatusResponse]:
+        return await self.__user_repository.get_users_with_status(status, sort)
