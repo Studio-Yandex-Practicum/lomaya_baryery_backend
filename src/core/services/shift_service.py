@@ -22,7 +22,6 @@ from src.core.db.repository import ShiftRepository
 from src.core.exceptions import ShiftUpdateException, UpdateShiftForbiddenException
 from src.core.services.report_service import ReportService
 from src.core.services.task_service import TaskService
-from src.core.utils import run_send_message_tasks
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -119,11 +118,10 @@ class ShiftService:
         shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
         await shift.finish()
         await self.__shift_repository.update(id, shift)
-        send_message_tasks = [
-            self.__telegram_bot(bot).notify_that_shift_is_finished(member, shift.final_message)
-            for member in shift.members
-        ]
-        background_tasks.add_task(run_send_message_tasks, send_message_tasks)
+        for member in shift.members:
+            background_tasks.add_task(
+                self.__telegram_bot(bot).notify_that_shift_is_finished, member, shift.final_message
+            )
         return shift
 
     async def get_shift_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
