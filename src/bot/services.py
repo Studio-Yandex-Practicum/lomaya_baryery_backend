@@ -77,8 +77,10 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_that_shift_is_finished(self, member: models.Member, message: str) -> None:
-        """Уведомляет участников об окончании смены."""
-        user = member.user
-        text = message.format(name=user.name, surname=user.surname, numbers_lombaryers=member.numbers_lombaryers)
-        await self.__bot.send_message(user.telegram_id, text)
+    async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
+        """Уведомляет активных участников об окончании смены."""
+        for member in shift.members:
+            text = shift.final_message.format(
+                name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
+            )
+            await self.__bot.send_message(member.user.telegram_id, text)
