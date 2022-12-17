@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 from urllib.parse import urljoin
 
@@ -7,7 +8,6 @@ from telegram.ext import CallbackContext
 from src.bot.api_services import get_report_service_callback
 from src.core.db.db import get_session
 from src.core.settings import settings
-from src.core.utils import run_send_message_tasks
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
@@ -29,10 +29,11 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     await report_service.check_members_activity(context.bot)
     current_day_of_month = date.today().day
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
+    task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
         context.bot.send_photo(
             chat_id=member.user.telegram_id,
-            photo=urljoin(settings.APPLICATION_URL, task.url),
+            photo=task_photo,
             caption=(
                 f"Привет, {member.user.name}!\n"
                 f"Сегодня твоим заданием будет {task.description}. "
@@ -42,4 +43,4 @@ async def send_daily_task_job(context: CallbackContext) -> None:
         )
         for member in members
     ]
-    await run_send_message_tasks(send_message_tasks)
+    context.application.create_task(asyncio.gather(*send_message_tasks))
