@@ -33,8 +33,7 @@ class ReportRepository(AbstractRepository):
         report = await self._session.execute(
             select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
         )
-        report = report.scalars().first()
-        return ReportResponse.parse_from(report)
+        return report.scalars().first()
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""

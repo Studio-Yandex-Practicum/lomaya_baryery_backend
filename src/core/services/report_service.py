@@ -2,6 +2,7 @@ from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
 
+from src.api.response_models.report import ReportResponse
 from src.bot import services
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Task
@@ -49,8 +50,9 @@ class ReportService:
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
 
-    async def get_report_with_report_url(self, id: UUID) -> dict:
-        return await self.__report_repository.get_report_with_report_url(id)
+    async def get_report_with_report_url(self, id: UUID) -> ReportResponse:
+        report = await self.__report_repository.get_report_with_report_url(id)
+        return ReportResponse.parse_from(report)
 
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
