@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import date
 
 from pydantic import BaseModel
@@ -26,6 +28,18 @@ class ReportResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @classmethod
+    def parse_from(cls, obj: Report) -> ReportResponse:
+        """Конвертация данных из модели Report."""
+        return cls(
+            user_id=obj.member.user_id,
+            id=obj.id,
+            task_id=obj.task_id,
+            task_date=obj.task_date,
+            status=obj.status,
+            photo_url=obj.report_url,
+        )
 
 
 class ReportSummaryResponse(BaseModel):
