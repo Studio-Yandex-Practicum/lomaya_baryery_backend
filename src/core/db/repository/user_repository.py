@@ -5,8 +5,9 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import UserSortRequest
+from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
-from src.core.db.models import Request, User
+from src.core.db.models import User
 from src.core.db.repository import AbstractRepository
 
 
@@ -28,9 +29,9 @@ class UserRepository(AbstractRepository):
 
     async def get_users_with_status(
         self,
-        status: Optional[Request.Status],
+        status: Optional[User.Status],
         sort: Optional[UserSortRequest],
-    ) -> list:
+    ) -> list[UserWithStatusResponse]:
         users = (
             select(
                 User.id,
@@ -39,11 +40,10 @@ class UserRepository(AbstractRepository):
                 User.date_of_birth,
                 User.city,
                 User.phone_number,
-                Request.status.label('status'),
+                User.status,
             )
-            .join(User.requests)
             .where(
-                or_(status is None, Request.status == status),
+                or_(status is None, User.status == status),
             )
             .order_by(sort or User.id.desc())
         )

@@ -6,7 +6,7 @@ from fastapi_restful.cbv import cbv
 
 from src.api.request_models.user import UserSortRequest
 from src.api.response_models.user import UserWithStatusResponse
-from src.core.db.models import Request
+from src.core.db.models import User
 from src.core.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["User"])
@@ -26,7 +26,7 @@ class UserCBV:
     )
     async def get_all_users(
         self,
-        status: Optional[Request.Status] = None,
+        status: Optional[User.Status] = None,
         sort: Optional[UserSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         """Получить список пользователей с фильтрацией по статусу.
