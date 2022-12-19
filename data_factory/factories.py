@@ -36,6 +36,7 @@ class UserFactory(BaseFactory):
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
+    status = factory.Iterator([status for status in models.User.Status])
 
 
 class ShiftFactory(BaseFactory):
