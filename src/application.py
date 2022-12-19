@@ -18,7 +18,7 @@ from src.core.settings import settings
 
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(debug=settings.DEBUG)
 
     origins = ["*"]
 

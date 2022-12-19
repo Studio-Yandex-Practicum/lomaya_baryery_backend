@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
+    DEBUG: bool
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
