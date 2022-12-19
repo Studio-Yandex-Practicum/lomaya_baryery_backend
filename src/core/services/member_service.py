@@ -18,6 +18,11 @@ class MemberService:
         self.__telegram_bot = services.BotService
 
     async def exclude_lagging_members(self, bot: Application.bot) -> None:
+        """Исключает участников из стартовавшей смены.
+
+        Если участники не посылают отчет о выполненом задании указанное
+        в настройках количество раз подряд, то они будут исключены из смены.
+        """
         shift_id = await self.__shift_repository.get_started_shift_id()
         lagging_members = await self.__member_repository.get_members_for_excluding(
             shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE

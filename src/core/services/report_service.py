@@ -98,14 +98,6 @@ class ReportService:
         """
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
 
-    async def exclude_members_from_shift(self, bot: Application.bot) -> None:
-        """Исключает участников из стартовавшей смены.
-
-        Если участники не посылают отчет о выполненом задании указанное
-        в настройках количество раз подряд, то они будут исключены из смены.
-        """
-        await self.__member_service.exclude_lagging_members(bot)
-
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
         await self.check_duplicate_report(photo_url)
