@@ -62,6 +62,6 @@ class UserService:
         return await self.__user_repository.get_by_telegram_id(telegram_id)
 
     async def list_all_users(
-        self, status: Optional[User.Status], sort: Optional[UserSortRequest]
+        self, status: Optional[User.Status] = None, sort: Optional[UserSortRequest] = None
     ) -> list[UserWithStatusResponse]:
         return await self.__user_repository.get_users_with_status(status, sort)

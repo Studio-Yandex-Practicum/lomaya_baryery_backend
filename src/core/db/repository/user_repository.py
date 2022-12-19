@@ -29,8 +29,8 @@ class UserRepository(AbstractRepository):
 
     async def get_users_with_status(
         self,
-        status: Optional[User.Status],
-        sort: Optional[UserSortRequest],
+        status: Optional[User.Status] = None,
+        sort: Optional[UserSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         users = (
             select(
