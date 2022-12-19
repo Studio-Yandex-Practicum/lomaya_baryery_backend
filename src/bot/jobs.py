@@ -25,7 +25,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
     session_generator = get_session()
     report_service = await get_report_service_callback(session_generator)
-    await report_service.check_members_activity(context.bot)
+    await report_service.exclude_members_from_shift(context.bot)
     current_day_of_month = date.today().day
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
     for member in members:

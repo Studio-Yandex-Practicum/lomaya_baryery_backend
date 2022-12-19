@@ -3,20 +3,27 @@ from telegram.ext import Application
 
 from src.bot import services
 from src.core.db.models import Member
-from src.core.db.repository.member_repository import MemberRepository
+from src.core.db.repository import MemberRepository, ShiftRepository
+from src.core.settings import settings
 
 
 class MemberService:
-    def __init__(self, member_repository: MemberRepository = Depends()) -> None:
+    def __init__(
+        self,
+        member_repository: MemberRepository = Depends(),
+        shift_repository: ShiftRepository = Depends(),
+    ) -> None:
         self.__member_repository = member_repository
+        self.__shift_repository = shift_repository
         self.__telegram_bot = services.BotService
 
-    async def exclude_members(self, members: list[Member], bot: Application.bot) -> None:
-        """Исключает участников смены.
-
-        Аргументы:
-            members (list[Member]): список участников подлежащих исключению
-        """
-        await self.__member_repository.update_status_to_exclude(members)
-        for member in members:
+    async def exclude_lagging_members(self, bot: Application.bot) -> None:
+        shift_id = await self.__shift_repository.get_started_shift_id()
+        lagging_members = await self.__member_repository.get_members_for_excluding(
+            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
+        )
+        for member in lagging_members:
+            member.status = Member.Status.EXCLUDED
             await self.__telegram_bot(bot).notify_excluded_member(member.user)
+            await self._session.merge(member)
+        await self._session.commit()

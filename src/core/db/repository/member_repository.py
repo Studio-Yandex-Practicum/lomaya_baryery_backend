@@ -39,19 +39,8 @@ class MemberRepository(AbstractRepository):
                 Report.status == Report.Status.WAITING,
                 Report.task_date >= func.current_date() - task_amount,
             )
+            .join(Report)
             .group_by(Member)
             .having(func.count() == task_amount)
-            .join(Report)
         )
         return members.all()
-
-    async def update_status_to_exclude(self, members: list[Member]) -> None:
-        """Массово изменяет статус участников на excluded.
-
-        Аргументы:
-            member_ids (list[UUID]): список id участников, подлежащих исключению
-        """
-        for member in members:
-            member.status = Member.Status.EXCLUDED
-            await self._session.merge(member)
-        await self._session.commit()

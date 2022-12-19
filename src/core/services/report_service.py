@@ -14,7 +14,6 @@ from src.core.exceptions import (
 )
 from src.core.services.member_service import MemberService
 from src.core.services.task_service import TaskService
-from src.core.settings import settings
 
 
 class ReportService:
@@ -99,18 +98,13 @@ class ReportService:
         """
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
 
-    async def check_members_activity(self, bot: Application.bot) -> None:
-        """Проверяет участников в стартовавшей смене.
+    async def exclude_members_from_shift(self, bot: Application.bot) -> None:
+        """Исключает участников из стартовавшей смены.
 
         Если участники не посылают отчет о выполненом задании указанное
         в настройках количество раз подряд, то они будут исключены из смены.
         """
-        shift_id = await self.__shift_repository.get_started_shift_id()
-        members_for_exclude = await self.__member_repository.get_members_for_excluding(
-            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
-        )
-        if members_for_exclude:
-            await self.__member_service.exclude_members(members_for_exclude, bot)
+        await self.__member_service.exclude_lagging_members(bot)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
