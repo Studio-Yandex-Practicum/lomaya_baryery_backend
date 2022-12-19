@@ -108,7 +108,7 @@ class ReportRepository(AbstractRepository):
         return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
-        """Получить текущий отчет по id пользователя."""
+        """Получить текущий отчет по id пользователя_."""
         reports = await self._session.execute(
             select(Report).where(
                 Report.member_id.in_(select(Member.id).where(Member.user_id == user_id)),
