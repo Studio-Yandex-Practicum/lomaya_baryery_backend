@@ -108,7 +108,7 @@ class ReportService:
         """Проверяет участников во всех запущенных сменах.
 
         Если участники не посылают отчет о выполненом задании указанное
-        в настройках количество раз подряд, то они будут исключены из смены_.
+        в настройках количество раз подряд, то они будут исключены из смены.
         """
         shift_id = await self.__shift_repository.get_started_shift_id()
         user_ids_to_exclude = await self.__report_repository.get_members_ids_for_excluding(

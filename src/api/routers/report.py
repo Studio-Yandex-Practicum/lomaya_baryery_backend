@@ -80,6 +80,6 @@ class ReportsCBV:
         В запросе передаётся:
 
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
-        - **report.status**: статус задачи_
+        - **report.status**: статус задачи
         """
         return await self.report_service.get_summaries_of_reports(shift_id, status)
