@@ -36,7 +36,6 @@ class UserFactory(BaseFactory):
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
-    status = factory.Iterator([status for status in models.User.Status])
 
 
 class ShiftFactory(BaseFactory):
@@ -54,7 +53,7 @@ class ShiftFactory(BaseFactory):
         if self.status == Shift.Status.STARTED:
             # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
             return datetime.date.today() - timedelta(days=30)
-        if self.status == Shift.Status.FINISHED:
+        if self.status == Shift.Status.FINISHED:  # noqa R503
             # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
             # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и
             # продолжительность смены 90 дней)
