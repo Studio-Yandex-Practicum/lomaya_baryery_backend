@@ -96,3 +96,11 @@ class ShiftRepository(AbstractRepository):
         """Возвращает id активной на данный момент смены."""
         statement = select(Shift.id).where(Shift.status == Shift.Status.STARTED)
         return (await self._session.scalars(statement)).first()
+
+    async def get_shift_by_status(self, status: Shift.Status) -> Shift:
+        """Возвращает смену с заданным статусом.
+
+        Используется для смен со статусами preparing и started.
+        """
+        statement = select(Shift).where(Shift.status == status)
+        return (await self._session.scalars(statement)).first()
