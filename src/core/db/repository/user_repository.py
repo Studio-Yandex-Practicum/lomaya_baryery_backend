@@ -33,15 +33,7 @@ class UserRepository(AbstractRepository):
         sort: Optional[UserSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         users = (
-            select(
-                User.id,
-                User.name,
-                User.surname,
-                User.date_of_birth,
-                User.city,
-                User.phone_number,
-                User.status,
-            )
+            select(User)
             .where(
                 or_(status is None, User.status == status),
             )

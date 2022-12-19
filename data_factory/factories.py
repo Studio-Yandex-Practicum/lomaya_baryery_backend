@@ -61,13 +61,6 @@ class ShiftFactory(BaseFactory):
             last_started_shift = session.execute(select(Shift).order_by(Shift.started_at))
             last_started_shift = last_started_shift.scalars().first()
             return last_started_shift.started_at - timedelta(days=random.randrange(4, 7)) - timedelta(days=90)
-        if self.status == Shift.Status.PREPARING:  # noqa R503
-            # берется дата окончания активной смены, добавляется рандомный промежуток между сменами
-            finished_date_started_shift = session.execute(
-                (select(Shift.finished_at).where(Shift.status == Shift.Status.STARTED))
-            )
-            finished_date_started_shift = finished_date_started_shift.scalars().first()
-            return finished_date_started_shift + timedelta(days=random.randrange(4, 7))
 
     @factory.lazy_attribute
     def finished_at(self):
