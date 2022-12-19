@@ -1,16 +1,15 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Request, Shift, User, UserTask
+from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -21,8 +20,24 @@ class ShiftRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Shift)
 
-    async def get_with_users(self, id: UUID) -> Shift:
-        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.users).selectinload(User.user_tasks))
+    async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
+        """Получить смену (Shift) по её id вместе со связанными данными.
+
+        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+
+        Аргументы:
+            id (UUID) - id смены (shift)
+            member_status (Optional[Member.Status]) - статус участника смены.
+        """
+        member_stmt = Shift.members
+        if member_status:
+            member_stmt = member_stmt.and_(Member.status == member_status)
+        statement = (
+            select(Shift)
+            .where(Shift.id == id)
+            .options(selectinload(member_stmt).selectinload(Member.reports))
+            .options(selectinload(member_stmt).selectinload(Member.user))
+        )
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
@@ -59,7 +74,7 @@ class ShiftRepository(AbstractRepository):
         shifts = (
             select(
                 Shift.id,
-                Shift.status,
+                Shift.status.label('status'),
                 Shift.started_at,
                 Shift.finished_at,
                 Shift.title,
@@ -77,17 +92,7 @@ class ShiftRepository(AbstractRepository):
         shifts = await self._session.execute(shifts)
         return shifts.all()
 
-    async def get_today_active_user_task_ids(self) -> list[UUID]:
-        task_date = datetime.now().date()
-        active_task_ids = await self._session.execute(
-            select(UserTask.id)
-            .where(UserTask.task_date == task_date, Request.status == Request.Status.APPROVED.value)
-            .join(Shift.user_tasks)
-            .join(Shift.requests)
-        )
-        return active_task_ids.scalars().all()
-
     async def get_started_shift_id(self) -> list[UUID]:
         """Возвращает id активной на данный момент смены."""
-        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED, Shift.deleted.is_(False)))
+        statement = select(Shift.id).where(Shift.status == Shift.Status.STARTED)
         return (await self._session.scalars(statement)).first()

@@ -26,6 +26,12 @@ class CurrentTaskNotFoundError(Exception):
     pass
 
 
+class TodayTaskNotFoundError(Exception):
+    """Не найдено ежедневной задачи на текущий день."""
+
+    pass
+
+
 class CannotAcceptReportError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
@@ -48,3 +54,38 @@ class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class SendTelegramNotifyException(ApplicationException):
+    """Невозможно отправить сообщение в telegram."""
+
+    def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = (
+            f"Возникла ошибка '{exc}' при отправке сообщения пользователю - "
+            f"id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
+        )
+
+
+class ReportAlreadyReviewedException(ApplicationException):
+    def __init__(self, status: UUID):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
+
+
+class ReportWaitingPhotoException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "К заданию нет отчета участника."
+
+
+class ShiftUpdateException(ApplicationException):
+    def __init__(self, detail: str):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = detail
+
+
+class UpdateShiftForbiddenException(ShiftUpdateException):
+    def __init__(self, detail: str):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = detail

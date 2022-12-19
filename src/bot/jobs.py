@@ -1,7 +1,12 @@
+from datetime import date
+from urllib.parse import urljoin
+
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from src.bot.api_services import get_user_task_service_callback
+from src.bot.api_services import get_report_service_callback
+from src.core.db.db import get_session
+from src.core.settings import settings
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
@@ -18,15 +23,18 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 async def send_daily_task_job(context: CallbackContext) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
-    user_task_service = await get_user_task_service_callback()
-    await user_task_service.check_members_activity(context.bot)
-    user_tasks = await user_task_service.get_today_active_usertasks()
-    for task in user_tasks:
+    session_generator = get_session()
+    report_service = await get_report_service_callback(session_generator)
+    await report_service.check_members_activity(context.bot)
+    current_day_of_month = date.today().day
+    task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
+    for member in members:
         await context.bot.send_photo(
-            chat_id=task.user_telegram_id,
-            photo=task.task_url,
+            chat_id=member.user.telegram_id,
+            photo=urljoin(settings.APPLICATION_URL, task.url),
             caption=(
-                f"Сегодня твоим заданием будет {task.task_description}."
+                f"Привет, {member.user.name}!\n"
+                f"Сегодня твоим заданием будет {task.description}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
             reply_markup=buttons,
