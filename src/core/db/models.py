@@ -206,6 +206,8 @@ class Report(Base):
             Report.Status.DECLINED.value,
         ):
             raise CannotAcceptReportError()
+        if self.status == Report.Status.DECLINED.value:
+            self.is_repeated = True
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()

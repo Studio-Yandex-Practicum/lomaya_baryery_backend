@@ -90,7 +90,7 @@ class ReportService:
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
-        if status in (Report.Status.APPROVED, Report.Status.DECLINED):
+        if status == Report.Status.APPROVED:
             raise ReportAlreadyReviewedException(status=status)
         if status is Report.Status.WAITING:
             raise ReportWaitingPhotoException
