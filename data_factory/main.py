@@ -4,7 +4,7 @@ from uuid import UUID
 
 import click
 import factory
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -32,13 +32,8 @@ def get_logger(log_filename: str) -> logging.Logger:
 logger = get_logger('fill_db.log')
 
 
-def get_random_user_ids(count: int) -> list:
-    user_ids = session.execute(
-        select(User.id)
-        .where(or_(User.status == User.Status.VERIFIED, User.status == User.Status.DECLINED))
-        .order_by(func.random())
-        .limit(count)
-    )
+def get_random_user_ids(count: int, status: User.Status) -> list:
+    user_ids = session.execute(select(User.id).where(User.status == status).order_by(func.random()).limit(count))
     return user_ids.scalars().all()
 
 
@@ -75,24 +70,26 @@ def generate_fake_data() -> None:
 
         logger.info("Создание активной смены...")
         started_shift = ShiftFactory.create(status=Shift.Status.STARTED)
-        user_ids = get_random_user_ids(numbers_users)
 
         logger.info("Создание одобренных заявок и заданий для активной смены...")
-        create_approved_requests_and_members_with_user_tasks(user_ids[:half_numbers_users], started_shift)
+        create_approved_requests_and_members_with_user_tasks(
+            get_random_user_ids(half_numbers_users, User.Status.VERIFIED), started_shift
+        )
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        create_declined_requests(user_ids[half_numbers_users:], started_shift)
+        create_declined_requests(get_random_user_ids(half_numbers_users, User.Status.DECLINED), started_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)
         for finished_shift in finished_shifts:
-            user_ids = get_random_user_ids(numbers_users)
 
             logger.info("Создание одобренных заявок и заданий для завершенной смены...")
-            create_approved_requests_and_members_with_user_tasks(user_ids[:half_numbers_users], finished_shift)
+            create_approved_requests_and_members_with_user_tasks(
+                get_random_user_ids(half_numbers_users, User.Status.VERIFIED), finished_shift
+            )
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            create_declined_requests(user_ids[half_numbers_users:], finished_shift)
+            create_declined_requests(get_random_user_ids(half_numbers_users, User.Status.DECLINED), finished_shift)
 
     logger.info("Создание тестовых данных завершено!")
 
