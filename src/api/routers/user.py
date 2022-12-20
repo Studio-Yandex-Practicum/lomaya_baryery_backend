@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.user import UserSortRequest
+from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.models import User
 from src.core.services.user_service import UserService
@@ -27,7 +27,8 @@ class UserCBV:
     async def get_all_users(
         self,
         status: Optional[User.Status] = None,
-        sort: Optional[UserSortRequest] = None,
+        field_sort: Optional[UserFieldSortRequest] = None,
+        sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         """
         Получить список пользователей с фильтрацией по статусу.
@@ -40,4 +41,4 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
         """
-        return await self.user_service.list_all_users(status, sort)
+        return await self.user_service.list_all_users(status, field_sort, sort)

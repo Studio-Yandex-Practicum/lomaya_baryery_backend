@@ -6,7 +6,8 @@ from fastapi import Depends
 from src.api.request_models.user import (
     RequestCreateRequest,
     UserCreateRequest,
-    UserSortRequest,
+    UserDescAscSortRequest,
+    UserFieldSortRequest,
 )
 from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.models import Request, User
@@ -62,6 +63,9 @@ class UserService:
         return await self.__user_repository.get_by_telegram_id(telegram_id)
 
     async def list_all_users(
-        self, status: Optional[User.Status] = None, sort: Optional[UserSortRequest] = None
+        self,
+        status: Optional[User.Status] = None,
+        field_sort: Optional[UserFieldSortRequest] = None,
+        sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
-        return await self.__user_repository.get_users_with_status(status, sort)
+        return await self.__user_repository.get_users_with_status(status, field_sort, sort)

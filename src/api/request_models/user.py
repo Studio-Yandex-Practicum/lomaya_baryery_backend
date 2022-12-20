@@ -63,9 +63,16 @@ class RequestCreateRequest(BaseModel):
     status: Request.Status
 
 
-class UserSortRequest(str, enum.Enum):
-    """Поля модели User для сортировки."""
+class UserFieldSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по полю."""
 
     NAME = "name"
     SURNAME = "surname"
     DATE_OF_BIRTH = "date_of_birth"
+
+
+class UserDescAscSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по убыванию или возрастанию."""
+
+    ASC = "asc"
+    DESC = "desc"

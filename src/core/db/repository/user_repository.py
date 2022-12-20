@@ -1,10 +1,10 @@
 from typing import Optional
 
 from fastapi import Depends
-from sqlalchemy import or_, select
+from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.request_models.user import UserSortRequest
+from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.models import User
@@ -30,14 +30,15 @@ class UserRepository(AbstractRepository):
     async def get_users_with_status(
         self,
         status: Optional[User.Status] = None,
-        sort: Optional[UserSortRequest] = None,
+        field_sort: Optional[UserFieldSortRequest] = None,
+        sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
-        users = (
+        sorting = {'desc': desc, 'asc': asc}
+        users = await self._session.execute(
             select(User)
             .where(
                 or_(status is None, User.status == status),
             )
-            .order_by(sort or User.created_at.desc())
+            .order_by(sorting[sort.value if sort else 'asc'](field_sort or User.created_at))
         )
-        users = await self._session.execute(users)
         return users.all()
