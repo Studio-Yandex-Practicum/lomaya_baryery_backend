@@ -17,7 +17,7 @@ class MemberService:
         self.__shift_repository = shift_repository
         self.__telegram_bot = services.BotService
 
-    async def exclude_lagging_members(self, bot: Application.bot) -> None:
+    async def exclude_lagging_members(self, bot: Application) -> None:
         """Исключает участников из стартовавшей смены.
 
         Если участники не посылают отчет о выполненом задании указанное

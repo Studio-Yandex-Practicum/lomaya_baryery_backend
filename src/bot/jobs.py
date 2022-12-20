@@ -30,7 +30,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     session_generator = get_session()
     report_service = await get_report_service_callback(session_generator)
     member_service = await get_member_service_callback(session_generator)
-    await member_service.exclude_lagging_members(context.bot)
+    await member_service.exclude_lagging_members(context.application)
     current_day_of_month = date.today().day
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)

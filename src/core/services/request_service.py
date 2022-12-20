@@ -43,7 +43,7 @@ class RequestService:
         return RequestResponse.parse_from(request)
 
     async def decline_request(
-        self, request_id: UUID, bot: Application.bot, decline_request_data: Optional[RequestDeclineRequest]
+        self, request_id: UUID, bot: Application, decline_request_data: Optional[RequestDeclineRequest]
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
