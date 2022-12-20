@@ -31,7 +31,7 @@ class MemberRepository(AbstractRepository):
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
-        members = self._session.scalars(
+        members = await self._session.scalars(
             select(Member)
             .where(
                 Member.shift_id == shift_id,
