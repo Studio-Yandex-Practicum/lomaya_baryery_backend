@@ -68,8 +68,8 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_excluded_member(self, user: models.User) -> None:
-        """Уведомляет участника об исключении из смены."""
+    async def notify_excluded_members(self, members: list[models.Member]) -> None:
+        """Уведомляет участников об исключении из смены."""
         text = (
             "К сожалению, мы заблокировали Ваше участие в смене из-за неактивности - "
             "Вы не отправили ни одного отчета на несколько последних заданий подряд. "
@@ -77,7 +77,8 @@ class BotService:
             "Если Вы считаете, что произошла ошибка - обращайтесь "
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
-        await self.__bot.send_message(user.telegram_id, text)
+        send_message_tasks = [self.__bot.send_message(member.user.telegram_id, text) for member in members]
+        self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
