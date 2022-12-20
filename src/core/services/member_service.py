@@ -29,6 +29,5 @@ class MemberService:
         )
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
+            await self.__member_repository.update(member.id, member)
             await self.__telegram_bot(bot).notify_excluded_member(member.user)
-            await self._session.merge(member)
-        await self._session.commit()

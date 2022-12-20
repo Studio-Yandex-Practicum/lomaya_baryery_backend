@@ -26,9 +26,10 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 async def send_daily_task_job(context: CallbackContext) -> None:
     buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
-    session_generator = get_session()
-    report_service = await get_report_service_callback(session_generator)
-    member_service = await get_member_service_callback(session_generator)
+    report_session_generator = get_session()
+    member_session_generator = get_session()
+    report_service = await get_report_service_callback(report_session_generator)
+    member_service = await get_member_service_callback(member_session_generator)
     await member_service.exclude_lagging_members(context.bot)
     current_day_of_month = date.today().day
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
