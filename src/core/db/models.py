@@ -132,8 +132,6 @@ class Request(Base):
         APPROVED = "approved"
         DECLINED = "declined"
         PENDING = "pending"
-        REPEATED_REQUEST = "repeated request"
-        EXCLUDED = "excluded"
 
     __tablename__ = "requests"
 
