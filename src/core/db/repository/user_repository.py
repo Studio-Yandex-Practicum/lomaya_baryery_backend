@@ -37,7 +37,7 @@ class UserRepository(AbstractRepository):
             .where(
                 or_(status is None, User.status == status),
             )
-            .order_by(sort or User.id.desc())
+            .order_by(sort or User.created_at.desc())
         )
         users = await self._session.execute(users)
         return users.all()

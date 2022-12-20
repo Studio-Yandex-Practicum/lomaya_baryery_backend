@@ -29,7 +29,8 @@ class UserCBV:
         status: Optional[User.Status] = None,
         sort: Optional[UserSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
-        """Получить список пользователей с фильтрацией по статусу.
+        """
+        Получить список пользователей с фильтрацией по статусу.
 
         - **id**: id пользователя
         - **name**: имя пользователя
