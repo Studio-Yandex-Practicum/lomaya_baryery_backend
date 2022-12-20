@@ -6,20 +6,14 @@ from src.api.response_models.report import ReportResponse
 from src.bot import services
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Task
-from src.core.db.repository import (
-    MemberRepository,
-    ReportRepository,
-    ShiftRepository,
-    TaskRepository,
-)
+from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.exceptions import (
     DuplicateReportError,
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
 )
-from src.core.services.request_sevice import RequestService
+from src.core.services.member_service import MemberService
 from src.core.services.task_service import TaskService
-from src.core.settings import settings
 
 
 class ReportService:
@@ -33,19 +27,17 @@ class ReportService:
     def __init__(
         self,
         report_repository: ReportRepository = Depends(),
-        task_repository: TaskRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
         member_repository: MemberRepository = Depends(),
-        request_service: RequestService = Depends(),
         task_service: TaskService = Depends(),
+        member_service: MemberService = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
-        self.__task_repository = task_repository
         self.__shift_repository = shift_repository
         self.__member_repository = member_repository
-        self.__request_service = request_service
         self.__task_service = task_service
+        self.__member_service = member_service
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
@@ -105,19 +97,6 @@ class ReportService:
         Список берется по id смены и/или статусу заданий с url фото выполненного задания.
         """
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
-
-    async def check_members_activity(self, bot: Application) -> None:
-        """Проверяет участников во всех запущенных сменах.
-
-        Если участники не посылают отчет о выполненом задании указанное
-        в настройках количество раз подряд, то они будут исключены из смены.
-        """
-        shift_id = await self.__shift_repository.get_started_shift_id()
-        user_ids_to_exclude = await self.__report_repository.get_members_ids_for_excluding(
-            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
-        )
-        if len(user_ids_to_exclude) > 0:
-            await self.__request_service.exclude_members(user_ids_to_exclude, shift_id, bot)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
