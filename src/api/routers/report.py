@@ -52,7 +52,7 @@ class ReportsCBV:
         request: Request,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и принят."""
-        return await self.report_service.approve_report(report_id, request.app.state.bot_instance.bot)
+        return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
 
     @router.patch("/{report_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
     async def decline_task_status(
@@ -61,7 +61,7 @@ class ReportsCBV:
         request: Request,
     ) -> HTTPStatus.OK:
         """Отчет участника проверен и отклонен."""
-        return await self.report_service.decline_report(report_id, request.app.state.bot_instance.bot)
+        return await self.report_service.decline_report(report_id, request.app.state.bot_instance)
 
     @router.get(
         "/",
@@ -77,6 +77,7 @@ class ReportsCBV:
         Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
 
         Список формируется по убыванию поля started_at.
+
         В запросе передаётся:
 
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4

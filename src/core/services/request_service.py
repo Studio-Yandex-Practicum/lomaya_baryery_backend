@@ -25,7 +25,7 @@ class RequestService:
         self.__member_repository = member_repository
         self.__telegram_bot = services.BotService
 
-    async def approve_request(self, request_id: UUID, bot: Application.bot) -> RequestResponse:
+    async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status not in (Request.Status.PENDING, Request.Status.REPEATED_REQUEST):
@@ -43,7 +43,7 @@ class RequestService:
         return RequestResponse.parse_from(request)
 
     async def decline_request(
-        self, request_id: UUID, bot: Application.bot, decline_request_data: Optional[RequestDeclineRequest]
+        self, request_id: UUID, bot: Application, decline_request_data: Optional[RequestDeclineRequest]
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)

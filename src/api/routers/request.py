@@ -27,7 +27,7 @@ class RequestCBV:
         request: Request,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        return await self.request_service.approve_request(request_id, request.app.state.bot_instance.bot)
+        return await self.request_service.approve_request(request_id, request.app.state.bot_instance)
 
     @router.patch(
         "/{request_id}/decline",
@@ -43,5 +43,5 @@ class RequestCBV:
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(
-            request_id, request.app.state.bot_instance.bot, decline_request_data
+            request_id, request.app.state.bot_instance, decline_request_data
         )
