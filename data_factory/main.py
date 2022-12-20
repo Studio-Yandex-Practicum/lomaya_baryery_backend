@@ -57,8 +57,7 @@ def create_declined_requests(user_ids: list[UUID], shift: Shift):
 
 
 def generate_fake_data() -> None:
-    numbers_users = 30
-    half_numbers_users = numbers_users // 2
+    numbers_users = 15
     logger.info("Генерация фейковых данных...")
     with factory.Faker.override_default_locale("ru_RU"):
 
@@ -73,11 +72,11 @@ def generate_fake_data() -> None:
 
         logger.info("Создание одобренных заявок и заданий для активной смены...")
         create_approved_requests_and_members_with_user_tasks(
-            get_random_user_ids(half_numbers_users, User.Status.VERIFIED), started_shift
+            get_random_user_ids(numbers_users, User.Status.VERIFIED), started_shift
         )
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        create_declined_requests(get_random_user_ids(half_numbers_users, User.Status.DECLINED), started_shift)
+        create_declined_requests(get_random_user_ids(numbers_users, User.Status.DECLINED), started_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)
@@ -85,11 +84,11 @@ def generate_fake_data() -> None:
 
             logger.info("Создание одобренных заявок и заданий для завершенной смены...")
             create_approved_requests_and_members_with_user_tasks(
-                get_random_user_ids(half_numbers_users, User.Status.VERIFIED), finished_shift
+                get_random_user_ids(numbers_users, User.Status.VERIFIED), finished_shift
             )
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            create_declined_requests(get_random_user_ids(half_numbers_users, User.Status.DECLINED), finished_shift)
+            create_declined_requests(get_random_user_ids(numbers_users, User.Status.DECLINED), finished_shift)
 
     logger.info("Создание тестовых данных завершено!")
 
