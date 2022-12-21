@@ -63,11 +63,11 @@ jobs:
     -
       name: Run Local project
       env:
-        POSTGRES_DB=${{ env.POSTGRES_DB }}
-        POSTGRES_USER=${{ env.POSTGRES_USER }}
-        POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
-        DB_HOST=${{ env.DB_HOST }}
-        DB_PORT=${{ env.DB_PORT }}
+        POSTGRES_DB=lomaya_baryery_db_local
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        DB_HOST=localhost
+        DB_PORT=5432
       run: poetry run python run.py
     - 
       name: Get the status of healthcheck
