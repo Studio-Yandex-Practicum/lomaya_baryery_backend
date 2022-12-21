@@ -15,8 +15,6 @@ from src.core.exceptions import (
     SendTelegramNotifyException,
 )
 
-REVIEWED_REQUEST = "Заявка была обработана, статус заявки: {}."
-
 
 class RequestService:
     def __init__(
