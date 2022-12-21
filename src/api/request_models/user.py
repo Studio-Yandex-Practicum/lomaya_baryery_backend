@@ -1,3 +1,4 @@
+import enum
 import re
 from datetime import datetime
 from typing import Optional
@@ -60,3 +61,18 @@ class RequestCreateRequest(BaseModel):
     user_id: UUID
     shift_id: Optional[UUID] = None
     status: Request.Status
+
+
+class UserFieldSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по полю."""
+
+    NAME = "name"
+    SURNAME = "surname"
+    DATE_OF_BIRTH = "date_of_birth"
+
+
+class UserDescAscSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по убыванию или возрастанию."""
+
+    ASC = "asc"
+    DESC = "desc"

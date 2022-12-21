@@ -10,6 +10,7 @@ from src.api.routers import (
     request_router,
     router,
     shift_router,
+    user_router,
     webhook_router,
 )
 from src.bot.main import start_bot
@@ -18,7 +19,7 @@ from src.core.settings import settings
 
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(debug=settings.DEBUG)
 
     origins = ["*"]
 
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(shift_router)
     app.include_router(request_router)
     app.include_router(healthcheck_router)
+    app.include_router(user_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
