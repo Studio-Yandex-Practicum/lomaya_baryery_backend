@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from src.core.db.models import Request
 
 
-class RequestResponse(BaseModel):
+class RequestResponseBase(BaseModel):
     request_id: UUID
     user_id: UUID
     name: str
@@ -16,10 +16,9 @@ class RequestResponse(BaseModel):
     date_of_birth: date
     city: str
     phone_number: str
-    status: str
 
     @classmethod
-    def parse_from(cls, request_obj: Request) -> RequestResponse:
+    def parse_from(cls, request_obj: Request) -> RequestResponseBase:
         """Парсит модель sqlalchemy Request, полученной с помощью метода get класса RequestRepository."""
         return cls(
             request_id=request_obj.id,
@@ -33,5 +32,10 @@ class RequestResponse(BaseModel):
         )
 
 
-class RequestWithUserStatusResponse(RequestResponse):
+class RequestResponse(RequestResponseBase):
+    status: str
+
+
+class RequestWithUserStatusResponse(RequestResponseBase):
     user_status: str
+    request_status: str
