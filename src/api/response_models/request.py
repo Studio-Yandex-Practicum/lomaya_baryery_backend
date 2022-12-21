@@ -31,3 +31,7 @@ class RequestResponse(BaseModel):
             phone_number=request_obj.user.phone_number,
             status=request_obj.status,
         )
+
+
+class RequestWithUserStatusResponse(RequestResponse):
+    user_status: str
