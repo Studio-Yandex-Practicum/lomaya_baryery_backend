@@ -23,6 +23,7 @@ from sqlalchemy.schema import ForeignKey
 
 from src.core.exceptions import (
     CannotAcceptReportError,
+    EmptyReportError,
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
@@ -199,7 +200,7 @@ class Report(Base):
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    report_url = Column(String(length=4096), unique=True, nullable=False)
+    report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
     is_repeated = Column(Boolean(), nullable=False)
 
@@ -209,6 +210,8 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
+        if len(photo_url) == 0:
+            raise EmptyReportError()
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
