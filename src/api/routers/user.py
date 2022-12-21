@@ -28,7 +28,7 @@ class UserCBV:
         self,
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
-        sort: Optional[UserDescAscSortRequest] = None,
+        direction_sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         """
         Получить список пользователей с фильтрацией по статусу.
@@ -41,4 +41,4 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
         """
-        return await self.user_service.list_all_users(status, field_sort, sort)
+        return await self.user_service.list_all_users(status, field_sort, direction_sort)

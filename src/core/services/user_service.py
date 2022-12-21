@@ -45,17 +45,16 @@ class UserService:
         self.__user_repository = user_repository
         self.__request_repository = request_repository
 
-    async def user_registration(self, user_data: dict):
+    async def user_registration(self, new_user: UserCreateRequest):
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        user_scheme = UserCreateRequest(**user_data)
-        await validate_user_create(user_scheme, self.__user_repository)
-        user = User(**user_scheme.dict())
+        await validate_user_create(new_user, self.__user_repository)
+        user = User(**new_user.dict())
         user.status = User.Status.PENDING
         await self.__user_repository.create(user)
         request = await self.__request_repository.get_or_none(user.id)
         if not request:
-            request_scheme = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
-            request = Request(**request_scheme.dict())
+            new_request = RequestCreateRequest(user_id=user.id, status=Request.Status.PENDING)
+            request = Request(**new_request.dict())
             await self.__user_repository.create(request)
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
@@ -66,6 +65,6 @@ class UserService:
         self,
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
-        sort: Optional[UserDescAscSortRequest] = None,
+        direction_sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
-        return await self.__user_repository.get_users_with_status(status, field_sort, sort)
+        return await self.__user_repository.get_users_with_status(status, field_sort, direction_sort)

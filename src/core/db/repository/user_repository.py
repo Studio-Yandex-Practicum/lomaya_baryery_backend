@@ -31,14 +31,22 @@ class UserRepository(AbstractRepository):
         self,
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
-        sort: Optional[UserDescAscSortRequest] = None,
+        direction_sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
-            select(User)
+            select(
+                User.id,
+                User.name,
+                User.surname,
+                User.date_of_birth,
+                User.city,
+                User.phone_number,
+                User.status,
+            )
             .where(
                 or_(status is None, User.status == status),
             )
-            .order_by(sorting[sort.value if sort else 'asc'](field_sort or User.created_at))
+            .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
         return users.all()
