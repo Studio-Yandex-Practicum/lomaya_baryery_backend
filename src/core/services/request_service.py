@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Optional
 
 from fastapi import Depends, HTTPException
 from pydantic.schema import UUID
@@ -24,7 +25,7 @@ class RequestService:
         self.__member_repository = member_repository
         self.__telegram_bot = services.BotService
 
-    async def approve_request(self, request_id: UUID, bot: Application.bot) -> RequestResponse:
+    async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
         if request.status not in (Request.Status.PENDING, Request.Status.REPEATED_REQUEST):
@@ -42,10 +43,7 @@ class RequestService:
         return RequestResponse.parse_from(request)
 
     async def decline_request(
-        self,
-        request_id: UUID,
-        bot: Application.bot,
-        decline_request_data: RequestDeclineRequest | None,
+        self, request_id: UUID, bot: Application, decline_request_data: Optional[RequestDeclineRequest]
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
@@ -60,17 +58,3 @@ class RequestService:
         request.status = Request.Status.DECLINED
         await self.__request_repository.update(request_id, request)
         return RequestResponse.parse_from(request)
-
-    async def exclude_members(self, user_ids: list[UUID], shift_id: UUID, bot: Application.bot) -> None:
-        """Исключает участников смены.
-
-        Аргументы:
-            user_ids (list[UUID]): список id участников подлежащих исключению
-            shift_id (UUID): id активной смены
-        """
-        requests = await self.__request_repository.get_requests_by_users_ids_and_shifts_id(user_ids, shift_id)
-        if len(requests) == 0:
-            raise LookupError(f'Заявки не найдены для участников с id {user_ids} в смене с id {shift_id}')
-        await self.__request_repository.bulk_excluded_status_update(requests)
-        for request in requests:
-            await self.__telegram_bot(bot).notify_excluded_member(request.user)

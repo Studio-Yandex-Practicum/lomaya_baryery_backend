@@ -101,3 +101,9 @@ class ShiftsDatesIntersectionException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
+
+
+class GetStartedShiftException(ApplicationException):
+    def __init__(self, detail: str):
+        self.status_code = HTTPStatus.NOT_FOUND
+        self.detail = detail

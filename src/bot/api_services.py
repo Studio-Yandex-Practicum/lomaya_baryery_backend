@@ -8,8 +8,9 @@ from src.core.db.repository import (
     TaskRepository,
     UserRepository,
 )
+from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
-from src.core.services.request_sevice import RequestService
+from src.core.services.request_service import RequestService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 
@@ -35,3 +36,11 @@ async def get_report_service_callback(sessions):
             report_repository, task_repository, shift_repository, member_repository, request_service, task_service
         )
         return report_service
+
+
+async def get_member_service_callback(sessions):
+    async for session in sessions:  # noqa R503
+        member_repository = MemberRepository(session)
+        shift_repository = ShiftRepository(session)
+        member_service = MemberService(member_repository, shift_repository)
+        return member_service
