@@ -54,7 +54,20 @@ class RequestCBV:
         '/',
         response_model=list[RequestWithUserStatusResponse],
         status_code=HTTPStatus.OK,
-        summary='Получить список заявок на участие',
+        summary="Получить список заявок на участие.",
+        response_description="Список заявок участников с фильтрацией по статусу заявки.",
     )
     async def get_requests_list(self, status: Optional[Status] = None) -> list[RequestWithUserStatusResponse]:
+        """Получить список заявок с фильтрацией по статусу заявки.
+
+        - **request_id**: id заявки
+        - **user_id**: id участника
+        - **name**: имя участника
+        - **surname**: фамилия участника
+        - **date_of_birth**: дата рождения участника
+        - **city**: город участника
+        - **phone_number**: номер телефона участника
+        - **status**: статус заявки
+        - **user_status**: статус участника
+        """
         return await self.request_service.get_requests_list(status)
