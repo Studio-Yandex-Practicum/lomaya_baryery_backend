@@ -1,14 +1,15 @@
 import datetime
 import json
-from datetime import timedelta
 import random
+from datetime import timedelta
 
 import factory
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.core.db import models
-from src.core.db.models import Shift, UserTask, Task
+from src.core.db.models import Report, Shift, Task
+from src.core.services.shift_service import FINAL_MESSAGE
 from src.core.settings import settings
 
 MAX_USER_BIRTH_DATE = datetime.date(1986, 1, 1)
@@ -31,13 +32,10 @@ class UserFactory(BaseFactory):
     id = factory.Faker("uuid4")
     name = factory.Faker("first_name")
     surname = factory.Faker("last_name")
-    date_of_birth = factory.Faker(
-        "date_between_dates", date_start=MAX_USER_BIRTH_DATE, date_end=MIN_USER_BIRTH_DATE
-    )
+    date_of_birth = factory.Faker("date_between_dates", date_start=MAX_USER_BIRTH_DATE, date_end=MIN_USER_BIRTH_DATE)
     city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
-    numbers_lombaryers = factory.Faker("random_int", min=0, max=92)
 
 
 class ShiftFactory(BaseFactory):
@@ -47,7 +45,7 @@ class ShiftFactory(BaseFactory):
     id = factory.Faker("uuid4")
     status = factory.Iterator([status for status in models.Shift.Status])
     title = factory.Faker("text", max_nb_chars=25)
-    final_message = factory.Faker("text", max_nb_chars=80)
+    final_message = FINAL_MESSAGE
     sequence_number = factory.Sequence(int)
 
     @factory.lazy_attribute
@@ -106,36 +104,11 @@ class RequestFactory(BaseFactory):
 
     id = factory.Faker("uuid4")
     status = factory.Iterator([status for status in models.Request.Status])
-    numbers_lombaryers = factory.Faker("random_int", min=0, max=92)
-
-    @factory.post_generation
-    def add_several_user_tasks(self, created, count, **kwargs):
-        start_date = session.execute(select(Shift.started_at).where(Shift.id == self.shift_id))
-        start_date = start_date.scalars().first()
-        all_dates = list((start_date + timedelta(day)) for day in range(91))
-        for date in all_dates:
-            if date <= datetime.date.today():
-
-                if created and count:
-                    UserTaskFactory.create_batch(
-                        count,
-                        user_id=self.user_id,
-                        shift_id=self.shift_id,
-                        task_date=date,
-                    )
-
-    @classmethod
-    def complex_create(cls, count, **kwargs):
-        return cls.create_batch(
-            count,
-            add_several_user_tasks=1,
-            **kwargs,
-        )
 
 
-class UserTaskFactory(BaseFactory):
+class ReportFactory(BaseFactory):
     class Meta:
-        model = models.UserTask
+        model = models.Report
 
     is_repeated = factory.Faker('pybool')
     report_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
@@ -143,12 +116,46 @@ class UserTaskFactory(BaseFactory):
     @factory.lazy_attribute
     def status(self):
         if self.task_date < datetime.date.today():
-            return random.choice([UserTask.Status.APPROVED, UserTask.Status.DECLINED])
-        if self.task_date == datetime.date.today():  # noqa R503
-            return UserTask.Status.UNDER_REVIEW
+            return random.choice([Report.Status.APPROVED, Report.Status.DECLINED])
+        return Report.Status.REVIEWING
 
     @factory.lazy_attribute
     def task_id(self):
-        task_ids = session.execute(
-            select(Task.id).order_by(func.random()))
+        task_ids = session.execute(select(Task.id).order_by(func.random()))
         return task_ids.scalars().first()
+
+
+class MemberFactory(BaseFactory):
+    class Meta:
+        model = models.Member
+
+    id = factory.Faker("uuid4")
+    status = factory.Iterator([status for status in models.Member.Status])
+    numbers_lombaryers = factory.Faker("random_int", min=0, max=92)
+
+    @factory.post_generation
+    def add_several_reports(self, created, count, **kwargs):
+        start_date = session.execute(select(Shift.started_at).where(Shift.id == self.shift_id))
+        start_date = start_date.scalars().first()
+        all_dates = list((start_date + timedelta(day)) for day in range(91))
+        for date in all_dates:
+            if date <= datetime.date.today():
+
+                if created and count:
+                    ReportFactory.create_batch(
+                        count,
+                        member_id=self.id,
+                        shift_id=self.shift_id,
+                        task_date=date,
+                        uploaded_at=datetime.datetime.combine(
+                            date, datetime.time(hour=random.randrange(0, 24), minute=random.randrange(0, 60))
+                        ),
+                    )
+
+    @classmethod
+    def complex_create(cls, count, **kwargs):
+        return cls.create_batch(
+            count,
+            add_several_reports=1,
+            **kwargs,
+        )
