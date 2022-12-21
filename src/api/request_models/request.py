@@ -1,21 +1,13 @@
-import enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from src.api.request_models.request_base import RequestBase
-
-
-class Status(str, enum.Enum):
-    """Статус рассмотренной заявки."""
-
-    APPROVED = "approved"
-    DECLINED = "declined"
-    PENDING = "pending"
+from src.core.db.models import Request
 
 
 class RequestStatusUpdateRequest(BaseModel):
-    status: Status = Field(Status.APPROVED.value)
+    status: Request.Status = Field(Request.Status.APPROVED.value)
 
 
 class RequestDeclineRequest(RequestBase):

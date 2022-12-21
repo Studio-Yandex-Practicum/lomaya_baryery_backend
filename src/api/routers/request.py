@@ -5,11 +5,12 @@ from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.request_models.request import RequestDeclineRequest, Status
+from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import (
     RequestResponse,
     RequestWithUserStatusResponse,
 )
+from src.core.db import models
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
@@ -57,7 +58,9 @@ class RequestCBV:
         summary="Получить список заявок на участие.",
         response_description="Список заявок участников с фильтрацией по статусу заявки.",
     )
-    async def get_requests_list(self, status: Optional[Status] = None) -> list[RequestWithUserStatusResponse]:
+    async def get_requests_list(
+        self, status: Optional[models.Request.Status] = None
+    ) -> list[RequestWithUserStatusResponse]:
         """Получить список заявок с фильтрацией по статусу заявки.
 
         - **request_id**: id заявки
@@ -67,7 +70,7 @@ class RequestCBV:
         - **date_of_birth**: дата рождения участника
         - **city**: город участника
         - **phone_number**: номер телефона участника
-        - **status**: статус заявки
+        - **request_status**: статус заявки
         - **user_status**: статус участника
         """
         return await self.request_service.get_requests_list(status)
