@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report
+from src.core.db.models import Member, Report, Task
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -42,5 +42,17 @@ class MemberRepository(AbstractRepository):
             .join(Report)
             .group_by(Member)
             .having(func.count() == task_amount)
+        )
+        return members.all()
+
+    async def get_members_for_reminding(self, shift_id: UUID, task: Task) -> list[Member]:
+        members = self._session.scalars(
+            select(Member)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.status == Report.Status.WAITING,
+                Report.task == task,
+            )
         )
         return members.all()

@@ -13,6 +13,7 @@ from src.core.services.report_service import ReportService
 from src.core.services.request_service import RequestService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
+from src.core.services.shift_service import ShiftService
 
 
 async def get_registration_service_callback(sessions) -> Optional[UserService]:
@@ -42,5 +43,10 @@ async def get_member_service_callback(sessions):
     async for session in sessions:  # noqa R503
         member_repository = MemberRepository(session)
         shift_repository = ShiftRepository(session)
-        member_service = MemberService(member_repository, shift_repository)
+        task_repository = TaskRepository(session)
+        task_service = TaskService(task_repository)
+        shift_service = ShiftService(shift_repository)
+        member_service = MemberService(
+            member_repository, shift_repository, task_service, shift_service 
+        )
         return member_service
