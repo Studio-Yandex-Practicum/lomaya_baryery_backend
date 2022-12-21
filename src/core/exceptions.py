@@ -4,6 +4,8 @@ from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
+from src.core.settings import settings
+
 
 class ApplicationException(HTTPException):
     status_code: int = None
@@ -95,3 +97,68 @@ class GetStartedShiftException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = detail
+
+
+class RegistrationException(HTTPException):
+    status_code: int = None
+    detail: str = None
+    headers: Dict[str, Any] = None
+
+    def __init__(self):
+        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
+
+
+class UserAlreadyExistException(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Пользователь с таким номером телефона уже существует"
+
+
+class MinAgeException(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Возраст не может быть менее {settings.MIN_AGE} лет"
+
+
+class NoShiftForRegistrationException(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = (
+            "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
+            "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
+            "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
+        )
+
+
+class AlreadyRegisteredException(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.OK
+        self.detail = (
+            "Вы уже зарегестрированы в проекте, ожидайте свое первое задание "
+            "в день старта смены. Актуальную дату начала смены вы можете "
+            "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
+        )
+
+
+class RegistrationTakesTimeException(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.OK
+        self.detail = "Процесс регистрации занимает некоторое время - вам придет уведомление"
+
+
+class PendingUserException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.PROCESSING
+        self.detail = "Участник не был одобрен."
+
+
+class RquestAcceptedException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "Запрос был обработан и одобрен."
+
+
+class RquestDeclinedException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.detail = "Запрос был обработан и отклонен."

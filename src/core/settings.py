@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
+    DAYS_FROM_START_OF_SHIFT_TO_JOIN: int
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
