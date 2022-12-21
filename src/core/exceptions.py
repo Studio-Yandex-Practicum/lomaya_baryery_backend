@@ -146,12 +146,6 @@ class RegistrationTakesTimeException(RegistrationException):
         self.detail = "Процесс регистрации занимает некоторое время - вам придет уведомление"
 
 
-class PendingUserException(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.PROCESSING
-        self.detail = "Участник не был одобрен."
-
-
 class RquestAcceptedException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY

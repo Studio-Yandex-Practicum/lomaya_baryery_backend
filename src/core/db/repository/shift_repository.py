@@ -99,3 +99,8 @@ class ShiftRepository(AbstractRepository):
         if not shift_id:
             raise GetStartedShiftException(detail='Активной смены не найдено.')
         return shift_id
+
+    async def get_shift_by_status(self, status: Shift.Status) -> Shift:
+        """Находит смену по статусу."""
+        shift = await self._session.execute(select(Shift).where(Shift.status == status))
+        return shift.scalars().first()
