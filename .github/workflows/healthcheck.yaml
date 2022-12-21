@@ -60,9 +60,6 @@ jobs:
         echo SEND_NO_REPORT_REMINDER_HOUR=20 >> .env
         echo MIN_AGE=3 >> .env
         echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-    -
-      name: Run Local project
-      run: poetry run python run.py
     - 
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
