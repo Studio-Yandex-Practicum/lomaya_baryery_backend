@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 from fastapi import Depends
@@ -24,8 +24,8 @@ from src.core.settings import settings
 
 def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
-    current_year = datetime.now().date().year
-    if current_year - value.year < settings.MIN_AGE:
+    current_date = date.today()
+    if current_date.year - value.year < settings.MIN_AGE:
         raise MinAgeException
 
 
@@ -55,39 +55,37 @@ class UserService:
         self.__request_repository = request_repository
         self.__shift_service = shift_service
 
-    async def user_registration(self, user_data: dict) -> None:
+    async def user_registration(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        shift_id = await self.__shift_service.get_shift_for_registration()
-        telegram_id = user_data.get("telegram_id")
-        db_user = await self.__user_repository.get_by_telegram_id(telegram_id)
-        user_scheme = UserCreateRequest(**user_data)
+        shift_id = await self.__shift_service.get_shift_id_for_registration()
+        db_user = await self.__user_repository.get_by_telegram_id(new_user_data.telegram_id)
         if db_user:
-            if db_user.status is User.Status.PENDING:
-                raise RegistrationTakesTimeException
-            if db_user.status in (User.Status.VERIFIED, User.Status.DECLINED):
-                user = User(**user_scheme.dict())
-                user.status = User.Status.PENDING
-                validate_date_of_birth(user.date_of_birth)
-                db_user = await self.__user_repository.update(db_user.id, user)
-        else:
-            user = User(**user_scheme.dict())
-            user.status = User.Status.PENDING
-            await validate_user_create(user_scheme, self.__user_repository)
-            db_user = await self.__user_repository.create(user)
-        request = await self.__request_repository.get_by_user_and_shift(db_user.id, shift_id)
-        if request:
-            if request.status is Request.Status.PENDING:
-                raise RegistrationTakesTimeException
-            if request.status is Request.Status.APPROVED:
-                raise AlreadyRegisteredException
-            if request.status is Request.Status.DECLINED:
-                request.status = Request.Status.PENDING
-                await self.__request_repository.update(request.id, request)
-                raise RegistrationTakesTimeException
-        else:
-            request = Request(user_id=db_user.id, shift_id=shift_id, status=Request.Status.PENDING)
-            await self.__request_repository.create(request)
-            raise RegistrationTakesTimeException
+            request = await self.__request_repository.get_by_user_and_shift(db_user.id, shift_id)
+            if request:
+                if request.status is Request.Status.PENDING:
+                    db_user = await self.update_or_create_user(new_user_data, db_user)
+                    raise RegistrationTakesTimeException
+                if request.status is Request.Status.APPROVED:
+                    raise AlreadyRegisteredException
+                if request.status is Request.Status.DECLINED:
+                    db_user = await self.update_or_create_user(new_user_data, db_user)
+                    request.status = Request.Status.PENDING
+                    await self.__request_repository.update(request.id, request)
+                    raise RegistrationTakesTimeException
+        db_user = await self.update_or_create_user(new_user_data, db_user)
+        request = Request(user_id=db_user.id, shift_id=shift_id, status=Request.Status.PENDING)
+        await self.__request_repository.create(request)
+        raise RegistrationTakesTimeException
+
+    async def update_or_create_user(self, user_scheme: UserCreateRequest, db_user: Optional[User] = None) -> User:
+        """Обновить юзера или создать."""
+        user = User(**user_scheme.dict())
+        user.status = User.Status.PENDING
+        if db_user:
+            validate_date_of_birth(user.date_of_birth)
+            return await self.__user_repository.update(db_user.id, user)
+        await validate_user_create(user_scheme, self.__user_repository)
+        return await self.__user_repository.create(user)
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""

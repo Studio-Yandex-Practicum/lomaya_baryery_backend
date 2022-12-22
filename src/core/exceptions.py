@@ -149,10 +149,10 @@ class RegistrationTakesTimeException(RegistrationException):
 class RquestAcceptedException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.detail = "Запрос был обработан и одобрен."
+        self.detail = "Запрос уже был одобрен."
 
 
 class RquestDeclinedException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.detail = "Запрос был обработан и отклонен."
+        self.detail = "Запрос уже был отклонен."

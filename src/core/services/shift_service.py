@@ -20,13 +20,8 @@ from src.api.response_models.shift import (
 from src.bot import services
 from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
-from src.core.exceptions import (
-    NoShiftForRegistrationException,
-    ShiftUpdateException,
-    UpdateShiftForbiddenException,
-)
+from src.core.exceptions import ShiftUpdateException, UpdateShiftForbiddenException
 from src.core.services.task_service import TaskService
-from src.core.settings import settings
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -136,15 +131,5 @@ class ShiftService:
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
 
-    async def get_shift_for_registration(self) -> UUID:
-        active_shift = await self.__shift_repository.get_shift_by_status(Shift.Status.STARTED)
-        if active_shift:
-            can_be_added_to_active_shift = (
-                active_shift.started_at + timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN) >= date.today()
-            )
-            if can_be_added_to_active_shift:
-                return active_shift.id
-        preparing_shift = await self.__shift_repository.get_shift_by_status(Shift.Status.PREPARING)
-        if preparing_shift:
-            return preparing_shift.id
-        raise NoShiftForRegistrationException
+    async def get_shift_id_for_registration(self) -> UUID:
+        return await self.__shift_repository.get_shift_id_for_registration()

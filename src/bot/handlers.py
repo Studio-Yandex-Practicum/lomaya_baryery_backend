@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from telegram import KeyboardButton, ReplyKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import CallbackContext, ContextTypes
 
+from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -58,13 +59,12 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         user_data["telegram_id"] = update.effective_user.id
         session = get_session()
         registration_service = await get_user_service_callback(session)
-        await registration_service.user_registration(user_data)
-    except (ValidationError, ValueError, RegistrationException) as e:
-        if isinstance(e, ValidationError):
-            e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
-        if isinstance(e, RegistrationException):
-            e = e.detail
+        await registration_service.user_registration(UserCreateRequest(**user_data))
+    except ValidationError as e:
+        e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(e)
+    except RegistrationException as e:
+        await update.message.reply_text(e.detail)
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:

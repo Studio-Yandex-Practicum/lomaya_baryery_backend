@@ -1,8 +1,9 @@
+from datetime import date, timedelta
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,7 +12,12 @@ from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import GetStartedShiftException, NotFoundException
+from src.core.exceptions import (
+    GetStartedShiftException,
+    NoShiftForRegistrationException,
+    NotFoundException,
+)
+from src.core.settings import settings
 
 
 class ShiftRepository(AbstractRepository):
@@ -104,3 +110,19 @@ class ShiftRepository(AbstractRepository):
         """Находит смену по статусу."""
         shift = await self._session.execute(select(Shift).where(Shift.status == status))
         return shift.scalars().first()
+
+    async def get_shift_id_for_registration(self) -> Shift | None:
+        can_be_added_to_active_shift = (
+            Shift.started_at + timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN) >= date.today()
+        )
+        statement = select(Shift.id).where(
+            or_(
+                and_(Shift.status == Shift.Status.STARTED, can_be_added_to_active_shift),
+                Shift.status == Shift.Status.PREPARING,
+            ),
+        )
+        shift = await self._session.execute(statement)
+        shift = shift.scalars().first()
+        if not shift:
+            raise NoShiftForRegistrationException
+        return shift
