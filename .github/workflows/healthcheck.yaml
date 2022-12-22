@@ -56,6 +56,9 @@ jobs:
       run: |
         touch .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+        echo APPLICATION_URL=localhost >> .env
+        echo HEALTHCHECK_API_URL='http://${{ env.APPLICATION_URL }}:8080/docs' >> .env
+
     -
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
