@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from datetime import date
 from uuid import UUID
 
@@ -8,7 +9,7 @@ from pydantic import BaseModel
 from src.core.db.models import Request
 
 
-class RequestResponseBase(BaseModel):
+class RequestResponse(BaseModel):
     request_id: UUID
     user_id: UUID
     name: str
@@ -16,9 +17,10 @@ class RequestResponseBase(BaseModel):
     date_of_birth: date
     city: str
     phone_number: str
+    status: enum.Enum
 
     @classmethod
-    def parse_from(cls, request_obj: Request) -> RequestResponseBase:
+    def parse_from(cls, request_obj: Request) -> RequestResponse:
         """Парсит модель sqlalchemy Request, полученной с помощью метода get класса RequestRepository."""
         return cls(
             request_id=request_obj.id,
@@ -32,10 +34,5 @@ class RequestResponseBase(BaseModel):
         )
 
 
-class RequestResponse(RequestResponseBase):
-    status: str
-
-
-class RequestWithUserStatusResponse(RequestResponseBase):
-    user_status: str
-    request_status: str
+class RequestWithUserStatusResponse(RequestResponse):
+    user_status: enum.Enum
