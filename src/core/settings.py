@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     DB_PORT: str
     MIN_DAYS: int = 1
     MAX_DAYS: int = 93
-    SEND_NEW_TASK_HOUR: int
-    SEND_NO_REPORT_REMINDER_HOUR: int
-    MIN_AGE: int
+    SEND_NEW_TASK_HOUR: int = 8
+    SEND_NO_REPORT_REMINDER_HOUR: int = 20
+    MIN_AGE: int = 3
     HEALTHCHECK_API_URL: str
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
