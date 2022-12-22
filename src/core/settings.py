@@ -26,12 +26,12 @@ class Settings(BaseSettings):
     DB_PORT: str
     MIN_DAYS: int = 1
     MAX_DAYS: int = 93
-    SEND_NEW_TASK_HOUR: int
-    SEND_NO_REPORT_REMINDER_HOUR: int
-    MIN_AGE: int
+    SEND_NEW_TASK_HOUR: int = 8  # время для отправки задания
+    SEND_NO_REPORT_REMINDER_HOUR: int = 20  # время для напоминания о невыполненном задании
+    MIN_AGE: int = 3  # минимальный возраст участника
+    DAYS_FROM_START_OF_SHIFT_TO_JOIN: int = 2  # сколько дней от начала смены возможна регистрация
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
-    DAYS_FROM_START_OF_SHIFT_TO_JOIN: int
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
