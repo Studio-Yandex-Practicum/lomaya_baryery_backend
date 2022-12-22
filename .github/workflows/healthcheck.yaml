@@ -69,6 +69,6 @@ jobs:
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
       with:
-        url: 'http://localhost:8080/healthcheck'
+        url: 'http://${{ env.APPLICATION_URL }}:8080/healthcheck'
         fail-on-bad-status: true
       
