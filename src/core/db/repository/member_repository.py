@@ -9,6 +9,7 @@ from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Task
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
+from src.core.utils import get_current_task_date
 
 
 class MemberRepository(AbstractRepository):
@@ -46,13 +47,14 @@ class MemberRepository(AbstractRepository):
         return members.all()
 
     async def get_members_for_reminding(self, shift_id: UUID, task: Task) -> list[Member]:
-        members = self._session.scalars(
+        current_task_date = get_current_task_date()
+        members = await self._session.scalars(
             select(Member)
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
                 Report.status == Report.Status.WAITING,
-                Report.task == task,
+                Report.task_date == current_task_date
             )
         )
         return members.all()

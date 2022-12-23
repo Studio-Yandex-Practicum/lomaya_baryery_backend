@@ -18,17 +18,20 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     session_generator = get_session()
     member_service = await get_member_service_callback(session_generator)
     current_day_of_month = date.today().day
-    task, members = await member_service.get_members_with_no_reports(current_day_of_month)
-    for member in members:
+    members = await member_service.get_members_with_no_reports(current_day_of_month)
+    send_message_tasks = [
         await context.bot.send_message(
             chat_id=member.user.telegram_id,
             text=(
                 f"f'{member.user.name} {member.user.surname}, мы потеряли тебя!"
-                f"Задание {task.name} все еще ждет тебя."
+                f"Задание все еще ждет тебя."
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
             ),
         )
+        for member in members
+    ]
+    context.application.create_task(asyncio.gather(*send_message_tasks))
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:

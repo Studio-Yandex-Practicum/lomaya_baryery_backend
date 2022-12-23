@@ -14,12 +14,10 @@ class MemberService:
         self,
         member_repository: MemberRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
-        task_service: TaskService = Depends(),
         shift_service: ShiftService = Depends()
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
-        self.__task_service = task_service
         self.__shift_service = shift_service
         self.__telegram_bot = services.BotService
 
@@ -38,11 +36,10 @@ class MemberService:
             await self._session.merge(member)
         await self._session.commit()
         await self.__telegram_bot(bot).notify_excluded_members(lagging_members)
-    
-    async def get_members_with_no_reports(self, current_day_of_month: int) -> list[Member]:
+
+    async def get_members_with_no_reports(self) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
         shift_id = await self.__shift_repository.get_started_shift_id()
         shift = await self.__shift_service.get_shift(shift_id)
-        task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
-        members = await self.__member_repository.get_members_for_reminding(task, shift)
-        return task, members
+        members = await self.__member_repository.get_members_for_reminding(shift)
+        return members
