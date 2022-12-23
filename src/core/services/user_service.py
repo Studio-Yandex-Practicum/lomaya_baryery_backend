@@ -15,6 +15,7 @@ from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
     AlreadyRegisteredException,
     MinAgeException,
+    NoShiftForRegistrationException,
     RegistrationTakesTimeException,
     UserAlreadyExistException,
 )
@@ -58,6 +59,8 @@ class UserService:
     async def user_registration(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
         shift_id = await self.__shift_service.get_shift_id_for_registration()
+        if not shift_id:
+            raise NoShiftForRegistrationException
         db_user = await self.__user_repository.get_by_telegram_id(new_user_data.telegram_id)
         if db_user:
             request = await self.__request_repository.get_by_user_and_shift(db_user.id, shift_id)
