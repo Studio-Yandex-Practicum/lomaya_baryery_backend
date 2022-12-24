@@ -63,7 +63,7 @@ class RequestRepository(AbstractRepository):
             User.phone_number,
             User.status.label("user_status"),
             Request.id.label("request_id"),
-            Request.status,
+            Request.status.label("request_status"),
         ).where(
             or_(status is None, Request.status == status),
             Request.user_id == User.id,
