@@ -52,7 +52,7 @@ class RequestCBV:
         )
 
     @router.get(
-        '/',
+        "/",
         response_model=list[RequestWithUserStatusResponse],
         status_code=HTTPStatus.OK,
         summary="Получить список заявок на участие.",
