@@ -29,3 +29,7 @@ class UserInfoResponse(BaseModel):
 
 class UserWithStatusResponse(UserResponse):
     status: User.Status
+
+
+class UserDetailResponse(UserResponse):
+    shifts: list
