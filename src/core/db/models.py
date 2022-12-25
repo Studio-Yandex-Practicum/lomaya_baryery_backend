@@ -219,3 +219,36 @@ class Report(Base):
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
+
+
+class Administrator(Base):
+    """Модель администратора смены."""
+
+    class Status(str, enum.Enum):
+        """Cтатус администратора."""
+
+        ACTIVE = "active"
+        BLOCKED = "blocked"
+
+    class Role(str, enum.Enum):
+        """Роль администратора."""
+
+        ADMINISTRATOR = "administrator "
+        PSYCHOLOGIST = "psychologist"
+
+    __tablename__ = "administrators"
+
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(70), nullable=False)
+    role = Column(
+        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    last_logined_at = Column(TIMESTAMP)
+    status = Column(
+        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
