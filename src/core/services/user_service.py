@@ -64,8 +64,7 @@ class UserService:
 
     async def get_user_by_id(self, user_id: UUID):
         """Получить участника проекта по его id."""
-        user_obj = await self.__user_repository.get_user_by_id(user_id)
-        return user_obj
+        return await self.__user_repository.get_user_by_id(user_id)
 
     async def get_user_by_id_with_shifts_detail(self, user_id: UUID):
         """Получить участника проекта с информацией о сменах по его id."""
