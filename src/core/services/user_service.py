@@ -1,9 +1,8 @@
 from datetime import date, datetime
-from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
 from src.api.request_models.user import (
     RequestCreateRequest,
@@ -40,13 +39,6 @@ async def validate_user_create(user: UserCreateRequest, user_repository: UserRep
     await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number)
 
 
-async def validate_user_by_id_exists(user: User) -> None:
-    """Проверка, что пользователь c указанным id существует."""
-    err_msg = "Пользователя с указанным id не существует!"
-    if user is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=err_msg)
-
-
 class UserService:
     def __init__(
         self, user_repository: UserRepository = Depends(), request_repository: RequestRepository = Depends()
@@ -73,13 +65,12 @@ class UserService:
     async def get_user_by_id(self, user_id: UUID):
         """Получить участника проекта по его id."""
         user_obj = await self.__user_repository.get_user_by_id(user_id)
-        await validate_user_by_id_exists(user_obj)
         return user_obj
 
     async def get_user_by_id_with_shifts_detail(self, user_id: UUID):
         """Получить участника проекта с информацией о сменах по его id."""
         user_obj = await self.get_user_by_id(user_id)
-        list_user_shifts = await self.__user_repository.get_user_by_id_with_shifts_detail(user_id)
+        list_user_shifts = await self.__user_repository.get_user_by_id_with_shifts_detail(user_obj.id)
         setattr(user_obj, "shifts", [shift for shift in list_user_shifts if shift["id"] is not None])
         return user_obj
 
