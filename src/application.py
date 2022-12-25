@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.api.routers import (
+    administrator_router,
     healthcheck_router,
     report_router,
     request_router,
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(request_router)
     app.include_router(healthcheck_router)
     app.include_router(user_router)
+    app.include_router(administrator_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
