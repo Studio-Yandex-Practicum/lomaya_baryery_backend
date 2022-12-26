@@ -14,6 +14,7 @@ from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
     AdministratorAlreadyExistException,
+    AdministratorBlockedException,
     InvalidCredentialsException,
 )
 from src.core.settings import settings
@@ -53,6 +54,8 @@ class AdministratorService:
         administrator = await self.__administrator_repository.get_by_email_or_none(auth_data.email)
         if not administrator:
             raise InvalidCredentialsException()
+        if administrator.status == Administrator.Status.BLOCKED:
+            raise AdministratorBlockedException()
         password = auth_data.password.get_secret_value()
         if not self.__verify_hashed_password(password, administrator.hashed_password):
             raise InvalidCredentialsException()
@@ -64,7 +67,7 @@ class AdministratorService:
         administrator.last_logined_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
 
-        subject = administrator.__repr__()
+        subject = administrator.email
         tokens = {
             "access_token": self.__create_jwt_token(subject, ACCESS_TOKEN_EXPIRE_MINUTES),
             "refresh_token": self.__create_jwt_token(subject, REFRESH_TOKEN_EXPIRE_MINUTES),

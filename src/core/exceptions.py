@@ -109,3 +109,10 @@ class AdministratorAlreadyExistException(ApplicationException):
 
     status_code = HTTPStatus.BAD_REQUEST
     detail = "Пользователь с указанным email уже существует."
+
+
+class AdministratorBlockedException(ApplicationException):
+    """Попытка регистрации заблокированного пользователя."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Пользователь заблокирован."
