@@ -32,4 +32,5 @@ class RequestResponse(BaseModel):
             city=obj.user.city,
             phone_number=obj.user.phone_number,
             request_status=obj.status,
+            user_status=obj.user.status,
         )
