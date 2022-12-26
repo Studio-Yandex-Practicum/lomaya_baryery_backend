@@ -62,7 +62,7 @@ class UserService:
         """Получить участника проекта по его telegram_id."""
         return await self.__user_repository.get_by_telegram_id(telegram_id)
 
-    async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> User:
+    async def get_user_by_id_with_shifts_detail(self, user_id: UUID):
         """Получить участника проекта с информацией о сменах по его id."""
         user = await self.__user_repository.get(user_id)
         list_user_shifts = await self.__user_repository.get_user_shifts_detail(user.id)
