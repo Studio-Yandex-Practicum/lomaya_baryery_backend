@@ -76,8 +76,8 @@ class AdministratorService:
         """Создать администратора.
 
         Аргументы:
-            role (Administrator.Role) - роль администратора (администратор, психолог)
-            status (Administrator.Status) - статус администратора (активен, заблокирован)
+            role (опционально, Administrator.Role) - роль администратора (администратор, психолог)
+            status (опционально, Administrator.Status) - статус администратора (активен, заблокирован)
         """
         if await self.__administrator_repository.get_by_email_or_none(new_administrator.email):
             raise AdministratorAlreadyExistException()
