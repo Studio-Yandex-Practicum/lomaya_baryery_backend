@@ -60,6 +60,9 @@ class AdministratorService:
     async def get_access_and_refresh_tokens(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Получить access и refresh токены."""
         administrator = await self.__authenticate_administrator(auth_data)
+        administrator.last_logined_at = dt.datetime.now()
+        await self.__administrator_repository.update(administrator.id, administrator)
+
         subject = administrator.__repr__()
         tokens = {
             "access_token": self.__create_jwt_token(subject, ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -81,8 +84,8 @@ class AdministratorService:
         """
         if await self.__administrator_repository.get_by_email_or_none(new_administrator.email):
             raise AdministratorAlreadyExistException()
-        new_administrator = new_administrator.dict()
-        password = new_administrator.pop("password")
+        password = new_administrator.password.get_secret_value()
+        new_administrator = new_administrator.dict(exclude={'password'})
         new_administrator["hashed_password"] = self.__get_hashed_password(password)
         new_administrator["role"] = role
         new_administrator["status"] = status
