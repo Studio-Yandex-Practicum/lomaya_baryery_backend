@@ -7,6 +7,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.api.response_models.request import RequestResponse
 from src.core.db.db import get_session
 from src.core.db.models import Request, User
 from src.core.db.repository import AbstractRepository
@@ -53,7 +54,7 @@ class RequestRepository(AbstractRepository):
         )
         return approved_requests.scalars().all()
 
-    async def get_requests_list(self, status: Optional[Request.Status]) -> list:
+    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestResponse]:
         statement = select(
             Request.user_id,
             User.name,
