@@ -2,6 +2,7 @@ from typing import Optional
 
 from src.core.db.db import get_session
 from src.core.db.repository import (
+    MemberRepository,
     ReportRepository,
     RequestRepository,
     ShiftRepository,
@@ -10,7 +11,6 @@ from src.core.db.repository import (
 )
 from src.core.services.report_service import ReportService
 from src.core.services.request_sevice import RequestService
-from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 
 
@@ -27,17 +27,14 @@ async def get_report_service_callback():
         request_repository = RequestRepository(session)
         shift_repository = ShiftRepository(session)
         task_repository = TaskRepository(session)
-        user_repository = UserRepository(session)
         report_repository = ReportRepository(session)
         request_service = RequestService(request_repository)
-        task_service = TaskService(task_repository)
+        member_repository = MemberRepository(session)
         report_service = ReportService(
             report_repository,
             task_repository,
             shift_repository,
-            task_service,
             request_service,
-            request_repository,
-            user_repository,
+            member_repository,
         )
     return report_service
