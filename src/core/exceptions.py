@@ -95,3 +95,17 @@ class GetStartedShiftException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = detail
+
+
+class InvalidCredentialsException(ApplicationException):
+    """Введены неверные данные для аутентификации."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Неверный email или пароль."
+
+
+class AdministratorAlreadyExistException(ApplicationException):
+    """Попытка регистрации пользователя с уже заргестрированным ранее email."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Пользователь с указанным email уже существует."
