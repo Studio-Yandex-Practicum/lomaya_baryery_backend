@@ -10,7 +10,6 @@ from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import NotFoundException
 
 
 class UserRepository(AbstractRepository):
@@ -19,21 +18,15 @@ class UserRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, User)
 
-    async def get_user_by_id(self, user_id: UUID) -> User:
-        """Получает объект пользователя по его id."""
-        user = await self._session.execute(select(User).where(User.id == user_id))
-        user = user.scalars().first()
-        if user is None:
-            raise NotFoundException(object_name=self._model.__name__, object_id=user_id)
-        return user
-
-    async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> list:
+    async def get_user_shifts_detail(self, user_id: UUID) -> list:
         """
-        Получает список смен, участником которых является пользователь.
+        Получить список смен, участником которых является пользователь.
 
-        К каждой смене добавлены результаты агрегирующих функций,
-        подсчитывающие количество задач пользователя в текущей смене
-        по статусу.
+        К каждой смене добавляются дополнительные поля:
+        numbers_lombaryers -- количество "ломбарьерчиков",
+        total_approved -- количество одобренных заданий,
+        total_declined -- количество отмененных заданий,
+        total_skipped -- количество пропущенных заданий.
         """
         stmt = (
             select(
