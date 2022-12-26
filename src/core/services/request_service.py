@@ -6,10 +6,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.api.response_models.request import (
-    RequestResponse,
-    RequestWithUserStatusResponse,
-)
+from src.api.response_models.request import RequestResponse
 from src.bot import services
 from src.core.db.models import Member, Request
 from src.core.db.repository import MemberRepository, RequestRepository
@@ -62,5 +59,5 @@ class RequestService:
         await self.__request_repository.update(request_id, request)
         return RequestResponse.parse_from(request)
 
-    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestWithUserStatusResponse]:
+    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestResponse]:
         return await self.__request_repository.get_requests_list(status)

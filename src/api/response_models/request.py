@@ -18,6 +18,7 @@ class RequestResponse(BaseModel):
     city: str
     phone_number: str
     request_status: enum.Enum
+    user_status: enum.Enum
 
     @classmethod
     def parse_from(cls, request_obj: Request) -> RequestResponse:
@@ -32,7 +33,3 @@ class RequestResponse(BaseModel):
             phone_number=request_obj.user.phone_number,
             request_status=request_obj.status,
         )
-
-
-class RequestWithUserStatusResponse(RequestResponse):
-    user_status: enum.Enum

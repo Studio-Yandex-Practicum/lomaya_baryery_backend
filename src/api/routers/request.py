@@ -6,10 +6,7 @@ from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.api.response_models.request import (
-    RequestResponse,
-    RequestWithUserStatusResponse,
-)
+from src.api.response_models.request import RequestResponse
 from src.core.db import models
 from src.core.services.request_service import RequestService
 
@@ -53,14 +50,12 @@ class RequestCBV:
 
     @router.get(
         "/",
-        response_model=list[RequestWithUserStatusResponse],
+        response_model=list[RequestResponse],
         status_code=HTTPStatus.OK,
         summary="Получить список заявок на участие.",
         response_description="Список заявок участников с фильтрацией по статусу заявки.",
     )
-    async def get_requests_list(
-        self, status: Optional[models.Request.Status] = None
-    ) -> list[RequestWithUserStatusResponse]:
+    async def get_requests_list(self, status: Optional[models.Request.Status] = None) -> list[RequestResponse]:
         """Получить список заявок с фильтрацией по статусу заявки.
 
         - **request_id**: id заявки
