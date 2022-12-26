@@ -2,7 +2,8 @@ import datetime as dt
 from typing import Optional
 
 from fastapi import Depends
-from jose import jwt
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from src.api.request_models.administrator import (
@@ -15,11 +16,13 @@ from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
     AdministratorAlreadyExistException,
     AdministratorBlockedException,
-    InvalidCredentialsException,
+    InvalidAuthenticationDataException,
+    UnauthorizedException,
 )
 from src.core.settings import settings
 
 PASSWORD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="/administrators/login", scheme_name="JWT")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 10
@@ -49,16 +52,20 @@ class AdministratorService:
         to_encode = {"sub": subject, "exp": expire}
         return jwt.encode(to_encode, settings.SECRET_KEY, ALGORITHM)
 
+    async def get_administrator_by_email(self, email: str) -> Administrator:
+        """Получить администратора по его email."""
+        return await self.__administrator_repository.get_by_email_or_none(email)
+
     async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
         """Аутентификация администратора по email и паролю."""
-        administrator = await self.__administrator_repository.get_by_email_or_none(auth_data.email)
+        administrator = await self.get_administrator_by_email(auth_data.email)
         if not administrator:
-            raise InvalidCredentialsException()
+            raise InvalidAuthenticationDataException()
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         password = auth_data.password.get_secret_value()
         if not self.__verify_hashed_password(password, administrator.hashed_password):
-            raise InvalidCredentialsException()
+            raise InvalidAuthenticationDataException()
         return administrator
 
     async def get_access_and_refresh_tokens(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
@@ -94,3 +101,21 @@ class AdministratorService:
         new_administrator["role"] = role
         new_administrator["status"] = status
         return await self.__administrator_repository.create(Administrator(**new_administrator))
+
+
+async def get_current_active_administrator(
+    token: str = Depends(OAUTH2_SCHEME), administrator_service: AdministratorService = Depends()
+) -> Administrator:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise UnauthorizedException()
+    except JWTError:
+        raise UnauthorizedException()
+    administrator = await administrator_service.get_administrator_by_email(email)
+    if not administrator:
+        raise UnauthorizedException()
+    if administrator.status == Administrator.Status.BLOCKED:
+        raise UnauthorizedException()
+    return administrator

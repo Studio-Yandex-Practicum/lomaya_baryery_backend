@@ -8,7 +8,11 @@ from src.api.request_models.administrator import (
     AdministratorCreateRequest,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
-from src.core.services.administrator_service import AdministratorService
+from src.core.db.models import Administrator
+from src.core.services.administrator_service import (
+    AdministratorService,
+    get_current_active_administrator,
+)
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
@@ -50,3 +54,15 @@ class AdministratorCBV:
         - **password**: пароль
         """
         return await self.administrator_service.get_access_and_refresh_tokens(auth_data)
+
+    @router.get(
+        "/me",
+        response_model=AdministratorResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Информация об администраторе",
+        response_description="Информация о теущем активном администраторе",
+    )
+    async def get_me(self, current_active_admin: Administrator = Depends(get_current_active_administrator)):
+        """Получить информацию о текущем  активном администраторе."""
+        return current_active_admin

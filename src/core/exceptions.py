@@ -97,7 +97,7 @@ class GetStartedShiftException(ApplicationException):
         self.detail = detail
 
 
-class InvalidCredentialsException(ApplicationException):
+class InvalidAuthenticationDataException(ApplicationException):
     """Введены неверные данные для аутентификации."""
 
     status_code = HTTPStatus.BAD_REQUEST
@@ -114,5 +114,12 @@ class AdministratorAlreadyExistException(ApplicationException):
 class AdministratorBlockedException(ApplicationException):
     """Попытка регистрации заблокированного пользователя."""
 
-    status_code = HTTPStatus.BAD_REQUEST
+    status_code = HTTPStatus.FORBIDDEN
     detail = "Пользователь заблокирован."
+
+
+class UnauthorizedException(ApplicationException):
+    """Пользователь не авторизован."""
+
+    status_code = HTTPStatus.UNAUTHORIZED
+    detail = "У Вас нет прав для просмотра запрошенной страницы."
