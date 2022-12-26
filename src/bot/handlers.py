@@ -75,7 +75,7 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(e)
     except RegistrationException as e:
-        await update.message.reply_text(e.detail)
+        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
