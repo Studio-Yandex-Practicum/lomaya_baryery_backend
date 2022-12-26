@@ -21,15 +21,15 @@ class RequestResponse(BaseModel):
     user_status: enum.Enum
 
     @classmethod
-    def parse_from(cls, request_obj: Request) -> RequestResponse:
+    def parse_from(cls, obj: Request) -> RequestResponse:
         """Парсит модель sqlalchemy Request, полученной с помощью метода get класса RequestRepository."""
         return cls(
-            request_id=request_obj.id,
-            user_id=request_obj.user.id,
-            name=request_obj.user.name,
-            surname=request_obj.user.surname,
-            date_of_birth=request_obj.user.date_of_birth,
-            city=request_obj.user.city,
-            phone_number=request_obj.user.phone_number,
-            request_status=request_obj.status,
+            request_id=obj.id,
+            user_id=obj.user.id,
+            name=obj.user.name,
+            surname=obj.user.surname,
+            date_of_birth=obj.user.date_of_birth,
+            city=obj.user.city,
+            phone_number=obj.user.phone_number,
+            request_status=obj.status,
         )
