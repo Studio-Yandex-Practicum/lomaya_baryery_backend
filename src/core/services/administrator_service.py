@@ -53,7 +53,8 @@ class AdministratorService:
         administrator = await self.__administrator_repository.get_by_email_or_none(auth_data.email)
         if not administrator:
             raise InvalidCredentialsException()
-        if not self.__verify_hashed_password(auth_data.password, administrator.hashed_password):
+        password = auth_data.password.get_secret_value()
+        if not self.__verify_hashed_password(password, administrator.hashed_password):
             raise InvalidCredentialsException()
         return administrator
 
