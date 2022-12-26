@@ -106,12 +106,7 @@ class ShiftRepository(AbstractRepository):
             raise GetStartedShiftException(detail='Активной смены не найдено.')
         return shift_id
 
-    async def get_shift_by_status(self, status: Shift.Status) -> Shift:
-        """Находит смену по статусу."""
-        shift = await self._session.execute(select(Shift).where(Shift.status == status))
-        return shift.scalars().first()
-
-    async def get_shift_id_for_registration(self) -> Shift | None:
+    async def get_open_for_registration_shift_id(self) -> UUID | None:
         can_be_added_to_active_shift = (
             Shift.started_at + timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN) >= date.today()
         )
@@ -121,8 +116,8 @@ class ShiftRepository(AbstractRepository):
                 Shift.status == Shift.Status.PREPARING,
             ),
         )
-        shift = await self._session.execute(statement)
-        shift = shift.scalars().first()
-        if not shift:
+        shift_id = await self._session.execute(statement)
+        shift_id = shift_id.scalars().first()
+        if not shift_id:
             raise NoShiftForRegistrationException
-        return shift
+        return shift_id

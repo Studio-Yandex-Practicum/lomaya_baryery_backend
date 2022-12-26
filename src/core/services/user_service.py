@@ -15,8 +15,6 @@ from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
     AlreadyRegisteredException,
     MinAgeException,
-    NoShiftForRegistrationException,
-    RegistrationTakesTimeException,
     UserAlreadyExistException,
 )
 from src.core.services.shift_service import ShiftService
@@ -56,37 +54,29 @@ class UserService:
         self.__request_repository = request_repository
         self.__shift_service = shift_service
 
-    async def user_registration(self, new_user_data: UserCreateRequest) -> None:
+    async def register_user(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        shift_id = await self.__shift_service.get_shift_id_for_registration()
-        if not shift_id:
-            raise NoShiftForRegistrationException
-        db_user = await self.__user_repository.get_by_telegram_id(new_user_data.telegram_id)
-        if db_user:
-            request = await self.__request_repository.get_by_user_and_shift(db_user.id, shift_id)
-            if request:
-                if request.status is Request.Status.PENDING:
-                    db_user = await self.update_or_create_user(new_user_data, db_user)
-                    raise RegistrationTakesTimeException
-                if request.status is Request.Status.APPROVED:
-                    raise AlreadyRegisteredException
-                if request.status is Request.Status.DECLINED:
-                    db_user = await self.update_or_create_user(new_user_data, db_user)
-                    request.status = Request.Status.PENDING
-                    await self.__request_repository.update(request.id, request)
-                    raise RegistrationTakesTimeException
-        db_user = await self.update_or_create_user(new_user_data, db_user)
-        request = Request(user_id=db_user.id, shift_id=shift_id, status=Request.Status.PENDING)
-        await self.__request_repository.create(request)
-        raise RegistrationTakesTimeException
+        shift_id = await self.__shift_service.get_open_for_registration_shift_id()
+        user = await self.update_or_create_user(new_user_data)
+        request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
+        if request:
+            if request.status is Request.Status.APPROVED:
+                raise AlreadyRegisteredException
+            if request.status is Request.Status.DECLINED:
+                request.status = Request.Status.PENDING
+                await self.__request_repository.update(request.id, request)
+        else:
+            request = Request(user_id=user.id, shift_id=shift_id, status=Request.Status.PENDING)
+            await self.__request_repository.create(request)
 
-    async def update_or_create_user(self, user_scheme: UserCreateRequest, db_user: Optional[User] = None) -> User:
+    async def update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Обновить юзера или создать."""
+        db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
         user = User(**user_scheme.dict())
-        user.status = User.Status.PENDING
         if db_user:
             validate_date_of_birth(user.date_of_birth)
             return await self.__user_repository.update(db_user.id, user)
+        user.status = User.Status.PENDING
         await validate_user_create(user_scheme, self.__user_repository)
         return await self.__user_repository.create(user)
 
