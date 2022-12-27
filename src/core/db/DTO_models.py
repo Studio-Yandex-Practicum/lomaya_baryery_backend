@@ -18,3 +18,11 @@ class FullReportDto:
     task_description: str
     task_url: str
     photo_url: str
+
+
+@dataclass
+class TasksReportDto:
+    description: str
+    approved: int
+    waiting: int
+    declined: int
