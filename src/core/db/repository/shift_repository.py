@@ -100,10 +100,7 @@ class ShiftRepository(AbstractRepository):
             raise GetStartedShiftException(detail='Активной смены не найдено.')
         return shift_id
 
-    async def get_shift_with_status(self, status: Shift.Status) -> Shift:
-        """Возвращает смену с заданным статусом.
-
-        Используется для смен со статусами preparing и started.
-        """
+    async def get_shift_with_status_or_none(self, status: Shift.Status) -> Optional[Shift]:
+        """Возвращает смену с заданным статусом."""
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()

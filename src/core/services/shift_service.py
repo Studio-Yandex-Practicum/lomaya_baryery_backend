@@ -69,36 +69,66 @@ class ShiftService:
         if preparing_started_at <= started_finished_at:
             raise ShiftsDatesIntersectionException()
 
+    def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
+        """Проверка, что смену нельзя изменить.
+
+        Нельзя изменять смены со статусами CANCELLED и FINISHED.
+        """
+        if status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
+            raise UpdateShiftForbiddenException(detail="Запрещено изменять завершенную или отмененную смену")
+
+    def __check_shift_started_date_change(self, started_at: date, update_started_at: date) -> None:
+        """Проверка, что дата начала изменилась."""
+        if started_at != update_started_at:
+            raise UpdateShiftForbiddenException(detail="Нельзя изменить дату начала текущей смены")
+
+    async def __check_preparing_shift_already_exists(self) -> None:
+        """Проверка, что новая смена уже существует.
+
+        Если новая смена уже существует, то создание ещё одной запрещено.
+        """
+        if await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.PREPARING):
+            raise CreateShiftForbiddenException()
+
+    async def __check_preparing_shift_dates(self, started_at: date, finished_at: date) -> None:
+        """Проверка дат новой смены.
+
+        - Если существует текущая смена, то сравниваются даты окончания текущей смены
+        и начала новой смены. Иначе дата начала сравнивается с сегодняшним днем.
+        - Сравниваются даты начала и окончания новой смены между собой.
+        """
+        started_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
+        if started_shift:
+            self.__check_shifts_dates_intersection(started_at, started_shift.finished_at)
+        else:
+            self.__check_date_not_today_or_in_past(started_at)
+        self.__check_started_and_finished_dates(started_at, finished_at)
+
+    async def __check_started_shift_dates(self, finished_at: date) -> None:
+        """Проверка дат текущей смены.
+
+        - Если существует новая смена, то сравниваются даты окончания текущей смены
+        и начала новой смены.
+        - Проверяется, что дата окончания не указана сегодняшним или вчерашним числом.
+        """
+        preparing_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.PREPARING)
+        if preparing_shift:
+            self.__check_shifts_dates_intersection(preparing_shift.started_at, finished_at)
+        self.__check_date_not_today_or_in_past(finished_at)
+
     async def __validate_shift_on_create(self, shift: Shift) -> None:
         """Валидация смены при создании."""
-        if await self.__shift_repository.get_shift_with_status(Shift.Status.PREPARING):
-            raise CreateShiftForbiddenException()
-        started_shift = await self.__shift_repository.get_shift_with_status(Shift.Status.STARTED)
-        if started_shift:
-            self.__check_shifts_dates_intersection(shift.started_at, started_shift.finished_at)
-        self.__check_started_and_finished_dates(shift.started_at, shift.finished_at)
-        self.__check_date_not_today_or_in_past(shift.started_at)
-        self.__check_date_not_today_or_in_past(shift.finished_at)
+        await self.__check_preparing_shift_already_exists()
+        await self.__check_preparing_shift_dates(shift.started_at, shift.finished_at)
 
     async def __validate_shift_on_update(self, shift: Shift, update_shift_data: ShiftUpdateRequest) -> None:
         """Валидация смены при обновлении."""
-        if shift.status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
-            raise UpdateShiftForbiddenException(detail="Нельзя изменить завершенную или отмененную смену")
+        self.__check_update_shift_forbidden(shift.status)
         if shift.status == Shift.Status.STARTED:
-            if shift.started_at != update_shift_data.started_at:
-                raise UpdateShiftForbiddenException(detail="Нельзя изменить дату начала текущей смены")
-            preparing_shift = await self.__shift_repository.get_shift_with_status(Shift.Status.PREPARING)
-            if preparing_shift:
-                self.__check_shifts_dates_intersection(preparing_shift.started_at, update_shift_data.finished_at)
-            self.__check_started_and_finished_dates(update_shift_data.started_at, update_shift_data.finished_at)
-            self.__check_date_not_today_or_in_past(update_shift_data.finished_at)
+            self.__check_shift_started_date_change(shift.started_at, update_shift_data.started_at)
+            await self.__check_started_shift_dates(update_shift_data.finished_at)
         if shift.status == Shift.Status.PREPARING:
-            started_shift = await self.__shift_repository.get_shift_with_status(Shift.Status.STARTED)
-            if started_shift:
-                self.__check_shifts_dates_intersection(update_shift_data.started_at, started_shift.finished_at)
-            self.__check_started_and_finished_dates(update_shift_data.started_at, update_shift_data.finished_at)
-            self.__check_date_not_today_or_in_past(update_shift_data.started_at)
-            self.__check_date_not_today_or_in_past(update_shift_data.finished_at)
+            await self.__check_preparing_shift_dates(update_shift_data.started_at, update_shift_data.finished_at)
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())

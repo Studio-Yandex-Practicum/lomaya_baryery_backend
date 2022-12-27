@@ -82,7 +82,7 @@ class ReportWaitingPhotoException(ApplicationException):
 class CreateShiftForbiddenException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Нельзя создать больше одной новой смены"
+        self.detail = "Запрещено создавать более одной новой смены"
 
 
 class ShiftUpdateException(ApplicationException):
