@@ -116,6 +116,7 @@ class ReportService:
                 task_date=current_date,
                 member_id=member.id,
                 is_repeated=False,
+                report_url='',
             )
             for member in members
         ]
