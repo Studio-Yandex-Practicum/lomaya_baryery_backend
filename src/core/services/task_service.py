@@ -35,7 +35,12 @@ class TaskService:
             raise ReportsNotFoundException()
         output = io.StringIO()
         writer = csv.writer(output, dialect='excel')
-        header = ("Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во непредоставленных отчётов")
+        header = (
+            "Задача",
+            "Кол-во принятых отчётов",
+            "Кол-во отклонённых отчётов",
+            "Кол-во не предоставленных отчётов",
+        )
         writer.writerow(header)
         for task in tasks_report:
             writer.writerow((task.description, task.approved, task.declined, task.waiting))
