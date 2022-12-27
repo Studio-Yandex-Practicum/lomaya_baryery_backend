@@ -1,15 +1,15 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Task
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
-from src.core.utils import get_current_task_date
 
 
 class MemberRepository(AbstractRepository):
@@ -25,13 +25,17 @@ class MemberRepository(AbstractRepository):
         return member.scalars().first()
 
     async def get_with_user(self, id: UUID) -> Member:
-        member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
+        member = await self._session.execute(
+            select(Member).where(Member.id == id).options(selectinload(Member.user))
+        )
         member = member.scalars().first()
         if not member:
             raise NotFoundException(object_name=Member.__name__, object_id=id)
         return member
 
-    async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
+    async def get_members_for_excluding(
+        self, shift_id: UUID, task_amount: int
+    ) -> list[Member]:
         members = self._session.scalars(
             select(Member)
             .where(
@@ -46,15 +50,18 @@ class MemberRepository(AbstractRepository):
         )
         return members.all()
 
-    async def get_members_for_reminding(self, shift_id: UUID, task: Task) -> list[Member]:
-        current_task_date = get_current_task_date()
+    async def get_members_for_reminding(
+        self, shift_id: UUID, current_task_date: datetime
+    ) -> list[Member]:
         members = await self._session.scalars(
             select(Member)
+            .options(joinedload(Member.user))
+            .join(Report)
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
                 Report.status == Report.Status.WAITING,
-                Report.task_date == current_task_date
+                Report.task_date == current_task_date,
             )
         )
         return members.all()

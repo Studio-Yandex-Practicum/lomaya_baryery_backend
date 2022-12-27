@@ -17,13 +17,12 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
     session_generator = get_session()
     member_service = await get_member_service_callback(session_generator)
-    current_day_of_month = date.today().day
-    members = await member_service.get_members_with_no_reports(current_day_of_month)
+    members = await member_service.get_members_with_no_reports()
     send_message_tasks = [
         await context.bot.send_message(
-            chat_id=member.user.telegram_id,
+            chat_id=member.telegram_id,
             text=(
-                f"f'{member.user.name} {member.user.surname}, мы потеряли тебя!"
+                f"f'{member.name} {member.surname}, мы потеряли тебя!"
                 f"Задание все еще ждет тебя."
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"

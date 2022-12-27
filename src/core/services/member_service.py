@@ -4,9 +4,9 @@ from telegram.ext import Application
 from src.bot import services
 from src.core.db.models import Member
 from src.core.db.repository import MemberRepository, ShiftRepository
-from src.core.services.task_service import TaskService
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
+from src.core.utils import get_current_task_date
 
 
 class MemberService:
@@ -14,7 +14,7 @@ class MemberService:
         self,
         member_repository: MemberRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
-        shift_service: ShiftService = Depends()
+        shift_service: ShiftService = Depends(),
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
@@ -41,5 +41,8 @@ class MemberService:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
         shift_id = await self.__shift_repository.get_started_shift_id()
         shift = await self.__shift_service.get_shift(shift_id)
-        members = await self.__member_repository.get_members_for_reminding(shift)
+        current_task_date = get_current_task_date()
+        members = await self.__member_repository.get_members_for_reminding(
+            shift, current_task_date
+        )
         return members

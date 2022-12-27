@@ -13,7 +13,6 @@ from src.core.services.report_service import ReportService
 from src.core.services.request_service import RequestService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
-from src.core.services.shift_service import ShiftService
 
 
 async def get_registration_service_callback(sessions) -> Optional[UserService]:
