@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import enum
 from datetime import date
 from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.core.db.models import Request
+from src.core.db.models import Request, User
 
 
 class RequestResponse(BaseModel):
@@ -17,8 +16,8 @@ class RequestResponse(BaseModel):
     date_of_birth: date
     city: str
     phone_number: str
-    request_status: enum.Enum
-    user_status: enum.Enum
+    request_status: Request.Status
+    user_status: User.Status
 
     @classmethod
     def parse_from(cls, obj: Request) -> RequestResponse:
