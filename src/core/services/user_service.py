@@ -12,7 +12,7 @@ from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
-from src.core.exceptions import AlreadyRegisteredException
+from src.core.exceptions import AlreadyRegisteredException, RequestForbiddenException
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
@@ -53,30 +53,37 @@ class UserService:
     async def register_user(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
         shift_id = await self.__shift_service.get_open_for_registration_shift_id()
-        user = await self.update_or_create_user(new_user_data)
+        user = await self.__update_or_create_user(new_user_data)
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
         if request:
-            if request.status is Request.Status.APPROVED:
-                raise AlreadyRegisteredException
-            if request.status is Request.Status.DECLINED:
-                request.status = Request.Status.PENDING
-                await self.__request_repository.update(request.id, request)
+            await self.__update_request_data(request)
         else:
-            request = Request(user_id=user.id, shift_id=shift_id, status=Request.Status.PENDING)
+            request = Request(user_id=user.id, shift_id=shift_id)
             await self.__request_repository.create(request)
 
-    async def update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
-        """Обновить или создать пользователя."""
+    async def __update_request_data(self, request: Request) -> None:
+        """Обработка повторного запроса пользователя на участие в смене."""
+        if request.status is Request.Status.APPROVED:
+            raise AlreadyRegisteredException
+        if request.status is Request.Status.DECLINED:
+            if request.is_repeated < settings.MAX_REQUESTS:
+                request.is_repeated += 1
+                request.status = Request.Status.PENDING
+                await self.__request_repository.update(request.id, request)
+            else:
+                raise RequestForbiddenException
+
+    async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
+        """Получение пользователя: обновление или создание."""
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
         user = User(**user_scheme.dict())
         await validate_user_create(user_scheme, self.__user_repository)
-        user.status = User.Status.PENDING
         return await self.__user_repository.create(user)
 
     async def __update_user_if_data_changed(self, user: User, income_data: UserCreateRequest) -> User:
-        """Обновить данные пользователя или вернуть сохраненные, если не было изменений."""
+        """Обновление данных пользователя, если им внесены изменения."""
         if (
             user.telegram_id == income_data.telegram_id
             and user.name == income_data.name

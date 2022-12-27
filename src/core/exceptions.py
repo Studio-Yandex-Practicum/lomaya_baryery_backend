@@ -126,13 +126,17 @@ class AlreadyRegisteredException(RegistrationException):
         )
 
 
-class RquestAcceptedException(ApplicationException):
-    def __init__(self):
+class RequestAlreadyReviewedException(ApplicationException):
+    def __init__(self, status: UUID):
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.detail = "Запрос уже был одобрен."
+        self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
-class RquestDeclinedException(ApplicationException):
+class RequestForbiddenException(RegistrationException):
     def __init__(self):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.detail = "Запрос уже был отклонен."
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = (
+            "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
+            "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
+            "в нашу группу ВКонтакте https://vk.com/socialrb02"
+        )

@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     SEND_NO_REPORT_REMINDER_HOUR: int = 20  # время для напоминания о невыполненном задании
     MIN_AGE: int = 3  # минимальный возраст участника
     DAYS_FROM_START_OF_SHIFT_TO_JOIN: int = 2  # сколько дней от начала смены возможна регистрация
+    MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
 
