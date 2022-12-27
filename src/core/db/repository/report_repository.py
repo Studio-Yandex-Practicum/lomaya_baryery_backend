@@ -1,12 +1,11 @@
-from datetime import date
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, case, desc, func, select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.api.response_models.task import LongTaskResponse
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
@@ -28,39 +27,12 @@ class ReportRepository(AbstractRepository):
     async def get_report_with_report_url(
         self,
         id: UUID,
-    ) -> dict:
+    ) -> Report:
         """Получить отчет участника по id с url фото выполненного задания."""
         report = await self._session.execute(
-            select(
-                Report.user_id,
-                Report.id,
-                Report.task_id,
-                Report.task_date,
-                Report.status,
-                Report.report_url.label("photo_url"),
-            ).where(Report.id == id)
+            select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
         )
-        report = report.all()
-        return dict(*report)
-
-    async def get_all_ids(
-        self,
-        shift_id: UUID,
-        task_date: date,
-    ) -> list[tuple[int]]:
-        """Получить список кортежей с id всех Report, id всех юзеров и id задач этих юзеров."""
-        reports_info = await self._session.execute(
-            select(Report.id, Report.user_id, Report.task_id)
-            .where(
-                and_(
-                    Report.shift_id == shift_id,
-                    Report.task_date == task_date,
-                    Report.status == Report.Status.REVIEWING,
-                )
-            )
-            .order_by(Report.id)
-        )
-        return reports_info.all()
+        return report.scalars().first()
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
@@ -68,26 +40,6 @@ class ReportRepository(AbstractRepository):
             select(Report.task_id).select_from(Report).where(Report.status == Report.Status.REVIEWING)
         )
         return all_tasks_id_under_review.all()
-
-    async def get_tasks_by_report_ids(self, report_ids: list[UUID]) -> list[LongTaskResponse]:
-        """Получить список заданий с подробностями на каждого участника по report_id."""
-        tasks = await self._session.execute(
-            select(
-                Task.id.label("task_id"),
-                Task.url.label("task_url"),
-                Task.description.label("task_description"),
-                User.telegram_id.label("user_telegram_id"),
-            )
-            .where(Report.id.in_(report_ids))
-            .join(Report.task)
-            .join(Report.user)
-        )
-        tasks = tasks.all()
-        task_infos = []
-        for task in tasks:
-            task_info = LongTaskResponse(**task)
-            task_infos.append(task_info)
-        return task_infos
 
     async def create_all(self, reports_list: list[Report]) -> Report:
         self._session.add_all(reports_list)
@@ -113,40 +65,9 @@ class ReportRepository(AbstractRepository):
             stmt = stmt.where(Report.shift_id == shift_id)
         if status:
             stmt = stmt.where(Report.status == status)
-        stmt = stmt.join(Shift).join(User).join(Task).order_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(Member).join(User).join(Task).order_by(desc(Shift.started_at))
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
-
-    async def get_members_ids_for_excluding(self, shift_id: UUID, task_amount: int) -> list[UUID]:
-        """Возвращает список id участников, кто не отправлял отчеты на задания указанное количество раз.
-
-        Аргументы:
-            shift_id (UUID): id стартовавшей смены
-            task_amount (int): количество пропущенных заданий подряд, при котором участник считается неактивным.
-        """
-        subquery_rank = (
-            select(
-                func.rank().over(order_by=Report.task_date.desc(), partition_by=Report.user_id).label('rnk'),
-                Report.user_id,
-                Report.status,
-            )
-            .where(
-                and_(
-                    Report.shift_id == shift_id,
-                )
-            )
-            .subquery()
-        )
-        subquery_last_statuses = select(subquery_rank).where(subquery_rank.c.rnk <= task_amount).subquery()
-        case_statement = case(
-            (subquery_last_statuses.c.status == Report.Status.WAITING, 1),
-        )
-        statement = (
-            select(subquery_last_statuses.c.user_id)
-            .having(func.count(case_statement) >= task_amount)
-            .group_by(subquery_last_statuses.c.user_id)
-        )
-        return (await self._session.scalars(statement)).all()
 
     async def get_current_report(self, user_id: UUID) -> Report:
         """Получить текущий отчет по id пользователя."""

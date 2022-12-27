@@ -1,4 +1,4 @@
-name: Check Migrations
+name: Check APP
 
 on:
   pull_request:
@@ -7,8 +7,8 @@ on:
       - master
 
 jobs:
- migrations:
-    name: Check Migrations
+  healthcheck:
+    name: Check workable app
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -31,15 +31,31 @@ jobs:
       name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: "3.10"
+        python-version: 3.9
+    - 
+      name: Install and configure Poetry
+      uses: snok/install-poetry@v1
     -
       name: Install Dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        poetry config virtualenvs.in-project true
+        poetry install
+    - 
+      name: Create env file
+      run: ren .env.example .env
+    -
+      name: Run bd
+      run: docker-compose -f docker-compose.local.yaml up
     -
       name: Alembic Upgrade
       run: alembic upgrade heads
     -
-      name: Check Migrations
-      run: alembic-autogen-check --config ./alembic.ini
+      name: Run Local project
+      run: python run.py
+    - 
+      name: Get the status of healthcheck
+      uses: im-open/url-status-check@v1.1.0
+      with:
+        url: 'http://localhost:8080/healthcheck'
+        fail-on-bad-status: true
+      

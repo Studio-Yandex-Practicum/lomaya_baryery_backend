@@ -98,6 +98,13 @@ class Task(Base):
 class User(Base):
     """Модель для пользователей."""
 
+    class Status(str, enum.Enum):
+        """Статус пользователя."""
+
+        VERIFIED = "verified"
+        DECLINED = "declined"
+        PENDING = "pending"
+
     __tablename__ = "users"
 
     name = Column(String(100), nullable=False)
@@ -106,6 +113,9 @@ class User(Base):
     city = Column(String(50), nullable=False)
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
+    status = Column(
+        Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
     requests = relationship("Request", back_populates="user")
     members = relationship("Member", back_populates="user")
 
@@ -122,8 +132,6 @@ class Request(Base):
         APPROVED = "approved"
         DECLINED = "declined"
         PENDING = "pending"
-        REPEATED_REQUEST = "repeated request"
-        EXCLUDED = "excluded"
 
     __tablename__ = "requests"
 
@@ -206,6 +214,8 @@ class Report(Base):
             Report.Status.DECLINED.value,
         ):
             raise CannotAcceptReportError()
+        if self.status == Report.Status.DECLINED.value:
+            self.is_repeated = True
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()

@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.core.db.models import User
+
 
 class UserResponse(BaseModel):
     """Схема для отображения информации о пользователе."""
@@ -23,3 +25,7 @@ class UserInfoResponse(BaseModel):
 
     name: str
     surname: str
+
+
+class UserWithStatusResponse(UserResponse):
+    status: User.Status

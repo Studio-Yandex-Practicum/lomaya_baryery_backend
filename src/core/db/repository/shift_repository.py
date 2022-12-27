@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,7 +11,7 @@ from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
 from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import GetStartedShiftException, NotFoundException
 
 
 class ShiftRepository(AbstractRepository):
@@ -92,7 +92,10 @@ class ShiftRepository(AbstractRepository):
         shifts = await self._session.execute(shifts)
         return shifts.all()
 
-    async def get_started_shift_id(self) -> list[UUID]:
+    async def get_started_shift_id(self) -> UUID:
         """Возвращает id активной на данный момент смены."""
-        statement = select(Shift.id).where(and_(Shift.status == Shift.Status.STARTED))
-        return (await self._session.scalars(statement)).first()
+        shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED))
+        shift_id = shift_id.first()
+        if not shift_id:
+            raise GetStartedShiftException(detail='Активной смены не найдено.')
+        return shift_id

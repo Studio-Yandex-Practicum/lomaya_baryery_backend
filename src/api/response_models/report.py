@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 from datetime import date
 
 from pydantic import BaseModel
 from pydantic.schema import UUID
 
-from src.api.response_models.shift import ShiftResponse
 from src.api.response_models.task import TaskInfoResponse
 from src.api.response_models.user import UserInfoResponse
 from src.core.db.models import Report, Shift
@@ -13,13 +14,6 @@ class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
     """Модель для ответа с обобщенной информацией о задании и юзере."""
 
     id: UUID
-
-
-class ReportsAndShiftResponse(BaseModel):
-    """Общая модель смены и заданий для ответа."""
-
-    shift: ShiftResponse
-    tasks: list[UserAndTaskInfoResponse]
 
 
 class ReportResponse(BaseModel):
@@ -34,6 +28,18 @@ class ReportResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @classmethod
+    def parse_from(cls, obj: Report) -> ReportResponse:
+        """Конвертация данных из модели Report."""
+        return cls(
+            user_id=obj.member.user_id,
+            id=obj.id,
+            task_id=obj.task_id,
+            task_date=obj.task_date,
+            status=obj.status,
+            photo_url=obj.report_url,
+        )
 
 
 class ReportSummaryResponse(BaseModel):

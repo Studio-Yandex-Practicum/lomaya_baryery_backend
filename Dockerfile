@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.10-slim-buster
 
 RUN python -m pip install --upgrade pip
 RUN apt-get update

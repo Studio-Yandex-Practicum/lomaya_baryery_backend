@@ -26,6 +26,12 @@ class CurrentTaskNotFoundError(Exception):
     pass
 
 
+class TodayTaskNotFoundError(Exception):
+    """Не найдено ежедневной задачи на текущий день."""
+
+    pass
+
+
 class CannotAcceptReportError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
@@ -82,4 +88,10 @@ class ShiftUpdateException(ApplicationException):
 class UpdateShiftForbiddenException(ShiftUpdateException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = detail
+
+
+class GetStartedShiftException(ApplicationException):
+    def __init__(self, detail: str):
+        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = detail
