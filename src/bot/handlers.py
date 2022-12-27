@@ -62,8 +62,8 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Получение данных из формы регистрации. Создание объекта User и Request."""
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
-        user_data["telegram_id"] = update.effective_user.id
         user_scheme = UserCreateRequest(**user_data)
+        user_scheme.telegram_id = update.effective_user.id
         session = get_session()
         registration_service = await get_user_service_callback(session)
         await registration_service.register_user(user_scheme)
@@ -71,9 +71,10 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             text="Процесс регистрации занимает некоторое время - вам придет уведомление",
             reply_markup=ReplyKeyboardRemove(),
         )
-    except ValidationError as e:
-        e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
-        await update.message.reply_text(e)
+    except (ValidationError, ValueError) as e:
+        if isinstance(e, ValidationError):
+            e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
+        await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
     except RegistrationException as e:
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 

@@ -29,8 +29,15 @@ class RequestService:
         self.__telegram_bot = services.BotService
 
     async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:
-        """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
+        """Одобрение заявки: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
+        request.status = Request.Status.APPROVED
+        await self.__request_repository.update(request_id, request)
+        user = self.__user_repository.get(request.user_id)
+        user.status = User.Status.VERIFIED
+        await self.__user_repository.update(user.id, user)
+        member = Member(user_id=request.user_id, shift_id=request.shift_id)
+        await self.__member_repository.create(member)
         if request.status is Request.Status.APPROVED:
             raise RquestAcceptedException
         try:
@@ -39,20 +46,18 @@ class RequestService:
             raise SendTelegramNotifyException(
                 request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
             )
-        request.status = Request.Status.APPROVED
-        await self.__request_repository.update(request_id, request)
-        user = self.__user_repository.get(request.user_id)
-        user.status = User.Status.VERIFIED
-        await self.__user_repository.update(user.id, user)
-        member = Member(user_id=request.user_id, shift_id=request.shift_id)
-        await self.__member_repository.create(member)
         return RequestResponse.parse_from(request)
 
     async def decline_request(
         self, request_id: UUID, bot: Application, decline_request_data: Optional[RequestDeclineRequest]
     ) -> RequestResponse:
-        """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
+        """Отклонение заявки: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
+        request.status = Request.Status.DECLINED
+        await self.__request_repository.update(request_id, request)
+        user = self.__user_repository.get(request.user_id)
+        user.status = User.Status.DECLINED
+        await self.__user_repository.update(user.id, user)
         if request.status is Request.Status.DECLINED:
             raise RquestDeclinedException
         try:
@@ -61,9 +66,4 @@ class RequestService:
             raise SendTelegramNotifyException(
                 request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
             )
-        request.status = Request.Status.DECLINED
-        await self.__request_repository.update(request_id, request)
-        user = self.__user_repository.get(request.user_id)
-        user.status = User.Status.DECLINED
-        await self.__user_repository.update(user.id, user)
         return RequestResponse.parse_from(request)

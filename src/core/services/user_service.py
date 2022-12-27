@@ -12,11 +12,7 @@ from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
-from src.core.exceptions import (
-    AlreadyRegisteredException,
-    MinAgeException,
-    UserAlreadyExistException,
-)
+from src.core.exceptions import AlreadyRegisteredException
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
@@ -25,7 +21,7 @@ def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
     current_date = date.today()
     if current_date.year - value.year < settings.MIN_AGE:
-        raise MinAgeException
+        raise ValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
 
 
 async def validate_user_not_exists(
@@ -34,7 +30,7 @@ async def validate_user_not_exists(
     """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
     user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
     if user_exists:
-        raise UserAlreadyExistException
+        raise ValueError('Пользователь с таким номером телефона уже существует.')
 
 
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
@@ -70,15 +66,31 @@ class UserService:
             await self.__request_repository.create(request)
 
     async def update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
-        """Обновить юзера или создать."""
+        """Обновить или создать пользователя."""
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
-        user = User(**user_scheme.dict())
         if db_user:
-            validate_date_of_birth(user.date_of_birth)
-            return await self.__user_repository.update(db_user.id, user)
-        user.status = User.Status.PENDING
+            return await self.__update_user_if_data_changed(db_user, user_scheme)
+        user = User(**user_scheme.dict())
         await validate_user_create(user_scheme, self.__user_repository)
+        user.status = User.Status.PENDING
         return await self.__user_repository.create(user)
+
+    async def __update_user_if_data_changed(self, user: User, income_data: UserCreateRequest) -> User:
+        """Обновить данные пользователя или вернуть сохраненные, если не было изменений."""
+        if (
+            user.telegram_id == income_data.telegram_id
+            and user.name == income_data.name
+            and user.surname == income_data.surname
+            and user.date_of_birth == income_data.date_of_birth
+            and user.city == income_data.city
+            and user.phone_number == income_data.phone_number
+        ):
+            return user
+        validate_date_of_birth(income_data.date_of_birth)
+        user.status = User.Status.PENDING
+        for field, value in vars(income_data).items():
+            setattr(user, field, value)
+        return await self.__user_repository.update(user.id, user)
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""

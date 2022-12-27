@@ -4,8 +4,6 @@ from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
-from src.core.settings import settings
-
 
 class ApplicationException(HTTPException):
     status_code: int = None
@@ -108,18 +106,6 @@ class RegistrationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
-class UserAlreadyExistException(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Пользователь с таким номером телефона уже существует"
-
-
-class MinAgeException(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Возраст не может быть менее {settings.MIN_AGE} лет"
-
-
 class NoShiftForRegistrationException(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
@@ -138,12 +124,6 @@ class AlreadyRegisteredException(RegistrationException):
             "в день старта смены. Актуальную дату начала смены вы можете "
             "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
         )
-
-
-class RegistrationTakesTimeException(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.OK
-        self.detail = "Процесс регистрации занимает некоторое время - вам придет уведомление"
 
 
 class RquestAcceptedException(ApplicationException):
