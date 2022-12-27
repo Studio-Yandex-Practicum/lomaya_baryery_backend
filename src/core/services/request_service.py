@@ -28,7 +28,7 @@ class RequestService:
     async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:
         """Заявка одобрена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
-        self.__check_request_status(request.status)
+        self.__exception_if_request_is_processed(request.status)
         try:
             await self.__telegram_bot(bot).notify_approved_request(request.user)
         except Exception as exc:
@@ -46,7 +46,7 @@ class RequestService:
     ) -> RequestResponse:
         """Заявка отклонена: обновление статуса, уведомление участника в телеграм."""
         request = await self.__request_repository.get(request_id)
-        self.__check_request_status(request.status)
+        self.__exception_if_request_is_processed(request.status)
         try:
             await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
         except Exception as exc:
@@ -58,8 +58,10 @@ class RequestService:
         return RequestResponse.parse_from(request)
 
     async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestResponse]:
+        """Список заявок на участие."""
         return await self.__request_repository.get_requests_list(status)
 
-    def __check_request_status(self, status: Request.Status) -> None:
+    def __exception_if_request_is_processed(self, status: Request.Status) -> None:
+        """Если заявка была обработана ранее, выбрасываем исключение."""
         if status not in (Request.Status.PENDING,):
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=REVIEWED_REQUEST.format(status))
