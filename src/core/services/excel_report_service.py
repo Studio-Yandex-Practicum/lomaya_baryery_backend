@@ -18,8 +18,7 @@ class ExcelReportService:
     передавайте в него sheet_name и используйте совместно с нужным методом. Например, метод
     create_tasks_statistics_report используется для получения статистики по задачам.
 
-    Для генерации полного отчёта используйте get_report_template() без передачи sheet_name
-    совместно с методом generate_full_report().
+    Для генерации полного отчёта используйте метод generate_full_report().
 
     Возможные варианты sheet_name указаны в классе Sheets.
     При добавлении новых sheet_name они должны соответстовать названиям листов в шаблоне.
@@ -37,7 +36,6 @@ class ExcelReportService:
         workbook.template = False
         if sheet_name:
             sheetnames = workbook.sheetnames
-            print(sheetnames)
             for name in sheetnames:
                 if name != sheet_name:
                     workbook.remove(workbook[name])
