@@ -18,3 +18,15 @@ class FullReportDto:
     task_description: str
     task_url: str
     photo_url: str
+
+
+@dataclass
+class ShiftByUserWithReportSummaryDto:
+    id: UUID
+    title: str
+    started_at: date
+    finished_at: date
+    numbers_lombaryers: int
+    total_approved: int
+    total_declined: int
+    total_skipped: int
