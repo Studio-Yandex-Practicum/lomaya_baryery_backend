@@ -122,6 +122,11 @@ class Settings(BaseSettings):
         dt = time(hour=8)
         return dt.strftime('%H')
 
+    @property
+    def report_template_path(self) -> str:
+        """Путь до excel шаблона для формирования отчёта."""
+        return BASE_DIR / "src" / "static" / "report_template.xltx"
+
     class Config:
         env_file = ENV_FILE
 
