@@ -7,7 +7,7 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
-from src.core.db import models
+from src.core.db import DTO_models, models
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
@@ -55,7 +55,7 @@ class RequestCBV:
         summary="Получить список заявок на участие.",
         response_description="Список заявок участников с фильтрацией по статусу заявки.",
     )
-    async def get_requests_list(self, status: Optional[models.Request.Status] = None) -> list[RequestResponse]:
+    async def get_requests_list(self, status: Optional[models.Request.Status] = None) -> list[DTO_models.RequestDTO]:
         """Получить список заявок с фильтрацией по статусу заявки.
 
         - **request_id**: id заявки

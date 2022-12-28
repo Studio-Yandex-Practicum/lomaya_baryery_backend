@@ -7,8 +7,8 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.api.response_models.request import RequestResponse
 from src.core.db.db import get_session
+from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Request, User
 from src.core.db.repository import AbstractRepository
 
@@ -54,7 +54,7 @@ class RequestRepository(AbstractRepository):
         )
         return approved_requests.scalars().all()
 
-    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestResponse]:
+    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:
         statement = select(
             Request.user_id,
             User.name,
@@ -69,5 +69,5 @@ class RequestRepository(AbstractRepository):
             or_(status is None, Request.status == status),
             Request.user_id == User.id,
         )
-        request = await self._session.execute(statement)
-        return request.all()
+        requests = await self._session.execute(statement)
+        return [RequestDTO(**request) for request in requests.all()]
