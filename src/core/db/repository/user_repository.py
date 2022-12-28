@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
+from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Shift, User
 from src.core.db.repository import AbstractRepository
 
@@ -18,7 +19,7 @@ class UserRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, User)
 
-    async def get_user_shifts_detail(self, user_id: UUID) -> list:
+    async def get_user_shifts_detail(self, user_id: UUID) -> list[ShiftByUserWithReportSummaryDto]:
         """
         Получить список смен, участником которых является пользователь.
 
@@ -46,7 +47,7 @@ class UserRepository(AbstractRepository):
             .where(User.id == user_id)
         )
         list_user_shifts = await self._session.execute(stmt)
-        return list_user_shifts.all()
+        return [ShiftByUserWithReportSummaryDto(*shift) for shift in list_user_shifts if shift.id is not None]
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
         user = await self._session.execute(select(User).where(User.telegram_id == telegram_id))
