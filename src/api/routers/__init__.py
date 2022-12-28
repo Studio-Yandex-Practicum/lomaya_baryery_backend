@@ -1,3 +1,4 @@
+from src.api.routers.excel_report import router as excel_router  # noqa
 from src.api.routers.healthcheck import router as healthcheck_router  # noqa
 from src.api.routers.hello import (  # noqa
     TELEGRAM_WEBHOOK_ENDPOINT,

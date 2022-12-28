@@ -44,12 +44,6 @@ class DuplicateReportError(Exception):
     pass
 
 
-class ReportsNotFoundException(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.NOT_FOUND
-        self.detail = "Отчёты не найдены."
-
-
 class ShiftStartForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST

@@ -17,7 +17,7 @@ class TaskCBV:
         "/report",
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
-        summary="Формирования отчёта по задачам.",
+        summary="Задачи",
     )
     async def get_task_excel_report_request(
         self,
@@ -28,4 +28,4 @@ class TaskCBV:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        return await self.task_service.get_task_excel_report()
+        return await self.task_service.get_tasks_statistics_report()

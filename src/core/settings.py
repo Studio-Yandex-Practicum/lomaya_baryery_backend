@@ -54,6 +54,11 @@ class Settings(BaseSettings):
         """Получить ссылку для на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"
 
+    @property
+    def report_template_path(self) -> str:
+        """Путь до excel шаблона для формирования отчёта."""
+        return BASE_DIR / "src" / "static" / "report_template.xltx"
+
     class Config:
         env_file = ENV_FILE
 
