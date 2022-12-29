@@ -79,6 +79,12 @@ class ReportWaitingPhotoException(ApplicationException):
         self.detail = "К заданию нет отчета участника."
 
 
+class CreateShiftForbiddenException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Запрещено создавать более одной новой смены"
+
+
 class ShiftUpdateException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.BAD_REQUEST
@@ -89,6 +95,12 @@ class UpdateShiftForbiddenException(ShiftUpdateException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = detail
+
+
+class ShiftsDatesIntersectionException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
 
 
 class GetStartedShiftException(ApplicationException):
