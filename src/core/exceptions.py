@@ -107,3 +107,31 @@ class GetStartedShiftException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = detail
+
+
+class InvalidAuthenticationDataException(ApplicationException):
+    """Введены неверные данные для аутентификации."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Неверный email или пароль."
+
+
+class AdministratorAlreadyExistException(ApplicationException):
+    """Попытка регистрации пользователя с уже заргестрированным ранее email."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Пользователь с указанным email уже существует."
+
+
+class AdministratorBlockedException(ApplicationException):
+    """Попытка регистрации заблокированного пользователя."""
+
+    status_code = HTTPStatus.FORBIDDEN
+    detail = "Пользователь заблокирован."
+
+
+class UnauthorizedException(ApplicationException):
+    """Пользователь не авторизован."""
+
+    status_code = HTTPStatus.UNAUTHORIZED
+    detail = "У Вас нет прав для просмотра запрошенной страницы."
