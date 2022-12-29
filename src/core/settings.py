@@ -1,4 +1,5 @@
 import os
+import uuid
 from pathlib import Path
 
 from pydantic import BaseSettings
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
     MIN_AGE: int
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
-    SECRET_KEY: str
+    SECRET_KEY: str = str(uuid.uuid4())
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
