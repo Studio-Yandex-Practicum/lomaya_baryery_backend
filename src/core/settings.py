@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     DB_PORT: str
     MIN_DAYS: int = 1
     MAX_DAYS: int = 93
-    SEND_NEW_TASK_HOUR: int
+    SEND_NEW_TASK_HOUR: int = 8  # Время отправки нового задания
     SEND_NO_REPORT_REMINDER_HOUR: int
     MIN_AGE: int
     HEALTHCHECK_API_URL: str

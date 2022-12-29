@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
-from src.core.db.models import Shift
+from src.core.db.models import Request, Shift, User
 
 
 @dataclass
@@ -18,3 +18,16 @@ class FullReportDto:
     task_description: str
     task_url: str
     photo_url: str
+
+
+@dataclass
+class RequestDTO:
+    request_id: UUID
+    user_id: UUID
+    name: str
+    surname: str
+    date_of_birth: date
+    city: str
+    phone_number: str
+    request_status: Request.Status
+    user_status: User.Status
