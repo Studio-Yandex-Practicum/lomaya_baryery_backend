@@ -233,7 +233,7 @@ class Administrator(Base):
     class Role(str, enum.Enum):
         """Роль администратора."""
 
-        ADMINISTRATOR = "administrator "
+        ADMINISTRATOR = "administrator"
         PSYCHOLOGIST = "psychologist"
 
     __tablename__ = "administrators"
