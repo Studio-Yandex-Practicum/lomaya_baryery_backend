@@ -74,4 +74,4 @@ class RequestService:
     def __exception_if_request_is_processed(self, status: Request.Status) -> None:
         """Если заявка была обработана ранее, выбрасываем исключение."""
         if status not in (Request.Status.PENDING,):
-            raise RequestAlreadyReviewedException(status=status)
+            raise RequestAlreadyReviewedException(status)

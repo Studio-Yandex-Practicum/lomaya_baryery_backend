@@ -112,13 +112,12 @@ class GetStartedShiftException(ApplicationException):
 class RegistrationException(HTTPException):
     status_code: int = None
     detail: str = None
-    headers: Dict[str, Any] = None
 
     def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
+        super().__init__(status_code=self.status_code, detail=self.detail)
 
 
-class NoShiftForRegistrationException(RegistrationException):
+class RegistrationForbidenException(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -139,7 +138,7 @@ class AlreadyRegisteredException(RegistrationException):
 
 
 class RequestAlreadyReviewedException(ApplicationException):
-    def __init__(self, status: UUID):
+    def __init__(self, status):
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 

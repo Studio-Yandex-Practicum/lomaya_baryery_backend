@@ -14,8 +14,8 @@ from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import (
     GetStartedShiftException,
-    NoShiftForRegistrationException,
     NotFoundException,
+    RegistrationForbidenException,
 )
 from src.core.settings import settings
 
@@ -119,7 +119,7 @@ class ShiftRepository(AbstractRepository):
         shift_id = await self._session.execute(statement)
         shift_id = shift_id.scalars().first()
         if not shift_id:
-            raise NoShiftForRegistrationException
+            raise RegistrationForbidenException
         return shift_id
 
     async def get_shift_with_status_or_none(self, status: Shift.Status) -> Optional[Shift]:
