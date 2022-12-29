@@ -4,7 +4,6 @@ from telegram.ext import Application
 from src.bot import services
 from src.core.db.models import Member
 from src.core.db.repository import MemberRepository, ShiftRepository
-from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 from src.core.utils import get_current_task_date
 
@@ -13,12 +12,10 @@ class MemberService:
     def __init__(
         self,
         member_repository: MemberRepository = Depends(),
-        shift_repository: ShiftRepository = Depends(),
-        shift_service: ShiftService = Depends(),
+        shift_repository: ShiftRepository = Depends()
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
-        self.__shift_service = shift_service
         self.__telegram_bot = services.BotService
 
     async def exclude_lagging_members(self, bot: Application) -> None:
@@ -40,9 +37,8 @@ class MemberService:
     async def get_members_with_no_reports(self) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
         shift_id = await self.__shift_repository.get_started_shift_id()
-        shift = await self.__shift_service.get_shift(shift_id)
         current_task_date = get_current_task_date()
         members = await self.__member_repository.get_members_for_reminding(
-            shift, current_task_date
+            shift_id, current_task_date
         )
         return members
