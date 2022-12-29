@@ -23,6 +23,7 @@ from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
     DuplicateReportError,
+    ExceededAttemptsReportError,
 )
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
@@ -105,4 +106,10 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     except DuplicateReportError:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
+        )
+    except ExceededAttemptsReportError:
+        await update.message.reply_text(
+            "Превышено количество попыток сдать отчет."
+            "Предлагаем продолжить, ведь впереди много интересных заданий. "
+            "Следующее задание придет в 8.00 мск."
         )
