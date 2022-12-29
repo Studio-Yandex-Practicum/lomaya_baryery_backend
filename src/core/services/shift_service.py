@@ -183,3 +183,6 @@ class ShiftService:
         self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
+
+    async def get_open_for_registration_shift_id(self) -> UUID:
+        return await self.__shift_repository.get_open_for_registration_shift_id()
