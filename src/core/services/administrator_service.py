@@ -85,22 +85,19 @@ class AdministratorService:
         self,
         new_administrator: AdministratorCreateRequest,
         role: Optional[Administrator.Role] = Administrator.Role.PSYCHOLOGIST,
-        status: Optional[Administrator.Status] = Administrator.Status.ACTIVE,
     ) -> Administrator:
         """Создать администратора.
 
         Аргументы:
             role (опционально, Administrator.Role) - роль администратора (администратор, психолог)
-            status (опционально, Administrator.Status) - статус администратора (активен, заблокирован)
         """
         if await self.__administrator_repository.get_by_email_or_none(new_administrator.email):
             raise AdministratorAlreadyExistException()
         password = new_administrator.password.get_secret_value()
-        new_administrator = new_administrator.dict(exclude={'password'})
-        new_administrator["hashed_password"] = self.__get_hashed_password(password)
-        new_administrator["role"] = role
-        new_administrator["status"] = status
-        return await self.__administrator_repository.create(Administrator(**new_administrator))
+        administrator = new_administrator.create_administrator_instance()
+        administrator.hashed_password = self.__get_hashed_password(password)
+        administrator.role = role
+        return await self.__administrator_repository.create(administrator)
 
 
 async def get_current_active_administrator(
