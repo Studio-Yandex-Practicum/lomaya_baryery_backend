@@ -1,13 +1,15 @@
 from http import HTTPStatus
+from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Request
+from src.core.db.DTO_models import RequestDTO
+from src.core.db.models import Request, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -51,3 +53,21 @@ class RequestRepository(AbstractRepository):
             select(Request).where(Request.shift_id == shift_id, Request.status == Request.Status.APPROVED.value)
         )
         return approved_requests.scalars().all()
+
+    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:
+        statement = select(
+            Request.user_id,
+            User.name,
+            User.surname,
+            User.date_of_birth,
+            User.city,
+            User.phone_number,
+            User.status.label("user_status"),
+            Request.id.label("request_id"),
+            Request.status.label("request_status"),
+        ).where(
+            or_(status is None, Request.status == status),
+            Request.user_id == User.id,
+        )
+        requests = await self._session.execute(statement)
+        return [RequestDTO(**request) for request in requests.all()]

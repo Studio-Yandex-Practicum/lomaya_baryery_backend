@@ -30,8 +30,7 @@ class MemberService:
         )
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
-            await self._session.merge(member)
-        await self._session.commit()
+            await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_excluded_members(lagging_members)
 
     async def get_members_with_no_reports(self) -> list[Member]:

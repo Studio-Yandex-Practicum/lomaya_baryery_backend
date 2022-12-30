@@ -114,7 +114,9 @@ class User(Base):
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     status = Column(
-        Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),
+        default=Status.PENDING.value,
+        nullable=False,
     )
     requests = relationship("Request", back_populates="user")
     members = relationship("Member", back_populates="user")
@@ -140,8 +142,11 @@ class Request(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
     shift = relationship("Shift", back_populates="requests")
     status = Column(
-        Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]),
+        default=Status.PENDING.value,
+        nullable=False,
     )
+    is_repeated = Column(Integer, default=1, nullable=False)
 
     def __repr__(self):
         return f"<Request: {self.id}, status: {self.status}>"
