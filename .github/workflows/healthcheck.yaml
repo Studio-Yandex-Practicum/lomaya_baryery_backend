@@ -14,8 +14,8 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lomaya_baryery_db_local
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
