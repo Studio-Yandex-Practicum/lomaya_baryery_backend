@@ -11,7 +11,8 @@ from telegram import (
 )
 from telegram.ext import CallbackContext, ContextTypes
 
-from src.bot.api_services import get_registration_service_callback
+from src.api.request_models.user import UserCreateRequest
+from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
     ReportRepository,
@@ -24,6 +25,7 @@ from src.core.exceptions import (
     CurrentTaskNotFoundError,
     DuplicateReportError,
     ExceededAttemptsReportError,
+    RegistrationException,
 )
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
@@ -61,10 +63,11 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Получение данных из формы регистрации. Создание объекта User и Request."""
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
-        user_data["telegram_id"] = update.effective_user.id
+        user_scheme = UserCreateRequest(**user_data)
+        user_scheme.telegram_id = update.effective_user.id
         session = get_session()
-        registration_service = await get_registration_service_callback(session)
-        await registration_service.user_registration(user_data)
+        registration_service = await get_user_service_callback(session)
+        await registration_service.register_user(user_scheme)
         await update.message.reply_text(
             text="Процесс регистрации занимает некоторое время - вам придет уведомление",
             reply_markup=ReplyKeyboardRemove(),
@@ -73,6 +76,8 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         if isinstance(e, ValidationError):
             e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
+    except RegistrationException as e:
+        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:

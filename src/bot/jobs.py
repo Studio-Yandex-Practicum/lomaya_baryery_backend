@@ -15,14 +15,22 @@ from src.core.settings import settings
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
-    await context.bot.send_message(
-        chat_id='5702444617',  # заменить на user.telegram_id
-        text=(
-            f"<user.name> <user.surname>, мы потеряли тебя! Напоминаем, "  # noqa добавить user.name и user.surname
-            f"что за каждое выполненное задание ты получаешь виртуальные "
-            f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
-        ),
-    )
+    session_generator = get_session()
+    member_service = await get_member_service_callback(session_generator)
+    members = await member_service.get_members_with_no_reports()
+    send_message_tasks = [
+        await context.bot.send_message(
+            chat_id=member.telegram_id,
+            text=(
+                f"f'{member.name} {member.surname}, мы потеряли тебя!"
+                f"Задание все еще ждет тебя."
+                f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
+                f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
+            ),
+        )
+        for member in members
+    ]
+    context.application.create_task(asyncio.gather(*send_message_tasks))
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
