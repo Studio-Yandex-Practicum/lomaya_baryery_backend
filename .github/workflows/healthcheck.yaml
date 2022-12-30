@@ -45,7 +45,10 @@ jobs:
       run: cp .env.example .env
     -
       name: Run database
-      run: docker-compose -f docker-compose.local.yaml up
+      run: |
+        docker stop $(docker ps -a -q)
+        docker rm $(docker ps -a -q)
+        docker-compose -f docker-compose.local.yaml up
     -
       name: Alembic Upgrade
       run: alembic upgrade heads
