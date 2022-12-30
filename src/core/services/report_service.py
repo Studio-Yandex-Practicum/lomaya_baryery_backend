@@ -77,7 +77,7 @@ class ReportService:
         report.status = Report.Status.DECLINED
         await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user(report.member_id)
-        await self.__telegram_bot(bot).notify_declined_task(member.user, report)
+        await self.__telegram_bot(bot).notify_declined_task(member.user)
         return
 
     def __can_change_status(self, status: Report.Status) -> None:
