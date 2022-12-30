@@ -60,7 +60,7 @@ class BotService:
 
         - Задание не принято.
         """
-        tries_left = settings.REPORT_TRIES - report.attempt_number
+        tries_left = settings.NUMBER_ATTEMPTS_SUMBIT_REPORT - report.number_attempt
         text = (
             "К сожалению, мы не можем принять твой фотоотчет! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "

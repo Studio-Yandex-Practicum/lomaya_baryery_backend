@@ -26,6 +26,7 @@ from src.core.exceptions import (
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
+from src.core.settings import NUMBER_ATTEMPTS_SUMBIT_REPORT
 
 
 @as_declarative()
@@ -201,7 +202,7 @@ class Report(Base):
     )
     report_url = Column(String(length=4096), unique=True, nullable=False)
     uploaded_at = Column(TIMESTAMP, nullable=True)
-    attempt_number = Column(Integer, nullable=False, server_default='0')
+    number_attempt = Column(Integer, nullable=False, server_default='0')
 
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
@@ -209,7 +210,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.attempt_number == 3:
+        if self.number_attempt == NUMBER_ATTEMPTS_SUMBIT_REPORT:
             raise ExceededAttemptsReportError
         if self.status not in (
             Report.Status.WAITING.value,
@@ -219,4 +220,4 @@ class Report(Base):
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
-        self.attempt_number += 1
+        self.number_attempt += 1
