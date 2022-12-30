@@ -200,7 +200,7 @@ class Report(Base):
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    report_url = Column(String(length=4096), nullable=False)
+    report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
     is_repeated = Column(Boolean(), nullable=False)
 

@@ -106,7 +106,7 @@ class ReportService:
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
 
-    async def create_reports(self, members: list[Member], task: Task) -> None:
+    async def create_daily_reports(self, members: list[Member], task: Task) -> None:
         current_date = date.today()
         reports = [
             Report(
@@ -116,7 +116,6 @@ class ReportService:
                 task_date=current_date,
                 member_id=member.id,
                 is_repeated=False,
-                report_url='',
             )
             for member in members
         ]
