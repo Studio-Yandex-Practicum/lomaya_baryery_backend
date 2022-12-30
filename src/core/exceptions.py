@@ -50,6 +50,12 @@ class ExceededAttemptsReportError(Exception):
     pass
 
 
+class EmptyReportError(Exception):
+    """Отчет должен содержать фото."""
+
+    pass
+
+
 class ShiftStartForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST

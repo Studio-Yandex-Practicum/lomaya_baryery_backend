@@ -22,6 +22,7 @@ from sqlalchemy.schema import ForeignKey
 
 from src.core.exceptions import (
     CannotAcceptReportError,
+    EmptyReportError,
     ExceededAttemptsReportError,
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
@@ -205,7 +206,7 @@ class Report(Base):
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    report_url = Column(String(length=4096), unique=True, nullable=False)
+    report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
     number_attempt = Column(Integer, nullable=False, server_default='0')
 
@@ -217,6 +218,8 @@ class Report(Base):
     def send_report(self, photo_url: str):
         if self.number_attempt == NUMBER_ATTEMPTS_SUMBIT_REPORT:
             raise ExceededAttemptsReportError
+        if not photo_url:
+            raise EmptyReportError()
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
