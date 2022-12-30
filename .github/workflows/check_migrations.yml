@@ -39,7 +39,7 @@ jobs:
         pip install -r requirements.txt
     -
       name: Alembic Upgrade
-      run: alembic upgrade heads
+      run: alembic upgrade head
     -
       name: Check Migrations
       run: alembic-autogen-check --config ./alembic.ini

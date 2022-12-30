@@ -49,7 +49,7 @@ jobs:
         docker-compose -f docker-compose.local.yaml up -d
     -
       name: Alembic Upgrade
-      run: alembic upgrade heads
+      run: alembic upgrade head
     -
       name: Run Local project
       run: python run.py
