@@ -55,17 +55,30 @@ class BotService:
         )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_task(self, user: models.User) -> None:
+    async def notify_declined_task(self, user: models.User, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
         """
+        tries_left = settings.REPORT_TRIES - report.attempt_number
         text = (
             "К сожалению, мы не можем принять твой фотоотчет! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
-            "У тебя есть три попытки сдать свой отчет. "
-            "Попробуй сделать новую фотографию и отправить отчет заново."
         )
+        match tries_left:
+            case 0:
+                text += (
+                    "Увы, у тебя не осталось попыток отправить отчет на это задание. "
+                    "Предлагаем продолжить, ведь впереди много интересных заданий. "
+                    "Следующее задание придет в 8.00 мск."
+                )
+            case 1:
+                text += (
+                    f"У тебя есть еще {tries_left} попытка сдать свой отчет. "
+                    "Убедись, что ты выполняешь именно то, что указано в задании. "
+                )
+            case _:
+                text += f"У тебя есть еще {tries_left} попытки сдать свой отчет. "
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:

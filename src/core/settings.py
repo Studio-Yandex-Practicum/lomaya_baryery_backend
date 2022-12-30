@@ -68,3 +68,4 @@ settings = get_settings()
 # Organization data
 ORGANIZATIONS_EMAIL = "info@stereotipov.net"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
+REPORT_TRIES: int = 3  # максимальное количество попыток для сдачи фотоотчета для одного задания
