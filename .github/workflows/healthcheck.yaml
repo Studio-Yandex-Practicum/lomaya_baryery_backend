@@ -3,8 +3,8 @@ name: Check APP
 on:
   pull_request:
     branches:
-      - develop_fix
-      - master_fix
+      - develop
+      - master
 
 jobs:
   healthcheck:
@@ -14,8 +14,8 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: lomaya_baryery_db_local
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -31,7 +31,7 @@ jobs:
       name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: "3.10"
     - 
       name: Install and configure Poetry
       uses: snok/install-poetry@v1
