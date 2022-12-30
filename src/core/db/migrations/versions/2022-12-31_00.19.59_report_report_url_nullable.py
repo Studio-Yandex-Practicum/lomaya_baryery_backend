@@ -1,16 +1,16 @@
 """Report.report_url nullable
 
-Revision ID: 92687721aed3
-Revises: 0243cc563a4c
-Create Date: 2022-12-30 21:18:23.922652
+Revision ID: 9d5d33dfbdcf
+Revises: e0412602dac5
+Create Date: 2022-12-31 00:19:59.166053
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '92687721aed3'
-down_revision = '0243cc563a4c'
+revision = '9d5d33dfbdcf'
+down_revision = 'e0412602dac5'
 branch_labels = None
 depends_on = None
 
