@@ -3,8 +3,8 @@ name: Check APP
 on:
   pull_request:
     branches:
-      - develop
-      - master
+      - develop_fix
+      - master_fix
 
 jobs:
   healthcheck:
