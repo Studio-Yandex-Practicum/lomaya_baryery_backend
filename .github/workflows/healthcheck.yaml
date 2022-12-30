@@ -44,7 +44,7 @@ jobs:
       name: Create env file
       run: cp .env.example .env
     -
-      name: Run bd
+      name: Run database
       run: docker-compose -f docker-compose.local.yaml up
     -
       name: Alembic Upgrade
