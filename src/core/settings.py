@@ -5,7 +5,6 @@ from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 if os.path.exists(str(BASE_DIR / ".env")):
     ENV_FILE = ".env"
 else:
@@ -54,7 +53,7 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}/static/registration.html"
+        return f"{self.APPLICATION_URL}/telegram/register_form"
 
     class Config:
         env_file = ENV_FILE
@@ -70,3 +69,4 @@ settings = get_settings()
 # Organization data
 ORGANIZATIONS_EMAIL = "info@stereotipov.net"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
+NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания

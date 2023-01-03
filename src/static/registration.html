@@ -119,28 +119,28 @@
   <main>
     <form class="form row">
       <div class="input-field col s12">
-        <input id="name" name="name" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="name" name="name" type="text" class="validate" minlength="2" maxlength="50" value="{{ name }}" required>
         <label for="name">Имя</label>
         <span class="helper-text name"></span>
       </div>
       <div class="input-field col s12">
-        <input id="surname" name="surname" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="surname" name="surname" type="text" class="validate" minlength="2" maxlength="50" value="{{ surname }}" required>
         <label for="surname">Фамилия</label>
         <span class="helper-text surname"></span>
       </div>
       <div class="input-field col s12">
-        <input id="date_of_birth" name="date_of_birth" type="text" class="datepicker validate" autocomplete="off"
+        <input id="date_of_birth" name="date_of_birth" type="text" class="datepicker validate" value="{{ date_of_birth }}" autocomplete="off"
           minlength="10" maxlength="10" required>
         <label for="date_of_birth">Дата рождения</label>
         <span class="helper-text date_of_birth"></span>
       </div>
       <div class="input-field col s12">
-        <input id="city" name="city" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="city" name="city" type="text" class="validate" minlength="2" maxlength="50" value="{{ city }}" required>
         <label for="city">Город</label>
         <span class="helper-text city"></span>
       </div>
       <div class="input-field col s12">
-        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maxlength="11"
+        <input id="phone_number" name="phone_number" type="text" class="validate" value="{{ phone_number }}" minlength="11" maxlength="11"
           required>
         <label for="phone_number">Телефон</label>
         <span class="helper-text phone_number"></span>

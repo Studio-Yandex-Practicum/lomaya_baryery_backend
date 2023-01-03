@@ -1,4 +1,5 @@
 import json
+import urllib
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -24,11 +25,14 @@ from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
     DuplicateReportError,
+    ExceededAttemptsReportError,
     RegistrationException,
 )
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
+
+WEBAPP_URL = "{url}?{query}"
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -47,12 +51,26 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def register(update: Update, context: CallbackContext) -> None:
     """Инициализация формы регистрации."""
+    telegram_user_id = update._effective_user.id
+    session = get_session()
+    registration_service = await get_user_service_callback(session)
+    user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
+    query = None
+    if user is not None:
+        user = dict(
+            name=user.name,
+            surname=user.surname,
+            date_of_birth=user.date_of_birth,
+            city=user.city,
+            phone_number=user.phone_number,
+        )
+        query = urllib.parse.urlencode(user)
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                web_app=WebAppInfo(url=WEBAPP_URL.format(url=settings.registration_template_url, query=query)),
             )
         ),
     )
@@ -110,4 +128,10 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     except DuplicateReportError:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
+        )
+    except ExceededAttemptsReportError:
+        await update.message.reply_text(
+            "Превышено количество попыток сдать отчет."
+            "Предлагаем продолжить, ведь впереди много интересных заданий. "
+            "Следующее задание придет в 8.00 мск."
         )

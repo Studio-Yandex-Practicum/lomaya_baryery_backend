@@ -44,6 +44,12 @@ class DuplicateReportError(Exception):
     pass
 
 
+class ExceededAttemptsReportError(Exception):
+    """Превышено количество попыток сдать отчет."""
+
+    pass
+
+
 class EmptyReportError(Exception):
     """Отчет должен содержать фото."""
 

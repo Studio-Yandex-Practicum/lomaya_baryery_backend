@@ -6,7 +6,15 @@ from uuid import UUID
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
-from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
+from pydantic import (
+    BaseModel,
+    Field,
+    PastDate,
+    StrictInt,
+    StrictStr,
+    root_validator,
+    validator,
+)
 
 from src.core.db.models import Request
 
@@ -76,3 +84,19 @@ class UserDescAscSortRequest(str, enum.Enum):
 
     ASC = "asc"
     DESC = "desc"
+
+
+class UserWebhookTelegram(BaseModel):
+    """Валидируем и отдаем данные из базы в Query-форму."""
+
+    name: Optional[StrictStr] = Field(min_length=2, max_length=100)
+    surname: Optional[StrictStr] = Field(min_length=2, max_length=100)
+    date_of_birth: Optional[PastDate]
+    city: Optional[StrictStr] = Field(min_length=2, max_length=50)
+    phone_number: Optional[StrictStr]
+
+    @root_validator
+    def validate_date(cls, values) -> dict:
+        if all(values.values()):
+            return values
+        return dict()

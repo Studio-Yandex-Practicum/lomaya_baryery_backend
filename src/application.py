@@ -10,6 +10,7 @@ from src.api.routers import (
     request_router,
     router,
     shift_router,
+    telegram_router,
     user_router,
     webhook_router,
 )
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(request_router)
     app.include_router(healthcheck_router)
     app.include_router(user_router)
+    app.include_router(telegram_router)
     if settings.BOT_WEBHOOK_MODE:
         app.include_router(webhook_router)
 
