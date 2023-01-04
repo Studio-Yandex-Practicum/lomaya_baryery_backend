@@ -1,11 +1,14 @@
 name: every push health check
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - develop
       - master
+  workflow_dispatch:
+  push:
+    branches:
+      - 'hotfix/check_app'
 
 
 env:
