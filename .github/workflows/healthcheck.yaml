@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - master
-  
+
 
 env:
   POSTGRES_PASSWORD: postgres
@@ -25,7 +25,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: lomaya_baryery_db_local    
+          POSTGRES_DB: lomaya_baryery_db_local
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -42,7 +42,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    - 
+    -
       name: Install and configure Poetry
       uses: snok/install-poetry@v1
     -
@@ -51,24 +51,23 @@ jobs:
         python -V
         poetry config virtualenvs.in-project true
         poetry install
-    - 
+    -
       name: Create .env file
       run: |
         touch .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
         echo APPLICATION_URL=localhost >> .env
-        echo HEALTHCHECK_API_URL='http://${{ env.APPLICATION_URL }}:8080/docs' >> .env
+        echo HEALTHCHECK_API_URL='http://localhost:8080/docs' >> .env
 
     -
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
     -
       name: Run Local project
-      run: poetry run python run.py
-    - 
+      run: timeout 120 poetry run python run.py &
+    -
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
       with:
-        url: 'http://${{ env.APPLICATION_URL }}:8080/healthcheck'
+        url: 'http://localhost:8080/healthcheck'
         fail-on-bad-status: true
-      
