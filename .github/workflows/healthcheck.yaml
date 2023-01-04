@@ -16,6 +16,7 @@ env:
   POSTGRES_USER: postgres
   DB_HOST: localhost
   DB_PORT: 5432
+  APPLICATION_URL: 'http://localhost:8080/'
   HEALTHCHECK_API_URL: 'http://localhost:8080/docs'
   HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
 
@@ -52,15 +53,13 @@ jobs:
       uses: snok/install-poetry@v1
     -
       name: Install Dependencies
-      run: |
-        python -V
-        poetry config virtualenvs.in-project true
-        poetry install
+      run: poetry install
     -
       name: Create .env file
       run: |
         touch .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+        echo APPLICATION_URL=$APPLICATION_URL >> .env
         echo HEALTHCHECK_API_URL=$HEALTHCHECK_API_URL >> .env
     -
       name: Alembic Upgrade
