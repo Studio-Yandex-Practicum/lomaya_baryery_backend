@@ -1,4 +1,4 @@
-name: every push health check
+name: Check app
 
 on:
   pull_request:
@@ -22,10 +22,8 @@ env:
 
 jobs:
   healthcheck:
-    name: Check workable app
+    name: Check app
     runs-on: ubuntu-latest
-    environment:
-      name: healthcheck
     services:
       postgres:
         image: postgres
@@ -38,7 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - ${{env.DB_PORT}}:${{env.DB_PORT}}
     steps:
     -
       name: Check out the repo
@@ -49,7 +47,7 @@ jobs:
       with:
         python-version: '3.10'
     -
-      name: Install and configure Poetry
+      name: Install Poetry
       uses: snok/install-poetry@v1
     -
       name: Install Dependencies
@@ -65,11 +63,11 @@ jobs:
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
     -
-      name: Run Local project
+      name: Run App
       run: timeout 120 poetry run python run.py &
     -
-      name: Get the status of healthcheck
+      name: Request healthcheck endpoint
       uses: im-open/url-status-check@v1.1.0
       with:
-        url: $HEALTHCHECK_URL
+        url: ${{env.HEALTHCHECK_URL}}
         fail-on-bad-status: true
