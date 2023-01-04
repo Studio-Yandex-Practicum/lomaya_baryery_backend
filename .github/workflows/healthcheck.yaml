@@ -1,4 +1,4 @@
-name: every push health check
+name: Check app
 
 on:
   pull_request:
@@ -22,10 +22,8 @@ env:
 
 jobs:
   healthcheck:
-    name: Check workable app
+    name: Check app
     runs-on: ubuntu-latest
-    environment:
-      name: healthcheck
     services:
       postgres:
         image: postgres
@@ -38,7 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - ${{env.DB_PORT}}:${{env.DB_PORT}}
+          - 5432:5432
     steps:
     -
       name: Check out the repo
