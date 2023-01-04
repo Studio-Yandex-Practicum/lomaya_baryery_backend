@@ -37,8 +37,8 @@ class ReportRepository(AbstractRepository):
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
         all_tasks_id_under_review = await self._session.execute(
-            select(Member.task_id).select_from(Report).where(Report.status == Report.Status.REVIEWING)
-        )  # FIXME Member -> Report
+            select(Report.task_id).select_from(Report).where(Report.status == Report.Status.REVIEWING)
+        )
         return all_tasks_id_under_review.all()
 
     async def create_all(self, reports_list: list[Report]) -> Report:

@@ -25,7 +25,7 @@ def create_bot() -> Application:
     bot_persistence = PicklePersistence(filepath=settings.BOT_PERSISTENCE_FILE)
     bot_instance = (
         ApplicationBuilder()
-        .token(settings.BOT_TOKEN)
+        .token('settings.BOT_TOKEN')  # FIXME
         .rate_limiter(AIORateLimiter())
         .persistence(persistence=bot_persistence)
         .build()
