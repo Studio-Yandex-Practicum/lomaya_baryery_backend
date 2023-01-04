@@ -43,7 +43,7 @@ class Settings(BaseSettings):
         return (
             f"postgresql+asyncpg://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}FIXME"
         )
 
     @property

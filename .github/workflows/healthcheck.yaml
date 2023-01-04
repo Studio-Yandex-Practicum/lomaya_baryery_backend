@@ -6,9 +6,6 @@ on:
       - develop
       - master
   workflow_dispatch:
-  push:
-    branches:
-      - 'hotfix/check_app'
 
 env:
   POSTGRES_PASSWORD: postgres
