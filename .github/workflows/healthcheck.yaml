@@ -1,4 +1,4 @@
-name: Check app
+name: every push health check
 
 on:
   pull_request:
@@ -22,7 +22,7 @@ env:
 
 jobs:
   healthcheck:
-    name: Check app
+    name: Check workable app
     runs-on: ubuntu-latest
     services:
       postgres:
