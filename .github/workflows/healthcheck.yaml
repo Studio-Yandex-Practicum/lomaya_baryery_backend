@@ -24,6 +24,8 @@ jobs:
   healthcheck:
     name: Check workable app
     runs-on: ubuntu-latest
+    environment:
+      name: healthcheck
     services:
       postgres:
         image: postgres
