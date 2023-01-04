@@ -1,9 +1,11 @@
 from typing import Optional
 
 from fastapi import Depends
-from sqlalchemy import or_, select
+from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
+from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.models import User
 from src.core.db.repository import AbstractRepository
@@ -24,3 +26,27 @@ class UserRepository(AbstractRepository):
             select(select(User).where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id)).exists())
         )
         return user_exists.scalar()
+
+    async def get_users_with_status(
+        self,
+        status: Optional[User.Status] = None,
+        field_sort: Optional[UserFieldSortRequest] = None,
+        direction_sort: Optional[UserDescAscSortRequest] = None,
+    ) -> list[UserWithStatusResponse]:
+        sorting = {'desc': desc, 'asc': asc}
+        users = await self._session.execute(
+            select(
+                User.id,
+                User.name,
+                User.surname,
+                User.date_of_birth,
+                User.city,
+                User.phone_number,
+                User.status,
+            )
+            .where(
+                or_(status is None, User.status == status),
+            )
+            .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
+        )
+        return users.all()

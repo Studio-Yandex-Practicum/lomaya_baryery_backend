@@ -1,13 +1,15 @@
 from http import HTTPStatus
+from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import and_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Request
+from src.core.db.DTO_models import RequestDTO
+from src.core.db.models import Request, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -46,41 +48,26 @@ class RequestRepository(AbstractRepository):
         )
         return users_ids.scalars().all()
 
-    async def get_requests_by_users_ids_and_shifts_id(self, users_ids: list[UUID], shift_id: UUID) -> list[Request]:
-        """Возвращает список заявок участников.
-
-        Заявки принадлежат участникам с id в списке users_ids, участвующих в смене с id shift_id.
-
-        Аргументы:
-            users_ids (list[UUID]): список id участников
-            shift_id (UUID): id смены
-        """
-        statement = (
-            select(Request)
-            .where(
-                and_(
-                    Request.user_id.in_(users_ids),
-                    Request.shift_id == shift_id,
-                    Request.status == Request.Status.APPROVED,
-                )
-            )
-            .options(selectinload(Request.user))
-        )
-        return (await self._session.scalars(statement)).all()
-
-    async def bulk_excluded_status_update(self, requests: list[Request]) -> None:
-        """Массово изменяет статус заявок на excluded.
-
-        Аргументы:
-            requests (list[Request]): список заявок участников, подлежащих исключению
-        """
-        for request in requests:
-            request.status = Request.Status.EXCLUDED
-            await self._session.merge(request)
-        await self._session.commit()
-
     async def get_approved_requests_by_shift(self, shift_id: UUID) -> list[Request]:
         approved_requests = await self._session.execute(
             select(Request).where(Request.shift_id == shift_id, Request.status == Request.Status.APPROVED.value)
         )
         return approved_requests.scalars().all()
+
+    async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:
+        statement = select(
+            Request.user_id,
+            User.name,
+            User.surname,
+            User.date_of_birth,
+            User.city,
+            User.phone_number,
+            User.status.label("user_status"),
+            Request.id.label("request_id"),
+            Request.status.label("request_status"),
+        ).where(
+            or_(status is None, Request.status == status),
+            Request.user_id == User.id,
+        )
+        requests = await self._session.execute(statement)
+        return [RequestDTO(**request) for request in requests.all()]

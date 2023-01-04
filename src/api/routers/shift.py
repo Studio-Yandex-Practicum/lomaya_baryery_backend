@@ -196,4 +196,4 @@ class ShiftCBV:
 
         - **shift_id**: уникальный индентификатор смены
         """
-        return await self.shift_service.finish_shift(request.app.state.bot_instance.bot, shift_id)
+        return await self.shift_service.finish_shift(request.app.state.bot_instance, shift_id)

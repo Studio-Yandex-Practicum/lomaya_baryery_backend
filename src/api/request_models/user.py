@@ -1,3 +1,4 @@
+import enum
 import re
 from datetime import datetime
 from typing import Optional
@@ -15,7 +16,7 @@ DATE_FORMAT = "%d.%m.%Y"
 
 
 class UserCreateRequest(BaseModel):
-    telegram_id: StrictInt
+    telegram_id: Optional[StrictInt]
     name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
     date_of_birth: PastDate
@@ -60,3 +61,18 @@ class RequestCreateRequest(BaseModel):
     user_id: UUID
     shift_id: Optional[UUID] = None
     status: Request.Status
+
+
+class UserFieldSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по полю."""
+
+    NAME = "name"
+    SURNAME = "surname"
+    DATE_OF_BIRTH = "date_of_birth"
+
+
+class UserDescAscSortRequest(str, enum.Enum):
+    """Поля модели User для сортировки по убыванию или возрастанию."""
+
+    ASC = "asc"
+    DESC = "desc"
