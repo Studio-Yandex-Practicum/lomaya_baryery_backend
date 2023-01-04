@@ -15,6 +15,7 @@ env:
   POSTGRES_DB: lomaya_baryery_db_local
   POSTGRES_USER: postgres
   DB_HOST: localhost
+  DB_PORT: 5432
   HEALTHCHECK_API_URL: 'http://localhost:8080/docs'
   HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
 
