@@ -1,4 +1,4 @@
-name: Check app
+name: every push health check
 
 on:
   pull_request:
@@ -22,8 +22,10 @@ env:
 
 jobs:
   healthcheck:
-    name: Check app
+    name: Check workable app
     runs-on: ubuntu-latest
+    environment:
+      name: healthcheck
     services:
       postgres:
         image: postgres
@@ -59,7 +61,6 @@ jobs:
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
         echo APPLICATION_URL=$APPLICATION_URL >> .env
         echo HEALTHCHECK_API_URL=$HEALTHCHECK_API_URL >> .env
-        cat .env
     -
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
