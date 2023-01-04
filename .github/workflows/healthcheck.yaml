@@ -10,13 +10,14 @@ on:
     branches:
       - 'hotfix/check_app'
 
-
 env:
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: lomaya_baryery_db_local
   POSTGRES_USER: postgres
   DB_HOST: localhost
   DB_PORT: 5432
+  HEALTHCHECK_API_URL: 'http://localhost:8080/docs'
+  HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
 
 jobs:
   healthcheck:
@@ -28,15 +29,15 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: lomaya_baryery_db_local
+          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          POSTGRES_DB: $POSTGRES_DB
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - $DB_PORT:$DB_PORT
     steps:
     -
       name: Check out the repo
@@ -60,9 +61,7 @@ jobs:
       run: |
         touch .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-        echo APPLICATION_URL=localhost >> .env
-        echo HEALTHCHECK_API_URL='http://localhost:8080/docs' >> .env
-
+        echo HEALTHCHECK_API_URL=$HEALTHCHECK_API_URL >> .env
     -
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
@@ -73,5 +72,5 @@ jobs:
       name: Get the status of healthcheck
       uses: im-open/url-status-check@v1.1.0
       with:
-        url: 'http://localhost:8080/healthcheck'
+        url: $HEALTHCHECK_URL
         fail-on-bad-status: true
