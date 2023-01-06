@@ -13,7 +13,7 @@ env:
   DB_HOST: localhost
   DB_PORT: 5432
   APPLICATION_URL: 'http://localhost:8080/'
-  HEALTHCHECK_API_URL: 'http://localhost:8080/docs'
+  SWAGGER_URL: 'http://localhost:8080/docs'
   HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
 
 jobs:
@@ -56,13 +56,13 @@ jobs:
         touch .env
         echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
         echo APPLICATION_URL=$APPLICATION_URL >> .env
-        echo HEALTHCHECK_API_URL=$HEALTHCHECK_API_URL >> .env
+        echo HEALTHCHECK_API_URL=$SWAGGER_URL >> .env
     -
       name: Alembic Upgrade
       run: poetry run alembic upgrade head
     -
       name: Run App
-      run: timeout 120 poetry run python run.py &
+      run: timeout 20 poetry run python run.py &
     -
       name: Request healthcheck endpoint
       uses: im-open/url-status-check@v1.1.0
