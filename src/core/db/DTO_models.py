@@ -21,6 +21,14 @@ class FullReportDto:
 
 
 @dataclass
+class TasksReportDto:
+    description: str
+    approved: int
+    waiting: int
+    declined: int
+
+
+@dataclass
 class RequestDTO:
     request_id: UUID
     user_id: UUID

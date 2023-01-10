@@ -1,16 +1,21 @@
 import json
 
 from fastapi import Depends
+from fastapi.responses import StreamingResponse
 from pydantic.schema import UUID
 
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
+from src.core.services.excel_report_service import ExcelReportService
 
 
 class TaskService:
-    def __init__(self, task_repository: TaskRepository = Depends()) -> None:
+    def __init__(
+        self, task_repository: TaskRepository = Depends(), excel_report_service: ExcelReportService = Depends()
+    ) -> None:
         self.__task_repository = task_repository
+        self.__excel_report_service = excel_report_service
 
     async def get_task_ids_list(
         self,
@@ -24,3 +29,7 @@ class TaskService:
         if not task:
             raise TodayTaskNotFoundError()
         return task
+
+    async def generate_tasks_report(self) -> StreamingResponse:
+        reports = (ExcelReportService.Sheets.TASKS.value,)
+        return await self.__excel_report_service.generate_report(reports)
