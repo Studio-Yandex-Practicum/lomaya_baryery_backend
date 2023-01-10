@@ -16,7 +16,7 @@ DATE_FORMAT = "%d.%m.%Y"
 
 
 class UserCreateRequest(BaseModel):
-    telegram_id: StrictInt
+    telegram_id: Optional[StrictInt]
     name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
     date_of_birth: PastDate
