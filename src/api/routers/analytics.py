@@ -6,11 +6,11 @@ from fastapi_restful.cbv import cbv
 
 from src.core.services.excel_report_service import ExcelReportService
 
-router = APIRouter(prefix="/full-excel-report", tags=["Excel"])
+router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @cbv(router)
-class ExcelReportCBV:
+class AnalyticsCBV:
     excel_report_service: ExcelReportService = Depends()
 
     @router.get(
@@ -19,8 +19,9 @@ class ExcelReportCBV:
         status_code=HTTPStatus.OK,
         summary="Формирование полного отчёта",
     )
-    async def get_task_excel_report_request(
+    async def get_full_excel_report_request(
         self,
     ) -> StreamingResponse:
         """Формирует excel файл со всеми отчётами."""
-        return await self.excel_report_service.generate_full_report()
+        reports = tuple(report.value for report in ExcelReportService.Sheets)
+        return await self.excel_report_service.generate_report(reports)
