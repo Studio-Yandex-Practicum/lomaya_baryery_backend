@@ -14,7 +14,7 @@ class TaskCBV:
     task_service: TaskService = Depends()
 
     @router.get(
-        "/report",
+        "/analytics",
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Задачи",
@@ -28,4 +28,4 @@ class TaskCBV:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        return await self.task_service.get_tasks_statistics_report()
+        return await self.task_service.generate_tasks_report()

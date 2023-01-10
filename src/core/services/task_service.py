@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
@@ -31,12 +30,6 @@ class TaskService:
             raise TodayTaskNotFoundError()
         return task
 
-    async def get_tasks_statistics_report(self) -> StreamingResponse:
-
-        workbook = await self.__excel_report_service.get_report_template(ExcelReportService.Sheets.TASKS)
-        await self.__excel_report_service.create_tasks_statistics_report(workbook)
-        stream = await self.__excel_report_service.save_report_to_stream(workbook)
-
-        filename = f"tasks_report_{datetime.now()}.xlsx"
-        headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        return StreamingResponse(stream, headers=headers)
+    async def generate_tasks_report(self) -> StreamingResponse:
+        reports = (ExcelReportService.Sheets.TASKS.value,)
+        return await self.__excel_report_service.generate_report(reports)
