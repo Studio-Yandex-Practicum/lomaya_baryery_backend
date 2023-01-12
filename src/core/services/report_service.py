@@ -115,7 +115,6 @@ class ReportService:
                 status=Report.Status.WAITING,
                 task_date=current_date,
                 member_id=member.id,
-                is_repeated=False,
             )
             for member in members
         ]

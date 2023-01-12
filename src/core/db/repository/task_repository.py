@@ -4,6 +4,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.response_models.task import TaskResponse
 from src.core.db.db import get_session
 from src.core.db.models import Task
 from src.core.db.repository import AbstractRepository
@@ -19,3 +20,13 @@ class TaskRepository(AbstractRepository):
         """Список всех task_id."""
         task_ids = await self._session.execute(select(Task.id))
         return task_ids.scalars().all()
+
+    async def get_tasks(self) -> list[TaskResponse]:
+        tasks = await self._session.execute(
+            select(
+                Task.id,
+                Task.url,
+                Task.description,
+            )
+        )
+        return tasks.all()
