@@ -8,6 +8,7 @@ from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
 from src.core.services.excel_report_service import ExcelReportService
+from src.excel_generator.base import ExcelBaseGenerator
 
 
 class TaskService:
@@ -30,6 +31,5 @@ class TaskService:
             raise TodayTaskNotFoundError()
         return task
 
-    async def generate_tasks_report(self) -> StreamingResponse:
-        reports = (ExcelReportService.Sheets.TASKS.value,)
-        return await self.__excel_report_service.generate_report(reports)
+    async def generate_report(self) -> StreamingResponse:
+        return await self.__excel_report_service.generate_report((ExcelBaseGenerator.Sheets.TASKS.value,))

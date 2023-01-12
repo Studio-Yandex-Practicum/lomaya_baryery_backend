@@ -21,11 +21,11 @@ class FullReportDto:
 
 
 @dataclass
-class TasksReportDto:
+class TasksExcelReportDto:
     description: str
     approved: int
-    waiting: int
     declined: int
+    waiting: int
 
 
 @dataclass
