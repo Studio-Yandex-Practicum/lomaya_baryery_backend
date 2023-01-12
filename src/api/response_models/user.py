@@ -31,5 +31,31 @@ class UserWithStatusResponse(UserResponse):
     status: User.Status
 
 
+class UsersShiftDetailResponse(BaseModel):
+    """Схема для отображения информации о смене пользователя.
+
+    Дополнительно отображается информации о количестве: заработанных за смену
+    "ломбарьерчиков", одобренных, отмененных и пропущенных заданиях.
+    """
+
+    id: UUID
+    title: str
+    started_at: date
+    finished_at: date
+    numbers_lombaryers: int
+    total_approved: int
+    total_declined: int
+    total_skipped: int
+
+    class Config:
+        orm_mode = True
+
+
 class UserDetailResponse(UserResponse):
-    shifts: list
+    """Схема для отображения информации о пользователе.
+
+    Дополнительно отображается информация о сменах, в которых участвовал
+    пользователь.
+    """
+
+    shifts: list[UsersShiftDetailResponse]
