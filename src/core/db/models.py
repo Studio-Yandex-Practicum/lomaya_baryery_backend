@@ -7,7 +7,6 @@ from sqlalchemy import (
     JSON,
     TIMESTAMP,
     BigInteger,
-    Boolean,
     Column,
     Enum,
     Identity,
@@ -23,9 +22,12 @@ from sqlalchemy.schema import ForeignKey
 
 from src.core.exceptions import (
     CannotAcceptReportError,
+    EmptyReportError,
+    ExceededAttemptsReportError,
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
+from src.core.settings import NUMBER_ATTEMPTS_SUMBIT_REPORT
 
 
 @as_declarative()
@@ -218,9 +220,9 @@ class Report(Base):
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    report_url = Column(String(length=4096), unique=True, nullable=False)
+    report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
-    is_repeated = Column(Boolean(), nullable=False)
+    number_attempt = Column(Integer, nullable=False, server_default='0')
 
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
@@ -228,13 +230,16 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
+        if self.number_attempt == NUMBER_ATTEMPTS_SUMBIT_REPORT:
+            raise ExceededAttemptsReportError
+        if not photo_url:
+            raise EmptyReportError()
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
         ):
             raise CannotAcceptReportError()
-        if self.status == Report.Status.DECLINED.value:
-            self.is_repeated = True
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
+        self.number_attempt += 1

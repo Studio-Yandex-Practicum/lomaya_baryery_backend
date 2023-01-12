@@ -45,5 +45,7 @@ async def get_member_service_callback(sessions):
     async for session in sessions:  # noqa R503
         member_repository = MemberRepository(session)
         shift_repository = ShiftRepository(session)
-        member_service = MemberService(member_repository, shift_repository)
+        member_service = MemberService(
+            member_repository, shift_repository
+        )
         return member_service
