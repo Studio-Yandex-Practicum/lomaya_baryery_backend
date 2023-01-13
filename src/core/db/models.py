@@ -239,7 +239,7 @@ class Report(Base):
 class AdministratorMailRequest(Base):
     """Модель приглашения администратора/психолога."""
 
-    __tablename__ = "invites"
+    __tablename__ = "administrator_mail_requests"
 
     def get_new_expiration_date():
         return datetime.utcnow() + timedelta(**INVITE_LINK_EXPIRATION_TIME)
@@ -257,4 +257,4 @@ class AdministratorMailRequest(Base):
         return f"{settings.APPLICATION_URL}/admin/register/{self.token}"
 
     def __repr__(self) -> str:
-        return f"Приглашение: {self.id}, email: {self.email}, фамилия: {self.surname}, имя: {self.name}"
+        return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия: {self.surname}, имя: {self.name}"
