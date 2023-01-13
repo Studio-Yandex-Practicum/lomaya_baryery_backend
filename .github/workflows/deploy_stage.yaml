@@ -118,7 +118,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
-            docker-compose exec -w ${{ env.WORK_DIR }} backend alembic upgrade head
+            docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:
