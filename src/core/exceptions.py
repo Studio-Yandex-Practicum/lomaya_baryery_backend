@@ -172,15 +172,8 @@ class InvalidAuthenticationDataException(ApplicationException):
     detail = "Неверный email или пароль."
 
 
-class AdministratorAlreadyExistException(ApplicationException):
-    """Попытка регистрации пользователя с уже заргестрированным ранее email."""
-
-    status_code = HTTPStatus.BAD_REQUEST
-    detail = "Пользователь с указанным email уже существует."
-
-
 class AdministratorBlockedException(ApplicationException):
-    """Попытка регистрации заблокированного пользователя."""
+    """Попытка аутентификации заблокированного пользователя."""
 
     status_code = HTTPStatus.FORBIDDEN
     detail = "Пользователь заблокирован."

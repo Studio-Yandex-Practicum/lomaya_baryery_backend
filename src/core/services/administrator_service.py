@@ -1,20 +1,15 @@
 import datetime as dt
-from typing import Optional
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from src.api.request_models.administrator import (
-    AdministratorAuthenticateRequest,
-    AdministratorCreateRequest,
-)
+from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import TokenResponse
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
-    AdministratorAlreadyExistException,
     AdministratorBlockedException,
     InvalidAuthenticationDataException,
     UnauthorizedException,
@@ -80,24 +75,6 @@ class AdministratorService:
             "refresh_token": self.__create_jwt_token(subject, REFRESH_TOKEN_EXPIRE_MINUTES),
         }
         return TokenResponse(**tokens)
-
-    async def create_new_administrator(
-        self,
-        new_administrator: AdministratorCreateRequest,
-        role: Optional[Administrator.Role] = Administrator.Role.PSYCHOLOGIST,
-    ) -> Administrator:
-        """Создать администратора.
-
-        Аргументы:
-            role (опционально, Administrator.Role) - роль администратора (администратор, психолог)
-        """
-        if await self.__administrator_repository.get_by_email_or_none(new_administrator.email):
-            raise AdministratorAlreadyExistException()
-        password = new_administrator.password.get_secret_value()
-        administrator = new_administrator.create_administrator_instance()
-        administrator.hashed_password = self.__get_hashed_password(password)
-        administrator.role = role
-        return await self.__administrator_repository.create(administrator)
 
 
 async def get_current_active_administrator(
