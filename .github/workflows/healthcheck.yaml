@@ -1,21 +1,33 @@
-name: Check APP
+name: Check app
 
 on:
   pull_request:
     branches:
-      - develop_fix
-      - master_fix
+      - develop
+      - master
+
+env:
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: lomaya_baryery_db_local
+  POSTGRES_USER: postgres
+  DB_HOST: localhost
+  DB_PORT: 5432
+  APPLICATION_URL: 'http://localhost:8080/'
+  SWAGGER_URL: 'http://localhost:8080/docs'
+  HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
 
 jobs:
   healthcheck:
-    name: Check workable app
+    name: Check app
     runs-on: ubuntu-latest
+    environment:
+      name: healthcheck
     services:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: lomaya_baryery_db_local
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DB: ${{env.POSTGRES_DB}}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -26,36 +38,34 @@ jobs:
     steps:
     -
       name: Check out the repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     -
       name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
-    - 
-      name: Install and configure Poetry
+        python-version: '3.10'
+    -
+      name: Install Poetry
       uses: snok/install-poetry@v1
     -
       name: Install Dependencies
-      run: |
-        poetry config virtualenvs.in-project true
-        poetry install
-    - 
-      name: Create env file
-      run: ren .env.example .env
+      run: poetry install
     -
-      name: Run bd
-      run: docker-compose -f docker-compose.local.yaml up
+      name: Create .env file
+      run: |
+        touch .env
+        echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+        echo APPLICATION_URL=$APPLICATION_URL >> .env
+        echo HEALTHCHECK_API_URL=$SWAGGER_URL >> .env
     -
       name: Alembic Upgrade
-      run: alembic upgrade heads
+      run: poetry run alembic upgrade head
     -
-      name: Run Local project
-      run: python run.py
-    - 
-      name: Get the status of healthcheck
+      name: Run App
+      run: timeout 20 poetry run python run.py &
+    -
+      name: Request healthcheck endpoint
       uses: im-open/url-status-check@v1.1.0
       with:
-        url: 'http://localhost:8080/healthcheck'
+        url: ${{env.HEALTHCHECK_URL}}
         fail-on-bad-status: true
-      
