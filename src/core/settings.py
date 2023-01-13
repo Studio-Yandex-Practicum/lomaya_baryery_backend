@@ -75,4 +75,4 @@ INVITE_LINK_EXPIRATION_TIME = {
     "days": 1,
     "hours": 0,
     "minutes": 0,
-}
+}  # время существования ссылки для приглашения на регистрацию
