@@ -3,6 +3,8 @@ import json
 from fastapi import Depends
 from pydantic.schema import UUID
 
+from src.api.request_models.task import TaskCreateUpdateRequest
+from src.api.response_models.task import TaskResponse
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
@@ -24,3 +26,21 @@ class TaskService:
         if not task:
             raise TodayTaskNotFoundError()
         return task
+
+    async def create_new_task(self, new_task: TaskCreateUpdateRequest) -> Task:
+        task = Task(**new_task.dict())
+        task.url = 'tasks/task_id'
+        task = await self.__task_repository.create(instance=task)
+        task.url = f'tasks/{task.id}'
+        return await self.__task_repository.update(task.id, task)
+
+    async def update_task(self, id: UUID, update_task_data: TaskCreateUpdateRequest) -> Task:
+        task: Task = await self.__task_repository.get(id)
+        task.description = update_task_data.description
+        return await self.__task_repository.update(id, task)
+
+    async def get_task(self, id: UUID) -> Task:
+        return await self.__task_repository.get(id)
+
+    async def list_all_tasks(self) -> list[TaskResponse]:
+        return await self.__task_repository.get_tasks()
