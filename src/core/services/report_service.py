@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import Depends
 from pydantic.schema import UUID
 from telegram.ext import Application
@@ -103,3 +105,17 @@ class ReportService:
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
+
+    async def create_daily_reports(self, members: list[Member], task: Task) -> None:
+        current_date = date.today()
+        reports = [
+            Report(
+                shift_id=member.shift_id,
+                task_id=task.id,
+                status=Report.Status.WAITING,
+                task_date=current_date,
+                member_id=member.id,
+            )
+            for member in members
+        ]
+        await self.__report_repository.create_all(reports)
