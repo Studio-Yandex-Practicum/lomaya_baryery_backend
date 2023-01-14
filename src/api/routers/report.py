@@ -43,7 +43,7 @@ class ReportsCBV:
         report = await self.report_service.get_report_with_report_url(report_id)
         if report is None:
             raise NotFoundException(Report.__name__, report_id)
-        return await self.report_service.get_report_with_report_url(report_id)
+        return report
 
     @router.patch(
         "/{report_id}/approve",
