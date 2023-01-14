@@ -255,7 +255,7 @@ class Administrator(Base):
     role = Column(
         Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    last_logined_at = Column(TIMESTAMP)
+    last_login_at = Column(TIMESTAMP)
     status = Column(
         Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
