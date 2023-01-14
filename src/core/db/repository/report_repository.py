@@ -33,7 +33,7 @@ class ReportRepository(AbstractRepository):
             select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
         )
         report = report.scalars().first()
-        if report is None:
+        if not report:
             raise NotFoundException(Report.__name__, id)
         return report
 
