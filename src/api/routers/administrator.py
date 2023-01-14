@@ -32,7 +32,7 @@ class AdministratorCBV:
         - **email**: электронная почта
         - **password**: пароль
         """
-        return await self.administrator_service.get_access_and_refresh_tokens(auth_data)
+        return await self.administrator_service.get_tokens(auth_data)
 
     @router.get(
         "/me",

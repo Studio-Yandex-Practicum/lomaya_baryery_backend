@@ -63,18 +63,17 @@ class AdministratorService:
             raise InvalidAuthenticationDataException()
         return administrator
 
-    async def get_access_and_refresh_tokens(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
+    async def get_tokens(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Получить access и refresh токены."""
         administrator = await self.__authenticate_administrator(auth_data)
         administrator.last_logined_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
 
         subject = administrator.email
-        tokens = {
-            "access_token": self.__create_jwt_token(subject, ACCESS_TOKEN_EXPIRE_MINUTES),
-            "refresh_token": self.__create_jwt_token(subject, REFRESH_TOKEN_EXPIRE_MINUTES),
-        }
-        return TokenResponse(**tokens)
+        return TokenResponse(
+            access_token=self.__create_jwt_token(subject, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(subject, REFRESH_TOKEN_EXPIRE_MINUTES),
+        )
 
 
 async def get_current_active_administrator(
@@ -91,5 +90,5 @@ async def get_current_active_administrator(
     if not administrator:
         raise UnauthorizedException()
     if administrator.status == Administrator.Status.BLOCKED:
-        raise UnauthorizedException()
+        raise AdministratorBlockedException()
     return administrator
