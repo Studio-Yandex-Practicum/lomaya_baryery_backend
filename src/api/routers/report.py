@@ -6,7 +6,6 @@ from pydantic.schema import UUID
 
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
 from src.core.db.models import Report
-from src.core.exceptions import NotFoundException
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 
@@ -40,10 +39,7 @@ class ReportsCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
-        report = await self.report_service.get_report_with_report_url(report_id)
-        if report is None:
-            raise NotFoundException(Report.__name__, report_id)
-        return report
+        return await self.report_service.get_report_with_report_url(report_id)
 
     @router.patch(
         "/{report_id}/approve",
