@@ -1,5 +1,3 @@
-import json
-
 from fastapi import Depends
 from pydantic.schema import UUID
 
@@ -20,8 +18,7 @@ class TaskService:
         return await self.__task_repository.get_task_ids_list()
 
     async def get_task_by_day_of_month(self, tasks: Shift.tasks, day_of_month: int) -> Task:
-        tasks_dict = json.loads(tasks)
-        task_id = tasks_dict.get(str(day_of_month))
+        task_id = tasks.get(str(day_of_month))
         task = await self.__task_repository.get_or_none(task_id)
         if not task:
             raise TodayTaskNotFoundError()

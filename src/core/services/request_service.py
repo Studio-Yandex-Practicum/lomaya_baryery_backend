@@ -34,7 +34,7 @@ class RequestService:
         self.__exception_if_request_is_processed(request.status)
         request.status = Request.Status.APPROVED
         await self.__request_repository.update(request_id, request)
-        user = self.__user_repository.get(request.user_id)
+        user = await self.__user_repository.get(request.user_id)
         if user.status is User.Status.PENDING:
             user.status = User.Status.VERIFIED
             await self.__user_repository.update(user.id, user)
@@ -56,7 +56,7 @@ class RequestService:
         self.__exception_if_request_is_processed(request.status)
         request.status = Request.Status.DECLINED
         await self.__request_repository.update(request_id, request)
-        user = self.__user_repository.get(request.user_id)
+        user = await self.__user_repository.get(request.user_id)
         user.status = User.Status.DECLINED
         await self.__user_repository.update(user.id, user)
         try:
