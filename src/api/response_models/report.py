@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.schema import UUID
@@ -24,7 +25,7 @@ class ReportResponse(BaseModel):
     task_id: UUID
     task_date: date
     status: Report.Status
-    photo_url: str
+    photo_url: Optional[str]
 
     class Config:
         orm_mode = True
@@ -53,7 +54,7 @@ class ReportSummaryResponse(BaseModel):
     task_id: UUID
     task_description: str
     task_url: str
-    photo_url: str
+    photo_url: Optional[str]
 
     class Config:
         orm_mode = True
