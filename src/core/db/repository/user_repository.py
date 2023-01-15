@@ -67,15 +67,7 @@ class UserRepository(AbstractRepository):
     ) -> list[UserWithStatusResponse]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
-            select(
-                User.id,
-                User.name,
-                User.surname,
-                User.date_of_birth,
-                User.city,
-                User.phone_number,
-                User.status,
-            )
+            select(User)
             .where(
                 or_(status is None, User.status == status),
             )
