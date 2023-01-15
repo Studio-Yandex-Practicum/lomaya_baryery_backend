@@ -25,9 +25,9 @@ class TaskService:
             raise TodayTaskNotFoundError()
         return task
 
-    async def create_new_task(self, url: str, new_task: TaskCreateRequest) -> Task:
+    async def create_new_task(self, image: str, new_task: TaskCreateRequest) -> Task:
         task = Task(**new_task.dict())
-        task.url = f"{settings.task_image_url}/{url}"
+        task.url = f"{settings.task_image_url}/{image}"
         return await self.__task_repository.create(instance=task)
 
     async def update_task(self, id: UUID, update_task_data: TaskUpdateRequest) -> Task:

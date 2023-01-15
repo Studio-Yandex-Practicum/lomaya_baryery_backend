@@ -6,7 +6,7 @@ from src.api.request_models.request_base import RequestBase
 from src.core.settings import settings
 from src.core.utils import get_task_images
 
-TaskUrlRequest = enum.Enum('TaskUrlRequest', get_task_images())
+TaskImageRequest = enum.Enum('TaskImageRequest', get_task_images())
 
 
 class TaskCreateRequest(RequestBase):

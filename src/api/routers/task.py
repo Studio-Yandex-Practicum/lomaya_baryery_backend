@@ -6,8 +6,8 @@ from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import (
     TaskCreateRequest,
+    TaskImageRequest,
     TaskUpdateRequest,
-    TaskUrlRequest,
 )
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
@@ -30,7 +30,7 @@ class TaskCBV:
     async def create_new_task(
         self,
         task: TaskCreateRequest,
-        url: TaskUrlRequest,
+        image: TaskImageRequest,
     ) -> TaskResponse:
         """
         Создать новое задание.
@@ -38,7 +38,7 @@ class TaskCBV:
         - **url**: изображение задания
         - **description**: описание задания
         """
-        return await self.task_service.create_new_task(url.value, task)
+        return await self.task_service.create_new_task(image.value, task)
 
     @router.patch(
         "/{task_id}",
