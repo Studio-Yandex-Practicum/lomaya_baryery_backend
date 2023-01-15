@@ -104,7 +104,6 @@ class ReportFactory(BaseFactory):
     class Meta:
         model = models.Report
 
-    is_repeated = factory.Faker('pybool')
     report_url = factory.Sequence(lambda n: f"photos/some_photo_{n}.png")
 
     @factory.lazy_attribute
