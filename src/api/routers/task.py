@@ -4,7 +4,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.task import TaskCreateUpdateRequest
+from src.api.request_models.task import (
+    TaskCreateRequest,
+    TaskUpdateRequest,
+    TaskUrlRequest,
+)
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
@@ -25,15 +29,16 @@ class TaskCBV:
     )
     async def create_new_task(
         self,
-        task: TaskCreateUpdateRequest,
+        task: TaskCreateRequest,
+        url: TaskUrlRequest,
     ) -> TaskResponse:
         """
         Создать новое задание.
 
-        - **url**: ссылка на изображение задания
+        - **url**: изображение задания
         - **description**: описание задания
         """
-        return await self.task_service.create_new_task(task)
+        return await self.task_service.create_new_task(url.value, task)
 
     @router.patch(
         "/{task_id}",
@@ -46,12 +51,12 @@ class TaskCBV:
     async def update_task(
         self,
         task_id: UUID,
-        update_task_data: TaskCreateUpdateRequest,
+        update_task_data: TaskUpdateRequest,
     ) -> TaskResponse:
         """
         Обновить задание.
 
-        - **url**: ссылка на изображение задания
+        - **url**: изображение задания
         - **description**: описание задания
         """
         return await self.task_service.update_task(task_id, update_task_data)
