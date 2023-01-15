@@ -1,5 +1,4 @@
 import enum
-import secrets
 import uuid
 from datetime import datetime, timedelta
 
@@ -28,11 +27,7 @@ from src.core.exceptions import (
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
-from src.core.settings import (
-    INVITE_LINK_EXPIRATION_TIME,
-    NUMBER_ATTEMPTS_SUMBIT_REPORT,
-    settings,
-)
+from src.core.settings import INVITE_LINK_EXPIRATION_TIME, NUMBER_ATTEMPTS_SUMBIT_REPORT
 
 
 @as_declarative()
@@ -244,17 +239,11 @@ class AdministratorMailRequest(Base):
     def get_new_expiration_date():
         return datetime.utcnow() + timedelta(**INVITE_LINK_EXPIRATION_TIME)
 
-    def create_token():
-        return secrets.token_urlsafe()
-
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
-    email = Column(String(255), nullable=False)
-    token = Column(String, nullable=False, default=create_token)
+    email = Column(String(100), nullable=False)
+    token = Column(String, nullable=False)
     expired_date = Column(TIMESTAMP, default=get_new_expiration_date, nullable=False)
-
-    def get_link(self):
-        return f"{settings.APPLICATION_URL}/admin/register/{self.token}"
 
     def __repr__(self) -> str:
         return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия: {self.surname}, имя: {self.name}"
