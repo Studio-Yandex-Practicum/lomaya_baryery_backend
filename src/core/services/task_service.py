@@ -29,13 +29,11 @@ class TaskService:
 
     async def create_new_task(self, new_task: TaskCreateUpdateRequest) -> Task:
         task = Task(**new_task.dict())
-        task.url = 'tasks/task_id'
-        task = await self.__task_repository.create(instance=task)
-        task.url = f'tasks/{task.id}'
-        return await self.__task_repository.update(task.id, task)
+        return await self.__task_repository.create(instance=task)
 
     async def update_task(self, id: UUID, update_task_data: TaskCreateUpdateRequest) -> Task:
         task: Task = await self.__task_repository.get(id)
+        task.url = update_task_data.url
         task.description = update_task_data.description
         return await self.__task_repository.update(id, task)
 

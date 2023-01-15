@@ -30,6 +30,7 @@ class TaskCBV:
         """
         Создать новое задание.
 
+        - **url**: ссылка на изображение задания
         - **description**: описание задания
         """
         return await self.task_service.create_new_task(task)
@@ -50,6 +51,7 @@ class TaskCBV:
         """
         Обновить задание.
 
+        - **url**: ссылка на изображение задания
         - **description**: описание задания
         """
         return await self.task_service.update_task(task_id, update_task_data)

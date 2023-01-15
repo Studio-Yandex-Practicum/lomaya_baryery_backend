@@ -3,7 +3,7 @@ from pydantic.schema import UUID
 
 
 class TaskInfoResponse(BaseModel):
-    """Схема для отображения информации о задании с другими данными."""
+    """Схема для отображения информации о задании."""
 
     task_id: UUID
     task_url: str
