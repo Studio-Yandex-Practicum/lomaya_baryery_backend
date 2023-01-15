@@ -11,4 +11,4 @@ def get_current_task_date() -> datetime.date:
 
 
 def get_task_images() -> list:
-    return [[filename, filename] for filename in os.listdir(settings.task_image_dir)]
+    return ((filename, filename) for filename in os.listdir(settings.task_image_dir))
