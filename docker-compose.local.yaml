@@ -11,6 +11,7 @@ services:
     volumes:
       - postgres_data_local:/var/lib/postgresql/data/
     ports:
-      - "6556:5432"
+      - "6100:6100"
     env_file:
       - ./.env
+    command: -p 6100
