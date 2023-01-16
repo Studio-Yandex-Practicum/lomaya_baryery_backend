@@ -10,7 +10,7 @@ from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError
+from src.core.exceptions import CurrentTaskNotFoundError, NotFoundException
 from src.core.utils import get_current_task_date
 
 
@@ -32,7 +32,10 @@ class ReportRepository(AbstractRepository):
         report = await self._session.execute(
             select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
         )
-        return report.scalars().first()
+        report = report.scalars().first()
+        if not report:
+            raise NotFoundException(Report.__name__, id)
+        return report
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
         """Получить список id непроверенных задач."""
