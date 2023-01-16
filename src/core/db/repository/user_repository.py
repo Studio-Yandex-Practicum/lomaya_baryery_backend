@@ -6,7 +6,6 @@ from sqlalchemy import asc, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
-from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Shift, User
@@ -64,21 +63,13 @@ class UserRepository(AbstractRepository):
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
         direction_sort: Optional[UserDescAscSortRequest] = None,
-    ) -> list[UserWithStatusResponse]:
+    ) -> list[User]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
-            select(
-                User.id,
-                User.name,
-                User.surname,
-                User.date_of_birth,
-                User.city,
-                User.phone_number,
-                User.status,
-            )
+            select(User)
             .where(
                 or_(status is None, User.status == status),
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
-        return users.all()
+        return users.scalars().all()
