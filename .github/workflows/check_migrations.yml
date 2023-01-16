@@ -1,5 +1,8 @@
 name: Check Migrations
 
+env:
+  DB_PORT: 6100
+
 on:
   pull_request:
     branches:
@@ -7,7 +10,7 @@ on:
       - master
 
 jobs:
- migrations:
+  migrations:
     name: Check Migrations
     runs-on: ubuntu-latest
     services:
@@ -22,24 +25,20 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 6100:6100
+          - ${{ env.DB_PORT }}:${{ env.DB_PORT }}
+        command: -p ${{ env.DB_PORT }}
     steps:
-    -
-      name: Check out the repo
-      uses: actions/checkout@v2
-    -
-      name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.10"
-    -
-      name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    -
-      name: Alembic Upgrade
-      run: alembic upgrade heads
-    -
-      name: Check Migrations
-      run: alembic-autogen-check --config ./alembic.ini
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Alembic Upgrade
+        run: alembic upgrade heads
+      - name: Check Migrations
+        run: alembic-autogen-check --config ./alembic.ini
