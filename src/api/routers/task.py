@@ -4,11 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.task import (
-    TaskCreateRequest,
-    TaskImageRequest,
-    TaskUpdateRequest,
-)
+from src.api.request_models.task import TaskCreateRequest, TaskImageRequest
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
@@ -39,27 +35,6 @@ class TaskCBV:
         - **description**: описание задания
         """
         return await self.task_service.create_new_task(image.value, task)
-
-    @router.patch(
-        "/{task_id}",
-        response_model=TaskResponse,
-        response_model_exclude_none=True,
-        status_code=HTTPStatus.OK,
-        summary="Обновить задание",
-        response_description="Обновленная информация о задании",
-    )
-    async def update_task(
-        self,
-        task_id: UUID,
-        update_task_data: TaskUpdateRequest,
-    ) -> TaskResponse:
-        """
-        Обновить задание.
-
-        - **url**: изображение задания
-        - **description**: описание задания
-        """
-        return await self.task_service.update_task(task_id, update_task_data)
 
     @router.get(
         "/",

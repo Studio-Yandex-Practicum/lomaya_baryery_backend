@@ -1,7 +1,7 @@
 from fastapi import Depends
 from pydantic.schema import UUID
 
-from src.api.request_models.task import TaskCreateRequest, TaskUpdateRequest
+from src.api.request_models.task import TaskCreateRequest
 from src.api.response_models.task import TaskResponse
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
@@ -29,12 +29,6 @@ class TaskService:
         task = Task(**new_task.dict())
         task.url = f"{settings.task_image_url}/{image}"
         return await self.__task_repository.create(instance=task)
-
-    async def update_task(self, id: UUID, update_task_data: TaskUpdateRequest) -> Task:
-        task: Task = await self.__task_repository.get(id)
-        task.url = update_task_data.url
-        task.description = update_task_data.description
-        return await self.__task_repository.update(id, task)
 
     async def get_task(self, id: UUID) -> Task:
         return await self.__task_repository.get(id)
