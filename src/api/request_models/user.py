@@ -1,6 +1,6 @@
 import enum
 import re
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -87,16 +87,29 @@ class UserDescAscSortRequest(str, enum.Enum):
 
 
 class UserWebhookTelegram(BaseModel):
-    """Валидируем и отдаем данные из базы в Query-форму."""
+    """
+    Получить форму пользователя в телеграм.
 
-    name: Optional[StrictStr] = Field(min_length=2, max_length=100)
-    surname: Optional[StrictStr] = Field(min_length=2, max_length=100)
-    date_of_birth: Optional[PastDate]
-    city: Optional[StrictStr] = Field(min_length=2, max_length=50)
-    phone_number: Optional[StrictStr]
+    - **UserWebhookTelegram**: входящая Query-форма
+    - **name**: имя пользователя
+    - **surname**: фамилия пользователя
+    - **date_of_birth**: день рождения пользователя
+    - **city**: город пользователя
+    - **phone_number**: телефон пользователя
+    """
+
+    name: Optional[StrictStr]
+    surname: Optional[StrictStr]
+    date_of_birth: Optional[date]
+    city: Optional[StrictStr]
+    phone_number: Optional[int]
+
+    @validator("date_of_birth")
+    def fix_date_of_birth(cls, value: date):
+        return value.strftime(DATE_FORMAT)
 
     @root_validator
-    def validate_date(cls, values) -> dict:
+    def validate_fields(cls, values) -> dict:
         if all(values.values()):
             return values
         return dict()

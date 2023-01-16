@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
@@ -17,6 +18,7 @@ class Settings(BaseSettings):
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
     BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
+    TEMPLATES = Jinja2Templates(directory=BASE_DIR / "src" / "static")
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str

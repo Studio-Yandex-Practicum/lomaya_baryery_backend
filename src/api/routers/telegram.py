@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.templating import Jinja2Templates
 
 from src.api.request_models.user import UserWebhookTelegram
-from src.core.settings import BASE_DIR
+from src.core.settings import settings
 
-templates = Jinja2Templates(directory=BASE_DIR / "src" / "static")
 router = APIRouter(prefix="/telegram", tags=["Telegram template forms"])
+
+FORM_AUTOFILL_TELEGRAM_TEMPLATE = "registration.html"
 
 
 @router.get(
@@ -28,6 +29,5 @@ async def user_register_form_webhook(
     - **phone_number**: телефон пользователя
     """
     context = dict(request=request)
-
     context.update(webhook_telegram_user.dict())
-    return templates.TemplateResponse("registration.html", context=context)
+    return settings.TEMPLATES.TemplateResponse(FORM_AUTOFILL_TELEGRAM_TEMPLATE, context=context)
