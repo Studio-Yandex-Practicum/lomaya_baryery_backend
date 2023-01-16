@@ -31,3 +31,15 @@ class RequestDTO:
     phone_number: str
     request_status: Request.Status
     user_status: User.Status
+
+
+@dataclass
+class ShiftByUserWithReportSummaryDto:
+    id: UUID
+    title: str
+    started_at: date
+    finished_at: date
+    numbers_lombaryers: int
+    total_approved: int
+    total_declined: int
+    total_skipped: int
