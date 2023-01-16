@@ -84,8 +84,7 @@ class UserService:
 
     async def __update_user_if_data_changed(self, user: User, income_data: UserCreateRequest) -> User:
         """Обновление данных пользователя, если им внесены изменения."""
-        data_is_the_same = user.compare_with_schema(income_data)
-        if data_is_the_same:
+        if user.compare_with_schema(income_data):
             return user
         validate_date_of_birth(income_data.date_of_birth)
         user.status = User.Status.PENDING
