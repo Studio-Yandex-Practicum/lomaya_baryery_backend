@@ -73,4 +73,4 @@ class UserRepository(AbstractRepository):
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
-        return users.all()
+        return users.scalars().all()
