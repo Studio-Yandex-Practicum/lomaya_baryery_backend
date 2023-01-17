@@ -31,7 +31,7 @@ class AdministratorCBV:
         token = hashlib.sha256(key).hexdigest()
         await self.administrator_mail_request_service.create_invite(invitation_data, token)
         # TODO Добавить отправку сообщения на электронную почту
-        return AdministratorMailRequestResponse(url=request.url_for('process_invite', key=key))
+        return AdministratorMailRequestResponse(url=request.url_for('process_invite', key=key.hex()))
 
     @router.get(
         '/invite/{key}',
