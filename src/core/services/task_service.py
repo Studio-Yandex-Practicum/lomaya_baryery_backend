@@ -31,7 +31,7 @@ class TaskService:
             raise TodayTaskNotFoundError()
         return task
 
-    async def create_new_task(self, image: UploadFile, new_task: TaskCreateRequest) -> Task:
+    async def create_new_task(self, new_task: TaskCreateRequest, image: UploadFile) -> Task:
         task = Task(**new_task.dict())
         task.url = await self.download_file(image)
         return await self.__task_repository.create(instance=task)

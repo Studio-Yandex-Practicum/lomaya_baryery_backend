@@ -34,7 +34,7 @@ class TaskCBV:
         - **url**: изображение задания
         - **description**: описание задания
         """
-        return await self.task_service.create_new_task(image, task)
+        return await self.task_service.create_new_task(task, image)
 
     @router.get(
         "/",
