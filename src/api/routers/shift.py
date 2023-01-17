@@ -12,6 +12,7 @@ from src.api.request_models.shift import (
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
+    ErrorResponse,
     ShiftDtoRespone,
     ShiftMembersResponse,
     ShiftResponse,
@@ -21,6 +22,8 @@ from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
+
+extra_responses = {400: {"model": ErrorResponse}, 403: {"model": ErrorResponse}}
 
 
 @cbv(router)
@@ -34,6 +37,7 @@ class ShiftCBV:
         status_code=HTTPStatus.CREATED,
         summary="Создать новую смену",
         response_description="Информация о созданной смене",
+        responses=extra_responses,
     )
     async def create_new_shift(
         self,
@@ -76,6 +80,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Обновить информацию о смене",
         response_description="Обновленная информация о смене",
+        responses=extra_responses,
     )
     async def update_shift(
         self,
