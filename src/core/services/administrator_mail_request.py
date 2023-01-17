@@ -1,5 +1,4 @@
 import hashlib
-import secrets
 from datetime import datetime
 from typing import Optional
 
@@ -15,12 +14,9 @@ class AdministratorMailRequestService:
     def __init__(self, administrator_mail_request_repository: AdministratorMailRequestRepository = Depends()) -> None:
         self.__administrator_mail_request_repository = administrator_mail_request_repository
 
-    async def create_invite(self, invitation_data: AdministratorMailRequestRequest) -> str:
-        key = secrets.token_bytes()
-        token = hashlib.sha256(key).hexdigest()
+    async def create_invite(self, invitation_data: AdministratorMailRequestRequest, token: str) -> str:
         new_invite = AdministratorMailRequest(**invitation_data.dict(), token=token)
-        await self.__administrator_mail_request_repository.create(new_invite)
-        return key.hex()
+        return await self.__administrator_mail_request_repository.create(new_invite)
 
     async def get_invite_by_token(self, token: str) -> Optional[AdministratorMailRequest]:
         return await self.__administrator_mail_request_repository.get_invite_by_token(token)
