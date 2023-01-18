@@ -34,10 +34,7 @@ async def get_report_service_callback(sessions):
         report_repository = ReportRepository(session)
         member_repository = MemberRepository(session)
         task_service = TaskService(task_repository)
-        member_service = MemberService(member_repository, shift_repository)
-        report_service = ReportService(
-            report_repository, shift_repository, member_repository, task_service, member_service
-        )
+        report_service = ReportService(report_repository, shift_repository, member_repository, task_service)
         return report_service
 
 

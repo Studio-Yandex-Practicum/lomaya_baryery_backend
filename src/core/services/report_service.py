@@ -14,7 +14,6 @@ from src.core.exceptions import (
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
 )
-from src.core.services.member_service import MemberService
 from src.core.services.task_service import TaskService
 
 
@@ -32,14 +31,12 @@ class ReportService:
         shift_repository: ShiftRepository = Depends(),
         member_repository: MemberRepository = Depends(),
         task_service: TaskService = Depends(),
-        member_service: MemberService = Depends(),
     ) -> None:
         self.__telegram_bot = services.BotService
         self.__report_repository = report_repository
         self.__shift_repository = shift_repository
         self.__member_repository = member_repository
         self.__task_service = task_service
-        self.__member_service = member_service
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
