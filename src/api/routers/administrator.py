@@ -3,8 +3,11 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.administrator import AdministratorMailRequestRequest
-from src.api.response_models.administrator import AdministratorMailRequestResponse
+from src.api.request_models.administrator_mail_request import (
+    AdministratorMailRequestRequest,
+)
+from src.core.email import Email
+from src.core.exceptions import EmailSendException
 from src.core.services.administrator_mail_request import AdministratorMailRequestService
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
@@ -16,22 +19,18 @@ class AdministratorCBV:
 
     @router.post(
         '/invite',
-        response_model=AdministratorMailRequestResponse,
-        response_model_exclude_none=True,
+        response_model=None,
         status_code=HTTPStatus.CREATED,
-        summary="Создать ссылку для регистрации нового администратора/психолога",
-        response_description="Ссылка для регистрации",
+        summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
     )
     async def send_invite(
-        self, request: Request, invitation_data: AdministratorMailRequestRequest
-    ) -> AdministratorMailRequestResponse:
-        key = await self.administrator_mail_request_service.create_mail_request(invitation_data)
-        # TODO Добавить отправку сообщения на электронную почту
-        return AdministratorMailRequestResponse(url=request.url_for('process_invite', key=key))
-
-    @router.get(
-        '/invite/{key}',
-    )
-    async def process_invite(self, key: str):
-        await self.administrator_mail_request_service.get_active_mail_request(key)
-        pass
+        self,
+        request: Request,
+        invitation_data: AdministratorMailRequestRequest,
+    ) -> None:
+        invite = await self.administrator_mail_request_service.create_mail_request(invitation_data)
+        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
+        try:
+            await Email().send_invitation_link([invite.email], url, invite.name)
+        except Exception as exc:
+            raise EmailSendException(invite.email, invite.id, exc)

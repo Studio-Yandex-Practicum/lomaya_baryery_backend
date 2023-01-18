@@ -11,7 +11,11 @@ class ApplicationException(HTTPException):
     headers: Dict[str, Any] = None
 
     def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
+        super().__init__(
+            status_code=self.status_code,
+            detail=self.detail,
+            headers=self.headers,
+        )
 
 
 class NotFoundException(ApplicationException):
@@ -59,23 +63,31 @@ class EmptyReportError(Exception):
 class ShiftStartForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте" " статус смены"
 
 
 class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}." " Проверьте статус смены"
 
 
 class SendTelegramNotifyException(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
-    def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
+    def __init__(
+        self,
+        user_id: UUID,
+        user_name: str,
+        surname: str,
+        telegram_id: int,
+        exc: Exception,
+    ):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
-            f"Возникла ошибка '{exc}' при отправке сообщения пользователю - "
-            f"id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
+            f"Возникла ошибка '{exc}' при отправке сообщения пользователю -"
+            f" id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм"
+            f" id: {telegram_id}"
         )
 
 
@@ -112,7 +124,7 @@ class UpdateShiftForbiddenException(ShiftUpdateException):
 class ShiftsDatesIntersectionException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
+        self.detail = "Дата окончания текущей смены не может равняться или быть больше" " даты начала новой смены"
 
 
 class GetStartedShiftException(ApplicationException):
@@ -133,9 +145,10 @@ class RegistrationForbidenException(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
-            "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
-            "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
+            "К сожалению, на данный момент мы не можем зарегистрировать вас в"
+            " проекте: смена уже началась и группа участников набрана. Чтобы"
+            " не пропустить актуальные новости Центра \"Ломая барьеры\" -"
+            " вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
         )
 
 
@@ -159,13 +172,22 @@ class RequestForbiddenException(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
-            "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
-            "в нашу группу ВКонтакте https://vk.com/socialrb02"
+            "К сожалению, на данный момент мы не можем зарегистрировать вас на"
+            " текущую смену. Чтобы не пропустить актуальные новости Центра"
+            " \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте"
+            " https://vk.com/socialrb02"
         )
 
 
-class AdministratorInviteForbidden(RegistrationException):
+class AdministratorMailRequestInvalid(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."
+
+
+class EmailSendException(ApplicationException):
+    def __init__(self, email: str, mail_request_id: UUID, exc: Exception):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = (
+            f"Возникла ошибка {exc} при отправке email на адрес {email}. Id" f" приглашения: {mail_request_id}"
+        )

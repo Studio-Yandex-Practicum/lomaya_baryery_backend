@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
 
+    MAIL_SERVER: str
+    MAIL_PORT: int
+    MAIL_LOGIN: str
+    MAIL_PASSWORD: str
+    MAIL_STARTTLS: bool
+    MAIL_SSL_TLS: bool
+
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
 
@@ -41,7 +48,7 @@ class Settings(BaseSettings):
     def database_url(self):
         """Получить ссылку для подключения к DB."""
         return (
-            f"postgresql+asyncpg://"
+            "postgresql+asyncpg://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
@@ -55,6 +62,11 @@ class Settings(BaseSettings):
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"
+
+    @property
+    def email_template_directory(self):
+        """Получить директорию шаблонов электронной почты."""
+        return BASE_DIR / "src/templates/email"
 
     class Config:
         env_file = ENV_FILE
