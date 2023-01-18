@@ -1,5 +1,3 @@
-import hashlib
-import secrets
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Request
@@ -21,21 +19,19 @@ class AdministratorCBV:
         response_model=AdministratorMailRequestResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.CREATED,
-        summary="Создать ссылку для регистрации нового администратора",
+        summary="Создать ссылку для регистрации нового администратора/психолога",
         response_description="Ссылка для регистрации",
     )
     async def send_invite(
         self, request: Request, invitation_data: AdministratorMailRequestRequest
     ) -> AdministratorMailRequestResponse:
-        key = secrets.token_bytes()
-        token = hashlib.sha256(key).hexdigest()
-        await self.administrator_mail_request_service.create_invite(invitation_data, token)
+        key = await self.administrator_mail_request_service.create_mail_request(invitation_data)
         # TODO Добавить отправку сообщения на электронную почту
-        return AdministratorMailRequestResponse(url=request.url_for('process_invite', key=key.hex()))
+        return AdministratorMailRequestResponse(url=request.url_for('process_invite', key=key))
 
     @router.get(
         '/invite/{key}',
     )
     async def process_invite(self, key: str):
-        await self.administrator_mail_request_service.verify_token(key)
+        await self.administrator_mail_request_service.get_active_mail_request(key)
         pass
