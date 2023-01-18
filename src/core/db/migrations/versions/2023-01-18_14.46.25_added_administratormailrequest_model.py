@@ -1,8 +1,8 @@
 """Added AdministratorMailRequest model
 
-Revision ID: ad9a73446ac7
+Revision ID: 8822dc6fc510
 Revises: 36ecaebc781b
-Create Date: 2023-01-15 17:38:25.493251
+Create Date: 2023-01-18 14:46:25.241169
 
 """
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'ad9a73446ac7'
+revision = '8822dc6fc510'
 down_revision = '36ecaebc781b'
 branch_labels = None
 depends_on = None
@@ -25,7 +25,7 @@ def upgrade():
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('surname', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
-    sa.Column('token', sa.String(), nullable=False),
+    sa.Column('token', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('expired_date', sa.TIMESTAMP(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )

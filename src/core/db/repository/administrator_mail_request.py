@@ -16,6 +16,9 @@ class AdministratorMailRequestRepository(AbstractRepository):
 
     async def get_mail_request_by_token(self, token: str) -> Optional[AdministratorMailRequest]:
         statement = select(AdministratorMailRequest).where(
-            and_(AdministratorMailRequest.token == token, AdministratorMailRequest.expired_date > datetime.utcnow())
+            and_(
+                AdministratorMailRequest.token == token,
+                AdministratorMailRequest.expired_date > datetime.utcnow(),
+            )
         )
         return (await self._session.scalars(statement)).first()
