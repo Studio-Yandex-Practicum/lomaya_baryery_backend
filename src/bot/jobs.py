@@ -1,15 +1,18 @@
 import asyncio
-from datetime import date
+from datetime import date, datetime
 from urllib.parse import urljoin
 
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
+from src.api.request_models.shift import ShiftSortRequest
 from src.bot.api_services import (
     get_member_service_callback,
     get_report_service_callback,
+    get_shift_service_callback,
 )
 from src.core.db.db import get_session
+from src.core.db.models import Shift
 from src.core.settings import settings
 
 
@@ -58,3 +61,13 @@ async def send_daily_task_job(context: CallbackContext) -> None:
         for member in members
     ]
     context.application.create_task(asyncio.gather(*send_message_tasks))
+
+
+async def start_shift_automatically() -> None:
+    """Автоматически запускает смену в дату, указанную в started_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING, sort=ShiftSortRequest.STARTED_AT)
+    for shift in shifts:
+        if shift.started_at == datetime.today():
+            await shift_service.start_shift(id=shift.id)
