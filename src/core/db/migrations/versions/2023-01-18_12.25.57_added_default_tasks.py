@@ -26,7 +26,7 @@ def upgrade():
             "INSERT INTO "
             "tasks(id, url, description) "
             "VALUES "
-            f"(gen_random_uuid(), '{settings.task_image_url}/{task['image']}', '{task['description']}')"
+            f"(gen_random_uuid(), '{settings.task_image_url}/{task['filename']}', '{task['description']}')"
         )
     # ### end Alembic commands ###
 
