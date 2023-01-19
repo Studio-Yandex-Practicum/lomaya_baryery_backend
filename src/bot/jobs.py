@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from src.api.request_models.shift import ShiftSortRequest
 from src.bot.api_services import (
     get_member_service_callback,
     get_report_service_callback,
@@ -67,7 +66,6 @@ async def start_shift_automatically() -> None:
     """Автоматически запускает смену в дату, указанную в started_at."""
     session = get_session()
     shift_service = await get_shift_service_callback(session)
-    shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING, sort=ShiftSortRequest.STARTED_AT)
-    for shift in shifts:
-        if shift.started_at == datetime.today():
-            await shift_service.start_shift(id=shift.id)
+    shift = await shift_service.list_all_shifts(status=Shift.Status.PREPARING)[0]
+    if shift.started_at == datetime.today():
+        await shift_service.start_shift(id=shift.id)
