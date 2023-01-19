@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
-        return f"{self.APPLICATION_URL}/data/tasks"
+        return f"{self.APPLICATION_URL}/static/tasks"
 
     class Config:
         env_file = ENV_FILE

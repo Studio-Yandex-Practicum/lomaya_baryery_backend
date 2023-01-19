@@ -12,7 +12,6 @@ from data_factory.factories import (
     MemberFactory,
     RequestFactory,
     ShiftFactory,
-    TaskFactory,
     UserFactory,
     session,
 )
@@ -33,22 +32,25 @@ logger = get_logger('fill_db.log')
 
 
 def get_random_user_ids(count: int, status: User.Status) -> list:
-    user_ids = session.execute(select(User.id).where(User.status == status).order_by(func.random()).limit(count))
+    user_ids = session.execute(
+        select(User.id).where(User.status == status).order_by(func.random()).limit(count))
     return user_ids.scalars().all()
 
 
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute("""TRUNCATE TABLE requests, shifts, tasks, reports, users, members""")
+    session.execute("""TRUNCATE TABLE requests, shifts, reports, users, members""")
     session.commit()
 
 
 def create_approved_requests_and_members_with_user_tasks(user_ids: list[UUID], shift: Shift):
     for user_id in user_ids:
-        RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id, status=Request.Status.APPROVED)
+        RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id,
+                                    status=Request.Status.APPROVED)
 
-        MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id, status=Member.Status.ACTIVE)
+        MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id,
+                                     status=Member.Status.ACTIVE)
 
 
 def create_declined_requests(user_ids: list[UUID], shift: Shift):
@@ -61,12 +63,8 @@ def generate_fake_data() -> None:
     request_user_numbers = shift_user_numbers // 2
     logger.info("Генерация фейковых данных...")
     with factory.Faker.override_default_locale("ru_RU"):
-
         logger.info("Создание пользователей...")
         UserFactory.create_batch(200)
-
-        logger.info("Создание заданий...")
-        TaskFactory.create_batch(31)
 
         logger.info("Создание активной смены...")
         started_shift = ShiftFactory.create(status=Shift.Status.STARTED)
@@ -77,19 +75,20 @@ def generate_fake_data() -> None:
         )
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), started_shift)
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED),
+                                 started_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)
         for finished_shift in finished_shifts:
-
             logger.info("Создание одобренных заявок и заданий для завершенной смены...")
             create_approved_requests_and_members_with_user_tasks(
                 get_random_user_ids(request_user_numbers, User.Status.VERIFIED), finished_shift
             )
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
+            create_declined_requests(
+                get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
 
     logger.info("Создание тестовых данных завершено!")
 
