@@ -1,66 +1,16 @@
-aiohttp==3.8.3 ; python_version >= "3.10" and python_version < "4.0"
-aiolimiter==1.0.0 ; python_version >= "3.10" and python_version < "4.0"
-aiosignal==1.3.1 ; python_version >= "3.10" and python_version < "4.0"
-aiosmtplib==2.0.1 ; python_version >= "3.10" and python_version < "4.0"
-alembic==1.7.7 ; python_version >= "3.10" and python_version < "4.0"
-anyio==3.6.2 ; python_version >= "3.10" and python_version < "4.0"
-apscheduler==3.9.1.post1 ; python_version >= "3.10" and python_version < "4"
-async-timeout==4.0.2 ; python_version >= "3.10" and python_version < "4.0"
-asyncpg==0.24.0 ; python_version >= "3.10" and python_version < "4.0"
-attrs==22.2.0 ; python_version >= "3.10" and python_version < "4.0"
-black==22.12.0 ; python_version >= "3.10" and python_version < "4.0"
-blinker==1.5 ; python_version >= "3.10" and python_version < "4.0"
-certifi==2022.12.7 ; python_version >= "3.10" and python_version < "4.0"
-cfgv==3.3.1 ; python_version >= "3.10" and python_version < "4.0"
-charset-normalizer==2.1.1 ; python_version >= "3.10" and python_version < "4.0"
-click==8.1.3 ; python_version >= "3.10" and python_version < "4.0"
-colorama==0.4.6 ; python_version >= "3.10" and python_version < "4.0" and platform_system == "Windows"
-distlib==0.3.6 ; python_version >= "3.10" and python_version < "4.0"
-dnspython==2.3.0 ; python_version >= "3.10" and python_version < "4.0"
-email-validator==1.3.0 ; python_version >= "3.10" and python_version < "4.0"
-environs==9.5.0 ; python_version >= "3.10" and python_version < "4.0"
-fastapi-mail==1.2.4 ; python_version >= "3.10" and python_version < "4.0"
-fastapi-restful==0.4.3 ; python_version >= "3.10" and python_version < "4.0"
-fastapi==0.89.1 ; python_version >= "3.10" and python_version < "4.0"
-filelock==3.9.0 ; python_version >= "3.10" and python_version < "4.0"
-frozenlist==1.3.3 ; python_version >= "3.10" and python_version < "4.0"
-greenlet==2.0.1 ; python_version >= "3.10" and (platform_machine == "aarch64" or platform_machine == "ppc64le" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64" or platform_machine == "win32" or platform_machine == "WIN32") and python_version < "4.0"
-h11==0.14.0 ; python_version >= "3.10" and python_version < "4.0"
-httpcore==0.16.3 ; python_version >= "3.10" and python_version < "4.0"
-httpx==0.23.3 ; python_version >= "3.10" and python_version < "4.0"
-identify==2.5.13 ; python_version >= "3.10" and python_version < "4.0"
-idna==3.4 ; python_version >= "3.10" and python_version < "4.0"
-jinja2==3.1.2 ; python_version >= "3.10" and python_version < "4.0"
-mako==1.2.4 ; python_version >= "3.10" and python_version < "4.0"
-markupsafe==2.1.2 ; python_version >= "3.10" and python_version < "4.0"
-marshmallow==3.19.0 ; python_version >= "3.10" and python_version < "4.0"
-multidict==6.0.4 ; python_version >= "3.10" and python_version < "4.0"
-mypy-extensions==0.4.3 ; python_version >= "3.10" and python_version < "4.0"
-nodeenv==1.7.0 ; python_version >= "3.10" and python_version < "4.0"
-packaging==23.0 ; python_version >= "3.10" and python_version < "4.0"
-pathspec==0.10.3 ; python_version >= "3.10" and python_version < "4.0"
-phonenumbers==8.12.57 ; python_version >= "3.10" and python_version < "4.0"
-platformdirs==2.6.2 ; python_version >= "3.10" and python_version < "4.0"
-pre-commit==2.20.0 ; python_version >= "3.10" and python_version < "4.0"
-psutil==5.9.4 ; python_version >= "3.10" and python_version < "4.0"
-pydantic==1.10.4 ; python_version >= "3.10" and python_version < "4.0"
-pydantic[email]==1.10.4 ; python_version >= "3.10" and python_version < "4.0"
-python-dotenv==0.21.0 ; python_version >= "3.10" and python_version < "4.0"
-python-telegram-bot[job-queue]==20.0 ; python_version >= "3.10" and python_version < "4.0"
-pytz-deprecation-shim==0.1.0.post0 ; python_version >= "3.10" and python_version < "4"
-pytz==2022.7.1 ; python_version >= "3.10" and python_version < "4.0"
-pyyaml==6.0 ; python_version >= "3.10" and python_version < "4.0"
-rfc3986[idna2008]==1.5.0 ; python_version >= "3.10" and python_version < "4.0"
-setuptools==66.0.0 ; python_version >= "3.10" and python_version < "4"
-six==1.16.0 ; python_version >= "3.10" and python_version < "4"
-sniffio==1.3.0 ; python_version >= "3.10" and python_version < "4.0"
-sqlalchemy==1.4.46 ; python_version >= "3.10" and python_version < "4.0"
-starlette==0.22.0 ; python_version >= "3.10" and python_version < "4.0"
-toml==0.10.2 ; python_version >= "3.10" and python_version < "4.0"
-tomli==2.0.1 ; python_version >= "3.10" and python_full_version < "3.11.0a7"
-typing-extensions==4.4.0 ; python_version >= "3.10" and python_version < "4.0"
-tzdata==2022.7 ; python_version >= "3.10" and python_version < "4"
-tzlocal==4.2 ; python_version >= "3.10" and python_version < "4"
-uvicorn==0.18.3 ; python_version >= "3.10" and python_version < "4.0"
-virtualenv==20.17.1 ; python_version >= "3.10" and python_version < "4.0"
-yarl==1.8.2 ; python_version >= "3.10" and python_version < "4.0"
+aiohttp==3.8.3
+aiolimiter==1.0.0
+alembic==1.7.7
+alembic-autogen-check~=1.1.1
+asyncpg==0.24.0
+environs==9.5.0
+fastapi==0.89.1
+fastapi-restful==0.4.3
+phonenumbers==8.12.57
+pre-commit==2.20.0
+python-dotenv==0.21.0
+python-telegram-bot[job-queue]==20.0
+pytz==2022.7.1
+uvicorn==0.18.3
+fastapi-mail==1.2.4
+pydantic[email]==1.10.4
