@@ -1,8 +1,8 @@
 """added administrator model
 
-Revision ID: f041a42ce704
-Revises: 36ecaebc781b
-Create Date: 2023-01-14 19:20:14.388776
+Revision ID: cf3ecbc0aacc
+Revises: a6d858f5a96e
+Create Date: 2023-01-20 14:17:39.683984
 
 """
 import sqlalchemy as sa
@@ -10,8 +10,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'f041a42ce704'
-down_revision = '36ecaebc781b'
+revision = 'cf3ecbc0aacc'
+down_revision = 'a6d858f5a96e'
 branch_labels = None
 depends_on = None
 
