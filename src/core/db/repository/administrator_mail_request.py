@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.db.db import get_session
 from src.core.db.models import AdministratorMailRequest
 from src.core.db.repository import AbstractRepository
+from src.core.exceptions import AdministratorMailRequestInvalid
 
 
 class AdministratorMailRequestRepository(AbstractRepository):
@@ -16,9 +17,9 @@ class AdministratorMailRequestRepository(AbstractRepository):
 
     async def get_mail_request_by_token(self, token: str) -> Optional[AdministratorMailRequest]:
         statement = select(AdministratorMailRequest).where(
-            and_(
-                AdministratorMailRequest.token == token,
-                AdministratorMailRequest.expired_date > datetime.utcnow(),
-            )
+            and_(AdministratorMailRequest.token == token, AdministratorMailRequest.expired_date > datetime.utcnow())
         )
-        return (await self._session.scalars(statement)).first()
+        result = (await self._session.scalars(statement)).first()
+        if result is None:
+            raise AdministratorMailRequestInvalid
+        return result

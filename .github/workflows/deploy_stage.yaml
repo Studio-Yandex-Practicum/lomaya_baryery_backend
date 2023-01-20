@@ -89,11 +89,8 @@ jobs:
             echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
             echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-            echo MAIL_SERVER=${{ secrets.MAIL_SERVER }} >> .env
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
-            echo MAIL_STARTTLS=${{ secrets.MAIL_STARTTLS }} >> .env
-            echo MAIL_SSL_TLS=${{ secrets.MAIL_SSL_TLS }} >> .env
 
   start_application:
     name: Start application

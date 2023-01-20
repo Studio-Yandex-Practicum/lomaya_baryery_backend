@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy import (
     DATE,
@@ -20,6 +20,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
 
+from src.core import settings
 from src.core.exceptions import (
     CannotAcceptReportError,
     EmptyReportError,
@@ -27,7 +28,6 @@ from src.core.exceptions import (
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
-from src.core.settings import INVITE_LINK_EXPIRATION_TIME, NUMBER_ATTEMPTS_SUMBIT_REPORT
 
 
 @as_declarative()
@@ -59,20 +59,11 @@ class Shift(Base):
     __tablename__ = "shifts"
 
     status = Column(
-        Enum(
-            Status,
-            name="shift_status",
-            values_callable=lambda obj: [e.value for e in obj],
-        ),
+        Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
     )
     sequence_number = Column(Integer, Identity(start=1, cycle=True))
-    started_at = Column(
-        DATE,
-        server_default=func.current_timestamp(),
-        nullable=False,
-        index=True,
-    )
+    started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
     finished_at = Column(DATE, nullable=False, index=True)
     title = Column(String(60), nullable=False)
     final_message = Column(String(400), nullable=False)
@@ -129,11 +120,7 @@ class User(Base):
     phone_number = Column(String(11), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     status = Column(
-        Enum(
-            Status,
-            name="user_status",
-            values_callable=lambda obj: [e.value for e in obj],
-        ),
+        Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),
         default=Status.PENDING.value,
         nullable=False,
     )
@@ -156,20 +143,12 @@ class Request(Base):
 
     __tablename__ = "requests"
 
-    user_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey(User.id, ondelete="CASCADE"),
-        nullable=False,
-    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="requests")
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=True)
     shift = relationship("Shift", back_populates="requests")
     status = Column(
-        Enum(
-            Status,
-            name="request_status",
-            values_callable=lambda obj: [e.value for e in obj],
-        ),
+        Enum(Status, name="request_status", values_callable=lambda obj: [e.value for e in obj]),
         default=Status.PENDING.value,
         nullable=False,
     )
@@ -191,11 +170,7 @@ class Member(Base):
     __tablename__ = "members"
 
     status = Column(
-        Enum(
-            Status,
-            name="member_status",
-            values_callable=lambda obj: [e.value for e in obj],
-        ),
+        Enum(Status, name="member_status", values_callable=lambda obj: [e.value for e in obj]),
         default=Status.ACTIVE.value,
         nullable=False,
     )
@@ -233,11 +208,7 @@ class Report(Base):
     member = relationship("Member", back_populates="reports")
     task_date = Column(DATE, nullable=False)
     status = Column(
-        Enum(
-            Status,
-            name="report_status",
-            values_callable=lambda obj: [e.value for e in obj],
-        ),
+        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
     )
     report_url = Column(String(length=4096), unique=True, nullable=True)
@@ -250,7 +221,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.number_attempt == NUMBER_ATTEMPTS_SUMBIT_REPORT:
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
             raise ExceededAttemptsReportError
         if not photo_url:
             raise EmptyReportError()
@@ -270,14 +241,11 @@ class AdministratorMailRequest(Base):
 
     __tablename__ = "administrator_mail_requests"
 
-    def get_new_expiration_date():
-        return datetime.utcnow() + timedelta(**INVITE_LINK_EXPIRATION_TIME)
-
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     token = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
-    expired_date = Column(TIMESTAMP, default=get_new_expiration_date, nullable=False)
+    expired_date = Column(TIMESTAMP, nullable=False)
 
     def __repr__(self) -> str:
         return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"

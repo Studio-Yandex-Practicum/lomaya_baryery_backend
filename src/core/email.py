@@ -1,18 +1,23 @@
 from typing import Any
 
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 
+from src.core.exceptions import EmailSendException
 from src.core.settings import ORGANIZATIONS_EMAIL, settings
 
 
-class Email:
+class EmailSchema(BaseModel):
+    recipients: list[EmailStr]
+    template_body: dict[str, Any] | None
+
+
+class EmailProvider:
     """Класс для отправки электронных писем."""
 
-    async def send_mail(
+    async def __send_mail(
         self,
-        recipients: list[EmailStr],
-        template_body: dict[str, Any],
+        email_obj: EmailSchema,
         subject: str,
         template_name: str,
     ) -> None:
@@ -35,29 +40,33 @@ class Email:
             MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
             TEMPLATE_FOLDER=settings.email_template_directory,
         )
-
         message = MessageSchema(
             subject=subject,
-            recipients=recipients,
-            template_body=template_body,
+            recipients=email_obj.recipients,
+            template_body=email_obj.template_body,
             subtype=MessageType.html,
         )
 
         fastmail = FastMail(conf)
-        await fastmail.send_message(message, template_name)
+        try:
+            await fastmail.send_message(message, template_name)
+        except Exception as exc:
+            raise EmailSendException(email_obj.recipients, exc)
 
-    async def send_invitation_link(self, recipients: list[EmailStr], url: str, name: str) -> None:
+    async def send_invitation_link(self, url: str, name: str, email: EmailStr) -> None:
         """Отправляет указанным адресатам ссылку для регистрации в проекте.
 
         Аргументы:
-            recipients (list[EmailStr]): список email получателей
+            email (EmailStr): email получателя
             url (str): ссылка для регистрации
             name (str): имя получателя
         """
         template_body = {"url": url, "name": name}
-        await self.send_mail(
-            recipients,
-            template_body,
+        recipients = []
+        recipients.append(email)
+        email_obj = EmailSchema(recipients=recipients, template_body=template_body)
+        await self.__send_mail(
+            email_obj,
             "Приглашение в проект \"Ломая Барьеры\"",
             "send_invitation_link.html",
         )

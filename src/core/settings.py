@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from pydantic import BaseSettings
@@ -34,12 +35,12 @@ class Settings(BaseSettings):
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
 
-    MAIL_SERVER: str
-    MAIL_PORT: int
-    MAIL_LOGIN: str
-    MAIL_PASSWORD: str
-    MAIL_STARTTLS: bool
-    MAIL_SSL_TLS: bool
+    MAIL_SERVER: str = "smtp.ethereal.email"
+    MAIL_PORT: int = 587
+    MAIL_LOGIN: str = "michel.bruen24@ethereal.email"
+    MAIL_PASSWORD: str = "tM7wbvvvtmRrWy54PD"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -83,8 +84,4 @@ settings = get_settings()
 ORGANIZATIONS_EMAIL = "info@stereotipov.net"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
-INVITE_LINK_EXPIRATION_TIME = {
-    "days": 1,
-    "hours": 0,
-    "minutes": 0,
-}  # время существования ссылки для приглашения на регистрацию
+INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
