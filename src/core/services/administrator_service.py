@@ -36,15 +36,15 @@ class AdministratorService:
         """Сравнить открытый пароль с хэшем."""
         return PASSWORD_CONTEXT.verify(plain_password, hashed_password)
 
-    def __create_jwt_token(self, subject: str, expires_delta: int) -> str:
+    def __create_jwt_token(self, email: str, expires_delta: int) -> str:
         """Создать jwt-токен.
 
         Аргументы:
-            subject (str) - субьект токена
+            email (str) - эл. почта администратора
             expires_delta (int) - время жизни токена
         """
         expire = dt.datetime.utcnow() + dt.timedelta(minutes=expires_delta)
-        to_encode = {"sub": subject, "exp": expire}
+        to_encode = {"email": email, "exp": expire}
         return jwt.encode(to_encode, settings.SECRET_KEY, ALGORITHM)
 
     async def get_administrator_by_email(self, email: str) -> Administrator:
@@ -66,13 +66,11 @@ class AdministratorService:
     async def get_tokens(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Получить access и refresh токены."""
         administrator = await self.__authenticate_administrator(auth_data)
-        administrator.last_logined_at = dt.datetime.now()
+        administrator.last_login_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
-
-        subject = administrator.email
         return TokenResponse(
-            access_token=self.__create_jwt_token(subject, ACCESS_TOKEN_EXPIRE_MINUTES),
-            refresh_token=self.__create_jwt_token(subject, REFRESH_TOKEN_EXPIRE_MINUTES),
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
         )
 
 
@@ -81,7 +79,7 @@ async def get_current_active_administrator(
 ) -> Administrator:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
+        email = payload.get("email")
         if not email:
             raise UnauthorizedException()
     except JWTError:
