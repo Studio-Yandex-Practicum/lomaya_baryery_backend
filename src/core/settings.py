@@ -53,13 +53,18 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку для на HTML шаблон регистрации."""
+        """Получить ссылку на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"
 
     @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
         return f"{self.APPLICATION_URL}/static/tasks"
+
+    @property
+    def task_image_dir(self) -> str:
+        """Получить директорию c изображениями заданий."""
+        return BASE_DIR / 'src' / 'static' / 'tasks'
 
     class Config:
         env_file = ENV_FILE
