@@ -119,5 +119,5 @@ jobs:
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:
-          url: 'http://${{ env.APPLICATION_URL }}/healthcheck'
+          url: 'http://${{ secrets.APPLICATION_URL }}/healthcheck'
           fail-on-bad-status: true
