@@ -22,5 +22,5 @@ __pypackages__/
 .vscode
 
 # Telegram Bot data
-data/user_reports/
+data/
 bot_persistence_file

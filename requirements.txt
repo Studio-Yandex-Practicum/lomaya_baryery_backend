@@ -8,6 +8,7 @@ environs==9.5.0
 fastapi==0.82.0
 fastapi-restful==0.4.3
 passlib[bcrypt]==1.7.4
+python-multipart==0.0.5
 phonenumbers==8.12.56
 pre-commit==2.20.0
 python-dotenv==0.21.0
