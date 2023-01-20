@@ -32,9 +32,9 @@ class ShiftDtoRespone(BaseModel):
     surname: str
     date_of_birth: date
     city: str
-    phone: str
+    phone_number: str
     request_id: UUID
-    status: Request.Status
+    request_status: Request.Status
 
     class Config:
         orm_mode = True
