@@ -5,10 +5,9 @@ from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
-from src.core.db.models import Administrator
-from src.core.services.administrator_service import (
-    AdministratorService,
-    get_current_active_administrator,
+from src.core.services.authentication_service import (
+    OAUTH2_SCHEME,
+    AuthenticationService,
 )
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
@@ -16,7 +15,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
 @cbv(router)
 class AdministratorCBV:
-    administrator_service: AdministratorService = Depends()
+    authentication_service: AuthenticationService = Depends()
 
     @router.post(
         "/login",
@@ -32,7 +31,7 @@ class AdministratorCBV:
         - **email**: электронная почта
         - **password**: пароль
         """
-        return await self.administrator_service.get_tokens(auth_data)
+        return await self.authentication_service.login(auth_data)
 
     @router.get(
         "/me",
@@ -42,6 +41,6 @@ class AdministratorCBV:
         summary="Информация об администраторе",
         response_description="Информация о теущем активном администраторе",
     )
-    async def get_me(self, current_active_admin: Administrator = Depends(get_current_active_administrator)):
+    async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
         """Получить информацию о текущем  активном администраторе."""
-        return current_active_admin
+        return await self.authentication_service.get_current_active_administrator(token)

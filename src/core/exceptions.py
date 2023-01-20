@@ -184,3 +184,10 @@ class UnauthorizedException(ApplicationException):
 
     status_code = HTTPStatus.UNAUTHORIZED
     detail = "У Вас нет прав для просмотра запрошенной страницы."
+
+
+class AdministratorNotFoundException(ApplicationException):
+    """Пользователь не найден."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Пользователь с указанными реквизитами не найден."
