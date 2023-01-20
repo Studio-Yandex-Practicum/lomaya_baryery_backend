@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import TaskCreateRequest
@@ -26,7 +26,6 @@ class TaskCBV:
     async def create_new_task(
         self,
         task: TaskCreateRequest = Depends(),
-        image: UploadFile = File(...),
     ) -> TaskResponse:
         """
         Создать новое задание.
@@ -34,7 +33,7 @@ class TaskCBV:
         - **url**: изображение задания
         - **description**: описание задания
         """
-        return await self.task_service.create_new_task(task, image)
+        return await self.task_service.create_task(task)
 
     @router.get(
         "/",
@@ -52,7 +51,7 @@ class TaskCBV:
         - **url**: url задания
         - **description**: описание задания
         """
-        return await self.task_service.list_all_tasks()
+        return await self.task_service.get_all_tasks()
 
     @router.get(
         "/{task_id}",

@@ -12,7 +12,7 @@ class TaskService:
     def __init__(self, task_repository: TaskRepository = Depends()) -> None:
         self.__task_repository = task_repository
 
-    async def download_file(self, file: UploadFile) -> str:
+    async def __download_file(self, file: UploadFile) -> str:
         file_name = file.filename.replace(' ', '_')
         with open((settings.task_image_dir / file_name), 'wb') as image:
             image.write(file.file.read())
@@ -31,13 +31,13 @@ class TaskService:
             raise TodayTaskNotFoundError()
         return task
 
-    async def create_new_task(self, new_task: TaskCreateRequest, image: UploadFile) -> Task:
-        task = Task(**new_task.dict())
-        task.url = await self.download_file(image)
+    async def create_task(self, new_task: TaskCreateRequest) -> Task:
+        task = Task(description=new_task.description)
+        task.url = await self.__download_file(new_task.image)
         return await self.__task_repository.create(instance=task)
 
     async def get_task(self, id: UUID) -> Task:
         return await self.__task_repository.get(id)
 
-    async def list_all_tasks(self) -> list[Task]:
+    async def get_all_tasks(self) -> list[Task]:
         return await self.__task_repository.get_tasks()
