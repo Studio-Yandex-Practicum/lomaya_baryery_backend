@@ -81,15 +81,13 @@ class SendTelegramNotifyException(ApplicationException):
 
 class ReportAlreadyReviewedException(ApplicationException):
     def __init__(self, status: UUID):
-        # Заменить статус на 403
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Задание уже проверено, статус задания: {}.".format(status)
 
 
 class ReportWaitingPhotoException(ApplicationException):
     def __init__(self):
-        # Заменить статус на 404
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "К заданию нет отчета участника."
 
 
@@ -153,8 +151,7 @@ class AlreadyRegisteredException(RegistrationException):
 
 class RequestAlreadyReviewedException(ApplicationException):
     def __init__(self, status):
-        # Заменить статус на 403
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
