@@ -56,6 +56,20 @@ class UserCreateRequest(BaseModel):
     def validate_date_of_birth(cls, value: str):
         return datetime.strptime(value, DATE_FORMAT).date()
 
+    def update_db_model(self, db_obj):
+        for key, value in vars(self).items():
+            if hasattr(db_obj, key):
+                setattr(db_obj, key, value)
+        return db_obj
+
+    def compare_with_db_model(self, db_obj):
+        for key, value in vars(self).items():
+            if hasattr(db_obj, key):
+                model_value = getattr(db_obj, key)
+                if model_value != value:
+                    return False
+        return True
+
 
 class RequestCreateRequest(BaseModel):
     user_id: UUID

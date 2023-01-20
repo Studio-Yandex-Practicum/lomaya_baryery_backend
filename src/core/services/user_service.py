@@ -79,17 +79,17 @@ class UserService:
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
-        user = User().update_with_schema(user_scheme)
+        user = user_scheme.update_db_model(User())
         await validate_user_create(user_scheme, self.__user_repository)
         return await self.__user_repository.create(user)
 
-    async def __update_user_if_data_changed(self, user: User, income_data: UserCreateRequest) -> User:
+    async def __update_user_if_data_changed(self, user: User, user_scheme: UserCreateRequest) -> User:
         """Обновление данных пользователя, если им внесены изменения."""
-        if user.compare_with_schema(income_data):
+        if user_scheme.compare_with_db_model(user):
             return user
-        validate_date_of_birth(income_data.date_of_birth)
+        validate_date_of_birth(user_scheme.date_of_birth)
         user.status = User.Status.PENDING
-        user.update_with_schema(income_data)
+        user = user_scheme.update_db_model(user)
         return await self.__user_repository.update(user.id, user)
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:

@@ -41,20 +41,6 @@ class Base:
     )
     __name__: str
 
-    def update_with_schema(self, payload_data):
-        for key, value in vars(payload_data).items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        return self
-
-    def compare_with_schema(self, payload_data):
-        for key, value in vars(payload_data).items():
-            if hasattr(self, key):
-                model_value = getattr(self, key)
-                if model_value != value:
-                    return False
-        return True
-
 
 class Shift(Base):
     """Смена."""
