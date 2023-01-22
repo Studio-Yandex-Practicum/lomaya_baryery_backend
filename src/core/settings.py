@@ -1,4 +1,5 @@
 import os
+import uuid
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
@@ -34,6 +35,7 @@ class Settings(BaseSettings):
     MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
+    SECRET_KEY: str = str(uuid.uuid4())
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -56,6 +58,16 @@ class Settings(BaseSettings):
     def registration_template_url(self) -> str:
         """Получить ссылку для на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/telegram/register_form"
+
+    @property
+    def task_image_url(self) -> str:
+        """Получить ссылку на изображения заданий."""
+        return f"{self.APPLICATION_URL}/static/tasks"
+
+    @property
+    def task_image_dir(self) -> str:
+        """Получить директорию c изображениями заданий."""
+        return BASE_DIR / 'src' / 'static' / 'tasks'
 
     class Config:
         env_file = ENV_FILE

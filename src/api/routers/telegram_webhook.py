@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request
 from telegram import Update
 
-router = APIRouter()
-
 webhook_router = APIRouter()
 TELEGRAM_WEBHOOK_ENDPOINT = "/telegram_handler"
 

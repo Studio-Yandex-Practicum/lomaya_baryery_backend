@@ -55,12 +55,12 @@ class ShiftRepository(AbstractRepository):
             select(
                 Request.user_id,
                 Request.id.label("request_id"),
-                Request.status,
+                Request.status.label("request_status"),
                 User.name,
                 User.surname,
                 User.date_of_birth,
                 User.city,
-                User.phone_number.label("phone"),
+                User.phone_number,
             )
             .join(Request.user)
             .where(

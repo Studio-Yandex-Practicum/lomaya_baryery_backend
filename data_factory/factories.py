@@ -84,14 +84,6 @@ class ShiftFactory(BaseFactory):
         return json.dumps(task)
 
 
-class TaskFactory(BaseFactory):
-    class Meta:
-        model = models.Task
-
-    url = factory.Sequence(lambda n: f"tasks/{n}")
-    description = factory.Faker("paragraph", nb_sentences=1)
-
-
 class RequestFactory(BaseFactory):
     class Meta:
         model = models.Request
