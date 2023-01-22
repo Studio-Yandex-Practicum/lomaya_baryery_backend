@@ -118,3 +118,7 @@ class UserService:
         direction_sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[UserWithStatusResponse]:
         return await self.__user_repository.get_users_with_status(status, field_sort, direction_sort)
+
+    async def telegram_blocked_change(self, user: User, telegram_blocked: bool) -> None:
+        user.telegram_blocked = telegram_blocked
+        await self.__user_repository.update(user.id, user)

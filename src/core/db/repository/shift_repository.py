@@ -26,18 +26,26 @@ class ShiftRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Shift)
 
-    async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
+    async def get_with_members(
+        self, id: UUID, member_status: Optional[Member.Status], telegram_blocked: Optional[bool]
+    ) -> Shift:
         """Получить смену (Shift) по её id вместе со связанными данными.
 
-        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+        Связанные данные: Shift -> Member -> User, Shift -> Member -> Report.
 
         Аргументы:
             id (UUID) - id смены (shift)
-            member_status (Optional[Member.Status]) - статус участника смены.
+            member_status (Optional[Member.Status]) - статус участника смены
+            telegram_blocked (Optional[bool]) - заблокирован ли бот у пользователя.
         """
         member_stmt = Shift.members
         if member_status:
             member_stmt = member_stmt.and_(Member.status == member_status)
+        if telegram_blocked:
+            telegram_not_blocked_members = await self._session.scalars(
+                select(Member.id).join(User).where(User.telegram_blocked == telegram_blocked)
+            )
+            member_stmt = member_stmt.and_(Member.id.in_(telegram_not_blocked_members))
         statement = (
             select(Shift)
             .where(Shift.id == id)
