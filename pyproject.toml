@@ -7,7 +7,7 @@ authors = ["Yandex Practicum Team backend_5+"]
 
 [tool.poetry.dependencies]
 environs = "~9.5.0"
-python-telegram-bot = "~20.0a4"
+python-telegram-bot = {extras = ["job-queue"], version = "^20.0"}
 asyncpg = "0.24.0"
 uvicorn = "~0.18.3"
 fastapi = "~0.82.0"
