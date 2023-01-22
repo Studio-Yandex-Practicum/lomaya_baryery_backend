@@ -132,3 +132,5 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         user_service = await get_user_service_callback(session)
         user = await user_service.get_user_by_telegram_id(context._chat_id)
         await user_service.telegram_blocked_change(user, True)
+    else:
+        raise error
