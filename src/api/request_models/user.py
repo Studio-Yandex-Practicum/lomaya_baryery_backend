@@ -104,3 +104,4 @@ class UserWebhookTelegram(BaseModel):
     def fix_date_of_birth(cls, value: Union[date, None]) -> Union[str, None]:
         if value is not None:
             return value.strftime(DATE_FORMAT)
+        return None
