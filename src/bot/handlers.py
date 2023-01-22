@@ -58,10 +58,7 @@ async def register(
     session = get_session()
     registration_service = await get_user_service_callback(session)
     user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
-    query = None
-    if user:
-        query = urllib.parse.urlencode(user.object_to_dict)
-        print(query)
+    query = urllib.parse.urlencode(user.object_to_dict) if user else None
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(

@@ -1,20 +1,12 @@
 import enum
 import re
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
-from pydantic import (
-    BaseModel,
-    Field,
-    PastDate,
-    StrictInt,
-    StrictStr,
-    root_validator,
-    validator,
-)
+from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
 from src.core.db.models import Request
 
@@ -109,11 +101,6 @@ class UserWebhookTelegram(BaseModel):
     phone_number: Optional[int]
 
     @validator("date_of_birth")
-    def fix_date_of_birth(cls, value: date):
-        return value.strftime(DATE_FORMAT)
-
-    @root_validator
-    def validate_fields(cls, values) -> dict:
-        if all(values.values()):
-            return values
-        return dict()
+    def fix_date_of_birth(cls, value: Union[date, None]) -> Union[str, None]:
+        if value is not None:
+            return value.strftime(DATE_FORMAT)

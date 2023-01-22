@@ -28,6 +28,8 @@ async def user_register_form_webhook(
     - **city**: город пользователя
     - **phone_number**: телефон пользователя
     """
+    income_user_form = webhook_telegram_user.dict()
     context = dict(request=request)
-    context.update(webhook_telegram_user.dict())
+    if all(income_user_form.values()):
+        context.update(income_user_form)
     return settings.TEMPLATES.TemplateResponse(FORM_AUTOFILL_TELEGRAM_TEMPLATE, context=context)
