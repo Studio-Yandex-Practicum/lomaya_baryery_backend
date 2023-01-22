@@ -60,13 +60,14 @@ async def register(
     user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
     query = None
     if user:
-        query = urllib.parse.urlencode(user.__dict__)
+        query = urllib.parse.urlencode(user.object_to_dict)
+        print(query)
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=WEBAPP_URL.format(url=settings.registration_template_url, query=query)),
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
