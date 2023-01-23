@@ -13,7 +13,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
 
 @cbv(router)
-class AdministratorCBV:
+class AdministratorInvitationCBV:
     administrator_invitation_service: AdministratorInvitationService = Depends()
     email_provider: EmailProvider = Depends()
 
