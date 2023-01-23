@@ -12,6 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/back
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
+  HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
 
 defaults:
   run:
@@ -119,5 +120,5 @@ jobs:
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:
-          url: 'http://${{ env.APPLICATION_URL }}/healthcheck'
+          url: ${{ env.HEALTHCHECK_URL }}
           fail-on-bad-status: true
