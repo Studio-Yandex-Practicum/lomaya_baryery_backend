@@ -12,6 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/back
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
+  HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
 
 defaults:
   run:
@@ -85,9 +86,6 @@ jobs:
             echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
             echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
-            echo SEND_NEW_TASK_HOUR=${{ secrets.SEND_NEW_TASK_HOUR }} >> .env
-            echo SEND_NO_REPORT_REMINDER_HOUR=${{ secrets.SEND_NO_REPORT_REMINDER_HOUR }} >> .env
-            echo MIN_AGE=${{ secrets.MIN_AGE }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
@@ -124,5 +122,5 @@ jobs:
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:
-          url: 'http://${{ env.APPLICATION_URL }}/healthcheck'
+          url: ${{ env.HEALTHCHECK_URL }}
           fail-on-bad-status: true

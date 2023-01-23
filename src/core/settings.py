@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import timedelta
 from pathlib import Path
 
@@ -34,6 +35,7 @@ class Settings(BaseSettings):
     MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
+    SECRET_KEY: str = str(uuid.uuid4())
 
     MAIL_SERVER: str = "smtp.ethereal.email"
     MAIL_PORT: int = 587
@@ -61,8 +63,18 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку для на HTML шаблон регистрации."""
+        """Получить ссылку на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"
+
+    @property
+    def task_image_url(self) -> str:
+        """Получить ссылку на изображения заданий."""
+        return f"{self.APPLICATION_URL}/static/tasks"
+
+    @property
+    def task_image_dir(self) -> str:
+        """Получить директорию c изображениями заданий."""
+        return BASE_DIR / 'src' / 'static' / 'tasks'
 
     @property
     def email_template_directory(self):
