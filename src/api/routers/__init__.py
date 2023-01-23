@@ -1,4 +1,6 @@
-from src.api.routers.administrator import router as administrator_router  # noqa
+from src.api.routers.administrator_invitation import (  # noqa
+    router as administrator_invitation_router,
+)
 from src.api.routers.healthcheck import router as healthcheck_router  # noqa
 from src.api.routers.hello import (  # noqa
     TELEGRAM_WEBHOOK_ENDPOINT,
