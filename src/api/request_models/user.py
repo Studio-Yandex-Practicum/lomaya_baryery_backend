@@ -8,7 +8,7 @@ import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
-from src.core.db.models import Request
+from src.core.db.models import Request, User
 
 VALID_TEXT = "^[а-яА-ЯёЁ][а-яА-ЯёЁ -]*[а-яА-ЯёЁ]$"
 INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
@@ -56,19 +56,26 @@ class UserCreateRequest(BaseModel):
     def validate_date_of_birth(cls, value: str):
         return datetime.strptime(value, DATE_FORMAT).date()
 
-    def update_db_model(self, db_obj):
-        for key, value in vars(self).items():
-            if hasattr(db_obj, key):
-                setattr(db_obj, key, value)
-        return db_obj
+    def update_db_model(self, user: User) -> User:
+        user.telegram_id = self.telegram_id
+        user.name = self.name
+        user.surname = self.surname
+        user.date_of_birth = self.date_of_birth
+        user.city = self.city
+        user.phone_number = self.phone_number
+        return user
 
-    def compare_with_db_model(self, db_obj):
-        for key, value in vars(self).items():
-            if hasattr(db_obj, key):
-                model_value = getattr(db_obj, key)
-                if model_value != value:
-                    return False
-        return True
+    def compare_with_db_model(self, user: User) -> bool:
+        telegram_id, name, surname = user.telegram_id, user.name, user.surname
+        date_of_birth, city, phone_number = user.date_of_birth, user.city, user.phone_number
+        return (
+            telegram_id == self.telegram_id
+            and name == self.name
+            and surname == self.surname
+            and date_of_birth == self.date_of_birth
+            and city == self.city
+            and phone_number == self.phone_number
+        )
 
 
 class RequestCreateRequest(BaseModel):
