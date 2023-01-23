@@ -193,7 +193,7 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorMailRequestInvalid(RegistrationException):
+class AdministratorInvitationInvalid(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."
