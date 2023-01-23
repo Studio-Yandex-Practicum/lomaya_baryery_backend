@@ -81,13 +81,13 @@ class SendTelegramNotifyException(ApplicationException):
 
 class ReportAlreadyReviewedException(ApplicationException):
     def __init__(self, status: UUID):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Задание уже проверено, статус задания: {}.".format(status)
 
 
 class ReportWaitingPhotoException(ApplicationException):
     def __init__(self):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "К заданию нет отчета участника."
 
 
@@ -151,7 +151,7 @@ class AlreadyRegisteredException(RegistrationException):
 
 class RequestAlreadyReviewedException(ApplicationException):
     def __init__(self, status):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
@@ -163,3 +163,31 @@ class RequestForbiddenException(RegistrationException):
             "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
             "в нашу группу ВКонтакте https://vk.com/socialrb02"
         )
+
+
+class InvalidAuthenticationDataException(ApplicationException):
+    """Введены неверные данные для аутентификации."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Неверный email или пароль."
+
+
+class AdministratorBlockedException(ApplicationException):
+    """Попытка аутентификации заблокированного пользователя."""
+
+    status_code = HTTPStatus.FORBIDDEN
+    detail = "Пользователь заблокирован."
+
+
+class UnauthorizedException(ApplicationException):
+    """Пользователь не авторизован."""
+
+    status_code = HTTPStatus.UNAUTHORIZED
+    detail = "У Вас нет прав для просмотра запрошенной страницы."
+
+
+class AdministratorNotFoundException(ApplicationException):
+    """Пользователь не найден."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Пользователь с указанными реквизитами не найден."
