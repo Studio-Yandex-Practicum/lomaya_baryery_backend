@@ -236,10 +236,10 @@ class Report(Base):
         self.number_attempt += 1
 
 
-class AdministratorMailRequest(Base):
+class AdministratorInvitation(Base):
     """Модель приглашения администратора/психолога."""
 
-    __tablename__ = "administrator_mail_requests"
+    __tablename__ = "administrator_invitations"
 
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
