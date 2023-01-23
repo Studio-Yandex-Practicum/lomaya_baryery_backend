@@ -5,11 +5,14 @@ from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
+from src.api.response_models.shift import ErrorResponse
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/reports", tags=["Report"])
+
+ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -24,6 +27,9 @@ class ReportsCBV:
         status_code=HTTPStatus.OK,
         summary="Получить информацию об отчёте участника.",
         response_description="Полная информация об отчёте участника.",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_user_report(
         self,
@@ -45,6 +51,9 @@ class ReportsCBV:
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def approve_task_status(
         self,
@@ -54,7 +63,14 @@ class ReportsCBV:
         """Отчет участника проверен и принят."""
         return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
 
-    @router.patch("/{report_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
+    @router.patch(
+        "/{report_id}/decline",
+        status_code=HTTPStatus.OK,
+        summary="Отклонить задание.",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
+    )
     async def decline_task_status(
         self,
         report_id: UUID,
