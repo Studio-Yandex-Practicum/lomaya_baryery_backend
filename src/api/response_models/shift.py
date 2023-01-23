@@ -43,3 +43,7 @@ class ShiftDtoRespone(BaseModel):
 class ShiftWithTotalUsersResponse(ShiftResponse):
     sequence_number: int
     total_users: int
+
+
+class ErrorResponse(BaseModel):
+    detail: str
