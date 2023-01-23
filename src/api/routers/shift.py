@@ -23,6 +23,10 @@ from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
 
+ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
+
 
 @cbv(router)
 class ShiftCBV:
@@ -36,8 +40,8 @@ class ShiftCBV:
         summary="Создать новую смену",
         response_description="Информация о созданной смене",
         responses={
-            400: {"description": "Bad Request Response", "model": ErrorResponse},
-            403: {"description": "Forbidden Response", "model": ErrorResponse},
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
         },
     )
     async def create_new_shift(
@@ -59,7 +63,7 @@ class ShiftCBV:
         summary="Получить информацию о смене",
         response_description="Информация о смене",
         responses={
-            404: {"description": "Not Found Response", "model": ErrorResponse},
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def get_shift(
@@ -85,9 +89,9 @@ class ShiftCBV:
         summary="Обновить информацию о смене",
         response_description="Обновленная информация о смене",
         responses={
-            400: {"description": "Bad Request Response", "model": ErrorResponse},
-            403: {"description": "Forbidden Response", "model": ErrorResponse},
-            404: {"description": "Not Found Response", "model": ErrorResponse},
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def update_shift(
@@ -113,8 +117,8 @@ class ShiftCBV:
         summary="Старт смены",
         response_description="Информация о запущенной смене",
         responses={
-            400: {"description": "Bad Request Response", "model": ErrorResponse},
-            404: {"description": "Not Found Response", "model": ErrorResponse},
+            400: ERROR_TEMPLATE_FOR_400,
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def start_shift(
@@ -135,7 +139,7 @@ class ShiftCBV:
         summary="Получить список пользователей смены",
         response_description="Информация о смене",
         responses={
-            404: {"description": "Not Found Response", "model": ErrorResponse},
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def get_shift_members(
@@ -211,8 +215,8 @@ class ShiftCBV:
         summary="Завершение смены",
         response_description="Информация о завершенной смене",
         responses={
-            400: {"description": "Bad Request Response", "model": ErrorResponse},
-            404: {"description": "Not Found Response", "model": ErrorResponse},
+            400: ERROR_TEMPLATE_FOR_400,
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
