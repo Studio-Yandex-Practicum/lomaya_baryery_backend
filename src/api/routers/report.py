@@ -52,7 +52,7 @@ class ReportsCBV:
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
-        response_model=None,        
+        response_model=None,
         responses={
             404: ERROR_TEMPLATE_FOR_404,
             403: ERROR_TEMPLATE_FOR_403,
