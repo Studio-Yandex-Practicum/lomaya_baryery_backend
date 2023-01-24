@@ -66,15 +66,15 @@ class UserCreateRequest(BaseModel):
         return user
 
     def compare_with_db_model(self, user: User) -> bool:
-        telegram_id, name, surname = user.telegram_id, user.name, user.surname
-        date_of_birth, city, phone_number = user.date_of_birth, user.city, user.phone_number
-        return (
-            telegram_id == self.telegram_id
-            and name == self.name
-            and surname == self.surname
-            and date_of_birth == self.date_of_birth
-            and city == self.city
-            and phone_number == self.phone_number
+        return all(
+            (
+                self.telegram_id == user.telegram_id,
+                self.name == user.name,
+                self.surname == user.surname,
+                self.date_of_birth == user.date_of_birth,
+                self.city == user.city,
+                self.phone_number == user.phone_number,
+            )
         )
 
 
