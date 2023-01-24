@@ -79,7 +79,7 @@ class UserService:
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
-        user = user_scheme.update_db_model(User())
+        user = user_scheme.create_db_model()
         await validate_user_create(user_scheme, self.__user_repository)
         return await self.__user_repository.create(user)
 

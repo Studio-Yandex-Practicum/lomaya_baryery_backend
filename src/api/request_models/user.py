@@ -56,6 +56,10 @@ class UserCreateRequest(BaseModel):
     def validate_date_of_birth(cls, value: str):
         return datetime.strptime(value, DATE_FORMAT).date()
 
+    def create_db_model(self) -> User:
+        user = User()
+        return self.update_db_model(user)
+
     def update_db_model(self, user: User) -> User:
         user.telegram_id = self.telegram_id
         user.name = self.name
