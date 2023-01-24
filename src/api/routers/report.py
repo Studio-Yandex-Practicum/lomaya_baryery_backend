@@ -13,6 +13,7 @@ from src.core.services.shift_service import ShiftService
 router = APIRouter(prefix="/reports", tags=["Report"])
 
 ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -53,6 +54,7 @@ class ReportsCBV:
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
         responses={
             404: ERROR_TEMPLATE_FOR_404,
+            403: ERROR_TEMPLATE_FOR_403,
         },
     )
     async def approve_task_status(
@@ -69,6 +71,7 @@ class ReportsCBV:
         summary="Отклонить задание.",
         responses={
             404: ERROR_TEMPLATE_FOR_404,
+            403: ERROR_TEMPLATE_FOR_403,
         },
     )
     async def decline_task_status(
