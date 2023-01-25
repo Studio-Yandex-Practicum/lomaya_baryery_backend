@@ -11,7 +11,7 @@ class AdministratorAuthenticateRequest(RequestBase):
     password: SecretStr
 
 
-class AdministratorListRequest(ReferenceError):
+class AdministratorListRequest(RequestBase):
     """Схема для запроса списка администраторов."""
 
     status: Administrator.Status | None
