@@ -26,7 +26,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
             await context.bot.send_message(
                 chat_id=member.user.telegram_id,
                 text=(
-                    f"f'{member.user.name} {member.user.surname}, мы потеряли тебя!"
+                    f"{member.user.name} {member.user.surname}, мы потеряли тебя!"
                     f"Задание все еще ждет тебя."
                     f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                     f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
@@ -36,7 +36,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
             context._chat_id, context.error = member.user.telegram_id, e
             await error_handler(update=None, context=context)
 
-    send_message_tasks = [send_message(member) for member in members]
+    send_message_tasks = [send_message(member) for member in members if not member.user.telegram_blocked]
     context.application.create_task(asyncio.gather(*send_message_tasks))
 
 
@@ -68,5 +68,5 @@ async def send_daily_task_job(context: CallbackContext) -> None:
             context._chat_id, context.error = member.user.telegram_id, e
             await error_handler(update=None, context=context)
 
-    send_message_tasks = [send_photo(member) for member in members]
+    send_message_tasks = [send_photo(member) for member in members if not member.user.telegram_blocked]
     context.application.create_task(asyncio.gather(*send_message_tasks))

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report, User
+from src.core.db.models import Member, Report
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -51,11 +51,9 @@ class MemberRepository(AbstractRepository):
             select(Member)
             .options(joinedload(Member.user))
             .join(Report)
-            .join(User)
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
-                User.telegram_blocked.__eq__(False),
                 Report.status == Report.Status.WAITING,
                 Report.task_date == current_task_date,
             )

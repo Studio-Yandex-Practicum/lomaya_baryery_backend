@@ -46,7 +46,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     if user and user.telegram_blocked:
-        await user_service.telegram_blocked_change(user, False)
+        await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     await register(update, context)
 
@@ -134,6 +134,6 @@ async def error_handler(update: object, context: ContextTypes) -> None:
         session = get_session()
         user_service = await get_user_service_callback(session)
         user = await user_service.get_user_by_telegram_id(context._chat_id)
-        await user_service.telegram_blocked_change(user, True)
+        await user_service.set_telegram_blocked(user)
     else:
         raise error

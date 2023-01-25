@@ -119,6 +119,10 @@ class UserService:
     ) -> list[UserWithStatusResponse]:
         return await self.__user_repository.get_users_with_status(status, field_sort, direction_sort)
 
-    async def telegram_blocked_change(self, user: User, telegram_blocked: bool) -> None:
-        user.telegram_blocked = telegram_blocked
+    async def set_telegram_blocked(self, user: User) -> None:
+        user.telegram_blocked = True
+        await self.__user_repository.update(user.id, user)
+
+    async def unset_telegram_blocked(self, user: User) -> None:
+        user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)

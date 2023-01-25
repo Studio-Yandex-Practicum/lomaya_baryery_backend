@@ -53,7 +53,7 @@ class ReportService:
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
         shift_id = await self.__shift_repository.get_started_shift_id()
-        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE, False)
+        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
