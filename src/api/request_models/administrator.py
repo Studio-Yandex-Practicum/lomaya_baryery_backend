@@ -1,6 +1,7 @@
 from pydantic import EmailStr, SecretStr
 
 from src.api.request_models.request_base import RequestBase
+from src.core.db.models import Administrator
 
 
 class AdministratorAuthenticateRequest(RequestBase):
@@ -8,3 +9,10 @@ class AdministratorAuthenticateRequest(RequestBase):
 
     email: EmailStr
     password: SecretStr
+
+
+class AdministratorListRequest(ReferenceError):
+    """Схема для запроса списка администраторов."""
+
+    status: Administrator.Status | None
+    role: Administrator.Role | None

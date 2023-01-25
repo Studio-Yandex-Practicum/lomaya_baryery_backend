@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -24,3 +25,9 @@ class TokenResponse(BaseModel):
 
     access_token: str
     refresh_token: str
+
+
+class AdministratorListResponse(AdministratorResponse):
+    """Схема для отображения списка администраторов."""
+
+    last_login_at: datetime

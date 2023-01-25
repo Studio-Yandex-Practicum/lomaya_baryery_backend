@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
@@ -25,3 +25,21 @@ class AdministratorRepository(AbstractRepository):
         if not administrator:
             raise AdministratorNotFoundException()
         return administrator
+
+    async def get_administrators(
+        self, status: Administrator.Status | None, role: Administrator.Role | None
+    ) -> list[Administrator]:
+        """Возвращает из БД список администраторов отсортированный по фамилии и имени по возрастанию.
+
+        Фильтрует результат в зависимости от переданных параметров
+
+        Аргументы:
+            status (Administrator.Status): требуемый статус администраторов
+            role (Administrator.Role): требуемая роль администраторов
+        """
+        statement = (
+            select(Administrator)
+            .where(or_(status is None, Administrator.status == status), or_(role is None, Administrator.role == role))
+            .order_by(Administrator.surname, Administrator.name)
+        )
+        return (await self._session.scalars(statement)).all()
