@@ -1,7 +1,7 @@
-from src.excel_generator import ExcelTasksGenerator, ExcelTestGenerator
+from src.excel_generator import ExcelTasksGenerator
 
 
-class ExcelMainGenerator(ExcelTestGenerator, ExcelTasksGenerator):
+class ExcelMainGenerator(ExcelTasksGenerator):
     """Главный генератор excel отчётов."""
 
     ...
