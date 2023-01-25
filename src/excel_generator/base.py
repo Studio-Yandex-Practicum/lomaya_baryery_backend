@@ -13,7 +13,7 @@ class ExcelBaseGenerator:
         self.workbook = Workbook()
         self.workbook.remove_sheet(self.workbook.active)
 
-    def clear_workbook(self):
+    def __clear_workbook(self):
         """Очищает Workbook после сохранения данных."""
         sheets = self.workbook.get_sheet_names()
         for name in sheets:
@@ -25,7 +25,7 @@ class ExcelBaseGenerator:
         stream = BytesIO()
         self.workbook.save(stream)
         stream.seek(0)
-        self.clear_workbook()
+        self.__clear_workbook()
         return stream
 
     def fill_row(self, sheet: Worksheet, data_list: tuple[str], row_number: int) -> None:
@@ -38,32 +38,29 @@ class ExcelBaseGenerator:
         # задаём стиль для хэдера
         header_cells = list(sheet.iter_rows())[0]
         for cell in header_cells:
-            cell.font = self.Styles.FONT_BOLD
-            cell.alignment = self.Styles.ALIGNMENT_HEADER
+            cell.font = self.Styles.FONT_BOLD.value
+            cell.alignment = self.Styles.ALIGNMENT_HEADER.value
         # задаём стиль для ячеек с данными
         data_rows = list(sheet.iter_rows())[1:max_row - 1]  # fmt: skip
         for row in data_rows:
             for cell in row:
-                cell.font = self.Styles.FONT_STANDART
-                cell.alignment = self.Styles.ALIGNMENT_STANDART
+                cell.font = self.Styles.FONT_STANDART.value
+                cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль для футера
         footer_cells = list(sheet.iter_rows())[max_row - 1]
         for cell in footer_cells:
-            cell.font = self.Styles.FONT_BOLD
-            cell.alignment = self.Styles.ALIGNMENT_STANDART
+            cell.font = self.Styles.FONT_BOLD.value
+            cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль границ и колонок
         for row in sheet.iter_rows():
             for cell in row:
-                cell.border = self.Styles.BORDER
-        sheet.column_dimensions["A"].width = self.Styles.WIDTH
+                cell.border = self.Styles.BORDER.value
+        sheet.column_dimensions["A"].width = self.Styles.WIDTH.value
 
     class Sheets(str, enum.Enum):
-        """Список листов."""
-
         TASKS = "Задачи"
-        TEST = "Тест"
 
-    class Styles:
+    class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
         FONT_STANDART = Font(name='Times New Roman', size=11, bold=False)
         ALIGNMENT_HEADER = Alignment(horizontal='center', vertical='center', wrap_text=True)

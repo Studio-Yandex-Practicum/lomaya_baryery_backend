@@ -76,17 +76,17 @@ class TaskCBV:
         return await self.task_service.get_task(task_id)
 
     @router.get(
-        "/analytics",
+        "/analytics/",
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Задачи",
     )
-    async def generate_report_request(self) -> StreamingResponse:
+    async def generate_report(self) -> StreamingResponse:
         """
         Формирует excel файл со сведениями о задачах по всем сменам.
 
         Содержит:
-            - cписок всех заданий;
-            - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
+        - cписок всех заданий;
+        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
         return await self.task_service.generate_report()

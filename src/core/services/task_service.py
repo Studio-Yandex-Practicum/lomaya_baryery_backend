@@ -8,7 +8,7 @@ from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
 from src.core.services.excel_report_service import ExcelReportService
 from src.core.settings import settings
-from src.excel_generator.base import ExcelBaseGenerator
+from src.excel_generator.main import excel_generator
 
 
 class TaskService:
@@ -38,7 +38,7 @@ class TaskService:
         return task
 
     async def generate_report(self) -> StreamingResponse:
-        return await self.__excel_report_service.generate_report((ExcelBaseGenerator.Sheets.TASKS.value,))
+        return await self.__excel_report_service.generate_report(excel_generator.Sheets.TASKS.value)
 
     async def create_task(self, new_task: TaskCreateRequest) -> Task:
         task = Task(description=new_task.description)
