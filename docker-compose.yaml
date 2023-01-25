@@ -14,9 +14,10 @@ services:
     volumes:
       - postgres_data_stage:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"
+      - "6100:6100"
     env_file:
       - .env
+    command: -p 6100
 
   backend:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
@@ -39,6 +40,8 @@ services:
       - TZ=Europe/Moscow
       - URL=lombaryery.tk
       - VALIDATION=http
+      - CERTPROVIDER=zerossl
+      - EMAIL=lomayabaryery@yandex.ru
     ports:
       - "443:443"
       - "80:80"

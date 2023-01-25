@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -8,7 +9,7 @@ from src.api.request_models.user import (
     UserDescAscSortRequest,
     UserFieldSortRequest,
 )
-from src.api.response_models.user import UserWithStatusResponse
+from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
@@ -78,30 +79,29 @@ class UserService:
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
-        user = User(**user_scheme.dict())
+        user = user_scheme.create_db_model()
         await validate_user_create(user_scheme, self.__user_repository)
         return await self.__user_repository.create(user)
 
-    async def __update_user_if_data_changed(self, user: User, income_data: UserCreateRequest) -> User:
+    async def __update_user_if_data_changed(self, user: User, user_scheme: UserCreateRequest) -> User:
         """Обновление данных пользователя, если им внесены изменения."""
-        if (
-            user.telegram_id == income_data.telegram_id
-            and user.name == income_data.name
-            and user.surname == income_data.surname
-            and user.date_of_birth == income_data.date_of_birth
-            and user.city == income_data.city
-            and user.phone_number == income_data.phone_number
-        ):
+        if user_scheme.compare_with_db_model(user):
             return user
-        validate_date_of_birth(income_data.date_of_birth)
+        validate_date_of_birth(user_scheme.date_of_birth)
         user.status = User.Status.PENDING
-        for field, value in vars(income_data).items():
-            setattr(user, field, value)
+        user = user_scheme.update_db_model(user)
         return await self.__user_repository.update(user.id, user)
 
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""
         return await self.__user_repository.get_by_telegram_id(telegram_id)
+
+    async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> UserDetailResponse:
+        """Получить участника проекта с информацией о сменах по его id."""
+        user = await self.__user_repository.get(user_id)
+        list_user_shifts = await self.__user_repository.get_user_shifts_detail(user.id)
+        user.shifts = list_user_shifts
+        return user
 
     async def list_all_users(
         self,
