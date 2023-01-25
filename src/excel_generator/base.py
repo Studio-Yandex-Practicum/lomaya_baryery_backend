@@ -13,19 +13,12 @@ class ExcelBaseGenerator:
         self.workbook = Workbook()
         self.workbook.remove_sheet(self.workbook.active)
 
-    def __clear_workbook(self):
-        """Очищает Workbook после сохранения данных."""
-        sheets = self.workbook.get_sheet_names()
-        for name in sheets:
-            sheet_to_remove = self.workbook.get_sheet_by_name(name)
-            self.workbook.remove_sheet(sheet_to_remove)
-
     async def save_report_to_stream(self) -> BytesIO:
         """Сохраняет отчёт в буфер памяти."""
         stream = BytesIO()
         self.workbook.save(stream)
         stream.seek(0)
-        self.__clear_workbook()
+        self.workbook = Workbook()
         return stream
 
     def fill_row(self, sheet: Worksheet, data_list: tuple[str], row_number: int) -> None:
