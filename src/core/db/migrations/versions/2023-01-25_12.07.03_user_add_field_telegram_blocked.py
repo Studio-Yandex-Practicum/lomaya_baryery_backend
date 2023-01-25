@@ -1,16 +1,16 @@
 """user_add_field_telegram_blocked
 
-Revision ID: ff2e044f44aa
-Revises: cf3ecbc0aacc
-Create Date: 2023-01-23 23:22:10.292405
+Revision ID: 73c0ad19dc7a
+Revises: c58512d0c0c1
+Create Date: 2023-01-25 12:07:03.075311
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'ff2e044f44aa'
-down_revision = 'cf3ecbc0aacc'
+revision = '73c0ad19dc7a'
+down_revision = 'c58512d0c0c1'
 branch_labels = None
 depends_on = None
 
