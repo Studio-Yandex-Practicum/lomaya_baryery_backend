@@ -26,7 +26,7 @@ class AdministratorRepository(AbstractRepository):
             raise AdministratorNotFoundException()
         return administrator
 
-    async def get_administrators(
+    async def get_administrators_filter_by_role_and_status(
         self, status: Administrator.Status | None, role: Administrator.Role | None
     ) -> list[Administrator]:
         """Возвращает из БД список администраторов отсортированный по фамилии и имени по возрастанию.
