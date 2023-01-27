@@ -69,12 +69,13 @@ class ReportRepository(AbstractRepository):
             stmt = stmt.where(Report.shift_id == shift_id)
         if status:
             stmt = stmt.where(Report.status == status)
-        stmt = stmt.join(Shift).join(Member).join(User).join(Task).\
-            where(Report.shift_id == Shift.id).\
-            where(Report.member_id == Member.id).\
-            where(Report.task_id == Task.id).\
-            where(Member.user_id == User.id).\
-            order_by(desc(Shift.started_at))
+        stmt = stmt.join(Shift).join(Member).join(User).join(Task).order_by(desc(Shift.started_at))
+        stmt = stmt.where(
+            Report.shift_id == Shift.id,
+            Report.member_id == Member.id,
+            Report.task_id == Task.id,
+            Member.user_id == User.id
+        )
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
 
