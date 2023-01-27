@@ -21,9 +21,7 @@ class TaskService:
             image.close()
         return urljoin(settings.task_image_url, file_name)
 
-    async def get_task_ids_list(
-        self,
-    ) -> list[UUID]:
+    async def get_task_ids_list(self) -> list[UUID]:
         return await self.__task_repository.get_task_ids_list()
 
     async def get_task_by_day_of_month(self, tasks: Shift.tasks, day_of_month: int) -> Task:
