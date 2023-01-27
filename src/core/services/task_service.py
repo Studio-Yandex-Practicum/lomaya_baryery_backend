@@ -1,22 +1,16 @@
 from fastapi import Depends, UploadFile
-from fastapi.responses import StreamingResponse
 from pydantic.schema import UUID
 
 from src.api.request_models.task import TaskCreateRequest
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
-from src.core.services.excel_report_service import ExcelReportService
 from src.core.settings import settings
-from src.excel_generator.main import excel_generator
 
 
 class TaskService:
-    def __init__(
-        self, task_repository: TaskRepository = Depends(), excel_report_service: ExcelReportService = Depends()
-    ) -> None:
+    def __init__(self, task_repository: TaskRepository = Depends()) -> None:
         self.__task_repository = task_repository
-        self.__excel_report_service = excel_report_service
 
     async def __download_file(self, file: UploadFile) -> str:
         file_name = file.filename.replace(' ', '_')
@@ -25,9 +19,7 @@ class TaskService:
             image.close()
         return f"{settings.task_image_url}/{file_name}"
 
-    async def get_task_ids_list(
-        self,
-    ) -> list[UUID]:
+    async def get_task_ids_list(self) -> list[UUID]:
         return await self.__task_repository.get_task_ids_list()
 
     async def get_task_by_day_of_month(self, tasks: Shift.tasks, day_of_month: int) -> Task:
@@ -36,9 +28,6 @@ class TaskService:
         if not task:
             raise TodayTaskNotFoundError()
         return task
-
-    async def generate_report(self) -> StreamingResponse:
-        return await self.__excel_report_service.generate_report(excel_generator.Sheets.TASKS.value)
 
     async def create_task(self, new_task: TaskCreateRequest) -> Task:
         task = Task(description=new_task.description)

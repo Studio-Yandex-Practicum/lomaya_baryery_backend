@@ -10,15 +10,18 @@ class ExcelBaseGenerator:
     """Базовый генератор excel отчётов."""
 
     def __init__(self) -> None:
-        self.workbook = Workbook()
-        self.workbook.remove_sheet(self.workbook.active)
+        self.__workbook = Workbook()
+        self.__workbook.remove_sheet(self.__workbook.active)
+
+    def create_sheet(self, sheet_name) -> Worksheet:
+        return self.__workbook.create_sheet(sheet_name)
 
     async def save_report_to_stream(self) -> BytesIO:
         """Сохраняет отчёт в буфер памяти."""
         stream = BytesIO()
-        self.workbook.save(stream)
+        self.__workbook.save(stream)
         stream.seek(0)
-        self.workbook = Workbook()
+        self.__workbook = Workbook()
         return stream
 
     def fill_row(self, sheet: Worksheet, data_list: tuple[str], row_number: int) -> None:
@@ -49,9 +52,6 @@ class ExcelBaseGenerator:
             for cell in row:
                 cell.border = self.Styles.BORDER.value
         sheet.column_dimensions["A"].width = self.Styles.WIDTH.value
-
-    class Sheets(str, enum.Enum):
-        TASKS = "Задачи"
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)

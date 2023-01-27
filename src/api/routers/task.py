@@ -2,7 +2,6 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import TaskCreateRequest
@@ -74,19 +73,3 @@ class TaskCBV:
         - **description**: описание задания
         """
         return await self.task_service.get_task(task_id)
-
-    @router.get(
-        "/analytics/",
-        response_class=StreamingResponse,
-        status_code=HTTPStatus.OK,
-        summary="Задачи",
-    )
-    async def generate_report(self) -> StreamingResponse:
-        """
-        Формирует excel файл со сведениями о задачах по всем сменам.
-
-        Содержит:
-        - cписок всех заданий;
-        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
-        """
-        return await self.task_service.generate_report()
