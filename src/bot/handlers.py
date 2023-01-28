@@ -84,7 +84,7 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id.replace('-', '') + Path(file.file_path).suffix
-    await file.download(custom_path=(settings.user_reports_dir / file_name))
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_name))
     return str(file.file_path)
 
 
