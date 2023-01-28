@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
 
     @property
-    def database_url(self):
+    def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
         return (
             "postgresql+asyncpg://"
@@ -57,12 +57,12 @@ class Settings(BaseSettings):
         )
 
     @property
-    def user_reports_dir(self):
+    def user_reports_dir(self) -> str:
         """Получить директорию для сохранения фотоотчета."""
         return BASE_DIR / 'data' / 'user_reports'
 
     @property
-    def user_reports_url(self):
+    def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
         return f"{self.APPLICATION_URL}/data/user_reports"
 
@@ -82,7 +82,7 @@ class Settings(BaseSettings):
         return BASE_DIR / 'src' / 'static' / 'tasks'
 
     @property
-    def email_template_directory(self):
+    def email_template_directory(self) -> str:
         """Получить директорию шаблонов электронной почты."""
         return BASE_DIR / "src/templates/email"
 
