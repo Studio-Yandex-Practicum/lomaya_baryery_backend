@@ -62,6 +62,11 @@ class Settings(BaseSettings):
         return BASE_DIR / 'data' / 'user_reports'
 
     @property
+    def user_reports_url(self):
+        """Получить ссылку на изображения фотоотчетов."""
+        return f"{self.APPLICATION_URL}/data/user_reports"
+
+    @property
     def registration_template_url(self) -> str:
         """Получить ссылку на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"

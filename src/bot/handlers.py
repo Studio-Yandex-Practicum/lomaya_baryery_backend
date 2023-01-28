@@ -85,7 +85,7 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id.replace('-', '') + Path(file.file_path).suffix
     await file.download_to_drive(custom_path=(settings.user_reports_dir / file_name))
-    return str(file.file_path)
+    return f'{file_name}'
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -95,13 +95,12 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user_service = UserService(UserRepository(session), RequestRepository(session))
     report_service = ReportService(ReportRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    file_path = await download_photo_report_callback(update, context)
-    photo_url = f'{settings.APPLICATION_URL}/{settings.user_reports_dir}/{file_path}'
+    file_name = await download_photo_report_callback(update, context)
+    photo_url = f'{settings.user_reports_url}/{file_name}'
 
     try:
         await report_service.send_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
-
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
     except CannotAcceptReportError:
