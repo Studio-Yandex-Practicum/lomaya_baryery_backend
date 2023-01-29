@@ -87,6 +87,8 @@ jobs:
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
             echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
+            echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
+            echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
 
   start_application:
     name: Start application

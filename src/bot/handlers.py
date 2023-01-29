@@ -78,11 +78,19 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         user_scheme.telegram_id = update.effective_user.id
         session = get_session()
         registration_service = await get_user_service_callback(session)
+        telegram_user_id = update._effective_user.id
+        user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
+        if user is None:
+            await update.message.reply_text(
+                text="Процесс регистрации занимает некоторое время - вам придет уведомление",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        else:
+            await update.message.reply_text(
+                text="Вы успешно обновили ваши регистрационные данные!",
+                reply_markup=ReplyKeyboardRemove(),
+            )
         await registration_service.register_user(user_scheme)
-        await update.message.reply_text(
-            text="Процесс регистрации занимает некоторое время - вам придет уведомление",
-            reply_markup=ReplyKeyboardRemove(),
-        )
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValidationError):
             e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))

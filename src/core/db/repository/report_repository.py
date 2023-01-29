@@ -56,6 +56,7 @@ class ReportRepository(AbstractRepository):
             Shift.status,
             Shift.started_at,
             Report.id,
+            Report.status,
             Report.created_at,
             User.name,
             User.surname,
@@ -69,6 +70,12 @@ class ReportRepository(AbstractRepository):
         if status:
             stmt = stmt.where(Report.status == status)
         stmt = stmt.join(Shift).join(Member).join(User).join(Task).order_by(desc(Shift.started_at))
+        stmt = stmt.where(
+            Report.shift_id == Shift.id,
+            Report.member_id == Member.id,
+            Report.task_id == Task.id,
+            Member.user_id == User.id
+        )
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
 

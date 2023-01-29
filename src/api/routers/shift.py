@@ -12,6 +12,7 @@ from src.api.request_models.shift import (
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
+    ErrorResponse,
     ShiftDtoRespone,
     ShiftMembersResponse,
     ShiftResponse,
@@ -21,6 +22,10 @@ from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
+
+ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -34,6 +39,10 @@ class ShiftCBV:
         status_code=HTTPStatus.CREATED,
         summary="Создать новую смену",
         response_description="Информация о созданной смене",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
+        },
     )
     async def create_new_shift(
         self,
@@ -53,6 +62,9 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Получить информацию о смене",
         response_description="Информация о смене",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_shift(
         self,
@@ -76,6 +88,11 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Обновить информацию о смене",
         response_description="Обновленная информация о смене",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def update_shift(
         self,
@@ -99,6 +116,10 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Старт смены",
         response_description="Информация о запущенной смене",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def start_shift(
         self,
@@ -117,6 +138,9 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Получить список пользователей смены",
         response_description="Информация о смене",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_shift_members(
         self, shift_id: UUID, member_status: Optional[Member.Status] = None
@@ -190,6 +214,10 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Завершение смены",
         response_description="Информация о завершенной смене",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
         """Закончить смену.

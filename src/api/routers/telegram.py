@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Request, status
-from fastapi.templating import Jinja2Templates
 
 from src.api.request_models.user import UserWebhookTelegram
 from src.core.settings import settings
@@ -15,9 +14,7 @@ FORM_AUTOFILL_TELEGRAM_TEMPLATE = "registration.html"
     summary="Получить шаблон формы в телеграм",
     response_description="Заполняет форму пользоваптельскими данными",
 )
-async def user_register_form_webhook(
-    request: Request, webhook_telegram_user: UserWebhookTelegram = Depends()
-) -> Jinja2Templates:
+async def user_register_form_webhook(request: Request, webhook_telegram_user: UserWebhookTelegram = Depends()):
     """
     Получить форму пользователя в телеграм.
 

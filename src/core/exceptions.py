@@ -74,20 +74,20 @@ class SendTelegramNotifyException(ApplicationException):
     def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
-            f"Возникла ошибка '{exc}' при отправке сообщения пользователю - "
-            f"id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
+            f"Возникла ошибка '{exc}' при отправке сообщения пользователю -"
+            f" id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
         )
 
 
 class ReportAlreadyReviewedException(ApplicationException):
     def __init__(self, status: UUID):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Задание уже проверено, статус задания: {}.".format(status)
 
 
 class ReportWaitingPhotoException(ApplicationException):
     def __init__(self):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "К заданию нет отчета участника."
 
 
@@ -151,7 +151,7 @@ class AlreadyRegisteredException(RegistrationException):
 
 class RequestAlreadyReviewedException(ApplicationException):
     def __init__(self, status):
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
@@ -191,3 +191,15 @@ class AdministratorNotFoundException(ApplicationException):
 
     status_code = HTTPStatus.BAD_REQUEST
     detail = "Пользователь с указанными реквизитами не найден."
+
+
+class AdministratorInvitationInvalid(RegistrationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Указанный код регистрации неверен или устарел."
+
+
+class EmailSendException(ApplicationException):
+    def __init__(self, recipients: list[str], exc: Exception):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."

@@ -359,10 +359,17 @@
     };
 
     // send data to server
+    {% if name %}
+    const showTgButton = (tgMainButton) => {
+      tgMainButton.setText("Обновить учетные данные");
+      tgMainButton.show();
+    };
+    {% else %}
     const showTgButton = (tgMainButton) => {
       tgMainButton.setText("Зарегистрироваться в проекте");
       tgMainButton.show();
     };
+    {% endif %}
 
     const handleSubmit = (inputs, tg) => {
       tg.MainButton.disable();

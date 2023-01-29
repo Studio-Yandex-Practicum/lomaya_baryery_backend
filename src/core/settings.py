@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
@@ -37,6 +38,13 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
 
+    MAIL_SERVER: str = "smtp.ethereal.email"
+    MAIL_PORT: int = 587
+    MAIL_LOGIN: str = "michel.bruen24@ethereal.email"
+    MAIL_PASSWORD: str = "tM7wbvvvtmRrWy54PD"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
+
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
 
@@ -44,7 +52,7 @@ class Settings(BaseSettings):
     def database_url(self):
         """Получить ссылку для подключения к DB."""
         return (
-            f"postgresql+asyncpg://"
+            "postgresql+asyncpg://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
@@ -69,6 +77,11 @@ class Settings(BaseSettings):
         """Получить директорию c изображениями заданий."""
         return BASE_DIR / 'src' / 'static' / 'tasks'
 
+    @property
+    def email_template_directory(self):
+        """Получить директорию шаблонов электронной почты."""
+        return BASE_DIR / "src/templates/email"
+
     class Config:
         env_file = ENV_FILE
 
@@ -84,3 +97,4 @@ settings = get_settings()
 ORGANIZATIONS_EMAIL = "info@stereotipov.net"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
+INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
