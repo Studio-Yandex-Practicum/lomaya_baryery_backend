@@ -91,21 +91,15 @@ class ReportWaitingPhotoException(ApplicationException):
         self.detail = "К заданию нет отчета участника."
 
 
-class CreateShiftForbiddenException(ApplicationException):
+class ShiftCreateException(ApplicationException):
     def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Запрещено создавать более одной новой смены"
 
 
 class ShiftUpdateException(ApplicationException):
     def __init__(self, detail: str):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = detail
-
-
-class UpdateShiftForbiddenException(ShiftUpdateException):
-    def __init__(self, detail: str):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = detail
 
 

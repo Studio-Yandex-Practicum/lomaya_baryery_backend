@@ -21,10 +21,9 @@ from src.bot import services
 from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import (
-    CreateShiftForbiddenException,
+    ShiftCreateException,
     ShiftsDatesIntersectionException,
     ShiftUpdateException,
-    UpdateShiftForbiddenException,
 )
 from src.core.services.task_service import TaskService
 
@@ -69,18 +68,18 @@ class ShiftService:
         if preparing_started_at <= started_finished_at:
             raise ShiftsDatesIntersectionException()
 
-    def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
+    def __check_update_shift(self, status: Shift.Status) -> None:
         """Проверка, что смену нельзя изменить.
 
         Нельзя изменять смены со статусами CANCELLED и FINISHED.
         """
         if status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
-            raise UpdateShiftForbiddenException(detail="Запрещено изменять завершенную или отмененную смену")
+            raise ShiftUpdateException(detail="Нельзя изменить завершенную или отмененную смену")
 
     def __check_shift_started_at_date_changed(self, started_at: date, update_started_at: date) -> None:
         """Проверка, что дата начала изменилась."""
         if started_at != update_started_at:
-            raise UpdateShiftForbiddenException(detail="Нельзя изменить дату начала текущей смены")
+            raise ShiftUpdateException(detail="Нельзя изменить дату начала текущей смены")
 
     async def __check_preparing_shift_already_exists(self) -> None:
         """Проверка, что новая смена уже существует.
@@ -88,7 +87,7 @@ class ShiftService:
         Если новая смена уже существует, то создание ещё одной запрещено.
         """
         if await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.PREPARING):
-            raise CreateShiftForbiddenException()
+            raise ShiftCreateException()
 
     async def __check_preparing_shift_dates(self, started_at: date, finished_at: date) -> None:
         """Проверка дат новой смены.
@@ -125,7 +124,7 @@ class ShiftService:
 
     async def __validate_shift_on_update(self, shift: Shift, update_shift_data: ShiftUpdateRequest) -> None:
         """Валидация смены при обновлении."""
-        self.__check_update_shift_forbidden(shift.status)
+        self.__check_update_shift(shift.status)
         if shift.status == Shift.Status.STARTED:
             self.__check_shift_started_at_date_changed(shift.started_at, update_shift_data.started_at)
             await self.__check_started_shift_dates(update_shift_data.started_at, update_shift_data.finished_at)
