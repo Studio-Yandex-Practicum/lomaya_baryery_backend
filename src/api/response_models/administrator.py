@@ -15,6 +15,7 @@ class AdministratorResponse(BaseModel):
     email: str
     role: Administrator.Role
     status: Administrator.Status
+    last_login_at: datetime | None
 
     class Config:
         orm_mode = True
@@ -25,9 +26,3 @@ class TokenResponse(BaseModel):
 
     access_token: str
     refresh_token: str
-
-
-class AdministratorListResponse(AdministratorResponse):
-    """Схема для отображения списка администраторов."""
-
-    last_login_at: datetime

@@ -4,11 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
-from src.api.response_models.administrator import (
-    AdministratorListResponse,
-    AdministratorResponse,
-    TokenResponse,
-)
+from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
@@ -54,7 +50,7 @@ class AdministratorCBV:
 
     @router.get(
         "/",
-        response_model=list[AdministratorListResponse],
+        response_model=list[AdministratorResponse],
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Запрос списка администраторов с возможностью фильтрации по статусу и роли",
