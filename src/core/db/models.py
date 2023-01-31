@@ -53,6 +53,7 @@ class Shift(Base):
 
         STARTED = "started"
         FINISHED = "finished"
+        READY_FOR_COMPLETE = "ready_for_complete"
         PREPARING = "preparing"
         CANCELLED = "cancelled"
 

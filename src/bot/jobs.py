@@ -8,6 +8,7 @@ from telegram.ext import CallbackContext
 from src.bot.api_services import (
     get_member_service_callback,
     get_report_service_callback,
+    get_shift_service_callback,
 )
 from src.core.db.db import get_session
 from src.core.settings import settings
@@ -58,3 +59,10 @@ async def send_daily_task_job(context: CallbackContext) -> None:
         for member in members
     ]
     context.application.create_task(asyncio.gather(*send_message_tasks))
+
+
+async def finish_shift_automatically_job(context: CallbackContext) -> None:
+    """Автоматически закрывает смену в дату, указанную в finished_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    await shift_service.finish_shift_automatically(context.application)

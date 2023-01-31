@@ -92,3 +92,7 @@ class BotService:
             for member in shift.members
         ]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
+
+    async def notify_member_that_shift_is_finished(self, user: models.User, shift: models.Shift) -> None:
+        """Уведомление участника об окончании смены. Отправляется вместе с последним проверенным заданием."""
+        await self.__bot.send_message(user.telegram_id, shift.final_message)
