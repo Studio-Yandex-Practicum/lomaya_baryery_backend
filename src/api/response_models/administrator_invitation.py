@@ -12,3 +12,6 @@ class AdministratorInvitationResponse(BaseModel):
     email: str
     expired_date: date
     token: UUID
+
+    class Config:
+        orm_mode = True
