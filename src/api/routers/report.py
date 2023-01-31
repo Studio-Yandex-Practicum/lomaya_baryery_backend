@@ -88,6 +88,9 @@ class ReportsCBV:
         "/",
         response_model=list[ReportSummaryResponse],
         summary="Получения списка заданий пользователя по полям status и shift_id.",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_report_summary(
         self,

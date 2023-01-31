@@ -95,6 +95,8 @@ class ReportService:
 
         Список берется по id смены и/или статусу заданий с url фото выполненного задания.
         """
+        if shift_id:
+            await self.__shift_repository.get(shift_id)
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:

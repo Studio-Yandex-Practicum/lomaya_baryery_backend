@@ -7,10 +7,15 @@ from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
+from src.api.response_models.shift import ErrorResponse
 from src.core.db import DTO_models, models
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
+
+ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
+ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -22,6 +27,11 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Одобрить заявку на участие.",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def approve_request_status(
         self,
@@ -36,6 +46,11 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Отклонить заявку на участие.",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            403: ERROR_TEMPLATE_FOR_403,
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def decline_request_status(
         self,

@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import TaskCreateRequest
+from src.api.response_models.shift import ErrorResponse
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
 router = APIRouter(prefix="/tasks", tags=["Task"])
+
+ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -60,6 +63,9 @@ class TaskCBV:
         status_code=HTTPStatus.OK,
         summary="Получить задание",
         response_description="Информация о задании",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+        },
     )
     async def get_task(
         self,
