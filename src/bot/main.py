@@ -18,7 +18,7 @@ from src.bot.handlers import photo_handler, start, web_app_data
 from src.bot.jobs import (
     send_daily_task_job,
     send_no_report_reminder_job,
-    start_shift_automatically,
+    start_shift_automatically_job,
 )
 from src.core.settings import settings
 
@@ -38,7 +38,7 @@ def create_bot() -> Application:
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
     bot_instance.job_queue.run_daily(
-        start_shift_automatically,
+        start_shift_automatically_job,
         time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
     )
     bot_instance.job_queue.run_daily(
