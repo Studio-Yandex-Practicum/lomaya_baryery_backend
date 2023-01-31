@@ -48,6 +48,7 @@ class ReportSummaryResponse(BaseModel):
     shift_status: Shift.Status
     shift_started_at: date
     report_id: UUID
+    report_status: Report.Status
     report_created_at: date
     user_name: str
     user_surname: str

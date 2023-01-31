@@ -40,6 +40,8 @@ services:
       - TZ=Europe/Moscow
       - URL=lombaryery.tk
       - VALIDATION=http
+      - CERTPROVIDER=zerossl
+      - EMAIL=lomayabaryery@yandex.ru
     ports:
       - "443:443"
       - "80:80"

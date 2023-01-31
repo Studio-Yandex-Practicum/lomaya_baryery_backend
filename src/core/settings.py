@@ -1,4 +1,6 @@
 import os
+import uuid
+from datetime import timedelta
 from pathlib import Path
 
 from pydantic import BaseSettings
@@ -33,6 +35,14 @@ class Settings(BaseSettings):
     MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
+    SECRET_KEY: str = str(uuid.uuid4())
+
+    MAIL_SERVER: str = "smtp.ethereal.email"
+    MAIL_PORT: int = 587
+    MAIL_LOGIN: str = "michel.bruen24@ethereal.email"
+    MAIL_PASSWORD: str = "tM7wbvvvtmRrWy54PD"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -41,7 +51,7 @@ class Settings(BaseSettings):
     def database_url(self):
         """Получить ссылку для подключения к DB."""
         return (
-            f"postgresql+asyncpg://"
+            "postgresql+asyncpg://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
         )
@@ -53,8 +63,23 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку для на HTML шаблон регистрации."""
+        """Получить ссылку на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/static/registration.html"
+
+    @property
+    def task_image_url(self) -> str:
+        """Получить ссылку на изображения заданий."""
+        return f"{self.APPLICATION_URL}/static/tasks"
+
+    @property
+    def task_image_dir(self) -> str:
+        """Получить директорию c изображениями заданий."""
+        return BASE_DIR / 'src' / 'static' / 'tasks'
+
+    @property
+    def email_template_directory(self):
+        """Получить директорию шаблонов электронной почты."""
+        return BASE_DIR / "src/templates/email"
 
     class Config:
         env_file = ENV_FILE
@@ -71,3 +96,4 @@ settings = get_settings()
 ORGANIZATIONS_EMAIL = "info@stereotipov.net"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
+INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию

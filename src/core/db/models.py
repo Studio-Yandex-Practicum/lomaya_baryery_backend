@@ -20,6 +20,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
 
+from src.core import settings
 from src.core.exceptions import (
     CannotAcceptReportError,
     EmptyReportError,
@@ -27,7 +28,6 @@ from src.core.exceptions import (
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
-from src.core.settings import NUMBER_ATTEMPTS_SUMBIT_REPORT
 
 
 @as_declarative()
@@ -37,7 +37,10 @@ class Base:
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=False)
     updated_at = Column(
-        TIMESTAMP, server_default=func.current_timestamp(), nullable=False, onupdate=func.current_timestamp()
+        TIMESTAMP,
+        server_default=func.current_timestamp(),
+        nullable=False,
+        onupdate=func.current_timestamp(),
     )
     __name__: str
 
@@ -56,7 +59,8 @@ class Shift(Base):
     __tablename__ = "shifts"
 
     status = Column(
-        Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(Status, name="shift_status", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
     sequence_number = Column(Integer, Identity(start=1, cycle=True))
     started_at = Column(DATE, server_default=func.current_timestamp(), nullable=False, index=True)
@@ -204,7 +208,8 @@ class Report(Base):
     member = relationship("Member", back_populates="reports")
     task_date = Column(DATE, nullable=False)
     status = Column(
-        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
     report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
@@ -216,7 +221,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.number_attempt == NUMBER_ATTEMPTS_SUMBIT_REPORT:
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
             raise ExceededAttemptsReportError
         if not photo_url:
             raise EmptyReportError()
@@ -229,3 +234,51 @@ class Report(Base):
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
         self.number_attempt += 1
+
+
+class Administrator(Base):
+    """Модель администратора смены."""
+
+    class Status(str, enum.Enum):
+        """Cтатус администратора."""
+
+        ACTIVE = "active"
+        BLOCKED = "blocked"
+
+    class Role(str, enum.Enum):
+        """Роль администратора."""
+
+        ADMINISTRATOR = "administrator"
+        PSYCHOLOGIST = "psychologist"
+
+    __tablename__ = "administrators"
+
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(70), nullable=False)
+    role = Column(
+        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    last_login_at = Column(TIMESTAMP)
+    status = Column(
+        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+
+
+class AdministratorInvitation(Base):
+    """Модель приглашения администратора/психолога."""
+
+    __tablename__ = "administrator_invitations"
+
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False)
+    token = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
+    expired_date = Column(TIMESTAMP, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"

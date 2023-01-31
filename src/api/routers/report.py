@@ -45,6 +45,7 @@ class ReportsCBV:
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
+        response_model=None,
     )
     async def approve_task_status(
         self,
@@ -54,7 +55,7 @@ class ReportsCBV:
         """Отчет участника проверен и принят."""
         return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
 
-    @router.patch("/{report_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.")
+    @router.patch("/{report_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.", response_model=None)
     async def decline_task_status(
         self,
         report_id: UUID,
