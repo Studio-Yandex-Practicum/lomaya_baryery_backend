@@ -1,10 +1,11 @@
 import enum
-import re
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import Field, validator
 
 from src.api.request_models.request_base import RequestBase
+
+DATE_FORMAT = "%Y-%m-%d"
 
 
 class ShiftSortRequest(str, enum.Enum):
@@ -22,8 +23,7 @@ class ShiftCreateRequest(RequestBase):
 
     @validator("started_at", "finished_at", pre=True)
     def validate_date_format(cls, value):
-        if not re.match(r'[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])', value):
-            raise ValueError('Неверный формат даты. Необходимо указывать дату в формате YYYY-MM-DD.')
+        datetime.strptime(value, DATE_FORMAT)
         return value
 
 
