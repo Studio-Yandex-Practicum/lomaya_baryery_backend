@@ -18,6 +18,6 @@ class AnalyticTaskReportBuilder(AnalyticReportBuilder):
             f"=SUM(C2:C{self.data_count})",
             f"=SUM(D2:D{self.data_count})",
         ]
-        if self.data_count > 32:
+        if self.data_count > 31:
             self.footer_data = tuple(footer_data)
         super().add_last_row()
