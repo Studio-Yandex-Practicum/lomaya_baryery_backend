@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date, datetime
+from datetime import date
 from urllib.parse import urljoin
 
 from telegram import ReplyKeyboardMarkup
@@ -69,5 +69,5 @@ async def start_shift_automatically_job(context: CallbackContext) -> None:
     shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING)
     if shifts:
         shift = shifts[0]
-        if shift.started_at == datetime.today():
+        if shift.started_at == date.today():
             await shift_service.start_shift(id=shift.id)
