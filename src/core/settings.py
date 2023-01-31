@@ -67,11 +67,6 @@ class Settings(BaseSettings):
         return f"{self.APPLICATION_URL}/static/registration.html"
 
     @property
-    def report_template_path(self) -> str:
-        """Путь до excel шаблона для формирования отчёта."""
-        return BASE_DIR / "src" / "static" / "report_template.xltx"
-
-    @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
         return f"{self.APPLICATION_URL}/static/tasks"
