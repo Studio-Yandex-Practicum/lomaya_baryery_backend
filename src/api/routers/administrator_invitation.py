@@ -45,5 +45,4 @@ class AdministratorInvitationCBV:
         - **expired_date**: дата окончания срока действия приглашения
         - **token**: токен
         """
-        invitation = await self.administrator_invitation_service.get_invitation(token)
-        return invitation
+        return await self.administrator_invitation_service.get_invitation_by_token(token)

@@ -29,6 +29,5 @@ class AdministratorInvitationService:
             AdministratorInvitation(**invitation_data.dict(), expired_date=expiration_date)
         )
 
-    async def get_invitation(self, token: UUID) -> AdministratorInvitationResponse:
-        invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
-        return AdministratorInvitationResponse(invitation)
+    async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
+        return await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
