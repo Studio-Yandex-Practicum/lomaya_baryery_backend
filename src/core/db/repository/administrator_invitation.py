@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy import and_, select
@@ -15,7 +16,7 @@ class AdministratorInvitationRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, AdministratorInvitation)
 
-    async def get_mail_request_by_token(self, token: str) -> Optional[AdministratorInvitation]:
+    async def get_mail_request_by_token(self, token: UUID) -> Optional[AdministratorInvitation]:
         statement = select(AdministratorInvitation).where(
             and_(AdministratorInvitation.token == token, AdministratorInvitation.expired_date > datetime.utcnow())
         )

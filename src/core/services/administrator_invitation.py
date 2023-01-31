@@ -1,9 +1,13 @@
 from datetime import datetime
+from uuid import UUID
 
 from fastapi import Depends
 
 from src.api.request_models.administrator_invitation import (
     AdministratorInvitationRequest,
+)
+from src.api.response_models.administrator_invitation import (
+    AdministratorInvitationResponse,
 )
 from src.core import settings
 from src.core.db.models import AdministratorInvitation
@@ -24,3 +28,7 @@ class AdministratorInvitationService:
         return await self.__administrator_mail_request_repository.create(
             AdministratorInvitation(**invitation_data.dict(), expired_date=expiration_date)
         )
+
+    async def get_invitation(self, token: UUID) -> AdministratorInvitationResponse:
+        invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
+        return AdministratorInvitationResponse(invitation)
