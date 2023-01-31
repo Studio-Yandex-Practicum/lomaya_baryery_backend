@@ -7,7 +7,7 @@ from telegram.ext import Application
 from src.api.response_models.report import ReportResponse
 from src.bot import services
 from src.core.db import DTO_models
-from src.core.db.models import Member, Report, Task
+from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.exceptions import (
     DuplicateReportError,
@@ -67,6 +67,12 @@ class ReportService:
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
+        shift = self.__shift_repository.get(member.shift_id)
+        if (
+            shift.status is Shift.Status.READY_FOR_COMPLETE
+            and not self.__report_repository.check_unreviewed_report_exists(member)
+        ):
+            await self.__telegram_bot(bot).notify_member_that_shift_finished(member.user, shift)
         return
 
     async def decline_report(self, report_id: UUID, bot: Application) -> None:

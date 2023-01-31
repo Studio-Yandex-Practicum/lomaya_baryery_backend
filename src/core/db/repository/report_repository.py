@@ -84,3 +84,17 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
+
+    async def check_unreviewed_report_exists(self, member: Member) -> Optional[list[UUID]]:
+        """Проверить, остались ли непроверенные задачи у пользователя в текущей смене."""
+        repot_under_review = await self._session.execute(
+            select(Report.task_id)
+            .select_from(Report)
+            .where(
+                Report.status == Report.Status.REVIEWING,
+                Report.member_id == member.id,
+                Report.shift_id == member.shift_id,
+            )
+            .exists()
+        )
+        return repot_under_review.scalar()
