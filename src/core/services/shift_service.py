@@ -180,7 +180,7 @@ class ShiftService:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(
-        self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
+        self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest] = None
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
 
