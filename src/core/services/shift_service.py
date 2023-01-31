@@ -74,12 +74,12 @@ class ShiftService:
         Нельзя изменять смены со статусами CANCELLED и FINISHED.
         """
         if status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
-            raise ShiftUpdateException(detail="Нельзя изменить завершенную или отмененную смену")
+            raise ShiftUpdateException(detail="Запрещено изменять завершенную или отмененную смену")
 
     def __check_shift_started_at_date_changed(self, started_at: date, update_started_at: date) -> None:
         """Проверка, что дата начала изменилась."""
         if started_at != update_started_at:
-            raise ShiftUpdateException(detail="Нельзя изменить дату начала текущей смены")
+            raise ShiftUpdateException(detail="Запрещено изменять дату начала текущей смены")
 
     async def __check_preparing_shift_already_exists(self) -> None:
         """Проверка, что новая смена уже существует.
