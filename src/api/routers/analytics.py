@@ -14,7 +14,7 @@ class AnalyticsCBV:
     analitics_service: AnaliticsService = Depends()
 
     @router.get(
-        "/",
+        "/total",
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Формирование полного отчёта",
@@ -31,12 +31,12 @@ class AnalyticsCBV:
         status_code=HTTPStatus.OK,
         summary="Формирование отчёта c задачами",
     )
-    async def generate_tasks_report(self) -> StreamingResponse:
+    async def generate_task_report(self) -> StreamingResponse:
         """
-        Формирует excel файл со сведениями о задачах по всем сменам.
+        Формирует отчёт с общей статистикой выполнения задач во всех сменахм.
 
         Содержит:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        return await self.analitics_service.generate_tasks_report()
+        return await self.analitics_service.generate_task_report()
