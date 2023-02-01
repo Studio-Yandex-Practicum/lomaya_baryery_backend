@@ -24,8 +24,10 @@ class MemberRepository(AbstractRepository):
         )
         return member.scalars().first()
 
-    async def get_with_user(self, id: UUID) -> Member:
-        member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
+    async def get_with_user_and_shift(self, id: UUID) -> Member:
+        member = await self._session.execute(
+            select(Member).where(Member.id == id).options(selectinload(Member.user)).options(selectinload(Member.shift))
+        )
         member = member.scalars().first()
         if not member:
             raise NotFoundException(object_name=Member.__name__, object_id=id)

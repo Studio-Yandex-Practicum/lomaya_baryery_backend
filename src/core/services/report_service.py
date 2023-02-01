@@ -6,6 +6,7 @@ from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
 from src.bot import services
+from src.core import settings
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
@@ -63,16 +64,15 @@ class ReportService:
         self.__can_change_status(report.status)
         report.status = Report.Status.APPROVED
         await self.__report_repository.update(report_id, report)
-        member = await self.__member_repository.get_with_user(report.member_id)
+        member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
-        shift = await self.__shift_repository.get(member.shift_id)
         if (
-            shift.status is Shift.Status.READY_FOR_COMPLETE
+            member.shift.status is Shift.Status.READY_FOR_COMPLETE
             and not await self.__report_repository.check_unreviewed_report_exists(member)
         ):
-            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, shift)
+            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
     async def decline_report(self, report_id: UUID, bot: Application) -> None:
@@ -81,8 +81,14 @@ class ReportService:
         self.__can_change_status(report.status)
         report.status = Report.Status.DECLINED
         await self.__report_repository.update(report_id, report)
-        member = await self.__member_repository.get_with_user(report.member_id)
+        member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         await self.__telegram_bot(bot).notify_declined_task(member.user)
+        if (
+            member.shift.status is Shift.Status.READY_FOR_COMPLETE
+            and report.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT
+            and not await self.__report_repository.check_unreviewed_report_exists(member)
+        ):
+            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
     def __can_change_status(self, status: Report.Status) -> None:
