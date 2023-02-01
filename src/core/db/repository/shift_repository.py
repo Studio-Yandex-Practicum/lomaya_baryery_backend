@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Member, Request, Shift, User
+from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import (
     GetStartedShiftException,
@@ -126,3 +126,20 @@ class ShiftRepository(AbstractRepository):
         """Возвращает смену с заданным статусом."""
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
+
+    async def get_with_members_and_reviewed_reports(self, shift_id: UUID) -> Shift:
+        """Возвращает смену с активными участниками, у которых все задания проверены."""
+        pass
+
+    async def get_with_members_and_unreviewed_reports(self, id: UUID) -> Shift:
+        """Возвращает смену с активными участниками и их непроверенными заданиями."""
+        member_stmt = Shift.members.and_(Member.status == Member.Status.ACTIVE)
+        report_stmt = Member.reports.and_(Report.status == Report.Status.REVIEWING)
+        statement = (
+            select(Shift)
+            .where(Shift.id == id)
+            .options(selectinload(member_stmt).selectinload(report_stmt))
+            .options(selectinload(member_stmt).selectinload(Member.user))
+        )
+        request = await self._session.execute(statement)
+        return request.scalars().first()
