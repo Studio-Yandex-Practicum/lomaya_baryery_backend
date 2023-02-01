@@ -67,10 +67,10 @@ class ReportService:
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
-        shift = self.__shift_repository.get(member.shift_id)
+        shift = await self.__shift_repository.get(member.shift_id)
         if (
             shift.status is Shift.Status.READY_FOR_COMPLETE
-            and not self.__report_repository.check_unreviewed_report_exists(member)
+            and not await self.__report_repository.check_unreviewed_report_exists(member)
         ):
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, shift)
         return

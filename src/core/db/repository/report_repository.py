@@ -95,12 +95,14 @@ class ReportRepository(AbstractRepository):
     async def check_unreviewed_report_exists(self, member: Member) -> Optional[list[UUID]]:
         """Проверить, остались ли непроверенные задачи у пользователя в текущей смене."""
         repot_under_review = await self._session.execute(
-            select(Report)
-            .where(
-                Report.status == Report.Status.REVIEWING,
-                Report.member_id == member.id,
-                Report.shift_id == member.shift_id,
+            select(
+                select(Report)
+                .where(
+                    Report.status == Report.Status.REVIEWING,
+                    Report.member_id == member.id,
+                    Report.shift_id == member.shift_id,
+                )
+                .exists()
             )
-            .exists()
         )
         return repot_under_review.scalar()
