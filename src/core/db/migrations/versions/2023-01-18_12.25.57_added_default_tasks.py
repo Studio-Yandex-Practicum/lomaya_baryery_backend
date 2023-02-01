@@ -7,6 +7,7 @@ Create Date: 2023-01-18 12:25:57.080431
 """
 
 import json
+from urllib.parse import urljoin
 
 from alembic import op
 
@@ -26,7 +27,7 @@ def upgrade():
             "INSERT INTO "
             "tasks(id, url, description) "
             "VALUES "
-            f"(gen_random_uuid(), '{settings.task_image_url}/{task['filename']}', '{task['description']}')"
+            f"(gen_random_uuid(), '{urljoin(settings.task_image_url, task['filename'])}', '{task['description']}')"
         )
     # ### end Alembic commands ###
 

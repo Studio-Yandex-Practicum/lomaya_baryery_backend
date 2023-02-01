@@ -97,8 +97,10 @@ class ReportService:
         """
         return await self.__report_repository.get_summaries_of_reports(shift_id, status)
 
-    async def send_report(self, user_id: UUID, photo_url: str) -> Report:
-        report = await self.__report_repository.get_current_report(user_id)
+    async def get_current_report(self, user_id: UUID) -> Report:
+        return await self.__report_repository.get_current_report(user_id)
+
+    async def send_report(self, report: Report, photo_url: str) -> Report:
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)

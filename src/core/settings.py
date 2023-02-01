@@ -64,17 +64,17 @@ class Settings(BaseSettings):
     @property
     def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
-        return f"{self.APPLICATION_URL}/{Path('../../data/user_reports')}"
+        return "/data/user_reports/"
 
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}/{Path('../static/registration.html')}"
+        return "/static/registration.html"
 
     @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
-        return f"{self.APPLICATION_URL}/{Path('../static/tasks')}"
+        return "/static/tasks/"
 
     @property
     def task_image_dir(self) -> PosixPath:

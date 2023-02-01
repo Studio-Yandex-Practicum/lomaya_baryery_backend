@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
@@ -20,6 +21,7 @@ from src.core.db.repository import (
     TaskRepository,
     UserRepository,
 )
+from src.core.db.repository.shift_repository import ShiftRepository
 from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
@@ -28,6 +30,7 @@ from src.core.exceptions import (
     RegistrationException,
 )
 from src.core.services.report_service import ReportService
+from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
 
@@ -53,7 +56,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                web_app=WebAppInfo(url=urljoin(settings.APPLICATION_URL, settings.registration_template_url)),
             )
         ),
     )
@@ -94,12 +97,17 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))
     report_service = ReportService(ReportRepository(session), TaskRepository(session))
+    shift_service = ShiftService(ShiftRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+    report = await report_service.get_current_report(user.id)
+    shift = await shift_service.get_shift(report.shift_id)
+    shift_dir_name = f"{shift.started_at}_to_{shift.finished_at}/"
     file_name = await download_photo_report_callback(update, context)
-    photo_url = f"{settings.user_reports_url}/{file_name}"
+    dir = urljoin(settings.user_reports_url, shift_dir_name)
+    photo_url = urljoin(dir, file_name)
 
     try:
-        await report_service.send_report(user.id, photo_url)
+        await report_service.send_report(report, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
