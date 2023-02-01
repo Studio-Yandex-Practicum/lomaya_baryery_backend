@@ -198,7 +198,7 @@ class ShiftService:
 
     async def _notify_users_with_reviewed_reports(self, shift: UUID, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
-        shift = await self.__shift_repository.get_with_members_and_reviewed_reports(shift.id)
+        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
         shift_with_all_members = await self.__shift_repository.get_with_members(shift.id, Member.Status.ACTIVE)
         if shift.members.count() == shift_with_all_members.members.count():
             shift.status = Shift.Status.FINISHED

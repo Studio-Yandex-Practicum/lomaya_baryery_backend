@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
@@ -127,9 +127,19 @@ class ShiftRepository(AbstractRepository):
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
 
-    async def get_with_members_and_reviewed_reports(self, shift_id: UUID) -> Shift:
+    async def get_with_members_with_reviewed_reports(self, shift_id: UUID) -> Shift:
         """Возвращает смену с активными участниками, у которых все задания проверены."""
-        pass
+        shift = await self._session.execute(
+            select(Shift)
+            .options(joinedload(Shift.members))
+            .join(Member)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.status != Report.Status.REVIEWING,
+            )
+        )
+        return shift.scalars().first()
 
     async def get_with_members_and_unreviewed_reports(self, id: UUID) -> Shift:
         """Возвращает смену с активными участниками и их непроверенными заданиями."""

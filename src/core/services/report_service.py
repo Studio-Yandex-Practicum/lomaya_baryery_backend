@@ -72,7 +72,7 @@ class ReportService:
             shift.status is Shift.Status.READY_FOR_COMPLETE
             and not self.__report_repository.check_unreviewed_report_exists(member)
         ):
-            await self.__telegram_bot(bot).notify_member_that_shift_finished(member.user, shift)
+            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, shift)
         return
 
     async def decline_report(self, report_id: UUID, bot: Application) -> None:
