@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -14,6 +15,7 @@ class AdministratorResponse(BaseModel):
     email: str
     role: Administrator.Role
     status: Administrator.Status
+    last_login_at: datetime | None
 
     class Config:
         orm_mode = True
