@@ -1,5 +1,3 @@
-from urllib.parse import urljoin
-
 from fastapi import Depends, UploadFile
 from pydantic.schema import UUID
 
@@ -19,7 +17,7 @@ class TaskService:
         with open((settings.task_image_dir / file_name), 'wb') as image:
             image.write(file.file.read())
             image.close()
-        return urljoin(settings.task_image_url, file_name)
+        return f"{settings.task_image_url}/{file_name}"
 
     async def get_task_ids_list(
         self,

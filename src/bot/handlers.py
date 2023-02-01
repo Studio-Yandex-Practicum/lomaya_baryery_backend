@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
@@ -97,7 +96,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     report_service = ReportService(ReportRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     file_name = await download_photo_report_callback(update, context)
-    photo_url = urljoin(settings.user_reports_url, file_name)
+    photo_url = f"{settings.user_reports_url}/{file_name}"
 
     try:
         await report_service.send_report(user.id, photo_url)
