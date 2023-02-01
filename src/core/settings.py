@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     @property
     def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
-        return f"{self.APPLICATION_URL}/{Path('../../data/user_reports')}"
+        return f"{self.APPLICATION_URL}/{Path('../../data/user_reports/')}"
 
     @property
     def registration_template_url(self) -> str:
@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
-        return f"{self.APPLICATION_URL}/{Path('../static/tasks')}"
+        return f"{self.APPLICATION_URL}/{Path('../static/tasks/')}"
 
     @property
     def task_image_dir(self) -> PosixPath:
