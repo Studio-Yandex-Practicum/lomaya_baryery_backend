@@ -1,10 +1,12 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
     OAUTH2_SCHEME,
     AuthenticationService,
@@ -16,6 +18,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 @cbv(router)
 class AdministratorCBV:
     authentication_service: AuthenticationService = Depends()
+    administrator_service: AdministratorService = Depends()
 
     @router.post(
         "/login",
@@ -44,3 +47,15 @@ class AdministratorCBV:
     async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
         """Получить информацию о текущем  активном администраторе."""
         return await self.authentication_service.get_current_active_administrator(token)
+
+    @router.post(
+        '/register',
+        response_model=AdministratorResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.CREATED,
+        summary="Регистрация администратора",
+        response_description="Регистрация нового администратора по токену приглашения.",
+    )
+    async def register_new_administrator(self, token: UUID):
+        """Зарегистрировать нового администратора по токену из приглашения."""
+        return await self.administrator_service.register_new(token)
