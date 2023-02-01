@@ -29,7 +29,7 @@ class ShiftRepository(AbstractRepository):
     async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
         """Получить смену (Shift) по её id вместе со связанными данными.
 
-        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+        Связанные данные: Shift -> Member -> User, Shift -> Member -> Report.
 
         Аргументы:
             id (UUID) - id смены (shift)
