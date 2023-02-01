@@ -3,9 +3,13 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
+from src.api.error_templates import (
+    ERROR_TEMPLATE_FOR_400,
+    ERROR_TEMPLATE_FOR_401,
+    ERROR_TEMPLATE_FOR_403,
+)
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
-from src.api.response_models.shift import ErrorResponse
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
@@ -14,11 +18,6 @@ from src.core.services.authentication_service import (
 )
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
-
-
-ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_401 = {"description": "Unauthorized", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
 
 
 @cbv(router)

@@ -5,17 +5,17 @@ from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
+from src.api.error_templates import (
+    ERROR_TEMPLATE_FOR_400,
+    ERROR_TEMPLATE_FOR_403,
+    ERROR_TEMPLATE_FOR_404,
+)
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
-from src.api.response_models.shift import ErrorResponse
 from src.core.db import DTO_models, models
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
-
-ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)

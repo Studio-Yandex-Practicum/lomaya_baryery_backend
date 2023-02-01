@@ -5,15 +5,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
+from src.api.error_templates import ERROR_TEMPLATE_FOR_404
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
-from src.api.response_models.shift import ErrorResponse
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
 from src.core.db.models import User
 from src.core.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)
