@@ -4,7 +4,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.request_models.administrator import AdministratorAuthenticateRequest
+from src.api.request_models.administrator import (
+    AdministratorAuthenticateRequest,
+    AdministratorRegistrationRequest,
+)
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
@@ -56,6 +59,6 @@ class AdministratorCBV:
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
     )
-    async def register_new_administrator(self, token: UUID):
+    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest):
         """Зарегистрировать нового администратора по токену из приглашения."""
-        return await self.administrator_service.register_new(token)
+        return await self.administrator_service.register_new(token, schema)
