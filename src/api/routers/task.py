@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.error_templates import ERROR_TEMPLATE_FOR_400
+from src.api.error_templates import ERROR_TEMPLATE_FOR_404
 from src.api.request_models.task import TaskCreateRequest
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
@@ -62,7 +62,7 @@ class TaskCBV:
         summary="Получить задание",
         response_description="Информация о задании",
         responses={
-            400: ERROR_TEMPLATE_FOR_400,
+            404: ERROR_TEMPLATE_FOR_404,
         },
     )
     async def get_task(
