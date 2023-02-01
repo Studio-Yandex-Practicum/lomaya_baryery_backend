@@ -101,9 +101,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     report = await report_service.get_current_report(user.id)
     shift = await shift_service.get_shift(report.shift_id)
-    shift_dir_name = f"{shift.started_at}_to_{shift.finished_at}/"
     file_name = await download_photo_report_callback(update, context)
-    dir = urljoin(settings.user_reports_url, shift_dir_name)
+    dir = urljoin(settings.user_reports_url, f"{shift.started_at}_to_{shift.finished_at}/")
     photo_url = urljoin(dir, file_name)
 
     try:
