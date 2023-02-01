@@ -17,43 +17,31 @@ class ApplicationException(HTTPException):
 class NotFoundException(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
-        self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+        self.detail = f"Объект {object_name} с id: {object_id} не найден"
 
 
 class CurrentTaskNotFoundError(Exception):
     """Не найдено текущей задачи для пользователя."""
 
-    pass
-
 
 class TodayTaskNotFoundError(Exception):
     """Не найдено ежедневной задачи на текущий день."""
-
-    pass
 
 
 class CannotAcceptReportError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
-    pass
-
 
 class DuplicateReportError(Exception):
     """Отчет с таким фото уже отправлялся ранее."""
-
-    pass
 
 
 class ExceededAttemptsReportError(Exception):
     """Превышено количество попыток сдать отчет."""
 
-    pass
-
 
 class EmptyReportError(Exception):
     """Отчет должен содержать фото."""
-
-    pass
 
 
 class ShiftStartForbiddenException(ApplicationException):
@@ -82,7 +70,7 @@ class SendTelegramNotifyException(ApplicationException):
 class ReportAlreadyReviewedException(ApplicationException):
     def __init__(self, status: UUID):
         self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
+        self.detail = f"Задание уже проверено, статус задания: {status}."
 
 
 class ReportWaitingPhotoException(ApplicationException):
@@ -146,7 +134,7 @@ class AlreadyRegisteredException(RegistrationException):
 class RequestAlreadyReviewedException(ApplicationException):
     def __init__(self, status):
         self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
+        self.detail = f"Заявка на участие уже проверена, статус заявки: {status}."
 
 
 class RequestForbiddenException(RegistrationException):
