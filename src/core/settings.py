@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import timedelta
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
@@ -57,32 +57,32 @@ class Settings(BaseSettings):
         )
 
     @property
-    def user_reports_dir(self) -> str:
+    def user_reports_dir(self) -> PosixPath:
         """Получить директорию для сохранения фотоотчета."""
-        return BASE_DIR / 'data' / 'user_reports'
+        return BASE_DIR / "data/user_reports"
 
     @property
     def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
-        return f"{self.APPLICATION_URL}/data/user_reports"
+        return f"{self.APPLICATION_URL}/{Path('../../data/user_reports')}"
 
     @property
     def registration_template_url(self) -> str:
         """Получить ссылку на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}/static/registration.html"
+        return f"{self.APPLICATION_URL}/{Path('../static/registration.html')}"
 
     @property
     def task_image_url(self) -> str:
         """Получить ссылку на изображения заданий."""
-        return f"{self.APPLICATION_URL}/static/tasks"
+        return f"{self.APPLICATION_URL}/{Path('../static/tasks')}"
 
     @property
-    def task_image_dir(self) -> str:
+    def task_image_dir(self) -> PosixPath:
         """Получить директорию c изображениями заданий."""
-        return BASE_DIR / 'src' / 'static' / 'tasks'
+        return BASE_DIR / "src/static/tasks"
 
     @property
-    def email_template_directory(self) -> str:
+    def email_template_directory(self) -> PosixPath:
         """Получить директорию шаблонов электронной почты."""
         return BASE_DIR / "src/templates/email"
 
