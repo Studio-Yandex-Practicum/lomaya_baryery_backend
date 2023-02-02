@@ -23,7 +23,10 @@ class ShiftCreateRequest(RequestBase):
 
     @validator("started_at", "finished_at", pre=True)
     def validate_date_format(cls, value):
-        datetime.strptime(value, DATE_FORMAT)
+        try:
+            datetime.strptime(value, DATE_FORMAT)
+        except ValueError:
+            raise ValueError("Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD.")
         return value
 
 
