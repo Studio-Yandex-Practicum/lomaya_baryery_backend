@@ -21,7 +21,6 @@ from src.core.db.repository import (
     TaskRepository,
     UserRepository,
 )
-from src.core.db.repository.shift_repository import ShiftRepository
 from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
@@ -30,7 +29,6 @@ from src.core.exceptions import (
     RegistrationException,
 )
 from src.core.services.report_service import ReportService
-from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
 
@@ -83,11 +81,11 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
-async def download_photo_report_callback(update: Update, context: CallbackContext, shift_dir_name: str) -> str:
+async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    await file.download_to_drive(custom_path=(settings.user_reports_dir / shift_dir_name / file_name))
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_name))
     return file_name
 
 
@@ -97,17 +95,12 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))
     report_service = ReportService(ReportRepository(session), TaskRepository(session))
-    shift_service = ShiftService(ShiftRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    report = await report_service.get_current_report(user.id)
-    shift = await shift_service.get_shift(report.shift_id)
-    shift_dir_name = f"{shift.started_at}_to_{shift.finished_at}"
-    shift_dir = urljoin(settings.user_reports_url, f"{shift_dir_name}/")
-    file_name = await download_photo_report_callback(update, context, shift_dir_name)
-    photo_url = urljoin(shift_dir, file_name)
+    file_name = await download_photo_report_callback(update, context)
+    photo_url = urljoin(settings.user_reports_url, file_name)
 
     try:
-        await report_service.send_report(report, photo_url)
+        await report_service.send_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
