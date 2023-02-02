@@ -126,3 +126,22 @@ class ShiftRepository(AbstractRepository):
         """Возвращает смену с заданным статусом."""
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
+
+    async def get_shift_with_request(self, id: UUID, request_status: Optional[Request.Status]) -> Shift:
+        """Получить смену (Shift) по её id вместе со связанными данными.
+
+        Связанные данные: Shift -> Request -> User.
+
+        Аргументы:
+            id (UUID) - id смены (shift)
+            request_status (Optional[Request.Status]) - статус заявки.
+        """
+        request_stmt = Shift.requests
+        if request_status:
+            request_stmt = request_stmt.and_(Request.status == request_status)
+        statement = select(Shift).where(Shift.id == id).options(selectinload(request_stmt).selectinload(Request.user))
+        request = await self._session.execute(statement)
+        request = request.scalars().first()
+        if request is None:
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+        return request

@@ -54,6 +54,10 @@ class ShiftFactory(BaseFactory):
         if self.status == Shift.Status.STARTED:
             # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
             return datetime.date.today() - timedelta(days=30)
+        if self.status == Shift.Status.PREPARING:
+            last_started_shift = session.execute(select(Shift).order_by(Shift.finished_at))
+            last_started_shift = last_started_shift.scalars().first()
+            return last_started_shift.finished_at + timedelta(days=random.randrange(4, 7))
         if self.status == Shift.Status.FINISHED:  # noqa R503
             # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
             # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и

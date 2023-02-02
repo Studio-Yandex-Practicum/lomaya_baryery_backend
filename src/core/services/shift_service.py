@@ -8,6 +8,7 @@ from fastapi import Depends
 from telegram.ext import Application
 
 from src.api.request_models.shift import (
+    ShiftCancelRequest,
     ShiftCreateRequest,
     ShiftSortRequest,
     ShiftUpdateRequest,
@@ -18,8 +19,8 @@ from src.api.response_models.shift import (
     ShiftWithTotalUsersResponse,
 )
 from src.bot import services
-from src.core.db.models import Member, Request, Shift
-from src.core.db.repository import ShiftRepository
+from src.core.db.models import Member, Request, Shift, User
+from src.core.db.repository import RequestRepository, ShiftRepository, UserRepository
 from src.core.exceptions import (
     CreateShiftForbiddenException,
     ShiftsDatesIntersectionException,
@@ -41,9 +42,13 @@ class ShiftService:
         self,
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
+        user_repository: UserRepository = Depends(),
+        request_repository: RequestRepository = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__task_service = task_service
+        self.__user_repository = user_repository
+        self.__request_repository = request_repository
         self.__telegram_bot = services.BotService
 
     def __check_date_not_today_or_in_past(self, date: date) -> None:
@@ -186,3 +191,15 @@ class ShiftService:
 
     async def get_open_for_registration_shift_id(self) -> UUID:
         return await self.__shift_repository.get_open_for_registration_shift_id()
+
+    async def cansel_shift(self, bot: Application, id: UUID, notice: Optional[ShiftCancelRequest]) -> Shift:
+        shift = await self.__shift_repository.get_shift_with_request(id, Request.Status.PENDING)
+        await shift.cancel()
+        await self.__shift_repository.update(id, shift)
+        for request in shift.requests:
+            request.status = Request.Status.DECLINED.value
+            await self.__request_repository.update(request.id, request)
+            request.user.status = User.Status.DECLINED.value
+            await self.__user_repository.update(request.user.id, request.user)
+        await self.__telegram_bot(bot).notify_that_shift_is_cancelled(shift, notice)
+        return shift
