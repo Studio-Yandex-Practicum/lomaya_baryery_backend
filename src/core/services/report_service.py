@@ -70,8 +70,9 @@ class ReportService:
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
-            and not await self.__report_repository.check_unreviewed_report_exists(member)
+            and not await self.__report_repository.check_unreviewed_report_exists(member.shift.id, member.id)
         ):
+            await self.__can_finish_shift(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
@@ -86,8 +87,9 @@ class ReportService:
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
             and report.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT
-            and not await self.__report_repository.check_unreviewed_report_exists(member)
+            and not await self.__report_repository.check_unreviewed_report_exists(member.shift.id, member.id)
         ):
+            await self.__can_finish_shift(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
@@ -97,6 +99,12 @@ class ReportService:
             raise ReportAlreadyReviewedException(status=status)
         if status is Report.Status.WAITING:
             raise ReportWaitingPhotoException
+
+    async def __can_finish_shift(self, shift: Shift) -> None:
+        """Закрывает группу, если не осталось непроверенных заданий."""
+        if not await self.__report_repository.check_unreviewed_report_exists(shift.id, None):
+            shift.status = Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
 
     async def get_summaries_of_reports(
         self,

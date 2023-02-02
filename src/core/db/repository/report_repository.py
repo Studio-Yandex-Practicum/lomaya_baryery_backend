@@ -92,17 +92,14 @@ class ReportRepository(AbstractRepository):
             raise CurrentTaskNotFoundError()
         return report
 
-    async def check_unreviewed_report_exists(self, member: Member) -> bool:
-        """Проверить, остались ли непроверенные задачи у пользователя в текущей смене."""
-        repot_under_review = await self._session.execute(
-            select(
-                select(Report)
-                .where(
-                    Report.status == Report.Status.REVIEWING,
-                    Report.member_id == member.id,
-                    Report.shift_id == member.shift_id,
-                )
-                .exists()
+    async def check_unreviewed_report_exists(self, shift_id: UUID, member_id: UUID | None) -> bool:
+        """Проверка на непроверенные задачи в смене."""
+        stmt = select(Report).where(Report.status == Report.Status.REVIEWING, Report.shift_id == shift_id)
+        if member_id:
+            stmt = stmt.where(
+                Report.status == Report.Status.REVIEWING,
+                Report.member_id == member_id,
+                Report.shift_id == shift_id,
             )
-        )
+        repot_under_review = await self._session.execute(select(stmt.exists()))
         return repot_under_review.scalar()
