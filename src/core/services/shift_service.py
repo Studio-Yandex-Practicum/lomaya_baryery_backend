@@ -27,6 +27,7 @@ from src.core.exceptions import (
     UpdateShiftForbiddenException,
 )
 from src.core.services.task_service import TaskService
+from src.core.settings import settings
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -69,14 +70,16 @@ class ShiftService:
         if preparing_started_at <= started_finished_at:
             raise ShiftsDatesIntersectionException()
 
-    def __check_create_shift_forbidden(self, started_at: date) -> None:
-        """Проверка, что смену нельзя создать.
+    def __check_started_shift_recently_started(self, started_at: date) -> None:
+        """Проверка, что текущая смена была запущена недавно.
 
-        Если текущая смена была запущена менее двух дней назад, то создание новой смены запрещено.
+        Если текущая смена была запущена менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней назад,
+        то создание новой смены запрещено. Параметр задается в настройках проекта.
         """
-        if date.today() - started_at < timedelta(days=2):
+        if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
             raise CreateShiftForbiddenException(
-                detail="Запрещено создавать новую смену, если текущая смена запущена менее 2-х дней назад"
+                detail=f"Запрещено создавать новую смену, "
+                f"если текущая смена запущена менее {settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN} дней назад"
             )
 
     def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
@@ -103,14 +106,14 @@ class ShiftService:
     async def __check_preparing_shift_dates(self, started_at: date, finished_at: date) -> None:
         """Проверка дат новой смены.
 
-        - Если существует текущая смена, то проверяется была ли она запущена менее 2-х дней назад.
-        - Если текущая смена длитя более 2-х дней, то сравниваются даты окончания текущей смены
+        - Если существует текущая смена, то проверяется была ли она запущена недавно.
+        - Если текущая смена длится уже достаточно долго, то сравниваются даты окончания текущей смены
         и начала новой смены. Иначе дата начала сравнивается с сегодняшним днем.
         - Сравниваются даты начала и окончания новой смены между собой.
         """
         started_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
         if started_shift:
-            self.__check_create_shift_forbidden(started_shift.started_at)
+            self.__check_started_shift_recently_started(started_shift.started_at)
             self.__check_shifts_dates_intersection(started_at, started_shift.finished_at)
         else:
             self.__check_date_not_today_or_in_past(started_at)
