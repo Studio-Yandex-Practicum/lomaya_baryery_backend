@@ -83,11 +83,11 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
-async def download_photo_report_callback(update: Update, context: CallbackContext, shift_dir: str) -> str:
+async def download_photo_report_callback(update: Update, context: CallbackContext, shift_dir_name: str) -> str:
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    await file.download_to_drive(custom_path=(settings.user_reports_dir / shift_dir / file_name))
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / shift_dir_name / file_name))
     return file_name
 
 
@@ -101,8 +101,9 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     report = await report_service.get_current_report(user.id)
     shift = await shift_service.get_shift(report.shift_id)
-    shift_dir = urljoin(settings.user_reports_url, f"{shift.started_at}_to_{shift.finished_at}/")
-    file_name = await download_photo_report_callback(update, context, shift_dir)
+    shift_dir_name = f"{shift.started_at}_to_{shift.finished_at}"
+    shift_dir = urljoin(settings.user_reports_url, f"{shift_dir_name}/")
+    file_name = await download_photo_report_callback(update, context, shift_dir_name)
     photo_url = urljoin(shift_dir, file_name)
 
     try:
