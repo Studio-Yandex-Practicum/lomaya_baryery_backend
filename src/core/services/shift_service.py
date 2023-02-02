@@ -199,12 +199,11 @@ class ShiftService:
     async def _notify_users_with_reviewed_reports(self, shift: UUID, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
         shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
-        shift_with_all_members = await self.__shift_repository.get_with_members(shift.id, Member.Status.ACTIVE)
-        if shift.members.count() == shift_with_all_members.members.count():
-            shift.status = Shift.Status.FINISHED
-        else:
+        if await self.__report_repository.check_unreviewed_report_exists(shift.id, None):
             shift.status = Shift.Status.READY_FOR_COMPLETE
-        await self.__shift_repository.update(id, shift)
+        else:
+            shift.status = Shift.Status.FINISHED
+        await self.__shift_repository.update(shift.id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
     async def _finish_shift_decline_report_notify_users(self, shift: UUID, bot: Application) -> None:
@@ -214,5 +213,5 @@ class ShiftService:
             report.status = Report.Status.DECLINED
             await self.__report_repository.update(report.id, report)
         shift.status = Shift.Status.FINISHED
-        await self.__shift_repository.update(id, shift)
+        await self.__shift_repository.update(shift.id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
