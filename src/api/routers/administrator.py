@@ -60,7 +60,14 @@ class AdministratorCBV:
         response_description="Регистрация нового администратора по токену приглашения.",
     )
     async def register_new_administrator(self, schema: AdministratorRegistrationRequest):
-        """Зарегистрировать нового администратора по токену из приглашения."""
+        """Зарегистрировать нового администратора по токену из приглашения.
+
+        - **name**: Имя
+        - **surname**: Фамилия
+        - **role**: Роль администратора (administrator|psychologist)
+        - **password**: Пароль администратора
+        - **token**: Токен приглашения
+        """
         return await self.administrator_service.register_new_administrator(schema)
 
     @router.get(
