@@ -147,37 +147,39 @@ class ShiftService:
         shift.tasks = month_tasks
         return await self.__shift_repository.create(instance=shift)
 
-    async def get_shift(self, id: UUID) -> Shift:
-        return await self.__shift_repository.get(id)
+    async def get_shift(self, shift_id: UUID) -> Shift:
+        return await self.__shift_repository.get(shift_id)
 
-    async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        shift: Shift = await self.__shift_repository.get(id)
+    async def update_shift(self, shift_id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
+        shift: Shift = await self.__shift_repository.get(shift_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
         shift.started_at = update_shift_data.started_at
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
         shift.final_message = update_shift_data.final_message
-        return await self.__shift_repository.update(id, shift)
+        return await self.__shift_repository.update(shift_id, shift)
 
-    async def start_shift(self, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get(id)
+    async def start_shift(self, shift_id: UUID) -> Shift:
+        shift = await self.__shift_repository.get(shift_id)
         await shift.start()
-        await self.__shift_repository.update(id, shift)
+        await self.__shift_repository.update(shift_id, shift)
         return shift
 
-    async def finish_shift(self, bot: Application, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
+    async def finish_shift(self, bot: Application, shift_id: UUID) -> Shift:
+        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
         await shift.finish()
-        await self.__shift_repository.update(id, shift)
+        await self.__shift_repository.update(shift_id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
         return shift
 
-    async def get_shift_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
-        shift = await self.__shift_repository.get_with_members(id, member_status)
+    async def get_shift_with_members(
+        self, shift_id: UUID, member_status: Optional[Member.Status]
+    ) -> ShiftMembersResponse:
+        shift = await self.__shift_repository.get_with_members(shift_id, member_status)
         return ShiftMembersResponse(shift=shift, members=shift.members)
 
-    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
-        return await self.__shift_repository.list_all_requests(id=id, status=status)
+    async def list_all_requests(self, shift_id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
+        return await self.__shift_repository.list_all_requests(id=shift_id, status=status)
 
     async def list_all_shifts(
         self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
