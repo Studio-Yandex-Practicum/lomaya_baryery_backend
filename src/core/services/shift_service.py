@@ -101,8 +101,7 @@ class ShiftService:
         started_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
         if started_shift:
             self.__check_shifts_dates_intersection(started_at, started_shift.finished_at)
-        else:
-            self.__check_date_not_today_or_in_past(started_at)
+        self.__check_date_not_today_or_in_past(started_at)
         self.__check_started_and_finished_dates(started_at, finished_at)
 
     async def __check_started_shift_dates(self, started_at: date, finished_at: date) -> None:
