@@ -8,6 +8,7 @@ from src.api.request_models.administrator import (
     AdministratorRegistrationRequest,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
     OAUTH2_SCHEME,
@@ -61,3 +62,24 @@ class AdministratorCBV:
     async def register_new_administrator(self, schema: AdministratorRegistrationRequest):
         """Зарегистрировать нового администратора по токену из приглашения."""
         return await self.administrator_service.register_new_administrator(schema)
+
+    @router.get(
+        "/",
+        response_model=list[AdministratorResponse],
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Запрос списка администраторов с возможностью фильтрации по статусу и роли",
+        response_description="Список администраторов",
+    )
+    async def get_administrators(
+        self,
+        status: Administrator.Status = None,
+        role: Administrator.Role = None,
+    ) -> list[AdministratorResponse]:
+        """Получить список администраторов с опциональной фильтрацией по статусу и роли.
+
+        Аргументы:
+            status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
+            role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
+        """
+        return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

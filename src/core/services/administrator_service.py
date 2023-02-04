@@ -34,3 +34,11 @@ class AdministratorService:
         await self.__administrator_repository.create(administrator)
         await self.__administrator_invitation_repository.update(invitation.id, invitation)
         return administrator
+
+    async def get_administrators_filter_by_role_and_status(
+        self,
+        status: Administrator.Status,
+        role: Administrator.Role,
+    ) -> list[Administrator]:
+        """Получает список администраторов, опционально отфильтрованых по роли и/или статусу."""
+        return await self.__administrator_repository.get_administrators_filter_by_role_and_status(status, role)

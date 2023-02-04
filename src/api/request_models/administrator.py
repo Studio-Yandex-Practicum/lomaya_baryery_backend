@@ -21,3 +21,10 @@ class AdministratorRegistrationRequest(RequestBase):
     role: Administrator.Role
     password: SecretStr
     token: UUID
+
+
+class AdministratorListRequest(RequestBase):
+    """Схема для запроса списка администраторов."""
+
+    status: Administrator.Status | None
+    role: Administrator.Role | None
