@@ -22,6 +22,7 @@ class AdministratorService:
         self.__administrator_invitation_repository = administrator_invitation_repository
 
     async def register_new_administrator(self, schema: AdministratorRegistrationRequest) -> AdministratorResponse:
+        """Регистрация нового администратора. Устанавливает invitation.expired_date вчерашнюю дату."""
         dataset = schema.dict()
         token = dataset.pop("token", None)
         password = dataset.pop("password", None)
