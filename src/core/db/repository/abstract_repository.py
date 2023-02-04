@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import NotFoundError
 
 DatabaseModel = TypeVar("DatabaseModel")
 
@@ -26,7 +26,7 @@ class AbstractRepository(abc.ABC):
         """Получает объект модели по ID. В случае отсутствия объекта бросает ошибку."""
         db_obj = await self.get_or_none(id)
         if db_obj is None:
-            raise NotFoundException(object_name=self._model.__name__, object_id=id)
+            raise NotFoundError(object_name=self._model.__name__, object_id=id)
         return db_obj
 
     async def create(self, instance: DatabaseModel) -> DatabaseModel:

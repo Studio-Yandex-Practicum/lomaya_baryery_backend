@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import NotFoundError
 
 
 class MemberRepository(AbstractRepository):
@@ -28,7 +28,7 @@ class MemberRepository(AbstractRepository):
         member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
         member = member.scalars().first()
         if not member:
-            raise NotFoundException(object_name=Member.__name__, object_id=id)
+            raise NotFoundError(object_name=Member.__name__, object_id=id)
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:

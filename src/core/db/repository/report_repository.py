@@ -10,7 +10,7 @@ from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError, NotFoundException
+from src.core.exceptions import CurrentTaskNotFoundError, NotFoundError
 from src.core.utils import get_current_task_date
 
 
@@ -34,7 +34,7 @@ class ReportRepository(AbstractRepository):
         )
         report = report.scalars().first()
         if not report:
-            raise NotFoundException(Report.__name__, id)
+            raise NotFoundError(Report.__name__, id)
         return report
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
@@ -74,7 +74,7 @@ class ReportRepository(AbstractRepository):
             Report.shift_id == Shift.id,
             Report.member_id == Member.id,
             Report.task_id == Task.id,
-            Member.user_id == User.id
+            Member.user_id == User.id,
         )
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]

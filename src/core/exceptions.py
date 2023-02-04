@@ -14,7 +14,7 @@ class ApplicationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
-class NotFoundException(ApplicationException):
+class NotFoundError(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = f"Объект {object_name} с id: {object_id} не найден"
@@ -107,7 +107,7 @@ class ShiftDateUpdateStartError(ApplicationException):
         self.detail = "Запрещено изменять дату начала текущей смены"
 
 
-class ShiftStartedNotFoundError(NotFoundException):
+class ShiftStartedNotFoundError(NotFoundError):
     def __init__(self):
         self.detail = "Активной смены не найдено."
 
