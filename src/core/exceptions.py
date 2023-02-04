@@ -203,3 +203,9 @@ class EmailSendException(ApplicationException):
     def __init__(self, recipients: list[str], exc: Exception):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."
+
+
+class InvalidDateFormatException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
