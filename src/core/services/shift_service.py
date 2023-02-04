@@ -70,10 +70,10 @@ class ShiftService:
         if preparing_started_at <= started_finished_at:
             raise ShiftsDatesIntersectionException()
 
-    def __check_started_shift_recently_started(self, started_at: date) -> None:
-        """Проверка, что текущая смена была запущена недавно.
+    def __check_that_request_filling_for_previous_shift_is_over(self, started_at: date) -> None:
+        """Проверка, что приём заявок на участие в предыдущей смене закончен.
 
-        Если текущая смена была запущена менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней назад,
+        Если текущая смена длится менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней (прием заявок не окончен),
         то создание новой смены запрещено. Параметр задается в настройках проекта.
         """
         if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
@@ -106,14 +106,14 @@ class ShiftService:
     async def __check_preparing_shift_dates(self, started_at: date, finished_at: date) -> None:
         """Проверка дат новой смены.
 
-        - Если существует текущая смена, то проверяется была ли она запущена недавно.
-        - Если текущая смена длится уже достаточно долго, то сравниваются даты окончания текущей смены
+        - Если существует текущая смена, то проверяется был ли закончен прием заявок на участие.
+        - Если прием заявок на текущую смену окончен, то сравниваются даты окончания текущей смены
         и начала новой смены. Иначе дата начала сравнивается с сегодняшним днем.
         - Сравниваются даты начала и окончания новой смены между собой.
         """
         started_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
         if started_shift:
-            self.__check_started_shift_recently_started(started_shift.started_at)
+            self.__check_that_request_filling_for_previous_shift_is_over(started_shift.started_at)
             self.__check_shifts_dates_intersection(started_at, started_shift.finished_at)
         else:
             self.__check_date_not_today_or_in_past(started_at)
