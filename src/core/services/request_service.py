@@ -11,7 +11,7 @@ from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
 from src.core.exceptions import (
-    RequestAlreadyReviewedException,
+    RequestAlreadyReviewedError,
     RequestSendTelegramNotifyError,
 )
 
@@ -75,4 +75,4 @@ class RequestService:
     def __exception_if_request_is_processed(self, status: Request.Status) -> None:
         """Если заявка была обработана ранее, выбрасываем исключение."""
         if status not in (Request.Status.PENDING,):
-            raise RequestAlreadyReviewedException(status)
+            raise RequestAlreadyReviewedError(status)

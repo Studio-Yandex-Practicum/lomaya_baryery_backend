@@ -13,7 +13,7 @@ from src.api.response_models.user import UserDetailResponse, UserWithStatusRespo
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
-from src.core.exceptions import AlreadyRegisteredException, RequestForbiddenException
+from src.core.exceptions import AlreadyRegisteredException, RequestForbiddenError
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
@@ -72,7 +72,7 @@ class UserService:
                 request.status = Request.Status.PENDING
                 await self.__request_repository.update(request.id, request)
             else:
-                raise RequestForbiddenException
+                raise RequestForbiddenError()
 
     async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Получение пользователя: обновление или создание."""

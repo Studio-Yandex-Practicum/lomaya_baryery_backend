@@ -137,13 +137,12 @@ class AlreadyRegisteredException(RegistrationException):
         )
 
 
-class RequestAlreadyReviewedException(ApplicationException):
+class RequestAlreadyReviewedError(ApplicationException):
     def __init__(self, status):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = f"Заявка на участие уже проверена, статус заявки: {status}."
 
 
-class RequestForbiddenException(RegistrationException):
+class RequestForbiddenError(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -153,41 +152,35 @@ class RequestForbiddenException(RegistrationException):
         )
 
 
-class InvalidAuthenticationDataException(ApplicationException):
+class InvalidAuthenticationError(ApplicationException):
     """Введены неверные данные для аутентификации."""
 
-    status_code = HTTPStatus.BAD_REQUEST
-    detail = "Неверный email или пароль."
+    def __init__(self):
+        self.detail = "Неверный email или пароль"
 
 
-class AdministratorBlockedException(ApplicationException):
+class AdministratorBlockedError(ApplicationException):
     """Попытка аутентификации заблокированного пользователя."""
 
-    status_code = HTTPStatus.FORBIDDEN
-    detail = "Пользователь заблокирован."
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Пользователь заблокирован"
 
 
-class UnauthorizedException(ApplicationException):
+class UnauthorizedError(ApplicationException):
     """Пользователь не авторизован."""
 
-    status_code = HTTPStatus.UNAUTHORIZED
-    detail = "У Вас нет прав для просмотра запрошенной страницы."
+    def __init__(self):
+        self.status_code = HTTPStatus.UNAUTHORIZED
+        self.detail = "У Вас нет прав для просмотра запрошенной страницы"
 
 
-class AdministratorNotFoundException(ApplicationException):
-    """Пользователь не найден."""
-
-    status_code = HTTPStatus.BAD_REQUEST
-    detail = "Пользователь с указанными реквизитами не найден."
-
-
-class AdministratorInvitationInvalid(RegistrationException):
+class AdministratorInvitationInvalidError(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."
 
 
-class EmailSendException(ApplicationException):
+class EmailSendError(ApplicationException):
     def __init__(self, recipients: list[str], exc: Exception):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."
