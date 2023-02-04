@@ -13,9 +13,9 @@ from src.core.db.db import get_session
 from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import (
-    GetStartedShiftException,
     NotFoundException,
     RegistrationForbidenException,
+    ShiftStartedNotFoundError,
 )
 from src.core.settings import settings
 
@@ -103,7 +103,7 @@ class ShiftRepository(AbstractRepository):
         shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED))
         shift_id = shift_id.first()
         if not shift_id:
-            raise GetStartedShiftException(detail='Активной смены не найдено.')
+            raise ShiftStartedNotFoundError()
         return shift_id
 
     async def get_open_for_registration_shift_id(self) -> UUID:

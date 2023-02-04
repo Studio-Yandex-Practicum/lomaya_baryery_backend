@@ -6,7 +6,7 @@ from starlette.exceptions import HTTPException
 
 
 class ApplicationException(HTTPException):
-    status_code: int = None
+    status_code: int = HTTPStatus.BAD_REQUEST
     detail: str = None
     headers: Dict[str, Any] = None
 
@@ -44,18 +44,6 @@ class EmptyReportError(Exception):
     """Отчет должен содержать фото."""
 
 
-class ShiftStartForbiddenException(ApplicationException):
-    def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
-
-
-class ShiftFinishForbiddenException(ApplicationException):
-    def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
-
-
 class SendTelegramNotifyException(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
@@ -79,28 +67,49 @@ class ReportWaitingPhotoException(ApplicationException):
         self.detail = "К заданию нет отчета участника."
 
 
-class ShiftCreateException(ApplicationException):
+class ShiftStatusError(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.detail = f"Невозможно начать/завершить смену '{shift_name}' с id: {shift_id}. Проверьте статус смены"
+
+
+class ShiftCreateError(ApplicationException):
     def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Запрещено создавать более одной новой смены"
 
 
-class ShiftUpdateException(ApplicationException):
-    def __init__(self, detail: str):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = detail
-
-
-class ShiftsDatesIntersectionException(ApplicationException):
+class ShiftDateTodayPastError(ApplicationException):
     def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
+        self.detail = "Дата начала/окончания смены не может быть сегодняшним или прошедшим числом"
 
 
-class GetStartedShiftException(ApplicationException):
-    def __init__(self, detail: str):
-        self.status_code = HTTPStatus.NOT_FOUND
-        self.detail = detail
+class ShiftDateMaxDurationError(ApplicationException):
+    def __init__(self):
+        self.detail = "Смена не может длиться больше 4-х месяцев"
+
+
+class ShiftDateStartFinishError(ApplicationException):
+    def __init__(self):
+        self.detail = "Дата начала смены не может равняться или быть позже дате окончания"
+
+
+class ShiftDateIntersectionError(ApplicationException):
+    def __init__(self):
+        self.detail = "Дата начала новой смены не может равняться или быть раньше даты окончания текущей смены"
+
+
+class ShiftUpdateError(ApplicationException):
+    def __init__(self):
+        self.detail = "Запрещено изменять завершенную или отмененную смену"
+
+
+class ShiftDateUpdateStartError(ApplicationException):
+    def __init__(self):
+        self.detail = "Запрещено изменять дату начала текущей смены"
+
+
+class ShiftStartedNotFoundError(NotFoundException):
+    def __init__(self):
+        self.detail = "Активной смены не найдено."
 
 
 class RegistrationException(HTTPException):
