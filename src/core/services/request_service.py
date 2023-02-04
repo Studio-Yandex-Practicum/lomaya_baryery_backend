@@ -12,7 +12,7 @@ from src.core.db.models import Member, Request, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
 from src.core.exceptions import (
     RequestAlreadyReviewedException,
-    SendTelegramNotifyException,
+    RequestSendTelegramNotifyError,
 )
 
 
@@ -43,7 +43,7 @@ class RequestService:
         try:
             await self.__telegram_bot(bot).notify_approved_request(request.user)
         except Exception as exc:
-            raise SendTelegramNotifyException(
+            raise RequestSendTelegramNotifyError(
                 request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
             )
         return RequestResponse.parse_from(request)
@@ -63,7 +63,7 @@ class RequestService:
         try:
             await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
         except Exception as exc:
-            raise SendTelegramNotifyException(
+            raise RequestSendTelegramNotifyError(
                 request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
             )
         return RequestResponse.parse_from(request)

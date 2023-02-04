@@ -10,7 +10,7 @@ from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError, NotFoundError
+from src.core.exceptions import NotFoundError, TaskCurrentNotFoundError
 from src.core.utils import get_current_task_date
 
 
@@ -89,5 +89,5 @@ class ReportRepository(AbstractRepository):
         )
         report = reports.scalars().first()
         if not report:
-            raise CurrentTaskNotFoundError()
+            raise TaskCurrentNotFoundError()
         return report

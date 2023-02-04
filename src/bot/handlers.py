@@ -21,11 +21,11 @@ from src.core.db.repository import (
     UserRepository,
 )
 from src.core.exceptions import (
-    CannotAcceptReportError,
-    CurrentTaskNotFoundError,
-    DuplicateReportError,
-    ExceededAttemptsReportError,
     RegistrationException,
+    ReportCannotAcceptError,
+    ReportDuplicateError,
+    ReportExceededAttemptsError,
+    TaskCurrentNotFoundError,
 )
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
@@ -102,17 +102,17 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         await report_service.send_report(user.id, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
 
-    except CurrentTaskNotFoundError:
+    except TaskCurrentNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
-    except CannotAcceptReportError:
+    except ReportCannotAcceptError:
         await update.message.reply_text(
             "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
         )
-    except DuplicateReportError:
+    except ReportDuplicateError:
         await update.message.reply_text(
             "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
         )
-    except ExceededAttemptsReportError:
+    except ReportExceededAttemptsError:
         await update.message.reply_text(
             "Превышено количество попыток сдать отчет."
             "Предлагаем продолжить, ведь впереди много интересных заданий. "

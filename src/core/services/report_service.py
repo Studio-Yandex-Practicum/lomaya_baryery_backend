@@ -10,9 +10,9 @@ from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.exceptions import (
-    DuplicateReportError,
-    ReportAlreadyReviewedException,
-    ReportWaitingPhotoException,
+    ReportAlreadyReviewedError,
+    ReportDuplicateError,
+    ReportWaitingPhotoError,
 )
 from src.core.services.task_service import TaskService
 
@@ -48,7 +48,7 @@ class ReportService:
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
         if report:
-            raise DuplicateReportError()
+            raise ReportDuplicateError()
 
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
@@ -82,9 +82,9 @@ class ReportService:
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
         if status in (Report.Status.APPROVED, Report.Status.DECLINED):
-            raise ReportAlreadyReviewedException(status=status)
+            raise ReportAlreadyReviewedError(status=status)
         if status is Report.Status.WAITING:
-            raise ReportWaitingPhotoException
+            raise ReportWaitingPhotoError()
 
     async def get_summaries_of_reports(
         self,

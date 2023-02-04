@@ -22,9 +22,9 @@ from sqlalchemy.schema import ForeignKey
 
 from src.core import settings
 from src.core.exceptions import (
-    CannotAcceptReportError,
-    EmptyReportError,
-    ExceededAttemptsReportError,
+    ReportCannotAcceptError,
+    ReportEmptyError,
+    ReportExceededAttemptsError,
     ShiftStatusError,
 )
 
@@ -221,14 +221,14 @@ class Report(Base):
 
     def send_report(self, photo_url: str):
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
-            raise ExceededAttemptsReportError
+            raise ReportExceededAttemptsError
         if not photo_url:
-            raise EmptyReportError()
+            raise ReportEmptyError()
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
         ):
-            raise CannotAcceptReportError()
+            raise ReportCannotAcceptError()
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()

@@ -4,7 +4,7 @@ from pydantic.schema import UUID
 from src.api.request_models.task import TaskCreateRequest
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
-from src.core.exceptions import TodayTaskNotFoundError
+from src.core.exceptions import TaskTodayNotFoundError
 from src.core.settings import settings
 
 
@@ -28,7 +28,7 @@ class TaskService:
         task_id = tasks.get(str(day_of_month))
         task = await self.__task_repository.get_or_none(task_id)
         if not task:
-            raise TodayTaskNotFoundError()
+            raise TaskTodayNotFoundError()
         return task
 
     async def create_task(self, new_task: TaskCreateRequest) -> Task:

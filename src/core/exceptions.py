@@ -17,53 +17,50 @@ class ApplicationException(HTTPException):
 class NotFoundError(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
-        self.detail = f"Объект {object_name} с id: {object_id} не найден"
+        self.detail = f"Объект '{object_name}' с id: {object_id} не найден"
 
 
-class CurrentTaskNotFoundError(Exception):
+class TaskCurrentNotFoundError(Exception):
     """Не найдено текущей задачи для пользователя."""
 
 
-class TodayTaskNotFoundError(Exception):
+class TaskTodayNotFoundError(Exception):
     """Не найдено ежедневной задачи на текущий день."""
 
 
-class CannotAcceptReportError(Exception):
+class ReportCannotAcceptError(Exception):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
 
-class DuplicateReportError(Exception):
+class ReportDuplicateError(Exception):
     """Отчет с таким фото уже отправлялся ранее."""
 
 
-class ExceededAttemptsReportError(Exception):
+class ReportExceededAttemptsError(Exception):
     """Превышено количество попыток сдать отчет."""
 
 
-class EmptyReportError(Exception):
+class ReportEmptyError(Exception):
     """Отчет должен содержать фото."""
 
 
-class SendTelegramNotifyException(ApplicationException):
+class RequestSendTelegramNotifyError(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
     def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
             f"Возникла ошибка '{exc}' при отправке сообщения пользователю -"
             f" id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
         )
 
 
-class ReportAlreadyReviewedException(ApplicationException):
-    def __init__(self, status: UUID):
-        self.status_code = HTTPStatus.FORBIDDEN
+class ReportAlreadyReviewedError(ApplicationException):
+    def __init__(self, status: str):
         self.detail = f"Задание уже проверено, статус задания: {status}."
 
 
-class ReportWaitingPhotoException(ApplicationException):
+class ReportWaitingPhotoError(NotFoundError):
     def __init__(self):
-        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "К заданию нет отчета участника."
 
 
@@ -134,7 +131,7 @@ class AlreadyRegisteredException(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.OK
         self.detail = (
-            "Вы уже зарегестрированы в проекте, ожидайте свое первое задание "
+            "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
             "в день старта смены. Актуальную дату начала смены вы можете "
             "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
         )
