@@ -1,4 +1,5 @@
 from datetime import date
+from urllib.parse import urljoin
 
 from fastapi import Depends
 from pydantic.schema import UUID
@@ -15,6 +16,7 @@ from src.core.exceptions import (
     ReportWaitingPhotoException,
 )
 from src.core.services.task_service import TaskService
+from src.core.settings import settings
 
 
 class ReportService:
@@ -95,7 +97,11 @@ class ReportService:
 
         Список берется по id смены и/или статусу заданий с url фото выполненного задания.
         """
-        return await self.__report_repository.get_summaries_of_reports(shift_id, status)
+        reports = await self.__report_repository.get_summaries_of_reports(shift_id, status)
+        for report in reports:
+            report.task_url = urljoin(settings.APPLICATION_URL, report.task_url)
+            report.photo_url = urljoin(settings.APPLICATION_URL, report.photo_url)
+        return reports
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
         report = await self.__report_repository.get_current_report(user_id)
