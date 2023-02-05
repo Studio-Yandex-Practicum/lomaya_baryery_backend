@@ -21,6 +21,22 @@ class AdministratorCBV:
     administrator_service: AdministratorService = Depends()
 
     @router.post(
+        "/refresh",
+        response_model=TokenResponse.refresh_token,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Обновление токенов",
+        response_description="Access и refresh токены.",
+    )
+    async def refresh(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
+        """Аутентифицировать администратора по email и паролю.
+
+        - **email**: электронная почта
+        - **password**: пароль
+        """
+        return await self.authentication_service.refresh(auth_data)
+
+    @router.post(
         "/login",
         response_model=TokenResponse,
         response_model_exclude_none=True,
