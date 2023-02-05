@@ -100,7 +100,8 @@ class ReportService:
         reports = await self.__report_repository.get_summaries_of_reports(shift_id, status)
         for report in reports:
             report.task_url = urljoin(settings.APPLICATION_URL, report.task_url)
-            report.photo_url = urljoin(settings.APPLICATION_URL, report.photo_url)
+            if report.photo_url:
+                report.photo_url = urljoin(settings.APPLICATION_URL, report.photo_url)
         return reports
 
     async def send_report(self, user_id: UUID, photo_url: str) -> Report:
