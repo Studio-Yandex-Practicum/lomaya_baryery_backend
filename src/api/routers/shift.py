@@ -35,7 +35,7 @@ class ShiftCBV:
         status_code=HTTPStatus.CREATED,
         summary="Создать новую смену",
         response_description="Информация о созданной смене",
-        responses=generate_error_responses(400),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST),
     )
     async def create_new_shift(
         self,
@@ -55,7 +55,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Получить информацию о смене",
         response_description="Информация о смене",
-        responses=generate_error_responses(404),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_shift(
         self,
@@ -63,7 +63,7 @@ class ShiftCBV:
     ) -> ShiftResponse:
         """Получить информацию о смене по её ID.
 
-        - **shift_id**: уникальный индентификатор смены
+        - **shift_id**: уникальный идентификатор смены
         - **status**: статус смены (started|finished|preparing|cancelled)
         - **title**: название смены
         - **final_message**: шаблон сообщения о завершении смены
@@ -79,7 +79,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Обновить информацию о смене",
         response_description="Обновленная информация о смене",
-        responses=generate_error_responses(400, 404),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def update_shift(
         self,
@@ -88,7 +88,7 @@ class ShiftCBV:
     ) -> ShiftResponse:
         """Обновить информацию о смене с указанным ID.
 
-        - **shift_id**: уникальный индентификатор смены
+        - **shift_id**: уникальный идентификатор смены
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         - **title**: название смены
@@ -103,7 +103,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Старт смены",
         response_description="Информация о запущенной смене",
-        responses=generate_error_responses(400, 404),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def start_shift(
         self,
@@ -111,7 +111,7 @@ class ShiftCBV:
     ) -> ShiftResponse:
         """Начать смену.
 
-        - **shift_id**: уникальный индентификатор смены
+        - **shift_id**: уникальный идентификатор смены
         """
         return await self.shift_service.start_shift(shift_id)
 
@@ -122,7 +122,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Получить список пользователей смены",
         response_description="Информация о смене",
-        responses=generate_error_responses(404),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_shift_members(
         self, shift_id: UUID, member_status: Optional[Member.Status] = None
@@ -131,7 +131,7 @@ class ShiftCBV:
         Получить список пользователей смены.
 
         - **shift**: Информация о смене
-        - **memebers**: Список всех одобренных пользователей смены.
+        - **members**: Список всех одобренных пользователей смены.
         """
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
@@ -139,7 +139,7 @@ class ShiftCBV:
         '/{shift_id}/requests',
         response_model=list[ShiftDtoRespone],
         response_model_exclude_none=True,
-        summary=("Получить информацию обо всех заявках смены" "с возможностью фильтрации"),
+        summary="Получить информацию обо всех заявках смены с возможностью фильтрации",
         response_description="Полная информация обо заявках смены.",
     )
     async def get_list_all_requests_on_project(
@@ -196,11 +196,11 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Завершение смены",
         response_description="Информация о завершенной смене",
-        responses=generate_error_responses(400, 404),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
         """Закончить смену.
 
-        - **shift_id**: уникальный индентификатор смены
+        - **shift_id**: уникальный идентификатор смены
         """
         return await self.shift_service.finish_shift(request.app.state.bot_instance, shift_id)

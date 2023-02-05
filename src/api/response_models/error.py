@@ -8,6 +8,9 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-def generate_error_responses(*error_status_codes: HTTPStatus.real) -> dict[int, dict[str, Any]]:
+def generate_error_responses(*error_statuses: HTTPStatus) -> dict[int, dict[str, Any]]:
     """Создает шаблоны ошибок из входящих статус кодов."""
-    return {code: {"description": HTTPStatus(code).phrase, "model": ErrorResponse} for code in error_status_codes}
+    return {
+        error_status.real: {"description": error_status.phrase, "model": ErrorResponse}
+        for error_status in error_statuses
+    }
