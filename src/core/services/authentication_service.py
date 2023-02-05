@@ -80,3 +80,13 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         return administrator
+
+    async def refresh(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
+        """Получить access и refresh токены."""
+        administrator = await self.__authenticate_administrator(auth_data)
+        administrator.last_login_at = dt.datetime.now()
+        await self.__administrator_repository.update(administrator.id, administrator)
+        return TokenResponse(
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+        )
