@@ -27,7 +27,7 @@ class AnaliticsService:
         # Ниже пример использование флага при добавлении новых отчётов:
         # workbook = await self.__generate_task_report(last_sheet=False)
         # workbook = await self.__generate_shift_report(workbook=workbook, last_sheet=True)
-        return workbook
+        return workbook  # noqa: R504
 
     async def generate_task_report(self) -> StreamingResponse:
         """Генерация отчёта с заданиями."""
