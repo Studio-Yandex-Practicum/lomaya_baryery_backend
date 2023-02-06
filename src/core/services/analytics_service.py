@@ -1,21 +1,36 @@
+from typing import Optional
+
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
 
-from src.core.services.analytic_report_service import AnalyticReportService
+from src.core.db.repository.task_repository import TaskRepository
+from src.excel_generator.analytic_report_director import AnalyticReportDirector
+from src.excel_generator.task_builder import AnalyticTaskReportBuilder
 
 
 class AnaliticsService:
     """Сервис для получения отчётов."""
 
-    def __init__(self, analytic_report_service: AnalyticReportService = Depends()) -> None:
-        self.__analytic_report_service = analytic_report_service
+    def __init__(
+        self, task_repository: TaskRepository = Depends(), task_report_builder: AnalyticTaskReportBuilder() = Depends()
+    ) -> None:
+        self.__task_repository = task_repository
+        self.__task_report_builder = task_report_builder
+
+    async def __generate_task_report(self, last_sheet: bool, workbook: Optional[Workbook] = None) -> Workbook:
+        """Генерация отчёта с заданиями."""
+        data = await self.__task_repository.get_tasks_statistics_report()
+        return await AnalyticReportDirector(self.__task_report_builder).generate_report(data, last_sheet, workbook)
 
     async def generate_full_report(self) -> StreamingResponse:
         """Генерация полного отчёта."""
-        workbook = await self.__analytic_report_service.generate_workbook()
-        return await self.__analytic_report_service.generate_full_report(workbook)
+        workbook = await self.__generate_task_report(last_sheet=True)
+        # Ниже пример использование флага при добавлении новых отчётов:
+        # workbook = await self.__generate_task_report(last_sheet=False)
+        # workbook = await self.__generate_shift_report(workbook=workbook, last_sheet=True)
+        return workbook
 
     async def generate_task_report(self) -> StreamingResponse:
         """Генерация отчёта с заданиями."""
-        workbook = await self.__analytic_report_service.generate_workbook()
-        return await self.__analytic_report_service.generate_task_report(workbook)
+        return await self.__generate_task_report(last_sheet=True)
