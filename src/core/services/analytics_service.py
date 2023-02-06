@@ -12,11 +12,9 @@ from src.excel_generator.task_builder import AnalyticTaskReportBuilder
 class AnaliticsService:
     """Сервис для получения отчётов."""
 
-    def __init__(
-        self, task_repository: TaskRepository = Depends(), task_report_builder: AnalyticTaskReportBuilder() = Depends()
-    ) -> None:
+    def __init__(self, task_repository: TaskRepository = Depends()) -> None:
         self.__task_repository = task_repository
-        self.__task_report_builder = task_report_builder
+        self.__task_report_builder = AnalyticTaskReportBuilder()
 
     async def __generate_task_report(self, last_sheet: bool, workbook: Optional[Workbook] = None) -> Workbook:
         """Генерация отчёта с заданиями."""
