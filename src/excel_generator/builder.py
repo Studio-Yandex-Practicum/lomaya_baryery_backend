@@ -13,11 +13,11 @@ class AnalyticReportBuilder(abc.ABC):
     """Интерфейс строителя."""
 
     def __set_data_count(self, data: tuple[str]) -> None:
-        self.data_count = len(data)
+        self._data_count = len(data)
 
     def __add_row(self, data: tuple[str], row_number: int) -> None:
         for index, value in enumerate(data):
-            self.worksheet.cell(row=row_number, column=index + 1, value=value)
+            self._worksheet.cell(row=row_number, column=index + 1, value=value)
 
     async def __save_report(self, workbook: Workbook) -> BytesIO:
         """Сохранение отчёта."""
@@ -41,11 +41,11 @@ class AnalyticReportBuilder(abc.ABC):
 
     def create_sheet(self, workbook: Workbook) -> None:
         """Создаёт лист внутри отчёта."""
-        self.worksheet = workbook.create_sheet(self.sheet_name)
+        self._worksheet = workbook.create_sheet(self._sheet_name)
 
     def add_header(self) -> None:
         """Заполняет первую строку в листе."""
-        self.__add_row(self.header_data, 1)
+        self.__add_row(self._header_data, 1)
 
     def add_data(self, data: tuple[str]) -> None:
         """Заполняет строку данными из БД."""
@@ -56,32 +56,32 @@ class AnalyticReportBuilder(abc.ABC):
 
     def add_footer(self) -> None:
         """Заполняет последнюю строку в листе."""
-        self.__add_row(self.footer_data, self.data_count + 2)
+        self.__add_row(self._footer_data, self._data_count + 2)
 
     def apply_styles(self):
         """Задаёт форматирование отчёта."""
-        max_row = self.data_count + 2
+        max_row = self._data_count + 2
         # задаём стиль для хэдера
-        header_cells = list(self.worksheet.iter_rows())[0]
+        header_cells = list(self._worksheet.iter_rows())[0]
         for cell in header_cells:
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_HEADER.value
         # задаём стиль для ячеек с данными
-        data_rows = list(self.worksheet.iter_rows())[1:max_row - 1]  # fmt: skip
+        data_rows = list(self._worksheet.iter_rows())[1:max_row - 1]  # fmt: skip
         for row in data_rows:
             for cell in row:
                 cell.font = self.Styles.FONT_STANDART.value
                 cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль для футера
-        footer_cells = list(self.worksheet.iter_rows())[max_row - 1]
+        footer_cells = list(self._worksheet.iter_rows())[max_row - 1]
         for cell in footer_cells:
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль границ и колонок
-        for row in self.worksheet.iter_rows():
+        for row in self._worksheet.iter_rows():
             for cell in row:
                 cell.border = self.Styles.BORDER.value
-        self.worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
+        self._worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
