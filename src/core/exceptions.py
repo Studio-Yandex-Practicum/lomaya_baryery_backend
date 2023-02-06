@@ -14,9 +14,10 @@ class ApplicationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
-class NotFoundError(ApplicationException):
+class ObjectNotFoundError(ApplicationException):
+    status_code = HTTPStatus.NOT_FOUND
+
     def __init__(self, object_name: str, object_id: UUID):
-        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = f"Объект '{object_name}' с id: {object_id} не найден"
 
 
@@ -59,9 +60,8 @@ class ReportAlreadyReviewedError(ApplicationException):
         self.detail = f"Задание уже проверено, статус задания: {status}."
 
 
-class ReportWaitingPhotoError(NotFoundError):
-    def __init__(self):
-        self.detail = "К заданию нет отчета участника."
+class ReportWaitingPhotoError(ApplicationException):
+    detail = "К заданию нет отчета участника"
 
 
 class ShiftStatusError(ApplicationException):
@@ -104,9 +104,9 @@ class ShiftDateUpdateStartError(ApplicationException):
         self.detail = "Запрещено изменять дату начала текущей смены"
 
 
-class ShiftStartedNotFoundError(NotFoundError):
+class ShiftStartedNotFoundError(ObjectNotFoundError):
     def __init__(self):
-        self.detail = "Активной смены не найдено."
+        self.detail = "Активной смены не найдено"
 
 
 class RegistrationException(HTTPException):

@@ -13,7 +13,7 @@ from src.core.db.db import get_session
 from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import (
-    NotFoundError,
+    ObjectNotFoundError,
     RegistrationForbidenException,
     ShiftStartedNotFoundError,
 )
@@ -47,7 +47,7 @@ class ShiftRepository(AbstractRepository):
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
-            raise NotFoundError(object_name=Shift.__doc__, object_id=id)
+            raise ObjectNotFoundError(object_name=Shift.__doc__, object_id=id)
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
