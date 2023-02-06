@@ -91,7 +91,7 @@ class ReportsCBV:
     )
     async def get_report_summary(
         self,
-        shift_id: UUID = None,
+        shift_id: UUID,
         status: Report.Status = None,
     ) -> list[ReportSummaryResponse]:
         """
