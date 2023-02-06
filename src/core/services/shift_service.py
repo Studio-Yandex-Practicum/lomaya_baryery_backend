@@ -22,6 +22,7 @@ from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import (
     CreateShiftForbiddenException,
+    NotFoundException,
     ShiftsDatesIntersectionException,
     ShiftUpdateException,
     UpdateShiftForbiddenException,
@@ -192,7 +193,9 @@ class ShiftService:
         return ShiftMembersResponse(shift=shift, members=shift.members)
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
-        await self.__shift_repository.get(id)
+        shift_exists = await self.__shift_repository.check_shift_existence(id)
+        if not shift_exists:
+            raise NotFoundException(object_name=Shift.__name__, object_id=id)
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(
