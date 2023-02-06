@@ -4,16 +4,13 @@ from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
+from src.api.error_templates import ERROR_TEMPLATE_FOR_403, ERROR_TEMPLATE_FOR_404
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
-from src.api.response_models.shift import ErrorResponse
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/reports", tags=["Report"])
-
-ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -88,6 +85,9 @@ class ReportsCBV:
         "/",
         response_model=list[ReportSummaryResponse],
         summary="Получения списка заданий пользователя по полям status и shift_id.",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_report_summary(
         self,
