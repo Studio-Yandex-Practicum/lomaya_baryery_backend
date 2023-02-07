@@ -1,16 +1,16 @@
 """Add new status to shift model
 
-Revision ID: 0123bd454728
-Revises: 73c0ad19dc7a
-Create Date: 2023-02-01 16:35:36.806595
+Revision ID: fb0616f8ae8e
+Revises: f4645f80c3ac
+Create Date: 2023-02-07 21:11:28.998219
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '0123bd454728'
-down_revision = '73c0ad19dc7a'
+revision = 'fb0616f8ae8e'
+down_revision = 'f4645f80c3ac'
 branch_labels = None
 depends_on = None
 
