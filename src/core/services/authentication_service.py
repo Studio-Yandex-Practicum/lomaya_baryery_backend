@@ -82,7 +82,10 @@ class AuthenticationService:
         return administrator
 
 
-    async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
+    async def __authenticate_administrator(
+            self,
+            auth_data: AdministratorAuthenticateRequest
+            ) -> Administrator:
         """Аутентификация администратора по email и паролю."""
         administrator = await self.__administrator_repository.get_by_email(auth_data.email)
         if administrator.status == Administrator.Status.BLOCKED:
@@ -96,7 +99,11 @@ class AuthenticationService:
     async def refresh(self, token: str) -> TokenResponse:
         """Получить текущего активного администратора, используя токен."""
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY,
+                algorithms=[ALGORITHM]
+                )
         except JWTError:
             raise UnauthorizedException()
         email = payload.get("email")
