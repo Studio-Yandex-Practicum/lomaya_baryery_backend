@@ -7,6 +7,7 @@ from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
 from src.bot import services
+from src.core import settings as settings_file
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
@@ -74,7 +75,7 @@ class ReportService:
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
             and not await self.__member_repository.is_unreviewied_report_exists(member.id)
         ):
-            await self.__can_finish_shift(member.shift)
+            await self.__finish_shift_with_all_reports_reviewed(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
@@ -88,10 +89,10 @@ class ReportService:
         await self.__telegram_bot(bot).notify_declined_task(member.user)
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
-            and report.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT
+            and report.number_attempt == settings_file.NUMBER_ATTEMPTS_SUMBIT_REPORT
             and not await self.__member_repository.is_unreviewied_report_exists(member.id)
         ):
-            await self.__can_finish_shift(member.shift)
+            await self.__finish_shift_with_all_reports_reviewed(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
         return
 
@@ -102,7 +103,7 @@ class ReportService:
         if status is Report.Status.WAITING:
             raise ReportWaitingPhotoException
 
-    async def __can_finish_shift(self, shift: Shift) -> None:
+    async def __finish_shift_with_all_reports_reviewed(self, shift: Shift) -> None:
         """Закрывает группу, если не осталось непроверенных заданий."""
         if not await self.__shift_repository.is_unreviewied_report_exists(shift.id):
             shift.status = Shift.Status.FINISHED
