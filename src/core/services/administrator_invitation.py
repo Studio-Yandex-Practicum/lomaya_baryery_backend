@@ -30,4 +30,5 @@ class AdministratorInvitationService:
         )
 
     async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
-        return await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
+        invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
+        return AdministratorInvitationResponse(name=invitation.name, surname=invitation.surname, email=invitation.email)
