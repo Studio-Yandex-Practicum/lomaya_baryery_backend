@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from uuid import UUID
 
 from fastapi import Depends
@@ -32,3 +32,9 @@ class AdministratorInvitationService:
     async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
         invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
         return AdministratorInvitationResponse(name=invitation.name, surname=invitation.surname, email=invitation.email)
+
+    async def close_invitation(self, token: UUID) -> None:
+        """Устанавливаем прошедшую дату в invitation.expired_date."""
+        invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
+        invitation.expired_date = date.today() - timedelta(days=1)
+        await self.__administrator_mail_request_repository.update(invitation.id, invitation)
