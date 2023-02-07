@@ -31,7 +31,7 @@ class AdministratorInvitationCBV:
         self, request: Request, invitation_data: AdministratorInvitationRequest
     ) -> None:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
-        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.id}"
+        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
 
     @router.get('/invite/{token}')
@@ -42,7 +42,5 @@ class AdministratorInvitationCBV:
         - **name**: имя администратора
         - **surname**: фамилия администратора
         - **email**: адрес электронной почты
-        - **expired_date**: дата окончания срока действия приглашения
-        - **token**: токен
         """
         return await self.administrator_invitation_service.get_invitation_by_token(token)
