@@ -221,7 +221,7 @@ class ShiftService:
 
     async def _change_shift_status(self, shift: Shift) -> None:
         """Изменяет статус группы. Закрывает группу, если не осталось непроверенных отчетов."""
-        if await self.__shift_repository.check_unreviewed_reports(shift.id):
+        if await self.__shift_repository.is_unreviewied_report_exists(shift.id):
             shift.status = Shift.Status.READY_FOR_COMPLETE
         else:
             shift.status = Shift.Status.FINISHED
