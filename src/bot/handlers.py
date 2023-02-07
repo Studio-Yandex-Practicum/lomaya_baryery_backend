@@ -13,6 +13,7 @@ from telegram import (
 from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
+from src.api.request_models.user import UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -31,8 +32,6 @@ from src.core.exceptions import (
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
-
-WEBAPP_URL = "{url}?{query}"
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -58,12 +57,18 @@ async def register(
     session = get_session()
     registration_service = await get_user_service_callback(session)
     user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
-    query = urllib.parse.urlencode(user.object_to_dict) if user else None
+    if user:
+        text = "Подать заявку на участие в смене"
+        web_huck = UserWebhookTelegram.from_orm(user)
+        query = urllib.parse.urlencode(web_huck.dict())
+    else:
+        text = "Зарегистрироваться в проекте"
+        query = None
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
-                text="Зарегистрироваться в проекте",
+                text=text,
                 web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
@@ -81,15 +86,16 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         telegram_user_id = update._effective_user.id
         user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
         if user is None:
-            await update.message.reply_text(
-                text="Процесс регистрации занимает некоторое время - вам придет уведомление",
-                reply_markup=ReplyKeyboardRemove(),
-            )
+            text="Процесс регистрации занимает некоторое время - вам придет уведомление."
         else:
-            await update.message.reply_text(
-                text="Вы успешно обновили ваши регистрационные данные!",
-                reply_markup=ReplyKeyboardRemove(),
+            text=(
+                " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время "
+                "- вам придет уведомление."
             )
+        await update.message.reply_text(
+            text=text,
+            reply_markup=ReplyKeyboardRemove(),
+        )
         await registration_service.register_user(user_scheme)
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValidationError):

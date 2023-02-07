@@ -53,7 +53,6 @@ class UserService:
 
     async def register_user(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        print(new_user_data)
         shift_id = await self.__shift_service.get_open_for_registration_shift_id()
         user = await self.__update_or_create_user(new_user_data)
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
@@ -78,7 +77,6 @@ class UserService:
     async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Получение пользователя: обновление или создание."""
         db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
-        print(user_scheme)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
         user = user_scheme.create_db_model()

@@ -127,16 +127,6 @@ class User(Base):
     requests = relationship("Request", back_populates="user")
     members = relationship("Member", back_populates="user")
 
-    @property
-    def object_to_dict(self):
-        return dict(
-            name=self.name,
-            surname=self.surname,
-            date_of_birth=self.date_of_birth,
-            city=self.city,
-            phone_number=self.phone_number,
-        )
-
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
 

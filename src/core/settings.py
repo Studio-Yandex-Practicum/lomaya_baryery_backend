@@ -20,7 +20,6 @@ class Settings(BaseSettings):
     BOT_TOKEN: str
     BOT_WEBHOOK_MODE: bool = False
     BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
-    TEMPLATES = Jinja2Templates(directory=BASE_DIR / "src" / "static")
     APPLICATION_URL: str
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -64,8 +63,13 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку для на HTML шаблон регистрации."""
+        """Получить ссылку на HTML шаблон регистрации."""
         return f"{self.APPLICATION_URL}/telegram/register_form"
+
+    @property
+    def registration_template_directory(self):
+        """Получить директорию HTML-шаблона формы регистрации."""
+        return BASE_DIR / "src" / "templates" / "registration"
 
     @property
     def task_image_url(self) -> str:

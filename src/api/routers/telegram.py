@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, status
+from fastapi.responses import StreamingResponse
 
-from src.api.request_models.user import UserWebhookTelegram
 from src.core.settings import settings
 
 router = APIRouter(prefix="/telegram", tags=["Telegram template forms"])
@@ -12,21 +12,24 @@ FORM_AUTOFILL_TELEGRAM_TEMPLATE = "registration.html"
     "/register_form",
     status_code=status.HTTP_200_OK,
     summary="Получить шаблон формы в телеграм",
-    response_description="Заполняет форму пользоваптельскими данными",
+    response_description="Предоставляет пользователю форму для заполнения",
 )
-async def user_register_form_webhook(request: Request, webhook_telegram_user: UserWebhookTelegram = Depends()):
+async def user_register_form_webhook():
     """
-    Получить форму пользователя в телеграм.
-
-    - **UserWebhookTelegram**: входящая Query-форма
+    Предоставить пользователю в телеграм форму для заполнения
+    следующих данных:
     - **name**: имя пользователя
     - **surname**: фамилия пользователя
     - **date_of_birth**: день рождения пользователя
     - **city**: город пользователя
     - **phone_number**: телефон пользователя
     """
-    income_user_form = webhook_telegram_user.dict()
-    context = dict(request=request)
-    if all(income_user_form.values()):
-        context.update(income_user_form)
-    return settings.TEMPLATES.TemplateResponse(FORM_AUTOFILL_TELEGRAM_TEMPLATE, context=context)
+    def get_register_form():
+        with open(
+            settings.registration_template_directory.joinpath(
+                FORM_AUTOFILL_TELEGRAM_TEMPLATE
+            ), 'rb'
+        ) as html_form:
+            yield from html_form
+
+    return StreamingResponse(get_register_form(), media_type="text/html")

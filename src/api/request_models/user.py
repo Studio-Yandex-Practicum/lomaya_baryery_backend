@@ -107,10 +107,6 @@ class UserWebhookTelegram(BaseModel):
     """
     Валидируем и отдаем данные из базы в Query-форму.
 
-    Если поля переданы не были, возвращаем пустой словарь.
-
-    Optional и root_validator - необходимы если пользователя нет в базе.
-
     - **name**: провалидированное имя пользователя
     - **surname**: провалидированная фамилия пользовтаеля
     - **date_of_birth**: Хранится в бд с отличным форматом
@@ -119,14 +115,15 @@ class UserWebhookTelegram(BaseModel):
     - **validate_date_of_birth**: Конвертация в нужный формат WebAppInfo
     """
 
-    name: Optional[StrictStr]
-    surname: Optional[StrictStr]
-    date_of_birth: Optional[date]
-    city: Optional[StrictStr]
-    phone_number: Optional[int]
+    name: StrictStr
+    surname: StrictStr
+    date_of_birth: date
+    city: StrictStr
+    phone_number: int
 
     @validator("date_of_birth")
-    def fix_date_of_birth(cls, value: Union[date, None]) -> Union[str, None]:
-        if value is not None:
-            return value.strftime(DATE_FORMAT)
-        return None
+    def fix_date_of_birth(cls, value: date) -> str:
+        return value.strftime(DATE_FORMAT)
+
+    class Config:
+        orm_mode = True
