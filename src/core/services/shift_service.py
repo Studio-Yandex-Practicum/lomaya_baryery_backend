@@ -213,13 +213,13 @@ class ShiftService:
         if not shift:
             return
         if shift.finished_at + timedelta(days=1) == date.today():
-            await self._notify_users_with_reviewed_reports(shift.id, bot)
-            await self._change_shift_status(shift)
+            await self.__notify_users_with_reviewed_reports(shift.id, bot)
+            await self.__change_shift_status(shift)
         if shift.status is Shift.Status.READY_FOR_COMPLETE:
-            await self._decline_reports_and_notify_users(shift.id, bot)
-            await self._change_shift_status(shift)
+            await self.__decline_reports_and_notify_users(shift.id, bot)
+            await self.__change_shift_status(shift)
 
-    async def _change_shift_status(self, shift: Shift) -> None:
+    async def __change_shift_status(self, shift: Shift) -> None:
         """Изменяет статус группы. Закрывает группу, если не осталось непроверенных отчетов."""
         if await self.__shift_repository.is_unreviewied_report_exists(shift.id):
             shift.status = Shift.Status.READY_FOR_COMPLETE
@@ -227,12 +227,12 @@ class ShiftService:
             shift.status = Shift.Status.FINISHED
         await self.__shift_repository.update(shift.id, shift)
 
-    async def _notify_users_with_reviewed_reports(self, shift: Shift, bot: Application) -> None:
+    async def __notify_users_with_reviewed_reports(self, shift: Shift, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
         shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
-    async def _decline_reports_and_notify_users(self, shift: Shift, bot: Application) -> None:
+    async def __decline_reports_and_notify_users(self, shift: Shift, bot: Application) -> None:
         """Отклоняет непровренные задания, уведомляет пользователей об окончании смены."""
         shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift.id)
         for member in shift.members:
