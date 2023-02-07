@@ -29,7 +29,7 @@ class ShiftRepository(AbstractRepository):
     async def get_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> Shift:
         """Получить смену (Shift) по её id вместе со связанными данными.
 
-        Связанные данные: Shift -> Memeber -> User, Shift -> Member -> Report.
+        Связанные данные: Shift -> Member -> User, Shift -> Member -> Report.
 
         Аргументы:
             id (UUID) - id смены (shift)
@@ -126,3 +126,7 @@ class ShiftRepository(AbstractRepository):
         """Возвращает смену с заданным статусом."""
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
+
+    async def check_shift_existence(self, shift_id: UUID) -> bool:
+        shift_exists = await self._session.execute(select(select(Shift).where(Shift.id == shift_id).exists()))
+        return shift_exists.scalar()

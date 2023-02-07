@@ -22,11 +22,13 @@ from src.core.db.models import Member, Request, Shift
 from src.core.db.repository import ShiftRepository
 from src.core.exceptions import (
     CreateShiftForbiddenException,
+    NotFoundException,
     ShiftsDatesIntersectionException,
     ShiftUpdateException,
     UpdateShiftForbiddenException,
 )
 from src.core.services.task_service import TaskService
+from src.core.settings import settings
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -69,6 +71,18 @@ class ShiftService:
         if preparing_started_at <= started_finished_at:
             raise ShiftsDatesIntersectionException()
 
+    def __check_that_request_filling_for_previous_shift_is_over(self, started_at: date) -> None:
+        """Проверка, что приём заявок на участие в предыдущей смене закончен.
+
+        Если текущая смена длится менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней (прием заявок не окончен),
+        то создание новой смены запрещено. Параметр задается в настройках проекта.
+        """
+        if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
+            raise CreateShiftForbiddenException(
+                detail=f"Запрещено создавать новую смену, "
+                f"если текущая смена запущена менее {settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN} дней назад"
+            )
+
     def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
         """Проверка, что смену нельзя изменить.
 
@@ -88,17 +102,19 @@ class ShiftService:
         Если новая смена уже существует, то создание ещё одной запрещено.
         """
         if await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.PREPARING):
-            raise CreateShiftForbiddenException()
+            raise CreateShiftForbiddenException(detail="Запрещено создавать более одной новой смены")
 
     async def __check_preparing_shift_dates(self, started_at: date, finished_at: date) -> None:
         """Проверка дат новой смены.
 
-        - Если существует текущая смена, то сравниваются даты окончания текущей смены
+        - Если существует текущая смена, то проверяется был ли закончен прием заявок на участие.
+        - Если прием заявок на текущую смену окончен, то сравниваются даты окончания текущей смены
         и начала новой смены. Иначе дата начала сравнивается с сегодняшним днем.
         - Сравниваются даты начала и окончания новой смены между собой.
         """
         started_shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
         if started_shift:
+            self.__check_that_request_filling_for_previous_shift_is_over(started_shift.started_at)
             self.__check_shifts_dates_intersection(started_at, started_shift.finished_at)
         else:
             self.__check_date_not_today_or_in_past(started_at)
@@ -177,10 +193,13 @@ class ShiftService:
         return ShiftMembersResponse(shift=shift, members=shift.members)
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
+        shift_exists = await self.__shift_repository.check_shift_existence(id)
+        if not shift_exists:
+            raise NotFoundException(object_name=Shift.__name__, object_id=id)
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(
-        self, status: Optional[Shift.Status], sort: Optional[ShiftSortRequest]
+        self, status: Optional[Shift.Status] = None, sort: Optional[ShiftSortRequest] = None
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
 
