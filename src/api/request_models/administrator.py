@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from pydantic import EmailStr, Field, SecretStr
 
 from src.api.request_models.request_base import RequestBase
@@ -18,9 +16,14 @@ class AdministratorRegistrationRequest(RequestBase):
 
     name: str = Field(min_length=2, max_length=100)
     surname: str = Field(min_length=2, max_length=100)
-    role: Administrator.Role
     password: SecretStr
-    token: UUID
+
+    async def parse_to_db_obj(self, administrator: Administrator) -> Administrator:
+        administrator.name = self.name.title()
+        administrator.surname = self.surname.title()
+        administrator.status = Administrator.Status.ACTIVE
+        administrator.role = Administrator.Role.PSYCHOLOGIST
+        return administrator
 
 
 class AdministratorListRequest(RequestBase):
