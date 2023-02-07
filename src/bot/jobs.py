@@ -12,7 +12,7 @@ from src.bot.api_services import (
 )
 from src.bot.handlers import error_handler
 from src.core.db.db import get_session
-from src.core.db.models import Member
+from src.core.db.models import Member, Shift
 from src.core.settings import settings
 
 
@@ -78,3 +78,14 @@ async def finish_shift_automatically_job(context: CallbackContext) -> None:
     session = get_session()
     shift_service = await get_shift_service_callback(session)
     await shift_service.finish_shift_automatically(context.application)
+
+
+async def start_shift_automatically_job(context: CallbackContext) -> None:
+    """Автоматически запускает смену в дату, указанную в started_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING)
+    if shifts:
+        shift = shifts[0]
+        if shift.started_at == date.today():
+            await shift_service.start_shift(id=shift.id)

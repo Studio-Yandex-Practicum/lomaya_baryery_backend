@@ -89,6 +89,7 @@ jobs:
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
+            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
 
   start_application:
     name: Start application

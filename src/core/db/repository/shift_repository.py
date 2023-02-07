@@ -127,6 +127,10 @@ class ShiftRepository(AbstractRepository):
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
 
+    async def check_shift_existence(self, shift_id: UUID) -> bool:
+        shift_exists = await self._session.execute(select(select(Shift).where(Shift.id == shift_id).exists()))
+        return shift_exists.scalar()
+
     async def get_with_members_with_reviewed_reports(self, shift_id: UUID) -> Shift:
         """Возвращает смену с активными участниками, у которых все задания проверены."""
         shift = await self._session.execute(
