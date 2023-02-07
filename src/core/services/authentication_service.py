@@ -81,9 +81,30 @@ class AuthenticationService:
             raise AdministratorBlockedException()
         return administrator
 
-    async def refresh(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Получить access и refresh токены."""
-        administrator = await self.__authenticate_administrator(auth_data)
+
+    async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
+        """Аутентификация администратора по email и паролю."""
+        administrator = await self.__administrator_repository.get_by_email(auth_data.email)
+        if administrator.status == Administrator.Status.BLOCKED:
+            raise AdministratorBlockedException()
+        password = auth_data.password.get_secret_value()
+        if not self.__verify_hashed_password(password, administrator.hashed_password):
+            raise InvalidAuthenticationDataException()
+        return administrator
+
+
+    async def refresh(self, token: str) -> TokenResponse:
+        """Получить текущего активного администратора, используя токен."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise UnauthorizedException()
+        email = payload.get("email")
+        if not email:
+            raise UnauthorizedException()
+        administrator = await self.__administrator_repository.get_by_email(email)
+        if administrator.status == Administrator.Status.BLOCKED:
+            raise AdministratorBlockedException()
         administrator.last_login_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
         return TokenResponse(

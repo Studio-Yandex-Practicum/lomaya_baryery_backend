@@ -22,19 +22,15 @@ class AdministratorCBV:
 
     @router.post(
         "/refresh",
-        response_model=TokenResponse.refresh_token,
+        response_model=AdministratorResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Обновление токенов",
-        response_description="Access и refresh токены.",
+        response_description="refresh токен",
     )
-    async def refresh(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Аутентифицировать администратора по email и паролю.
-
-        - **email**: электронная почта
-        - **password**: пароль
-        """
-        return await self.authentication_service.refresh(auth_data)
+    async def refresh(self, token: str = Depends(OAUTH2_SCHEME)):
+        """Получить информацию о текущем  активном администраторе."""
+        return await self.authentication_service.refresh(token)
 
     @router.post(
         "/login",
