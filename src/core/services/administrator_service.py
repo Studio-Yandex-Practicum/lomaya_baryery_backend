@@ -1,4 +1,4 @@
-import datetime
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -9,7 +9,8 @@ from src.core.db.repository import (
     AdministratorInvitationRepository,
     AdministratorRepository,
 )
-from src.core.services.authentication_service import PASSWORD_CONTEXT
+from src.core.services.administrator_invitation import AdministratorInvitationService
+from src.core.services.authentication_service import AuthenticationService
 
 
 class AdministratorService:
@@ -17,24 +18,31 @@ class AdministratorService:
         self,
         administrator_repository: AdministratorRepository = Depends(),
         administrator_invitation_repository: AdministratorInvitationRepository = Depends(),
+        administrator_invitation_service: AdministratorInvitationService = Depends(),
     ):
         self.__administrator_repository = administrator_repository
         self.__administrator_invitation_repository = administrator_invitation_repository
+        self.__administrator_invitation_service = administrator_invitation_service
 
-    async def register_new_administrator(self, schema: AdministratorRegistrationRequest) -> AdministratorResponse:
-        """Регистрация нового администратора. Устанавливает invitation.expired_date вчерашнюю дату."""
-        dataset = schema.dict()
-        token = dataset.pop("token", None)
-        password = dataset.pop("password", None)
+    async def register_new_administrator(
+        self, token: UUID, schema: AdministratorRegistrationRequest
+    ) -> AdministratorResponse:
+        """Регистрация нового администратора."""
         invitation = await self.__administrator_invitation_repository.get_mail_request_by_token(token)
-        administrator = Administrator(**dataset)
-        administrator.status = Administrator.Status.ACTIVE
+        administrator = await schema.parse_to_db_obj(Administrator())
         administrator.email = invitation.email
-        administrator.hashed_password = PASSWORD_CONTEXT.hash(password.get_secret_value())
-        invitation.expired_date = datetime.date.today() - datetime.timedelta(days=1)
-        await self.__administrator_repository.create(administrator)
-        await self.__administrator_invitation_repository.update(invitation.id, invitation)
-        return administrator
+        administrator.hashed_password = AuthenticationService.get_hashed_password(schema.password.get_secret_value())
+        administrator = await self.__administrator_repository.create(administrator)
+        await self.__administrator_invitation_service.close_invitation(token)
+        return AdministratorResponse(
+            id=administrator.id,
+            name=administrator.name,
+            surname=administrator.surname,
+            email=administrator.email,
+            role=administrator.role,
+            status=administrator.status,
+            last_login_at=administrator.last_login_at,
+        )
 
     async def get_administrators_filter_by_role_and_status(
         self,
