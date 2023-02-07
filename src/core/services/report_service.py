@@ -70,7 +70,7 @@ class ReportService:
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
-            and not await self.__member_repository.check_unreviewed_reports(member.shift.id, member.id)
+            and not await self.__member_repository.check_unreviewed_reports(member.id)
         ):
             await self.__can_finish_shift(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
@@ -87,7 +87,7 @@ class ReportService:
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
             and report.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT
-            and not await self.__member_repository.check_unreviewed_reports(member.shift.id, member.id)
+            and not await self.__member_repository.check_unreviewed_reports(member.id)
         ):
             await self.__can_finish_shift(member.shift)
             await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)

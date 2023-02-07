@@ -62,12 +62,11 @@ class MemberRepository(AbstractRepository):
         )
         return members.scalars().all()
 
-    async def check_unreviewed_reports(self, shift_id: UUID, member_id: UUID) -> bool:
+    async def check_unreviewed_reports(self, member_id: UUID) -> bool:
         """Проверка, есть ли у пользователя непроверенные задания в смене."""
         stmt = select(Report).where(
             Report.status == Report.Status.REVIEWING,
             Report.member_id == member_id,
-            Report.shift_id == shift_id,
         )
         repot_under_review = await self._session.execute(select(stmt.exists()))
         return repot_under_review.scalar()
