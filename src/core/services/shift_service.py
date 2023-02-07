@@ -191,27 +191,33 @@ class ShiftService:
 
     async def finish_shift_automatically(self, bot: Application) -> None:
         shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
-        if shift and shift.finished_at + timedelta(days=1) == date.today():
+        if not shift:
+            return
+        if shift.finished_at + timedelta(days=1) == date.today():
             await self._notify_users_with_reviewed_reports(shift.id, bot)
-        if shift and shift.status is Shift.Status.READY_FOR_COMPLETE:
-            await self._finish_shift_decline_report_notify_users(shift.id, bot)
+            await self._change_shift_status(shift)
+        if shift.status is Shift.Status.READY_FOR_COMPLETE:
+            await self._decline_reports_and_notify_users(shift.id, bot)
+            await self._change_shift_status(shift)
 
-    async def _notify_users_with_reviewed_reports(self, shift: UUID, bot: Application) -> None:
-        """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
-        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
-        if await self.__report_repository.check_unreviewed_report_exists(shift.id, None):
+    async def _change_shift_status(self, shift: Shift) -> None:
+        """Изменяет статус группы. Закрывает группу, если не осталось непроверенных отчетов."""
+        if await self.__shift_repository.check_unreviewed_reports(shift.id):
             shift.status = Shift.Status.READY_FOR_COMPLETE
         else:
             shift.status = Shift.Status.FINISHED
         await self.__shift_repository.update(shift.id, shift)
+
+    async def _notify_users_with_reviewed_reports(self, shift: Shift, bot: Application) -> None:
+        """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
+        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
-    async def _finish_shift_decline_report_notify_users(self, shift: UUID, bot: Application) -> None:
-        """Закрывает смену, отклоняет непровренные задания, уведомляет пользователей об окончании смены."""
+    async def _decline_reports_and_notify_users(self, shift: Shift, bot: Application) -> None:
+        """Отклоняет непровренные задания, уведомляет пользователей об окончании смены."""
         shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift.id)
-        for report in shift.members.reports:
-            report.status = Report.Status.DECLINED
-            await self.__report_repository.update(report.id, report)
-        shift.status = Shift.Status.FINISHED
-        await self.__shift_repository.update(shift.id, shift)
+        for member in shift.members:
+            for report in member.reports:
+                report.status = Report.Status.DECLINED
+                await self.__report_repository.update(report.id, report)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
