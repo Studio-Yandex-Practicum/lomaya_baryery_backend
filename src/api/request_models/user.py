@@ -1,7 +1,7 @@
 import enum
 import re
 from datetime import date, datetime
-from typing import Optional, Union
+from typing import Optional
 from uuid import UUID
 
 import phonenumbers

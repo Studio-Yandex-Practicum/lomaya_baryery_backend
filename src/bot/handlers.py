@@ -92,9 +92,9 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         telegram_user_id = update._effective_user.id
         user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
         if user is None:
-            text="Процесс регистрации занимает некоторое время - вам придет уведомление."
+            text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
         else:
-            text=(
+            text = (
                 " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время "
                 "- вам придет уведомление."
             )

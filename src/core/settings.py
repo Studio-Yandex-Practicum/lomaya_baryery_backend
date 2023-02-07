@@ -3,7 +3,6 @@ import uuid
 from datetime import timedelta
 from pathlib import Path, PosixPath
 
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
