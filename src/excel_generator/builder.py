@@ -12,12 +12,10 @@ from openpyxl.styles import Alignment, Border, Font, Side
 class AnalyticReportBuilder(abc.ABC):
     """Интерфейс строителя."""
 
-    def __set_data_count(self, data: tuple[str]) -> None:
-        self._data_count = len(data)
-
-    def __add_row(self, data: tuple[str], row_number: int) -> None:
+    def __add_row(self, data: tuple[str | int]) -> None:
+        self._row_count += 1
         for index, value in enumerate(data):
-            self._worksheet.cell(row=row_number, column=index + 1, value=value)
+            self._worksheet.cell(row=self._row_count, column=index + 1, value=value)
 
     async def __save_report(self, workbook: Workbook) -> BytesIO:
         """Сохранение отчёта."""
@@ -44,41 +42,40 @@ class AnalyticReportBuilder(abc.ABC):
         self._worksheet = workbook.create_sheet(self._sheet_name)
 
     def add_header(self) -> None:
-        """Заполняет первую строку в листе."""
-        self.__add_row(self._header_data, 1)
+        """Заполняет первые строки в листе."""
+        for data in self._header_data:
+            self.__add_row(data)
 
-    def add_data(self, data: tuple[str]) -> None:
-        """Заполняет строку данными из БД."""
-        self.__set_data_count(data)
-        for index, task in enumerate(data):
-            row_number = index + 2
-            self.__add_row(astuple(task), row_number)
+    def add_data(self, data: tuple[tuple[str | int]]) -> None:
+        """Заполняет строки данными из БД."""
+        for task in data:
+            self.__add_row(astuple(task))
 
     def add_footer(self) -> None:
         """Заполняет последнюю строку в листе."""
-        self.__add_row(self._footer_data, self._data_count + 2)
+        self.__add_row(self._footer_data)
 
     def apply_styles(self):
         """Задаёт форматирование отчёта."""
-        max_row = self._data_count + 2
         # задаём стиль для хэдера
-        header_cells = list(self._worksheet.iter_rows())[0]
+        rows = list(self._worksheet.iter_rows())
+        header_cells = rows[0]
         for cell in header_cells:
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_HEADER.value
         # задаём стиль для ячеек с данными
-        data_rows = list(self._worksheet.iter_rows())[1:max_row - 1]  # fmt: skip
+        data_rows = rows[1:self._row_count - 1]  # fmt: skip
         for row in data_rows:
             for cell in row:
                 cell.font = self.Styles.FONT_STANDART.value
                 cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль для футера
-        footer_cells = list(self._worksheet.iter_rows())[max_row - 1]
+        footer_cells = rows[-1]
         for cell in footer_cells:
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_STANDART.value
         # задаём стиль границ и колонок
-        for row in self._worksheet.iter_rows():
+        for row in rows:
             for cell in row:
                 cell.border = self.Styles.BORDER.value
         self._worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
