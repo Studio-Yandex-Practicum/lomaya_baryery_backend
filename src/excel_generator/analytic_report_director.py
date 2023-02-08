@@ -13,7 +13,7 @@ class AnalyticReportDirector:
         self.__builder = builder
 
     async def generate_report(
-        self, data: tuple, last_sheet: bool, workbook: Optional[Workbook] = None
+        self, data: tuple[str | int], last_sheet: bool, workbook: Optional[Workbook] = None
     ) -> Workbook | StreamingResponse:
         """Генерация листа с данными."""
         workbook = await self.__builder.create_workbook() if not workbook else workbook
