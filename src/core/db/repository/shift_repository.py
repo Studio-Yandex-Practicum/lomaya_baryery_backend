@@ -127,7 +127,9 @@ class ShiftRepository(AbstractRepository):
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
 
-    async def get_shift_with_request(self, id: UUID, request_status: Optional[Request.Status]) -> Shift:
+    async def get_shift_with_request_and_users(
+        self, id: UUID, request_status: Optional[Request.Status] = None
+    ) -> Shift:
         """Получить смену (Shift) по её id вместе со связанными данными.
 
         Связанные данные: Shift -> Request -> User.

@@ -37,6 +37,7 @@ class UserFactory(BaseFactory):
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
     status = factory.Iterator([status for status in models.User.Status])
+    telegram_blocked = False
 
 
 class ShiftFactory(BaseFactory):

@@ -25,4 +25,4 @@ class ShiftUpdateRequest(ShiftCreateRequest):
 
 
 class ShiftCancelRequest(RequestBase):
-    message: str = Field(..., min_length=10, max_length=400)
+    final_message: str = Field(..., min_length=10, max_length=400)

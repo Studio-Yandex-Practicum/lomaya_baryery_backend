@@ -1,11 +1,9 @@
 import asyncio
 from datetime import datetime as dt
-from typing import Optional
 
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.api.request_models.shift import ShiftCancelRequest
 from src.core import settings
 from src.core.db import models
 
@@ -95,10 +93,9 @@ class BotService:
         ]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
-    async def notify_that_shift_is_cancelled(self, shift: models.Shift, notice: Optional[ShiftCancelRequest]) -> None:
+    async def notify_that_shift_is_cancelled(self, shift: models.Shift, final_message: str) -> None:
         """Уведомляет пользователей об отмене смены."""
-        text = "Смена отменена"
-        if notice:
-            text = notice.message
-        send_message_tasks = [self.__bot.send_message(request.user.telegram_id, text) for request in shift.requests]
+        send_message_tasks = [
+            self.__bot.send_message(request.user.telegram_id, final_message) for request in shift.requests
+        ]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))

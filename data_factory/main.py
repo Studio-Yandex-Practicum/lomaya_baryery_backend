@@ -82,8 +82,12 @@ def generate_fake_data() -> None:
         logger.info("Создание новой смены...")
         preparing_shift = ShiftFactory.create(status=Shift.Status.PREPARING)
 
-        logger.info("Создание рассматриваемых заявок для новой смены...")
+        logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'PENDING'...")
         create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.PENDING), preparing_shift)
+        logger.info("Создание отклоненных заявок для пользователей новой смены со статусом 'VERIFIED'...")
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
+        logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'VERIFIED'...")
+        create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)

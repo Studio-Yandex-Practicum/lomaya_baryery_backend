@@ -228,7 +228,7 @@ class ShiftCBV:
         return await self.shift_service.finish_shift(request.app.state.bot_instance, shift_id)
 
     @router.patch(
-        "/{shift_id}/cancelling",
+        "/{shift_id}/cancel",
         response_model=ShiftResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
@@ -244,4 +244,4 @@ class ShiftCBV:
         - **shift_id**: уникальный идентификатор смены
         - **notice**: сообщение об отмене смены
         """
-        return await self.shift_service.cansel_shift(request.app.state.bot_instance, shift_id, notice)
+        return await self.shift_service.cancel_shift(request.app.state.bot_instance, shift_id, notice)
