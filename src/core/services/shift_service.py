@@ -214,18 +214,13 @@ class ShiftService:
             return
         if shift.finished_at + timedelta(days=1) == date.today():
             await self.__notify_users_with_reviewed_reports(shift.id, bot)
-            await self.__change_shift_status(shift)
+            unreviewed_report_exists = await self.__shift_repository.is_unreviewied_report_exists(shift.id)
+            shift.status = Shift.Status.READY_FOR_COMPLETE if unreviewed_report_exists else Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
         if shift.status is Shift.Status.READY_FOR_COMPLETE:
             await self.__decline_reports_and_notify_users(shift.id, bot)
-            await self.__change_shift_status(shift)
-
-    async def __change_shift_status(self, shift: Shift) -> None:
-        """Изменяет статус группы. Закрывает группу, если не осталось непроверенных отчетов."""
-        if await self.__shift_repository.is_unreviewied_report_exists(shift.id):
-            shift.status = Shift.Status.READY_FOR_COMPLETE
-        else:
             shift.status = Shift.Status.FINISHED
-        await self.__shift_repository.update(shift.id, shift)
+            await self.__shift_repository.update(shift.id, shift)
 
     async def __notify_users_with_reviewed_reports(self, shift: Shift, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""

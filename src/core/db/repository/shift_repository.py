@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload, subqueryload
 
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
@@ -133,30 +133,49 @@ class ShiftRepository(AbstractRepository):
 
     async def get_with_members_with_reviewed_reports(self, shift_id: UUID) -> Shift:
         """Возвращает смену с активными участниками, у которых все задания проверены."""
-        shift = await self._session.execute(
-            select(Shift)
-            .options(joinedload(Shift.members))
-            .join(Member)
+        members_id = (
+            select(Member.id)
+            .join(Report)
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
-                Report.status != Report.Status.REVIEWING,
+                Report.member_id == Member.id,
+                Report.status == Report.Status.REVIEWING,
             )
+            .group_by(Member.id)
+            .subquery()
+        )
+        shift = await self._session.execute(
+            select(Shift)
+            .where(Shift.id == shift_id)
+            .options(subqueryload(Shift.members.and_(Member.id.notin_(members_id))).subqueryload(Member.user))
         )
         return shift.scalars().first()
 
-    async def get_with_members_and_unreviewed_reports(self, id: UUID) -> Shift:
+    async def get_with_members_and_unreviewed_reports(self, shift_id: UUID) -> Shift:
         """Возвращает смену с активными участниками и их непроверенными заданиями."""
-        member_stmt = Shift.members.and_(Member.status == Member.Status.ACTIVE)
-        report_stmt = Member.reports.and_(Report.status == Report.Status.REVIEWING)
-        statement = (
-            select(Shift)
-            .where(Shift.id == id)
-            .options(selectinload(member_stmt).selectinload(report_stmt))
-            .options(selectinload(member_stmt).selectinload(Member.user))
+        members_id = (
+            select(Member.id)
+            .join(Report)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.member_id == Member.id,
+                Report.status == Report.Status.REVIEWING,
+            )
+            .group_by(Member.id)
+            .subquery()
         )
-        request = await self._session.execute(statement)
-        return request.scalars().first()
+        member_stmt = Shift.members.and_(Member.id.in_(members_id))
+        shift = await self._session.execute(
+            select(Shift)
+            .where(Shift.id == shift_id)
+            .options(subqueryload(member_stmt).subqueryload(Member.user))
+            .options(
+                subqueryload(member_stmt).subqueryload(Member.reports.and_(Report.status == Report.Status.REVIEWING))
+            )
+        )
+        return shift.scalars().first()
 
     async def is_unreviewied_report_exists(self, shift_id: UUID) -> bool:
         """Проверяет, остались ли непроверенные задачи в смене."""
