@@ -6,6 +6,11 @@ from fastapi import APIRouter, Depends
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
+from src.api.error_templates import (
+    ERROR_TEMPLATE_FOR_400,
+    ERROR_TEMPLATE_FOR_403,
+    ERROR_TEMPLATE_FOR_404,
+)
 from src.api.request_models.shift import (
     ShiftCancelRequest,
     ShiftCreateRequest,
@@ -13,7 +18,6 @@ from src.api.request_models.shift import (
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
-    ErrorResponse,
     ShiftDtoRespone,
     ShiftMembersResponse,
     ShiftResponse,
@@ -23,10 +27,6 @@ from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
-
-ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_403 = {"description": "Forbidden Response", "model": ErrorResponse}
-ERROR_TEMPLATE_FOR_404 = {"description": "Not Found Response", "model": ErrorResponse}
 
 
 @cbv(router)
@@ -160,6 +160,9 @@ class ShiftCBV:
         response_model_exclude_none=True,
         summary=("Получить информацию обо всех заявках смены" "с возможностью фильтрации"),
         response_description="Полная информация обо заявках смены.",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_list_all_requests_on_project(
         self,

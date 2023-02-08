@@ -147,3 +147,7 @@ class ShiftRepository(AbstractRepository):
         if request is None:
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         return request
+
+    async def check_shift_existence(self, shift_id: UUID) -> bool:
+        shift_exists = await self._session.execute(select(select(Shift).where(Shift.id == shift_id).exists()))
+        return shift_exists.scalar()
