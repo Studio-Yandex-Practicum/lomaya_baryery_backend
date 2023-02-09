@@ -25,7 +25,8 @@ from src.core.exceptions import (
     ReportCannotAcceptError,
     ReportEmptyError,
     ReportExceededAttemptsError,
-    ShiftStatusError,
+    ShiftFinishStatusError,
+    ShiftStartStatusError,
 )
 
 
@@ -76,13 +77,13 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStatusError(shift_name=self.title, shift_id=self.id)
+            raise ShiftStartStatusError(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
     async def finish(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftStatusError(shift_name=self.title, shift_id=self.id)
+            raise ShiftFinishStatusError(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 

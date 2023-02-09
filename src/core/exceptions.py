@@ -63,9 +63,18 @@ class ReportWaitingPhotoError(ApplicationException):
     detail = "К заданию нет отчета участника"
 
 
-class ShiftStatusError(ApplicationException):
+class ShiftStartStatusError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
     def __init__(self, shift_name: str, shift_id: UUID):
-        self.detail = f"Невозможно начать/завершить смену '{shift_name}' с id: {shift_id}. Проверьте статус смены"
+        self.detail = f"Невозможно начать смену '{shift_name}' с id: {shift_id}. Проверьте статус смены"
+
+
+class ShiftFinishStatusError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.detail = f"Невозможно завершить смену '{shift_name}' с id: {shift_id}. Проверьте статус смены"
 
 
 class ShiftCreateError(ApplicationException):
