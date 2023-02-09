@@ -1,17 +1,16 @@
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import Optional
 from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
 
-class ApplicationException(HTTPException):
-    status_code: int = HTTPStatus.BAD_REQUEST
-    detail: str = None
-    headers: Dict[str, Any] = None
-
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
+class ApplicationException(Exception):
+    def __init__(self, status_code: int, detail: Optional[str] = None) -> None:
+        if detail is None:
+            detail = HTTPStatus(status_code).phrase
+        self.status_code = status_code
+        self.detail = detail
 
 
 class ObjectNotFoundError(ApplicationException):

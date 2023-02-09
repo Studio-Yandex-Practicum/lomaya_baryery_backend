@@ -1,9 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.api import routers
 from src.bot.main import start_bot
+from src.core.exceptions import ApplicationException
 from src.core.settings import settings
 
 
@@ -41,6 +44,10 @@ def create_app() -> FastAPI:
         # storing bot_instance to extra state of FastAPI app instance
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
+
+    @app.exception_handler(ApplicationException)
+    async def invalid_request(request: Request, exc: ApplicationException):
+        return JSONResponse(status_code=exc.status_code, content=jsonable_encoder({"detail": exc.detail}))
 
     @app.on_event("shutdown")
     async def on_shutdown():
