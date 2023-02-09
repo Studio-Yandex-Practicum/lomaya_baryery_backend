@@ -162,7 +162,7 @@ class ShiftCBV:
         - **request_id**: Номер заявки
         - **status**: Статус заявки
         """
-        return await self.shift_service.list_all_requests(shift_id=shift_id, status=status)
+        return await self.shift_service.list_all_requests(id=shift_id, status=status)
 
     @router.get(
         "/",
