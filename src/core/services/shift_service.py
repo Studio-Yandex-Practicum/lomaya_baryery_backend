@@ -49,9 +49,9 @@ class ShiftService:
         self.__task_service = task_service
         self.__telegram_bot = services.BotService
 
-    def __check_date_not_today_or_in_past(self, shift_date: date) -> None:
+    def __check_date_not_today_or_in_past(self, date: date) -> None:
         """Проверка, что дата не является сегодняшним или прошедшим числом."""
-        if shift_date <= date.today():
+        if date <= date.today():
             raise ShiftDateTodayPastError()
 
     def __check_started_and_finished_dates(self, started_at: date, finished_at: date) -> None:
