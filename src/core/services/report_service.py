@@ -60,27 +60,27 @@ class ReportService:
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
-    async def approve_report(self, report_id: UUID, bot: Application) -> None:
+    async def approve_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.APPROVED
-        await self.__report_repository.update(report_id, report)
+        updated_report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
-        return
+        return ReportResponse.parse_from(updated_report)
 
-    async def decline_report(self, report_id: UUID, bot: Application) -> None:
+    async def decline_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.DECLINED
-        await self.__report_repository.update(report_id, report)
+        updated_report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user(report.member_id)
         await self.__telegram_bot(bot).notify_declined_task(member.user)
-        return
+        return ReportResponse.parse_from(updated_report)
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
