@@ -74,10 +74,8 @@ class UserRepository(AbstractRepository):
         )
         return users.scalars().all()
 
-    async def get_users_by_shift_id_and_status(self, shift_id: UUID, status: User.Status) -> list[User]:
+    async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
-            select(User).where(
-                User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)), User.status == status
-            )
+            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
         )
         return users.scalars().all()

@@ -240,11 +240,11 @@ class ShiftCBV:
         responses={400: ERROR_TEMPLATE_FOR_400, 404: ERROR_TEMPLATE_FOR_404},
     )
     async def cancel_shift(
-        self, request: FastAPIRequest, shift_id: UUID, notice: Optional[ShiftCancelRequest] = None
+        self, request: FastAPIRequest, shift_id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
     ) -> ShiftResponse:
         """Отменить смену.
 
         - **shift_id**: уникальный идентификатор смены
-        - **notice**: сообщение об отмене смены
+        - **final_message**: сообщение об отмене смены
         """
-        return await self.shift_service.cancel_shift(request.app.state.bot_instance, shift_id, notice)
+        return await self.shift_service.cancel_shift(request.app.state.bot_instance, shift_id, cancel_shift_data)
