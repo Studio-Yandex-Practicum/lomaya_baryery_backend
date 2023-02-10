@@ -1,4 +1,5 @@
 from datetime import date
+from urllib.parse import urljoin
 
 from fastapi import Depends
 from pydantic.schema import UUID
@@ -7,14 +8,16 @@ from telegram.ext import Application
 from src.api.response_models.report import ReportResponse
 from src.bot import services
 from src.core.db import DTO_models
-from src.core.db.models import Member, Report, Task
+from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.exceptions import (
     DuplicateReportError,
+    NotFoundException,
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
 )
 from src.core.services.task_service import TaskService
+from src.core.settings import settings
 
 
 class ReportService:
@@ -95,7 +98,15 @@ class ReportService:
 
         Список берется по id смены и/или статусу заданий с url фото выполненного задания.
         """
-        return await self.__report_repository.get_summaries_of_reports(shift_id, status)
+        shift_exists = await self.__shift_repository.check_shift_existence(shift_id)
+        if not shift_exists:
+            raise NotFoundException(object_name=Shift.__name__, object_id=shift_id)
+        reports = await self.__report_repository.get_summaries_of_reports(shift_id, status)
+        for report in reports:
+            report.task_url = urljoin(settings.APPLICATION_URL, report.task_url)
+            if report.photo_url:
+                report.photo_url = urljoin(settings.APPLICATION_URL, report.photo_url)
+        return reports
 
     async def get_current_report(self, user_id: UUID) -> Report:
         return await self.__report_repository.get_current_report(user_id)
