@@ -7,7 +7,6 @@ from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
 from src.bot import services
-from src.core import settings as settings_file
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
@@ -89,7 +88,6 @@ class ReportService:
         await self.__telegram_bot(bot).notify_declined_task(member.user)
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
-            and report.number_attempt == settings_file.NUMBER_ATTEMPTS_SUMBIT_REPORT
             and not await self.__member_repository.is_unreviewied_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
