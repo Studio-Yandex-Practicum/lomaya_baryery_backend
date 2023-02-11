@@ -14,8 +14,7 @@ from telegram import (
 from telegram.error import TelegramError
 from telegram.ext import CallbackContext, ContextTypes
 
-from src.api.request_models.user import UserCreateRequest
-from src.api.request_models.user import UserWebhookTelegram
+from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -65,8 +64,8 @@ async def register(
     user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
     if user:
         text = "Подать заявку на участие в смене"
-        web_huck = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_huck.dict())
+        web_hook = UserWebhookTelegram.from_orm(user)
+        query = urllib.parse.urlencode(web_hook.dict())
     else:
         text = "Зарегистрироваться в проекте"
         query = None
@@ -86,29 +85,27 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
-        user_scheme.telegram_id = update.effective_user.id
-        session = get_session()
-        registration_service = await get_user_service_callback(session)
-        telegram_user_id = update._effective_user.id
-        user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
-        if user is None:
-            text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-        else:
-            text = (
-                " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время "
-                "- вам придет уведомление."
-            )
-        await update.message.reply_text(
-            text=text,
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        await registration_service.register_user(user_scheme)
-    except (ValidationError, ValueError) as e:
-        if isinstance(e, ValidationError):
-            e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
+    except ValidationError as e:
+        e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
+    except ValueError as e:
+        await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
+    user_scheme.telegram_id = update.effective_user.id
+    session = get_session()
+    registration_service = await get_user_service_callback(session)
+    try:
+        await registration_service.register_user(user_scheme)
     except RegistrationException as e:
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
+    user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
+    if user is None:
+        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+    else:
+        text = " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время " "- вам придет уведомление."
+    await update.message.reply_text(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
