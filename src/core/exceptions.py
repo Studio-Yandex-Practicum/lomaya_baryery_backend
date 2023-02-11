@@ -1,16 +1,15 @@
 from http import HTTPStatus
-from typing import Optional
 from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
 
 class ApplicationException(Exception):
-    def __init__(self, status_code: int, detail: Optional[str] = None) -> None:
-        if detail is None:
-            detail = HTTPStatus(status_code).phrase
-        self.status_code = status_code
-        self.detail = detail
+    status_code: int = None
+    detail: str = None
+
+    def __init__(self):
+        super().__init__(self.status_code, self.detail)
 
 
 class ObjectNotFoundError(ApplicationException):
@@ -47,6 +46,8 @@ class ReportEmptyError(Exception):
 class RequestSendTelegramNotifyError(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
+    status_code = HTTPStatus.BAD_REQUEST
+
     def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
         self.detail = (
             f"Возникла ошибка '{exc}' при отправке сообщения пользователю -"
@@ -55,11 +56,14 @@ class RequestSendTelegramNotifyError(ApplicationException):
 
 
 class ReportAlreadyReviewedError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
     def __init__(self, status: str):
-        self.detail = f"Задание уже проверено, статус задания: {status}."
+        self.detail = f"Задание уже проверено, статус задания: {status}"
 
 
 class ReportWaitingPhotoError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
     detail = "К заданию нет отчета участника"
 
 
@@ -78,43 +82,43 @@ class ShiftFinishStatusError(ApplicationException):
 
 
 class ShiftCreateError(ApplicationException):
-    def __init__(self):
-        self.detail = "Запрещено создавать более одной новой смены"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Запрещено создавать более одной новой смены"
 
 
 class ShiftDateTodayPastError(ApplicationException):
-    def __init__(self):
-        self.detail = "Дата начала/окончания смены не может быть сегодняшним или прошедшим числом"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Дата начала/окончания смены не может быть сегодняшним или прошедшим числом"
 
 
 class ShiftDateMaxDurationError(ApplicationException):
-    def __init__(self):
-        self.detail = "Смена не может длиться больше 4-х месяцев"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Смена не может длиться больше 4-х месяцев"
 
 
 class ShiftDateStartFinishError(ApplicationException):
-    def __init__(self):
-        self.detail = "Дата начала смены не может равняться или быть позже дате окончания"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Дата начала смены не может равняться или быть позже дате окончания"
 
 
 class ShiftDateIntersectionError(ApplicationException):
-    def __init__(self):
-        self.detail = "Дата начала новой смены не может равняться или быть раньше даты окончания текущей смены"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Дата начала новой смены не может равняться или быть раньше даты окончания текущей смены"
 
 
 class ShiftUpdateError(ApplicationException):
-    def __init__(self):
-        self.detail = "Запрещено изменять завершенную или отмененную смену"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Запрещено изменять завершенную или отмененную смену"
 
 
 class ShiftDateUpdateStartError(ApplicationException):
-    def __init__(self):
-        self.detail = "Запрещено изменять дату начала текущей смены"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Запрещено изменять дату начала текущей смены"
 
 
-class ShiftStartedNotFoundError(ObjectNotFoundError):
-    def __init__(self):
-        self.detail = "Активной смены не найдено"
+class ShiftStartedNotFoundError(ApplicationException):
+    status_code = HTTPStatus.NOT_FOUND
+    detail = "Активной смены не найдено"
 
 
 class RegistrationException(HTTPException):
@@ -146,8 +150,10 @@ class AlreadyRegisteredException(RegistrationException):
 
 
 class RequestAlreadyReviewedError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
     def __init__(self, status):
-        self.detail = f"Заявка на участие уже проверена, статус заявки: {status}."
+        self.detail = f"Заявка на участие уже проверена, статус заявки: {status}"
 
 
 class RequestForbiddenError(RegistrationException):
@@ -163,32 +169,32 @@ class RequestForbiddenError(RegistrationException):
 class InvalidAuthenticationError(ApplicationException):
     """Введены неверные данные для аутентификации."""
 
-    def __init__(self):
-        self.detail = "Неверный email или пароль"
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Неверный email или пароль"
 
 
 class AdministratorBlockedError(ApplicationException):
     """Попытка аутентификации заблокированного пользователя."""
 
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Пользователь заблокирован"
+    status_code = HTTPStatus.FORBIDDEN
+    detail = "Пользователь заблокирован"
 
 
 class UnauthorizedError(ApplicationException):
     """Пользователь не авторизован."""
 
-    def __init__(self):
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.detail = "У Вас нет прав для просмотра запрошенной страницы"
+    status_code = HTTPStatus.UNAUTHORIZED
+    detail = "У Вас нет прав для просмотра запрошенной страницы"
 
 
 class AdministratorInvitationInvalidError(RegistrationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Указанный код регистрации неверен или устарел."
+        self.detail = "Указанный код регистрации неверен или устарел"
 
 
 class EmailSendError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
     def __init__(self, recipients: list[str], exc: Exception):
-        self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."
+        self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}"
