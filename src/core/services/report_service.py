@@ -76,7 +76,7 @@ class ReportService:
             raise SendTelegramNotifyException(
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
             )
-        await self.notify_member_about_finished_shift(member, bot)
+        await self.__notify_member_about_finished_shift(member, bot)
         return
 
     async def decline_report(self, report_id: UUID, bot: Application) -> None:
@@ -92,10 +92,10 @@ class ReportService:
             raise SendTelegramNotifyException(
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
             )
-        await self.notify_member_about_finished_shift(member, bot)
+        await self.__notify_member_about_finished_shift(member, bot)
         return
 
-    async def notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
+    async def __notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
         """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
