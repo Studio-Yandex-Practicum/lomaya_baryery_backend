@@ -1,8 +1,6 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from starlette.exceptions import HTTPException
-
 
 class ApplicationException(Exception):
     status_code: int = None
@@ -121,32 +119,26 @@ class ShiftStartedNotFoundError(ApplicationException):
     detail = "Активной смены не найдено"
 
 
-class RegistrationException(HTTPException):
-    status_code: int = None
-    detail: str = None
-
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail)
+class RegistrationError(ApplicationException):
+    """Ошибки регистрации."""
 
 
-class RegistrationForbidenException(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
-            "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
-            "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
-        )
+class RegistrationForbiddenError(RegistrationError):
+    status_code = HTTPStatus.FORBIDDEN
+    detail = (
+        "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
+        "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
+        "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
+    )
 
 
-class AlreadyRegisteredException(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.OK
-        self.detail = (
-            "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
-            "в день старта смены. Актуальную дату начала смены вы можете "
-            "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
-        )
+class AlreadyRegisteredError(RegistrationError):
+    status_code = HTTPStatus.FORBIDDEN
+    detail = (
+        "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
+        "в день старта смены. Актуальную дату начала смены вы можете "
+        "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
+    )
 
 
 class RequestAlreadyReviewedError(ApplicationException):
@@ -156,14 +148,13 @@ class RequestAlreadyReviewedError(ApplicationException):
         self.detail = f"Заявка на участие уже проверена, статус заявки: {status}"
 
 
-class RequestForbiddenError(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
-            "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
-            "в нашу группу ВКонтакте https://vk.com/socialrb02"
-        )
+class RequestForbiddenError(RegistrationError):
+    status_code = HTTPStatus.FORBIDDEN
+    detail = (
+        "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
+        "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
+        "в нашу группу ВКонтакте https://vk.com/socialrb02"
+    )
 
 
 class InvalidAuthenticationError(ApplicationException):
@@ -187,10 +178,9 @@ class UnauthorizedError(ApplicationException):
     detail = "У Вас нет прав для просмотра запрошенной страницы"
 
 
-class AdministratorInvitationInvalidError(RegistrationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Указанный код регистрации неверен или устарел"
+class AdministratorInvitationInvalidError(RegistrationError):
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Указанный код регистрации неверен или устарел"
 
 
 class EmailSendError(ApplicationException):

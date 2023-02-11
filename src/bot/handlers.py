@@ -21,7 +21,7 @@ from src.core.db.repository import (
     UserRepository,
 )
 from src.core.exceptions import (
-    RegistrationException,
+    RegistrationError,
     ReportCannotAcceptError,
     ReportDuplicateError,
     ReportExceededAttemptsError,
@@ -76,7 +76,7 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         if isinstance(e, ValidationError):
             e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
-    except RegistrationException as e:
+    except RegistrationError as e:
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
