@@ -17,27 +17,27 @@ class ObjectNotFoundError(ApplicationException):
         self.detail = f"Объект '{object_name}' с id: {object_id} не найден"
 
 
-class TaskCurrentNotFoundError(Exception):
+class TaskCurrentNotFoundError(ApplicationException):
     """Не найдено текущей задачи для пользователя."""
 
 
-class TaskTodayNotFoundError(Exception):
+class TaskTodayNotFoundError(ApplicationException):
     """Не найдено ежедневной задачи на текущий день."""
 
 
-class ReportCannotAcceptError(Exception):
+class ReportCannotAcceptError(ApplicationException):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
 
-class ReportDuplicateError(Exception):
+class ReportDuplicateError(ApplicationException):
     """Отчет с таким фото уже отправлялся ранее."""
 
 
-class ReportExceededAttemptsError(Exception):
+class ReportExceededAttemptsError(ApplicationException):
     """Превышено количество попыток сдать отчет."""
 
 
-class ReportEmptyError(Exception):
+class ReportEmptyError(ApplicationException):
     """Отчет должен содержать фото."""
 
 
