@@ -93,10 +93,6 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
-    try:
-        await registration_service.register_user(user_scheme)
-    except RegistrationException as e:
-        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
     user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
     if user is None:
         text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
@@ -106,6 +102,10 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         text=text,
         reply_markup=ReplyKeyboardRemove(),
     )
+    try:
+        await registration_service.register_user(user_scheme)
+    except RegistrationException as e:
+        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
