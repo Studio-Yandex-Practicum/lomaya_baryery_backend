@@ -133,7 +133,7 @@ class RegistrationForbiddenError(RegistrationError):
 
 
 class AlreadyRegisteredError(RegistrationError):
-    status_code = HTTPStatus.FORBIDDEN
+    status_code = HTTPStatus.BAD_REQUEST
     detail = (
         "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
         "в день старта смены. Актуальную дату начала смены вы можете "
