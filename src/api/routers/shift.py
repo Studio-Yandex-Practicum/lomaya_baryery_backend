@@ -12,6 +12,7 @@ from src.api.error_templates import (
     ERROR_TEMPLATE_FOR_404,
 )
 from src.api.request_models.shift import (
+    ShiftCancelRequest,
     ShiftCreateRequest,
     ShiftSortRequest,
     ShiftUpdateRequest,
@@ -225,6 +226,25 @@ class ShiftCBV:
     async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
         """Закончить смену.
 
-        - **shift_id**: уникальный индентификатор смены
+        - **shift_id**: уникальный идентификатор смены
         """
         return await self.shift_service.finish_shift(request.app.state.bot_instance, shift_id)
+
+    @router.patch(
+        "/{shift_id}/cancel",
+        response_model=ShiftResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Отмена смены",
+        response_description="Информация об отменной смене",
+        responses={400: ERROR_TEMPLATE_FOR_400, 404: ERROR_TEMPLATE_FOR_404},
+    )
+    async def cancel_shift(
+        self, request: FastAPIRequest, shift_id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
+    ) -> ShiftResponse:
+        """Отменить смену.
+
+        - **shift_id**: уникальный идентификатор смены
+        - **final_message**: сообщение об отмене смены
+        """
+        return await self.shift_service.cancel_shift(request.app.state.bot_instance, shift_id, cancel_shift_data)

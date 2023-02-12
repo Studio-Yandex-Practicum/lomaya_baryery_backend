@@ -33,3 +33,7 @@ class ShiftCreateRequest(RequestBase):
 
 class ShiftUpdateRequest(ShiftCreateRequest):
     final_message: str = Field(..., min_length=10, max_length=400)
+
+
+class ShiftCancelRequest(RequestBase):
+    final_message: str = Field(..., min_length=10, max_length=400)
