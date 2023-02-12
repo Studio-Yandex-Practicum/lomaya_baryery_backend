@@ -79,9 +79,16 @@ class ShiftFinishStatusError(ApplicationException):
         self.detail = f"Невозможно завершить смену '{shift_name}' с id: {shift_id}. Проверьте статус смены"
 
 
-class ShiftCreateError(ApplicationException):
+class ShiftCreateMultiplePreparingError(ApplicationException):
     status_code = HTTPStatus.BAD_REQUEST
     detail = "Запрещено создавать более одной новой смены"
+
+
+class ShiftCreateRegistrationIsNotOverError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+
+    def __init__(self, amount_of_days: int):
+        self.detail = f"Запрещено создавать новую смену, если текущая смена запущена менее {amount_of_days} дней назад"
 
 
 class ShiftDateTodayPastError(ApplicationException):
@@ -188,3 +195,8 @@ class EmailSendError(ApplicationException):
 
     def __init__(self, recipients: list[str], exc: Exception):
         self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}"
+
+
+class InvalidDateFormatError(ApplicationException):
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import TaskCreateRequest
+from src.api.response_models.error import generate_error_responses
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
@@ -60,6 +61,7 @@ class TaskCBV:
         status_code=HTTPStatus.OK,
         summary="Получить задание",
         response_description="Информация о задании",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_task(
         self,

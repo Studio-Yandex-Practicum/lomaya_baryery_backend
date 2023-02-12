@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
@@ -9,6 +10,7 @@ from telegram import (
     Update,
     WebAppInfo,
 )
+from telegram.error import TelegramError
 from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
@@ -41,7 +43,11 @@ async def start(update: Update, context: CallbackContext) -> None:
         "Каждый месяц мы будем подводить итоги "
         "и награждать самых активных и старательных ребят!"
     )
-
+    session = get_session()
+    user_service = await get_user_service_callback(session)
+    user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+    if user and user.telegram_blocked:
+        await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     await register(update, context)
 
@@ -53,7 +59,7 @@ async def register(update: Update, context: CallbackContext) -> None:
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                web_app=WebAppInfo(url=urljoin(settings.APPLICATION_URL, settings.registration_template_url)),
             )
         ),
     )
@@ -83,9 +89,9 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
-    file_name = file.file_unique_id.replace('-', '') + Path(file.file_path).suffix
-    await file.download(custom_path=(settings.user_reports_dir / file_name))
-    return str(file.file_path)
+    file_name = file.file_unique_id + Path(file.file_path).suffix
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_name))
+    return file_name
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -95,8 +101,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user_service = UserService(UserRepository(session), RequestRepository(session))
     report_service = ReportService(ReportRepository(session), TaskRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    file_path = await download_photo_report_callback(update, context)
-    photo_url = f'{settings.APPLICATION_URL}/{settings.user_reports_dir}/{file_path}'
+    file_name = await download_photo_report_callback(update, context)
+    photo_url = urljoin(settings.user_reports_url, file_name)
 
     try:
         await report_service.send_report(user.id, photo_url)
@@ -118,3 +124,17 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+
+
+async def error_handler(update: object, context: ContextTypes) -> None:
+    error = context.error
+    if isinstance(error, TelegramError) and error.message in (
+        'Forbidden: bot was blocked by the user',
+        'Chat not found',
+    ):
+        session = get_session()
+        user_service = await get_user_service_callback(session)
+        user = await user_service.get_user_by_telegram_id(context._chat_id)
+        await user_service.set_telegram_blocked(user)
+    else:
+        raise error

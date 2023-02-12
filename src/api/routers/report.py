@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
+from src.api.response_models.error import generate_error_responses
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
@@ -24,6 +25,7 @@ class ReportsCBV:
         status_code=HTTPStatus.OK,
         summary="Получить информацию об отчёте участника.",
         response_description="Полная информация об отчёте участника.",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_user_report(
         self,
@@ -46,6 +48,7 @@ class ReportsCBV:
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
         response_model=None,
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def approve_task_status(
         self,
@@ -55,7 +58,13 @@ class ReportsCBV:
         """Отчет участника проверен и принят."""
         return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
 
-    @router.patch("/{report_id}/decline", status_code=HTTPStatus.OK, summary="Отклонить задание.", response_model=None)
+    @router.patch(
+        "/{report_id}/decline",
+        status_code=HTTPStatus.OK,
+        summary="Отклонить задание.",
+        response_model=None,
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
     async def decline_task_status(
         self,
         report_id: UUID,
@@ -68,10 +77,11 @@ class ReportsCBV:
         "/",
         response_model=list[ReportSummaryResponse],
         summary="Получения списка заданий пользователя по полям status и shift_id.",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_report_summary(
         self,
-        shift_id: UUID = None,
+        shift_id: UUID,
         status: Report.Status = None,
     ) -> list[ReportSummaryResponse]:
         """

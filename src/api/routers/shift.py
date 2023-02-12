@@ -141,6 +141,7 @@ class ShiftCBV:
         response_model_exclude_none=True,
         summary="Получить информацию обо всех заявках смены с возможностью фильтрации",
         response_description="Полная информация обо заявках смены.",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_list_all_requests_on_project(
         self,
