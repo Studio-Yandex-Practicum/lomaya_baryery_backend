@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_restful.cbv import cbv
 
-from src.core.services.analytics_service import AnaliticsService
+from src.core.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @cbv(router)
 class AnalyticsCBV:
-    analitics_service: AnaliticsService = Depends()
+    analytics_service: AnalyticsService = Depends()
 
     @router.get(
         "/total",
@@ -23,7 +23,7 @@ class AnalyticsCBV:
         self,
     ) -> StreamingResponse:
         """Формирует excel файл со всеми отчётами."""
-        return await self.analitics_service.generate_full_report()
+        return await self.analytics_service.generate_full_report()
 
     @router.get(
         "/tasks",
@@ -33,10 +33,10 @@ class AnalyticsCBV:
     )
     async def generate_task_report(self) -> StreamingResponse:
         """
-        Формирует отчёт с общей статистикой выполнения задач во всех сменахм.
+        Формирует отчёт с общей статистикой выполнения задач во всех сменах.
 
         Содержит:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        return await self.analitics_service.generate_task_report()
+        return await self.analytics_service.generate_task_report()

@@ -13,15 +13,16 @@ class AnalyticTaskReportBuilder(AnalyticReportBuilder):
         self._header_data: tuple[tuple[str]] = (
             ("Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во не предоставленных отчётов"),
         )
-        self._footer_data: Optional[list[str]] = None
+        self._footer_data: Optional[tuple[str]] = None
         self._worksheet: Optional[Worksheet] = None
         self._row_count: int = 0
 
     def add_footer(self) -> None:
-        self._footer_data = [
+        footer_data = [
             "ИТОГО:",
             f"=SUM(B2:B{self._row_count})",
             f"=SUM(C2:C{self._row_count})",
             f"=SUM(D2:D{self._row_count})",
         ]
+        self._footer_data = tuple(footer_data)
         return super().add_footer()
