@@ -4,7 +4,11 @@ from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.error_templates import ERROR_TEMPLATE_FOR_403, ERROR_TEMPLATE_FOR_404
+from src.api.error_templates import (
+    ERROR_TEMPLATE_FOR_400,
+    ERROR_TEMPLATE_FOR_403,
+    ERROR_TEMPLATE_FOR_404,
+)
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
@@ -51,6 +55,7 @@ class ReportsCBV:
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
         response_model=None,
         responses={
+            400: ERROR_TEMPLATE_FOR_400,
             404: ERROR_TEMPLATE_FOR_404,
             403: ERROR_TEMPLATE_FOR_403,
         },
@@ -69,6 +74,7 @@ class ReportsCBV:
         summary="Отклонить задание.",
         response_model=None,
         responses={
+            400: ERROR_TEMPLATE_FOR_400,
             404: ERROR_TEMPLATE_FOR_404,
             403: ERROR_TEMPLATE_FOR_403,
         },
