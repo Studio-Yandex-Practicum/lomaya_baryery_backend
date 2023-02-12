@@ -6,9 +6,6 @@ from fastapi import Depends
 from src.api.request_models.administrator_invitation import (
     AdministratorInvitationRequest,
 )
-from src.api.response_models.administrator_invitation import (
-    AdministratorInvitationResponse,
-)
 from src.core import settings
 from src.core.db.models import AdministratorInvitation
 from src.core.db.repository import AdministratorInvitationRepository
@@ -29,9 +26,8 @@ class AdministratorInvitationService:
             AdministratorInvitation(**invitation_data.dict(), expired_date=expiration_date)
         )
 
-    async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
-        invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
-        return AdministratorInvitationResponse(name=invitation.name, surname=invitation.surname, email=invitation.email)
+    async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitation:
+        return await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
 
     async def close_invitation(self, token: UUID) -> None:
         """Устанавливаем прошедшую дату в invitation.expired_date."""
