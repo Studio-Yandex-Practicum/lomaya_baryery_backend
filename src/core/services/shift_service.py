@@ -221,17 +221,14 @@ class ShiftService:
         await shift.cancel(final_message)
         await self.__shift_repository.update(id, shift)
         requests_to_update = []
-        users_to_update = []
         for request in shift.requests:
-            if request.status == Request.Status.PENDING:
-                request.status = Request.Status.DECLINED.value
-                requests_to_update.append(request)
-        users = await self.__user_repository.get_users_by_shift_id(shift.id)
-        for user in users:
-            if user.status == User.Status.PENDING:
-                user.status = User.Status.DECLINED.value
-                users_to_update.append(user)
+            ...
         await self.__request_repository.update_all(requests_to_update)
+
+        users = await self.__user_repository.get_users_by_shift_id(shift.id)
+        users_to_update = []
+        for user in users:
+            ...
         await self.__request_repository.update_all(users_to_update)
         await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
         return shift
