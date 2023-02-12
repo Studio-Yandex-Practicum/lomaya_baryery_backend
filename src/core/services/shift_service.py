@@ -82,6 +82,18 @@ class ShiftService:
         if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
             raise ShiftCreateRegistrationIsNotOverError(amount_of_days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN)
 
+    def __check_that_request_filling_for_previous_shift_is_over(self, started_at: date) -> None:
+        """Проверка, что приём заявок на участие в предыдущей смене закончен.
+
+        Если текущая смена длится менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней (прием заявок не окончен),
+        то создание новой смены запрещено. Параметр задается в настройках проекта.
+        """
+        if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
+            raise CreateShiftForbiddenException(
+                detail=f"Запрещено создавать новую смену, "
+                f"если текущая смена запущена менее {settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN} дней назад"
+            )
+
     def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
         """Проверка, что смену нельзя изменить.
 
