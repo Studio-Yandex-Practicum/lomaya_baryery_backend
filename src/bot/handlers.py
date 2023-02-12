@@ -92,9 +92,10 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    path = settings.user_reports_dir / shift_user_dir
+    path = Path(settings.user_reports_dir / shift_user_dir)
+    path.mkdir(parents=True, exist_ok=True)
     await file.download_to_drive(custom_path=(path / file_name))
-    return urljoin(path, file_name)
+    return f"{shift_user_dir}/{file_name}"
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -108,7 +109,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     report = await report_service.get_current_report(user.id)
     shift = await shift_service.get_shift(report.shift_id)
     shift_user_dir = f"{shift.started_at}_to_{shift.finished_at}/{user.id}"
-    photo_url = await download_photo_report_callback(update, context, shift_user_dir)
+    file_path = await download_photo_report_callback(update, context, shift_user_dir)
+    photo_url = urljoin(settings.user_reports_url, file_path)
 
     try:
         await report_service.send_report(report, photo_url)

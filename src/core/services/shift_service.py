@@ -156,6 +156,7 @@ class ShiftService:
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         await self.__validate_shift_on_create(shift)
+        await self.__create_shift_dir(shift)
         shift.status = Shift.Status.PREPARING
         shift.final_message = FINAL_MESSAGE
         task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
@@ -184,7 +185,6 @@ class ShiftService:
         shift = await self.__shift_repository.get(id)
         await shift.start()
         await self.__shift_repository.update(id, shift)
-        await self.__create_shift_dir(shift)
         return shift
 
     async def finish_shift(self, bot: Application, id: UUID) -> Shift:
