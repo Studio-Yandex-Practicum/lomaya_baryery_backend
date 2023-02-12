@@ -28,7 +28,7 @@ class AdministratorService:
         administrator.role = Administrator.Role.PSYCHOLOGIST
         administrator = await self.__administrator_repository.create(administrator)
         await self.__administrator_invitation_service.close_invitation(token)
-        return administrator
+        return administrator  # noqa: R504
 
     async def get_administrators_filter_by_role_and_status(
         self,
