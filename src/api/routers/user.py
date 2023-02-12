@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
+from src.api.error_templates import ERROR_TEMPLATE_FOR_404
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
 from src.core.db.models import User
@@ -51,6 +52,9 @@ class UserCBV:
         status_code=HTTPStatus.OK,
         summary="Получить детальную информацию о пользователе",
         response_description="Детальная информация о пользователе",
+        responses={
+            404: ERROR_TEMPLATE_FOR_404,
+        },
     )
     async def get_user_detail(self, user_id: UUID) -> UserDetailResponse:
         """
