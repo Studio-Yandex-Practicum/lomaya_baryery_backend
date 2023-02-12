@@ -18,11 +18,10 @@ class AdministratorRegistrationRequest(RequestBase):
     surname: str = Field(min_length=2, max_length=100)
     password: SecretStr
 
-    async def parse_to_db_obj(self, administrator: Administrator) -> Administrator:
-        administrator.name = self.name.title()
-        administrator.surname = self.surname.title()
-        administrator.status = Administrator.Status.ACTIVE
-        administrator.role = Administrator.Role.PSYCHOLOGIST
+    async def parse_to_db_obj(self) -> Administrator:
+        administrator = Administrator()
+        administrator.name = self.name
+        administrator.surname = self.surname
         return administrator
 
 
