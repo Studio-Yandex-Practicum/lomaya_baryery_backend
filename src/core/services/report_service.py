@@ -45,8 +45,7 @@ class ReportService:
         return await self.__report_repository.get(id)
 
     async def get_report_with_report_url(self, id: UUID) -> ReportResponse:
-        report = await self.__report_repository.get_report_with_report_url(id)
-        return ReportResponse.parse_from(report)
+        return await self.__report_repository.get_report_with_report_url(id)
 
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
@@ -70,7 +69,7 @@ class ReportService:
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_approved_task(member.user, report)
-        return ReportResponse.parse_from(updated_report)
+        return updated_report
 
     async def decline_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
@@ -80,7 +79,7 @@ class ReportService:
         updated_report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user(report.member_id)
         await self.__telegram_bot(bot).notify_declined_task(member.user)
-        return ReportResponse.parse_from(updated_report)
+        return updated_report
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
