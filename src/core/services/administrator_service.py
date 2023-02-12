@@ -5,10 +5,7 @@ from fastapi import Depends
 from src.api.request_models.administrator import AdministratorRegistrationRequest
 from src.api.response_models.administrator import AdministratorResponse
 from src.core.db.models import Administrator
-from src.core.db.repository import (
-    AdministratorInvitationRepository,
-    AdministratorRepository,
-)
+from src.core.db.repository import AdministratorRepository
 from src.core.services.administrator_invitation import AdministratorInvitationService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -17,19 +14,17 @@ class AdministratorService:
     def __init__(
         self,
         administrator_repository: AdministratorRepository = Depends(),
-        administrator_invitation_repository: AdministratorInvitationRepository = Depends(),
         administrator_invitation_service: AdministratorInvitationService = Depends(),
     ):
         self.__administrator_repository = administrator_repository
-        self.__administrator_invitation_repository = administrator_invitation_repository
         self.__administrator_invitation_service = administrator_invitation_service
 
     async def register_new_administrator(
         self, token: UUID, schema: AdministratorRegistrationRequest
     ) -> AdministratorResponse:
         """Регистрация нового администратора."""
-        invitation = await self.__administrator_invitation_repository.get_mail_request_by_token(token)
-        administrator = await schema.parse_to_db_obj(Administrator())
+        invitation = await self.__administrator_invitation_service.get_invitation_by_token(token)
+        administrator = await schema.parse_to_db_obj()
         administrator.email = invitation.email
         administrator.hashed_password = AuthenticationService.get_hashed_password(schema.password.get_secret_value())
         administrator = await self.__administrator_repository.create(administrator)
