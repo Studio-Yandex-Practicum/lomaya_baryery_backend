@@ -99,7 +99,7 @@ class ReportService:
         """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""
         if (
             member.shift.status is Shift.Status.READY_FOR_COMPLETE
-            and not await self.__member_repository.is_unreviewied_report_exists(member.id)
+            and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
         try:
@@ -118,7 +118,7 @@ class ReportService:
 
     async def __finish_shift_with_all_reports_reviewed(self, shift: Shift) -> None:
         """Закрывает группу, если не осталось непроверенных заданий."""
-        if not await self.__shift_repository.is_unreviewied_report_exists(shift.id):
+        if not await self.__shift_repository.is_unreviewed_report_exists(shift.id):
             shift.status = Shift.Status.FINISHED
             await self.__shift_repository.update(shift.id, shift)
 

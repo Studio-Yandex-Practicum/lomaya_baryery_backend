@@ -177,8 +177,8 @@ class ShiftRepository(AbstractRepository):
         )
         return shift.scalars().first()
 
-    async def is_unreviewied_report_exists(self, shift_id: UUID) -> bool:
+    async def is_unreviewed_report_exists(self, shift_id: UUID) -> bool:
         """Проверяет, остались ли непроверенные задачи в смене."""
         stmt = select(Report).where(Report.status == Report.Status.REVIEWING, Report.shift_id == shift_id)
-        repot_under_review = await self._session.execute(select(stmt.exists()))
-        return repot_under_review.scalar()
+        report_under_review = await self._session.execute(select(stmt.exists()))
+        return report_under_review.scalar()
