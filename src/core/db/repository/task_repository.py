@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.DTO_models import TasksExcelReportDto
+from src.core.db.DTO_models import TasksAnalyticReportDto
 from src.core.db.models import Report, Task
 from src.core.db.repository import AbstractRepository
 
@@ -25,7 +25,7 @@ class TaskRepository(AbstractRepository):
         tasks = await self._session.execute(select(Task))
         return tasks.scalars().all()
 
-    async def get_tasks_statistics_report(self) -> tuple[TasksExcelReportDto]:
+    async def get_tasks_statistics_report(self) -> tuple[TasksAnalyticReportDto]:
         """Отчёт по задачам со всех смен.
 
         Содержит:
@@ -43,4 +43,4 @@ class TaskRepository(AbstractRepository):
             .group_by(Task.id)
         )
         tasks = await self._session.execute(stmt)
-        return tuple(TasksExcelReportDto(**task) for task in tasks.all())
+        return tuple(TasksAnalyticReportDto(**task) for task in tasks.all())

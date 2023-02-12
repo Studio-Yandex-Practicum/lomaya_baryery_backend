@@ -8,14 +8,16 @@ from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 
+from src.core.db.DTO_models import TasksAnalyticReportDto
+
 
 class AnalyticReportBuilder(abc.ABC):
     """Интерфейс строителя."""
 
     def __add_row(self, data: tuple[str | int]) -> None:
         self._row_count += 1
-        for index, value in enumerate(data):
-            self._worksheet.cell(row=self._row_count, column=index + 1, value=value)
+        for index, value in enumerate(data, start=1):
+            self._worksheet.cell(row=self._row_count, column=index, value=value)
 
     async def __save_report(self, workbook: Workbook) -> BytesIO:
         """Сохранение отчёта."""
@@ -31,7 +33,7 @@ class AnalyticReportBuilder(abc.ABC):
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
         return StreamingResponse(stream, headers=headers)
 
-    async def create_workbook(self) -> Workbook:
+    def create_workbook(self) -> Workbook:
         """Генерация excel файла."""
         workbook = Workbook()
         workbook.remove_sheet(workbook.active)
@@ -46,7 +48,7 @@ class AnalyticReportBuilder(abc.ABC):
         for data in self._header_data:
             self.__add_row(data)
 
-    def add_data(self, data: tuple[tuple[str | int]]) -> None:
+    def add_data(self, data: tuple[TasksAnalyticReportDto]) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
             self.__add_row(astuple(task))
@@ -64,7 +66,7 @@ class AnalyticReportBuilder(abc.ABC):
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_HEADER.value
         # задаём стиль для ячеек с данными
-        data_rows = rows[1:self._row_count - 1]  # fmt: skip
+        data_rows = rows[1:-1]
         for row in data_rows:
             for cell in row:
                 cell.font = self.Styles.FONT_STANDART.value

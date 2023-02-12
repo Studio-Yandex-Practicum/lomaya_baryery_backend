@@ -9,7 +9,7 @@ from src.excel_generator.analytic_report_director import AnalyticReportDirector
 from src.excel_generator.task_builder import AnalyticTaskReportBuilder
 
 
-class AnaliticsService:
+class AnalyticsService:
     """Сервис для получения отчётов."""
 
     def __init__(self, task_repository: TaskRepository = Depends()) -> None:
@@ -18,8 +18,10 @@ class AnaliticsService:
 
     async def __generate_task_report(self, last_sheet: bool, workbook: Optional[Workbook] = None) -> Workbook:
         """Генерация отчёта с заданиями."""
-        data = await self.__task_repository.get_tasks_statistics_report()
-        return await AnalyticReportDirector(self.__task_report_builder).generate_report(data, last_sheet, workbook)
+        tasks_statistic = await self.__task_repository.get_tasks_statistics_report()
+        return await AnalyticReportDirector(self.__task_report_builder).generate_report(
+            tasks_statistic, last_sheet, workbook
+        )
 
     async def generate_full_report(self) -> StreamingResponse:
         """Генерация полного отчёта."""

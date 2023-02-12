@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
-from src.core.db.models import Request, Shift, User, Report
+from src.core.db.models import Report, Request, Shift, User
 
 
 @dataclass
@@ -22,7 +22,7 @@ class FullReportDto:
 
 
 @dataclass
-class TasksExcelReportDto:
+class TasksAnalyticReportDto:
     description: str
     approved: int
     declined: int
