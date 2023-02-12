@@ -12,7 +12,7 @@ def get_register_form():
     """
     Открывает для чтения html-шаблон, в данном случае формы регистрации пользователя.
 
-    Вовзвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
+    Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
     """
     with open(settings.registration_template_directory.joinpath(FORM_AUTOFILL_TELEGRAM_TEMPLATE), 'rb') as html_form:
         yield from html_form

@@ -58,7 +58,7 @@ async def register(
     context: CallbackContext,
 ) -> None:
     """Инициализация формы регистрации."""
-    telegram_user_id = update._effective_user.id
+    telegram_user_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
     user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
@@ -88,24 +88,25 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     except ValidationError as e:
         e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
-    except ValueError as e:
-        await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
-    user_scheme.telegram_id = update.effective_user.id
-    session = get_session()
-    registration_service = await get_user_service_callback(session)
-    user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
-    if user:
-        text = " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время - вам придет уведомление."
     else:
-        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-    await update.message.reply_text(
-        text=text,
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    try:
-        await registration_service.register_user(user_scheme)
-    except RegistrationException as e:
-        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
+        user_scheme.telegram_id = update.effective_user.id
+        session = get_session()
+        registration_service = await get_user_service_callback(session)
+        user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
+        if user:
+            text = (
+                " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время - вам придет уведомление."
+            )
+        else:
+            text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+        await update.message.reply_text(
+            text=text,
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        try:
+            await registration_service.register_user(user_scheme)
+        except RegistrationException as e:
+            await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
