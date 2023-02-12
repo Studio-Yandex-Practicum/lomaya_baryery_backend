@@ -74,7 +74,9 @@ class AdministratorCBV:
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
     )
-    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest):
+    async def register_new_administrator(
+        self, token: UUID, schema: AdministratorRegistrationRequest
+    ) -> AdministratorResponse:
         """Зарегистрировать нового администратора по токену из приглашения.
 
         - **name**: Имя
