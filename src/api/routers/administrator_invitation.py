@@ -34,7 +34,12 @@ class AdministratorInvitationCBV:
         url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
 
-    @router.get('/register/{token}')
+    @router.get(
+        '/register/{token}',
+        response_model=AdministratorInvitationResponse,
+        status_code=HTTPStatus.OK,
+        summary="Получить данные приглашенного администратора по токену.",
+    )
     async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
         """
         Получить информацию о приглашенном администраторе по токену.
