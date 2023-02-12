@@ -94,10 +94,10 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     session = get_session()
     registration_service = await get_user_service_callback(session)
     user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
-    if user is None:
-        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+    if user:
+        text = " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время - вам придет уведомление."
     else:
-        text = " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время " "- вам придет уведомление."
+        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
     await update.message.reply_text(
         text=text,
         reply_markup=ReplyKeyboardRemove(),
