@@ -16,9 +16,13 @@ from telegram.ext import CallbackContext, ContextTypes
 from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
-from src.core.db.repository import ReportRepository, RequestRepository, UserRepository
-from src.core.db.repository.member_repository import MemberRepository
-from src.core.db.repository.shift_repository import ShiftRepository
+from src.core.db.repository import (
+    MemberRepository,
+    ReportRepository,
+    RequestRepository,
+    ShiftRepository,
+    UserRepository,
+)
 from src.core.exceptions import (
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
@@ -88,10 +92,9 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    path = Path(settings.user_reports_dir / shift_user_dir)
-    path.mkdir(parents=True, exist_ok=True)
+    path = settings.user_reports_dir / shift_user_dir
     await file.download_to_drive(custom_path=(path / file_name))
-    return file_name
+    return urljoin(path, file_name)
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -105,9 +108,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     report = await report_service.get_current_report(user.id)
     shift = await shift_service.get_shift(report.shift_id)
     shift_user_dir = f"{shift.started_at}_to_{shift.finished_at}/{user.id}"
-    file_name = await download_photo_report_callback(update, context, shift_user_dir)
-    full_dir = urljoin(settings.user_reports_url, f"{shift_user_dir}/")
-    photo_url = urljoin(full_dir, file_name)
+    photo_url = await download_photo_report_callback(update, context, shift_user_dir)
 
     try:
         await report_service.send_report(report, photo_url)

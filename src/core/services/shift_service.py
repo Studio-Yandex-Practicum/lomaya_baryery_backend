@@ -1,6 +1,7 @@
 import random
 from datetime import date, timedelta
 from itertools import cycle
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
@@ -148,9 +149,14 @@ class ShiftService:
         if shift.status == Shift.Status.PREPARING:
             await self.__check_preparing_shift_dates(update_shift_data.started_at, update_shift_data.finished_at)
 
+    async def __create_shift_dir(self, shift: Shift) -> None:
+        path = Path(settings.user_reports_dir / f"{shift.started_at}_to_{shift.finished_at}")
+        path.mkdir(parents=True, exist_ok=True)
+
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         await self.__validate_shift_on_create(shift)
+        await self.__create_shift_dir(shift)
         shift.status = Shift.Status.PREPARING
         shift.final_message = FINAL_MESSAGE
         task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
