@@ -47,66 +47,76 @@ async def start(update: Update, context: CallbackContext) -> None:
     session = get_session()
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+    context.user_data['user'] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
-    await register(update, context)
+    if user:
+        await update_user(update, context)
+    else:
+        await register_user(update, context)
 
 
-async def register(
+async def register_user(
     update: Update,
     context: CallbackContext,
 ) -> None:
-    """Инициализация формы регистрации."""
-    telegram_user_id = update.effective_user.id
-    session = get_session()
-    registration_service = await get_user_service_callback(session)
-    user = await registration_service.get_user_by_telegram_id(telegram_id=telegram_user_id)
-    if user:
-        text = "Подать заявку на участие в смене"
-        web_hook = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_hook.dict())
-    else:
-        text = "Зарегистрироваться в проекте"
-        query = None
+    """Инициализация формы регистрации пользователя."""
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
-                text=text,
+                text="Зарегистрироваться в проекте",
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}"),
+            )
+        ),
+    )
+
+
+async def update_user(
+    update: Update,
+    context: CallbackContext,
+) -> None:
+    """Инициализация формы для обновления регистрационных данных пользователя."""
+    user = context.user_data.get('user')
+    web_hook = UserWebhookTelegram.from_orm(user)
+    query = urllib.parse.urlencode(web_hook.dict())
+    await update.message.reply_text(
+        "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
+        reply_markup=ReplyKeyboardMarkup.from_button(
+            KeyboardButton(
+                text="Подать заявку на участие в смене",
                 web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
 
 
-async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Получение данных из формы регистрации. Создание объекта User и Request."""
+async def web_app_data(update: Update, context: CallbackContext) -> None:
+    """Получение данных из формы регистрации. Создание (обновление) объекта User."""
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
     except ValidationError as e:
         e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
-    else:
-        user_scheme.telegram_id = update.effective_user.id
-        session = get_session()
-        registration_service = await get_user_service_callback(session)
-        user = await registration_service.get_user_by_telegram_id(telegram_id=user_scheme.telegram_id)
-        if user:
-            text = (
-                " Обновленные данные приняты!\nПроцесс регистрации занимает некоторое время - вам придет уведомление."
-            )
-        else:
-            text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-        await update.message.reply_text(
-            text=text,
-            reply_markup=ReplyKeyboardRemove(),
+        return
+    user_scheme.telegram_id = update.effective_user.id
+    session = get_session()
+    registration_service = await get_user_service_callback(session)
+    text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+    if context.user_data.get('user'):
+        text = (
+            " Обновленные данные приняты!\nПроцесс обработки заявок занимает некоторое время - вам придет уведомление."
         )
-        try:
-            await registration_service.register_user(user_scheme)
-        except RegistrationException as e:
-            await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    try:
+        await registration_service.register_user(user_scheme)
+    except RegistrationException as e:
+        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
