@@ -10,16 +10,12 @@ from src.api.response_models.request import RequestResponse
 from src.bot import services
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, User
-from src.core.db.repository import (
-    MemberRepository,
-    RequestRepository,
-    ShiftRepository,
-    UserRepository,
-)
+from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
 from src.core.exceptions import (
     RequestAlreadyReviewedException,
     SendTelegramNotifyException,
 )
+from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
 
@@ -29,17 +25,17 @@ class RequestService:
         request_repository: RequestRepository = Depends(),
         member_repository: MemberRepository = Depends(),
         user_repository: UserRepository = Depends(),
-        shift_repository: ShiftRepository = Depends(),
+        shift_service: ShiftService = Depends(),
     ) -> None:
         self.__request_repository = request_repository
         self.__member_repository = member_repository
         self.__user_repository = user_repository
-        self.__shift_repository = shift_repository
+        self.__shift_service = shift_service
         self.__telegram_bot = services.BotService
 
     async def __create_user_dir(self, user: User, request: Request) -> None:
-        shift = await self.__shift_repository.get(request.shift_id)
-        path = Path(settings.user_reports_dir / f"{shift.started_at}_to_{shift.finished_at}" / f"{user.id}")
+        shift_dir = await self.__shift_service.get_shift_dir(request.shift_id)
+        path = Path(settings.user_reports_dir / shift_dir / str(user.id))
         path.mkdir(parents=True, exist_ok=True)
 
     async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:

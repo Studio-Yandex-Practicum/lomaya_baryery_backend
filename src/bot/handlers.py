@@ -92,8 +92,9 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    await file.download_to_drive(custom_path=(settings.user_reports_dir / shift_user_dir / file_name))
-    return f"{shift_user_dir}/{file_name}"
+    file_path = f"{shift_user_dir}/{file_name}"
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_path))
+    return file_path
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -105,9 +106,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     shift_service = ShiftService(ShiftRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     report = await report_service.get_current_report(user.id)
-    shift = await shift_service.get_shift(report.shift_id)
-    shift_user_dir = f"{shift.started_at}_to_{shift.finished_at}/{user.id}"
-    file_path = await download_photo_report_callback(update, context, shift_user_dir)
+    shift_dir = await shift_service.get_shift_dir(report.shift_id)
+    file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
     photo_url = urljoin(settings.user_reports_url, file_path)
 
     try:

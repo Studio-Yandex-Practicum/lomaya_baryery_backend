@@ -154,9 +154,15 @@ class ShiftService:
         if shift.status == Shift.Status.PREPARING:
             await self.__check_preparing_shift_dates(update_shift_data.started_at, update_shift_data.finished_at)
 
-    async def __create_shift_dir(self, shift: Shift) -> None:
-        path = Path(settings.user_reports_dir / f"{shift.started_at}_to_{shift.finished_at}")
-        path.mkdir(parents=True, exist_ok=True)
+    async def __create_shift_dir(self, shift: str) -> None:
+        path = Path(
+            settings.user_reports_dir / f"{shift.started_at}_to_{shift.finished_at}"
+        )  # Надо передавать Shift, так как создание DIR
+        path.mkdir(parents=True, exist_ok=True)  # в строке 168 идёт для Shift, которого ещё нет в БД
+
+    async def get_shift_dir(self, shift_id: UUID) -> str:
+        shift = await self.__shift_repository.get(shift_id)
+        return f"{shift.started_at}_to_{shift.finished_at}"
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
