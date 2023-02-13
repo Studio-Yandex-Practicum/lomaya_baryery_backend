@@ -1,26 +1,41 @@
 import asyncio
 from datetime import datetime as dt
 
-from telegram.ext import Application
+from telegram import ReplyKeyboardMarkup
+from telegram.ext import Application, CallbackContext
 
 from src.api.request_models.request import RequestDeclineRequest
+from src.bot.error_handler import error_handler
 from src.core import settings
 from src.core.db import models
-from src.core.exceptions import SendTelegramNotifyException
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application) -> None:
+    def __init__(self, telegram_bot: Application | CallbackContext) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
     async def send_message(self, user: models.User, text: str) -> None:
+        if user.telegram_blocked:
+            return
         try:
             await self.__bot.send_message(chat_id=user.telegram_id, text=text)
         except Exception as exc:
-            raise SendTelegramNotifyException(user.id, user.name, user.surname, user.telegram_id, exc)
+            context = {'chat_id': user.telegram_id, 'error': exc}
+            await error_handler(update=None, context=context)
+
+    async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
+        if user.telegram_blocked:
+            return
+        try:
+            await self.__bot.send_photo(
+                chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup
+            )
+        except Exception as exc:
+            context = {'chat_id': user.telegram_id, 'error': exc}
+            await error_handler(update=None, context=context)
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -84,9 +99,7 @@ class BotService:
             "Если Вы считаете, что произошла ошибка - обращайтесь "
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
-        send_message_tasks = [
-            self.send_message(user=member.user, text=text) for member in members if not member.user.telegram_blocked
-        ]
+        send_message_tasks = [self.send_message(user=member.user, text=text) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
@@ -99,6 +112,5 @@ class BotService:
                 ),
             )
             for member in shift.members
-            if not member.user.telegram_blocked
         ]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
