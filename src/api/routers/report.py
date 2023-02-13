@@ -49,7 +49,7 @@ class ReportsCBV:
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
-        response_model=None,
+        response_model=ReportResponse,
         responses={
             404: ERROR_TEMPLATE_FOR_404,
             403: ERROR_TEMPLATE_FOR_403,
@@ -59,7 +59,7 @@ class ReportsCBV:
         self,
         report_id: UUID,
         request: Request,
-    ) -> HTTPStatus.OK:
+    ) -> ReportResponse:
         """Отчет участника проверен и принят."""
         return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
 
@@ -67,7 +67,7 @@ class ReportsCBV:
         "/{report_id}/decline",
         status_code=HTTPStatus.OK,
         summary="Отклонить задание.",
-        response_model=None,
+        response_model=ReportResponse,
         responses={
             404: ERROR_TEMPLATE_FOR_404,
             403: ERROR_TEMPLATE_FOR_403,
@@ -77,7 +77,7 @@ class ReportsCBV:
         self,
         report_id: UUID,
         request: Request,
-    ) -> HTTPStatus.OK:
+    ) -> ReportResponse:
         """Отчет участника проверен и отклонен."""
         return await self.report_service.decline_report(report_id, request.app.state.bot_instance)
 

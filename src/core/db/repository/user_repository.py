@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
-from src.core.db.models import Member, Report, Shift, User
+from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -71,5 +71,11 @@ class UserRepository(AbstractRepository):
                 or_(status is None, User.status == status),
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
+        )
+        return users.scalars().all()
+
+    async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
+        users = await self._session.execute(
+            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
         )
         return users.scalars().all()
