@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import Depends
 from telegram.ext import Application
 
@@ -40,3 +41,7 @@ class MemberService:
         return await self.__member_repository.get_members_for_reminding(
             shift_id, current_task_date
         )
+    
+    async def get_member_by_id(self, id: UUID) -> Member:
+        """Получение участника по id."""
+        return await self.__member_repository.get_by_id(id)

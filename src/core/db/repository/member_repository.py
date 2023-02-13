@@ -59,3 +59,8 @@ class MemberRepository(AbstractRepository):
             )
         )
         return members.scalars().all()
+
+    async def get_by_id(self, user_id: UUID) -> Member:
+        member = await self._session.execute(select(Member).where(Member.user_id == user_id))
+        member = member.scalars().first()
+        return member

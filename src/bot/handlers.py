@@ -21,6 +21,7 @@ from src.core.db.repository import (
     RequestRepository,
     TaskRepository,
     UserRepository,
+    MemberRepository
 )
 from src.core.exceptions import (
     CannotAcceptReportError,
@@ -29,6 +30,7 @@ from src.core.exceptions import (
     ExceededAttemptsReportError,
     RegistrationException,
 )
+from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
@@ -124,6 +126,18 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Следующее задание придет в 8.00 мск."
         )
 
+async def button_handler(update: Update, context: CallbackContext) -> None:
+    """Метод для получения баланса ломбарьеров."""
+    if update.message.text=='Баланс ломбарьеров':
+        session_gen = get_session()
+        session = await session_gen.asend(None)
+        user_service = UserService(UserRepository(session), RequestRepository(session))
+        user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+        member_service = MemberService(MemberRepository(session))
+        member = await member_service.get_member_by_id(user.id)
+        await update.message.reply_text(f"Количество ломбарьеров = {member.numbers_lombaryers}")
+    elif update.message.text=='Пропустить задание':
+        pass
 
 async def error_handler(update: object, context: ContextTypes) -> None:
     error = context.error
