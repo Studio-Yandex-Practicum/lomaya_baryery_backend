@@ -62,6 +62,6 @@ services:
     volumes:
       - static_value:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
-      - user_reports:/var/html/user_reports/
+      - user_reports:/var/data/user_reports/
     env_file:
       - .env
