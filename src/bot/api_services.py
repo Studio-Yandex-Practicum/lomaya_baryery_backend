@@ -50,6 +50,8 @@ async def get_shift_service_callback(sessions):
     async for session in sessions:  # noqa R503
         task_repository = TaskRepository(session)
         shift_repository = ShiftRepository(session)
+        user_repository = UserRepository(session)
+        request_repository = RequestRepository(session)
         task_service = TaskService(task_repository)
-        shift_service = ShiftService(shift_repository, task_service)
+        shift_service = ShiftService(shift_repository, task_service, user_repository, request_repository)
         return shift_service
