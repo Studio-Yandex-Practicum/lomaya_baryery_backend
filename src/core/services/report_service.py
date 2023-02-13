@@ -46,8 +46,7 @@ class ReportService:
         return await self.__report_repository.get(id)
 
     async def get_report_with_report_url(self, id: UUID) -> ReportResponse:
-        report = await self.__report_repository.get_report_with_report_url(id)
-        return ReportResponse.parse_from(report)
+        return await self.__report_repository.get_report_with_report_url(id)
 
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
@@ -61,12 +60,12 @@ class ReportService:
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
-    async def approve_report(self, report_id: UUID, bot: Application) -> None:
+    async def approve_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.APPROVED
-        await self.__report_repository.update(report_id, report)
+        report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
@@ -77,14 +76,14 @@ class ReportService:
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
             )
         await self.__notify_member_about_finished_shift(member, bot)
-        return
+        return report
 
-    async def decline_report(self, report_id: UUID, bot: Application) -> None:
+    async def decline_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.DECLINED
-        await self.__report_repository.update(report_id, report)
+        report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         try:
             await self.__telegram_bot(bot).notify_declined_task(member.user)
@@ -93,7 +92,7 @@ class ReportService:
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
             )
         await self.__notify_member_about_finished_shift(member, bot)
-        return
+        return report
 
     async def __notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
         """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""

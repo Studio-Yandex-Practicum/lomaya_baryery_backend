@@ -68,6 +68,12 @@ class ShiftFinishForbiddenException(ApplicationException):
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
+class ShiftCancelForbiddenException(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Невозможно отменить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
 class SendTelegramNotifyException(ApplicationException):
     """Невозможно отправить сообщение в telegram."""
 
