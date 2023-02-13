@@ -160,7 +160,7 @@ class ShiftService:
         path.mkdir(parents=True, exist_ok=True)
 
     async def get_shift_dir(self, shift: UUID | Shift) -> str:  # Надо передавать оба варианта, так как создание DIR
-        if isinstance(shift, UUID):  # в строке 168 идёт для Shift, которого ещё нет в БД,
+        if isinstance(shift, UUID):  # в строке 170 идёт для Shift, которого ещё нет в БД,
             shift = await self.__shift_repository.get(shift)  # а значит нельзя использовать shift_id
         return f"{shift.started_at}_to_{shift.finished_at}"
 
