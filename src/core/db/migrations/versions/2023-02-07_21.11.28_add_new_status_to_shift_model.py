@@ -36,9 +36,8 @@ def upgrade():
     op.execute(f'DROP TYPE {tmp_name}')
 
 def downgrade():
-    op.execute(target_table.delete().where(target_table.c.status=='ready_for_complete'))
+    op.execute(target_table.update().where(target_table.c.status=='ready_for_complete').values({"status": "finished"}))
     op.execute(f'ALTER TYPE {name} RENAME TO {tmp_name}')
-
     OLD_ENUM.create(op.get_bind())
     op.execute(f'ALTER TABLE shifts ALTER COLUMN status TYPE {name} USING status::text::{name}')
     op.execute(f'DROP TYPE {tmp_name}')
