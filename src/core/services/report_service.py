@@ -70,7 +70,7 @@ class ReportService:
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
         try:
-            await self.__telegram_bot(bot).notify_approved_task(member.user, report)
+            await self.__telegram_bot(bot).notify_approved_task(member.user, report, member.shift)
         except Exception as exc:
             raise SendTelegramNotifyException(
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
@@ -86,7 +86,7 @@ class ReportService:
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         try:
-            await self.__telegram_bot(bot).notify_declined_task(member.user)
+            await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
         except Exception as exc:
             raise SendTelegramNotifyException(
                 member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc

@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime as dt
+from datetime import date, datetime
 
 from telegram.ext import Application
 
@@ -42,20 +42,22 @@ class BotService:
             )
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_approved_task(self, user: models.User, report: models.Report) -> None:
+    async def notify_approved_task(self, user: models.User, report: models.Report, shift: models.Shift) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = dt.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
+        photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = (
             f"Твой отчет от {photo_date} принят! "
             f"Тебе начислен 1 \"ломбарьерчик\". "
             f"Следующее задание придет в 8.00 мск."
         )
+        if date.today() >= shift.finished_at:
+            text = text.replace("Следующее задание придет в 8.00 мск.", "")
         await self.__bot.send_message(user.telegram_id, text)
 
-    async def notify_declined_task(self, user: models.User) -> None:
+    async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
@@ -66,6 +68,8 @@ class BotService:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+        if date.today() >= shift.finished_at:
+            text = text[:115]
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
