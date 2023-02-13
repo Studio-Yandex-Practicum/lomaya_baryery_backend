@@ -82,3 +82,17 @@ class AdministratorCBV:
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
+
+    @router.get(
+        "/is_authenticated",
+        response_model=None,
+        status_code=HTTPStatus.OK,
+        summary="Проверить валидность токена",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            401: ERROR_TEMPLATE_FOR_401,
+            403: ERROR_TEMPLATE_FOR_403,
+        },
+    )
+    def is_authenticated(self, token: str = Depends(OAUTH2_SCHEME)):
+        pass

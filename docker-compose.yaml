@@ -4,6 +4,7 @@ volumes:
   postgres_data_stage:
   static_value:
   nginx_config:
+  user_reports:
 
 
 services:
@@ -31,8 +32,14 @@ services:
       - postgres
     volumes:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
+      - user_reports:/LOMAYA_BARYERY_BACKEND/data/user_reports/
     env_file:
       - .env
+
+  frontend:
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
+    container_name: lomaya_baryery_frontend
+    restart: always
 
   swag:
     image: linuxserver/swag
@@ -51,8 +58,10 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - frontend
     volumes:
       - static_value:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
+      - user_reports:/var/html/user_reports/
     env_file:
       - .env
