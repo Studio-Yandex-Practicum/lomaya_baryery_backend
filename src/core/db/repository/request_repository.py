@@ -70,4 +70,4 @@ class RequestRepository(AbstractRepository):
             Request.user_id == User.id,
         )
         requests = await self._session.execute(statement)
-        return [RequestDTO(**request) for request in requests.all()]
+        return [RequestDTO.parse_from_db(request) for request in requests.all()]
