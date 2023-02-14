@@ -232,14 +232,14 @@ class ShiftService:
             shift.status = Shift.Status.READY_FOR_COMPLETE if unreviewed_report_exists else Shift.Status.FINISHED
             await self.__shift_repository.update(shift.id, shift)
 
-    async def __notify_users_with_reviewed_reports(self, shift: Shift, bot: Application) -> None:
+    async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
-        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift.id)
+        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift_id)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
-    async def __decline_reports_and_notify_users(self, shift: Shift, bot: Application) -> None:
+    async def __decline_reports_and_notify_users(self, shift_id: UUID, bot: Application) -> None:
         """Отклоняет непроверенные задания, уведомляет пользователей об окончании смены."""
-        shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift.id)
+        shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift_id)
         reports_for_update = []
         for member in shift.members:
             for report in member.reports:
