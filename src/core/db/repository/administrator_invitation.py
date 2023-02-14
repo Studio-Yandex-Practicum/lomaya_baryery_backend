@@ -2,11 +2,11 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import Depends
-from sqlalchemy import and_, select
+from sqlalchemy import Text, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
-from src.core.db.models import AdministratorInvitation
+from src.core.db.models import Administrator, AdministratorInvitation
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import AdministratorInvitationInvalid
 
@@ -23,3 +23,23 @@ class AdministratorInvitationRepository(AbstractRepository):
         if result is None:
             raise AdministratorInvitationInvalid
         return result
+
+    async def get_invitaions(self) -> list[AdministratorInvitation]:
+
+        result_statement = (
+            select(
+                func.coalesce(Administrator.name, AdministratorInvitation.name).label('name'),
+                func.coalesce(Administrator.surname, AdministratorInvitation.surname).label('surname'),
+                func.coalesce(Administrator.email, AdministratorInvitation.email).label('email'),
+                func.coalesce(Administrator.role.cast(Text), Administrator.Role.PSYCHOLOGIST).label('role'),
+            )
+            .select_from(AdministratorInvitation)
+            .join(
+                Administrator,
+                Administrator.email == AdministratorInvitation.email,
+                isouter=True,
+            )
+        )
+
+        invitations = await self._session.execute(result_statement)
+        return invitations.all()
