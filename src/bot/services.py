@@ -65,11 +65,9 @@ class BotService:
         text = (
             "К сожалению, мы не можем принять твой фотоотчет! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
-            "Предлагаем продолжить, ведь впереди много интересных заданий. "
-            "Следующее задание придет в 8.00 мск."
         )
-        if date.today() >= shift.finished_at:
-            text = text[:115]
+        next_task = "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в 8.00 мск."
+        text = (text + next_task) if date.today() < shift.finished_at else text
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
