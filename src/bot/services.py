@@ -48,13 +48,9 @@ class BotService:
         - Задание принято, начислен 1 ломбарьерчик.
         """
         photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
-        text = (
-            f"Твой отчет от {photo_date} принят! "
-            f"Тебе начислен 1 \"ломбарьерчик\". "
-            f"Следующее задание придет в 8.00 мск."
-        )
-        if date.today() >= shift.finished_at:
-            text = text.replace("Следующее задание придет в 8.00 мск.", "")
+        text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
+        if date.today() < shift.finished_at:
+            text = text + "Следующее задание придет в 8.00 мск."
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
@@ -66,8 +62,11 @@ class BotService:
             "К сожалению, мы не можем принять твой фотоотчет! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
-        next_task = "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в 8.00 мск."
-        text = (text + next_task) if date.today() < shift.finished_at else text
+        if date.today() < shift.finished_at:
+            text = (
+                text
+                + "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в 8.00 мск."
+            )
         await self.__bot.send_message(user.telegram_id, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
