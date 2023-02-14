@@ -14,7 +14,6 @@ from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
-from src.bot.services import BotService
 from src.core.db.db import get_session
 from src.core.db.repository import (
     ReportRepository,
@@ -48,8 +47,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
-    bot_service = BotService(context)
-    await bot_service.send_message(user=user, text=start_text)
+    await context.bot.send_message(update.effective_chat.id, start_text)
     await register(update, context)
 
 

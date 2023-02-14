@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime as dt
 
 from telegram import ReplyKeyboardMarkup
-from telegram.ext import Application, CallbackContext
+from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
@@ -13,7 +13,7 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application | CallbackContext) -> None:
+    def __init__(self, telegram_bot: Application) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
@@ -24,7 +24,7 @@ class BotService:
             await self.__bot.send_message(chat_id=user.telegram_id, text=text)
         except Exception as exc:
             context = {'chat_id': user.telegram_id, 'error': exc}
-            await error_handler(update=None, context=context)
+            await error_handler(context)
 
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
         if user.telegram_blocked:
@@ -35,7 +35,7 @@ class BotService:
             )
         except Exception as exc:
             context = {'chat_id': user.telegram_id, 'error': exc}
-            await error_handler(update=None, context=context)
+            await error_handler(context)
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -99,15 +99,15 @@ class BotService:
             "Если Вы считаете, что произошла ошибка - обращайтесь "
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
-        send_message_tasks = [self.send_message(user=member.user, text=text) for member in members]
+        send_message_tasks = [self.send_message(member.user, text) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
         send_message_tasks = [
             self.send_message(
-                user=member.user,
-                text=shift.final_message.format(
+                member.user,
+                shift.final_message.format(
                     name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
                 ),
             )

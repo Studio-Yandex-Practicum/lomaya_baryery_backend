@@ -24,8 +24,8 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     members = await member_service.get_members_with_no_reports()
     send_message_tasks = [
         bot_service.send_message(
-            user=member.user,
-            text=(
+            member.user,
+            (
                 f"{member.user.name} {member.user.surname}, мы потеряли тебя!"
                 f"Задание все еще ждет тебя."
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
@@ -51,14 +51,14 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
         bot_service.send_photo(
-            user=member.user,
-            photo=task_photo,
-            caption=(
+            member.user,
+            task_photo,
+            (
                 f"Привет, {member.user.name}!\n"
                 f"Сегодня твоим заданием будет {task.description}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
-            reply_markup=buttons,
+            buttons,
         )
         for member in members
     ]
