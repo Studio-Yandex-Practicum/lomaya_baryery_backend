@@ -42,3 +42,8 @@ class AbstractRepository(abc.ABC):
         instance = await self._session.merge(instance)
         await self._session.commit()
         return instance  # noqa: R504
+
+    async def update_all(self, instances):
+        self._session.add_all(instances)
+        await self._session.commit()
+        return instances
