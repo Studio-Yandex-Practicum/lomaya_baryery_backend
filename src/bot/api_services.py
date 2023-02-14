@@ -51,6 +51,10 @@ async def get_shift_service_callback(sessions):
         task_repository = TaskRepository(session)
         shift_repository = ShiftRepository(session)
         report_repository = ReportRepository(session)
+        user_repository = UserRepository(session)
+        request_repository = RequestRepository(session)
         task_service = TaskService(task_repository)
-        shift_service = ShiftService(shift_repository, task_service, report_repository)
+        shift_service = ShiftService(
+            shift_repository, task_service, report_repository, user_repository, request_repository
+        )
         return shift_service
