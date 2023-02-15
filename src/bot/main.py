@@ -14,7 +14,7 @@ from telegram.ext import (
 from telegram.ext.filters import PHOTO, StatusUpdate
 
 from src.api.routers.telegram_webhook import TELEGRAM_WEBHOOK_ENDPOINT
-from src.bot.handlers import error_handler, photo_handler, start, web_app_data
+from src.bot.handlers import photo_handler, start, web_app_data
 from src.bot.jobs import (
     send_daily_task_job,
     send_no_report_reminder_job,
@@ -37,7 +37,6 @@ def create_bot() -> Application:
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
-    bot_instance.add_error_handler(error_handler)
     bot_instance.job_queue.run_daily(
         start_shift_automatically_job,
         time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
