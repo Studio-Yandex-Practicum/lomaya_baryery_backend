@@ -3,13 +3,9 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.error_templates import (
-    ERROR_TEMPLATE_FOR_400,
-    ERROR_TEMPLATE_FOR_401,
-    ERROR_TEMPLATE_FOR_403,
-)
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
@@ -32,10 +28,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
         response_description="Access и refresh токены.",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            403: ERROR_TEMPLATE_FOR_403,
-        },
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
     )
     async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Аутентифицировать администратора по email и паролю.
@@ -51,15 +44,11 @@ class AdministratorCBV:
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Информация об администраторе",
-        response_description="Информация о теущем активном администраторе",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            401: ERROR_TEMPLATE_FOR_401,
-            403: ERROR_TEMPLATE_FOR_403,
-        },
+        response_description="Информация о текущем активном администраторе",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
     async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
-        """Получить информацию о текущем  активном администраторе."""
+        """Получить информацию о текущем активном администраторе."""
         return await self.authentication_service.get_current_active_administrator(token)
 
     @router.get(
