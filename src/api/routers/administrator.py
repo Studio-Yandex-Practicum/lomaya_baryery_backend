@@ -77,11 +77,7 @@ class AdministratorCBV:
         response_model=None,
         status_code=HTTPStatus.OK,
         summary="Проверить валидность токена",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            401: ERROR_TEMPLATE_FOR_401,
-            403: ERROR_TEMPLATE_FOR_403,
-        },
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
     def is_authenticated(self, token: str = Depends(OAUTH2_SCHEME)):
         pass
