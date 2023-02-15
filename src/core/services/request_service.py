@@ -10,10 +10,7 @@ from src.bot import services
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
-from src.core.exceptions import (
-    RequestAlreadyReviewedException,
-    SendTelegramNotifyException,
-)
+from src.core.exceptions import RequestAlreadyReviewedException
 
 
 class RequestService:
@@ -40,12 +37,7 @@ class RequestService:
             await self.__user_repository.update(user.id, user)
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
         await self.__member_repository.create(member)
-        try:
-            await self.__telegram_bot(bot).notify_approved_request(request.user)
-        except Exception as exc:
-            raise SendTelegramNotifyException(
-                request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
-            )
+        await self.__telegram_bot(bot).notify_approved_request(request.user)
         return RequestResponse.parse_from(request)
 
     async def decline_request(
@@ -60,12 +52,7 @@ class RequestService:
         if user.status is User.Status.PENDING:
             user.status = User.Status.DECLINED
             await self.__user_repository.update(user.id, user)
-        try:
-            await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
-        except Exception as exc:
-            raise SendTelegramNotifyException(
-                request.user.id, request.user.name, request.user.surname, request.user.telegram_id, exc
-            )
+        await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
         return RequestResponse.parse_from(request)
 
     async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:

@@ -10,7 +10,6 @@ from telegram import (
     Update,
     WebAppInfo,
 )
-from telegram.error import TelegramError
 from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
@@ -48,7 +47,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    await context.bot.send_message(update.effective_chat.id, start_text)
     await register(update, context)
 
 
@@ -123,17 +122,3 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
-
-
-async def error_handler(update: object, context: ContextTypes) -> None:
-    error = context.error
-    if isinstance(error, TelegramError) and error.message in (
-        'Forbidden: bot was blocked by the user',
-        'Chat not found',
-    ):
-        session = get_session()
-        user_service = await get_user_service_callback(session)
-        user = await user_service.get_user_by_telegram_id(context._chat_id)
-        await user_service.set_telegram_blocked(user)
-    else:
-        raise error
