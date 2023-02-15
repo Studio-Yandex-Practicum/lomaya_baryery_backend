@@ -159,15 +159,13 @@ class ShiftService:
         path = Path(settings.user_reports_dir / shift_dir)
         path.mkdir(parents=True, exist_ok=True)
 
-    async def get_shift_dir(self, shift: UUID | Shift) -> str:  # Надо передавать оба варианта, так как создание DIR
-        if isinstance(shift, UUID):  # в строке 170 идёт для Shift, которого ещё нет в БД,
-            shift = await self.__shift_repository.get(shift)  # а значит нельзя использовать shift_id
+    async def get_shift_dir(self, shift_id: UUID) -> str:
+        shift = await self.__shift_repository.get(shift_id)
         return f"{shift.started_at}_to_{shift.finished_at}"
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         await self.__validate_shift_on_create(shift)
-        await self.__create_shift_dir(shift)
         shift.status = Shift.Status.PREPARING
         shift.final_message = FINAL_MESSAGE
         task_ids_list = list(map(str, await self.__task_service.get_task_ids_list()))
@@ -178,7 +176,9 @@ class ShiftService:
             if day == 31:
                 break
         shift.tasks = month_tasks
-        return await self.__shift_repository.create(instance=shift)
+        shift = await self.__shift_repository.create(instance=shift)
+        await self.__create_shift_dir(shift.id)
+        return shift
 
     async def get_shift(self, id: UUID) -> Shift:
         return await self.__shift_repository.get(id)
