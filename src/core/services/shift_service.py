@@ -176,7 +176,7 @@ class ShiftService:
             if day == 31:
                 break
         shift.tasks = month_tasks
-        shift = await self.__shift_repository.create(instance=shift)
+        await self.__shift_repository.create(instance=shift)
         await self.__create_shift_dir(shift.id)
         return shift
 
