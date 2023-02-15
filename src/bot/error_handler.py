@@ -1,13 +1,11 @@
-from telegram.error import BadRequest, Forbidden
+from telegram.error import BadRequest, Forbidden, TelegramError
 
 from src.core.db.db import get_session
 from src.core.db.repository import RequestRepository, UserRepository
 from src.core.services.user_service import UserService
 
 
-async def error_handler(context: dict) -> None:
-    error = context['error']
-    chat_id = context['chat_id']
+async def error_handler(chat_id: int, error: TelegramError) -> None:
     if isinstance(error, Forbidden | BadRequest):
         session_gen = get_session()
         session = await session_gen.asend(None)

@@ -20,22 +20,20 @@ class BotService:
     async def send_message(self, user: models.User, text: str) -> None:
         if user.telegram_blocked:
             return
+        chat_id = user.telegram_id
         try:
-            await self.__bot.send_message(chat_id=user.telegram_id, text=text)
+            await self.__bot.send_message(chat_id=chat_id, text=text)
         except Exception as exc:
-            context = {'chat_id': user.telegram_id, 'error': exc}
-            await error_handler(context)
+            await error_handler(chat_id, exc)
 
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
         if user.telegram_blocked:
             return
+        chat_id = user.telegram_id
         try:
-            await self.__bot.send_photo(
-                chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup
-            )
+            await self.__bot.send_photo(chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup)
         except Exception as exc:
-            context = {'chat_id': user.telegram_id, 'error': exc}
-            await error_handler(context)
+            await error_handler(chat_id, exc)
 
     async def notify_approved_request(self, user: models.User) -> None:
         """Уведомление участника о решении по заявке в telegram.
