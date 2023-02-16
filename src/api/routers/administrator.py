@@ -8,6 +8,7 @@ from src.api.error_templates import (
     ERROR_TEMPLATE_FOR_400,
     ERROR_TEMPLATE_FOR_401,
     ERROR_TEMPLATE_FOR_403,
+    ERROR_TEMPLATE_FOR_422,
 )
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
@@ -73,6 +74,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.CREATED,
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
+        responses={400: ERROR_TEMPLATE_FOR_400, 422: ERROR_TEMPLATE_FOR_422},
     )
     async def register_new_administrator(
         self, token: UUID, schema: AdministratorRegistrationRequest

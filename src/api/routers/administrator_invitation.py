@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
 
+from src.api.error_templates import ERROR_TEMPLATE_FOR_400, ERROR_TEMPLATE_FOR_422
 from src.api.request_models.administrator_invitation import (
     AdministratorInvitationRequest,
 )
@@ -39,6 +40,10 @@ class AdministratorInvitationCBV:
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.OK,
         summary="Получить данные приглашенного администратора по токену.",
+        responses={
+            400: ERROR_TEMPLATE_FOR_400,
+            422: ERROR_TEMPLATE_FOR_422,
+        },
     )
     async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
         """
