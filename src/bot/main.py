@@ -15,7 +15,7 @@ from telegram.ext.filters import PHOTO, StatusUpdate, TEXT
 
 from src.api.routers.telegram_webhook import TELEGRAM_WEBHOOK_ENDPOINT
 
-from src.bot.handlers import error_handler, photo_handler, start, web_app_data, button_handler
+from src.bot.handlers import photo_handler, start, web_app_data, button_handler
 from src.bot.jobs import (
     send_daily_task_job,
     send_no_report_reminder_job,

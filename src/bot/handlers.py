@@ -16,7 +16,6 @@ from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
-    MemberRepository,
     ReportRepository,
     RequestRepository,
     ShiftRepository,
@@ -159,7 +158,7 @@ async def skip_task(chat_id: int) -> None:
 
 async def error_handler(update: object, context: ContextTypes) -> None:
     error = context.error
-    if isinstance(error, TelegramError) and error.message in (
+    if isinstance(error) and error.message in (
         'Forbidden: bot was blocked by the user',
         'Chat not found',
     ):
