@@ -116,7 +116,7 @@ class BotService:
 
     async def notify_member_that_shift_is_finished(self, user: models.User, shift: models.Shift) -> None:
         """Уведомление участника об окончании смены. Отправляется вместе с последним проверенным заданием."""
-        await self.__bot.send_message(user.telegram_id, shift.final_message)
+        await self.send_message(user, shift.final_message)
 
     async def notify_that_shift_is_cancelled(self, users: list[models.User], final_message: str) -> None:
         """Уведомляет пользователей об отмене смены."""
