@@ -36,6 +36,10 @@ from src.core.services.user_service import UserService
 from src.core.settings import settings
 
 
+LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
+SKIP_A_TASK = 'Пропустить задание'
+
+
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
     start_text = (
@@ -128,17 +132,24 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
+    if update.message.text == LOMBARIERS_BALANCE:
+        amount = await balance(update.effective_chat.id)
+        await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
+    elif update.message.text == SKIP_A_TASK:
+        await skip_task(update.effective_chat.id)
+
+
+async def balance(telegram_id: int) -> None:
     """Метод для получения баланса ломбарьеров."""
-    if update.message.text == 'Баланс ломбарьеров':
-        session_gen = get_session()
-        session = await session_gen.asend(None)
-        user_service = UserService(UserRepository(session), RequestRepository(session))
-        user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-        member_service = MemberService(MemberRepository(session))
-        member = await member_service.get_member_by_id(user.id)
-        await update.message.reply_text(f"Количество ломбарьеров = {member.numbers_lombaryers}")
-    elif update.message.text == 'Пропустить задание':
-        pass
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    member_service = MemberService(MemberRepository(session))
+    member = await member_service.get_by_user_id(telegram_id)
+    return member.numbers_lombaryers
+
+
+async def skip_task(chat_id: int) -> None:
+    pass
 
 
 async def error_handler(update: object, context: ContextTypes) -> None:

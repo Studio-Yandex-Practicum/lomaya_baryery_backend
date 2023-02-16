@@ -42,6 +42,6 @@ class MemberService:
             shift_id, current_task_date
         )
 
-    async def get_member_by_id(self, id: UUID) -> Member:
+    async def get_by_user_id(self, telegram_id: UUID) -> Member:
         """Получение участника по id."""
-        return await self.__member_repository.get_by_id(id)
+        return await self.__member_repository.get_by_user_id(telegram_id)

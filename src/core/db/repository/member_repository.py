@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report
+from src.core.db.models import Member, Report, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -60,9 +60,13 @@ class MemberRepository(AbstractRepository):
         )
         return members.scalars().all()
 
-    async def get_by_id(self, user_id: UUID) -> Member:
+    async def get_by_user_id(self, telegram_id: UUID) -> Member:
         member = await self._session.execute(
             select(Member)
-            .where(Member.user_id == user_id)
+            .options(joinedload(Member.user))
+            .join(User).filter(User.telegram_id == telegram_id)
+            .where(
+                Member.user_id == User.id
+            )
         )
         return member.scalars().first()
