@@ -127,6 +127,21 @@ class ShiftRepository(AbstractRepository):
         statement = select(Shift).where(Shift.status == status)
         return (await self._session.scalars(statement)).first()
 
+    async def get_shift_with_request(self, id: UUID) -> Shift:
+        """Получить смену (Shift) по её id вместе со связанными данными.
+
+        Связанные данные: Shift -> Request.
+
+        Аргументы:
+            id (UUID) - id смены (shift)
+        """
+        statement = select(Shift).where(Shift.id == id).options(selectinload(Shift.requests))
+        request = await self._session.execute(statement)
+        request = request.scalars().first()
+        if request is None:
+            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+        return request
+
     async def check_shift_existence(self, shift_id: UUID) -> bool:
         shift_exists = await self._session.execute(select(select(Shift).where(Shift.id == shift_id).exists()))
         return shift_exists.scalar()
