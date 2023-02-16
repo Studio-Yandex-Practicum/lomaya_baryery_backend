@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from datetime import datetime
 
-from src.core.db.models import Administrator
+from pydantic import BaseModel
 
 
 class AdministratorInvitationResponse(BaseModel):
@@ -9,7 +9,7 @@ class AdministratorInvitationResponse(BaseModel):
     name: str
     surname: str
     email: str
-    role: str = Administrator.Role.PSYCHOLOGIST
+    expired_datetime: datetime
 
     class Config:
         orm_mode = True

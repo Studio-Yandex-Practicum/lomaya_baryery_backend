@@ -27,4 +27,4 @@ class AdministratorInvitationService:
 
     async def list_all_invitations(self) -> list[AdministratorInvitation]:
         """Возвращает список всех приглашений администраторов."""
-        return await self.__administrator_mail_request_repository.get_invitaions()
+        return await self.__administrator_mail_request_repository.get_all_invitations()
