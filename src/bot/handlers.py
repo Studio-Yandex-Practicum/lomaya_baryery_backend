@@ -93,7 +93,7 @@ async def update_user(
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
-    """Получение данных из формы регистрации. Создание (обновление) объекта User."""
+    """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
