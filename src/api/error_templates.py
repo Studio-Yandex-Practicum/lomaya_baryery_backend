@@ -1,4 +1,4 @@
-from src.api.response_models.shift import ErrorResponse
+from src.api.response_models.error import ErrorResponse
 
 ERROR_TEMPLATE_FOR_400 = {"description": "Bad Request Response", "model": ErrorResponse}
 ERROR_TEMPLATE_FOR_401 = {"description": "Unauthorized", "model": ErrorResponse}
