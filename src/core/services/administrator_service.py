@@ -21,11 +21,14 @@ class AdministratorService:
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
         """Регистрация нового администратора."""
         invitation = await self.__administrator_invitation_service.get_invitation_by_token(token)
-        administrator = await schema.parse_to_db_obj()
-        administrator.email = invitation.email
-        administrator.hashed_password = AuthenticationService.get_hashed_password(schema.password.get_secret_value())
-        administrator.status = Administrator.Status.ACTIVE
-        administrator.role = Administrator.Role.PSYCHOLOGIST
+        administrator = Administrator(
+            name=schema.name,
+            surname=schema.surname,
+            email=invitation.email,
+            hashed_password=AuthenticationService.get_hashed_password(schema.password.get_secret_value()),
+            status=Administrator.Status.ACTIVE,
+            role=Administrator.Role.PSYCHOLOGIST,
+        )
         administrator = await self.__administrator_repository.create(administrator)
         await self.__administrator_invitation_service.close_invitation(token)
         return administrator  # noqa: R504
