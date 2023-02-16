@@ -26,3 +26,9 @@ class TokenResponse(BaseModel):
 
     access_token: str
     refresh_token: str
+
+
+class RefreshToken(BaseModel):
+    """Модель для отображения refresh токена."""
+
+    refresh_token: str

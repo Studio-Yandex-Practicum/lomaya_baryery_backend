@@ -59,7 +59,10 @@ class AuthenticationService:
 
     async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Получить access и refresh токены."""
-        administrator = await self.__authenticate_administrator(auth_data)
+        if type(auth_data) == Administrator:
+            administrator = auth_data
+        else:
+            administrator = await self.__authenticate_administrator(auth_data)
         administrator.last_login_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
         return TokenResponse(

@@ -9,7 +9,7 @@ from src.api.error_templates import (
     ERROR_TEMPLATE_FOR_403,
 )
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
-from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.api.response_models.administrator import AdministratorResponse, TokenResponse, RefreshToken
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
@@ -44,6 +44,18 @@ class AdministratorCBV:
         - **password**: пароль
         """
         return await self.authentication_service.login(auth_data)
+
+    @router.post(
+        "/refresh",
+        response_model=TokenResponse,
+        status_code=HTTPStatus.OK,
+        summary="Восстановление аутентификационного токена.",
+        response_description="Новая пара access и refresh токенов.",
+    )
+    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
+        """Обновление access и refresh токенов при помощи refresh токена."""
+        administrator = await self.get_me(request_data.refresh_token)
+        return await self.authentication_service.login(administrator)
 
     @router.get(
         "/me",
