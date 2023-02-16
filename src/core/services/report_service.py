@@ -116,7 +116,7 @@ class ReportService:
             raise ReportWaitingPhotoException
 
     async def __finish_shift_with_all_reports_reviewed(self, shift: Shift) -> None:
-        """Закрывает группу, если не осталось непроверенных заданий."""
+        """Закрывает смену, если не осталось непроверенных заданий."""
         if not await self.__shift_repository.is_unreviewed_report_exists(shift.id):
             shift.status = Shift.Status.FINISHED
             await self.__shift_repository.update(shift.id, shift)

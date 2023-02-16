@@ -219,7 +219,7 @@ class ShiftService:
         return await self.__shift_repository.get_open_for_registration_shift_id()
 
     async def finish_shift_automatically(self, bot: Application) -> None:
-        shift = await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
+        shift = await self.__shift_repository.get_active_or_complete_shift()
         if not shift:
             return
         if shift.status is Shift.Status.READY_FOR_COMPLETE:

@@ -197,3 +197,13 @@ class ShiftRepository(AbstractRepository):
         stmt = select(Report).where(Report.status == Report.Status.REVIEWING, Report.shift_id == shift_id)
         report_under_review = await self._session.execute(select(stmt.exists()))
         return report_under_review.scalar()
+
+    async def get_active_or_complete_shift(self) -> Optional[Shift]:
+        """Возвращает активную смену или смену, приготовленную к закрытию."""
+        statement = select(Shift).where(
+            or_(
+                Shift.status == Shift.Status.READY_FOR_COMPLETE,
+                Shift.status == Shift.Status.STARTED,
+            ),
+        )
+        return (await self._session.scalars(statement)).first()
