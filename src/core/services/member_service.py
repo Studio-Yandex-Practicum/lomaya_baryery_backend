@@ -11,9 +11,9 @@ from src.core.utils import get_current_task_date
 
 class MemberService:
     def __init__(
-            self,
-            member_repository: MemberRepository = Depends(),
-            shift_repository: ShiftRepository = Depends()
+        self,
+        member_repository: MemberRepository = Depends(),
+        shift_repository: ShiftRepository = Depends(),
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository

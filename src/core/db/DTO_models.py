@@ -2,7 +2,9 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
-from src.core.db.models import Request, Shift, User, Report
+from sqlalchemy.engine import Row
+
+from src.core.db.models import Report, Request, Shift, User
 
 
 @dataclass
@@ -32,6 +34,20 @@ class RequestDTO:
     phone_number: str
     request_status: Request.Status
     user_status: User.Status
+
+    @classmethod
+    def parse_from_db(cls, db_row: Row):
+        return RequestDTO(
+            request_id=db_row.request_id,
+            user_id=db_row.user_id,
+            name=db_row.name,
+            surname=db_row.surname,
+            date_of_birth=db_row.date_of_birth,
+            city=db_row.city,
+            phone_number=db_row.phone_number,
+            request_status=db_row.request_status,
+            user_status=db_row.user_status,
+        )
 
 
 @dataclass

@@ -5,12 +5,8 @@ from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
-from src.api.error_templates import (
-    ERROR_TEMPLATE_FOR_400,
-    ERROR_TEMPLATE_FOR_403,
-    ERROR_TEMPLATE_FOR_404,
-)
 from src.api.request_models.request import RequestDeclineRequest
+from src.api.response_models.error import generate_error_responses
 from src.api.response_models.request import RequestResponse
 from src.core.db import DTO_models, models
 from src.core.services.request_service import RequestService
@@ -27,11 +23,7 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Одобрить заявку на участие.",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            403: ERROR_TEMPLATE_FOR_403,
-            404: ERROR_TEMPLATE_FOR_404,
-        },
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def approve_request_status(
         self,
@@ -46,11 +38,7 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Отклонить заявку на участие.",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            403: ERROR_TEMPLATE_FOR_403,
-            404: ERROR_TEMPLATE_FOR_404,
-        },
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def decline_request_status(
         self,
