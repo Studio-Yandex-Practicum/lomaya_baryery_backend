@@ -24,3 +24,6 @@ __pypackages__/
 # Telegram Bot data
 data/
 bot_persistence_file
+
+# Task and photo report images
+/static/
