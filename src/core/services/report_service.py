@@ -90,7 +90,7 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
+            await self.__telegram_bot(bot).send_message(member.user, member.shift.final_message)
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
