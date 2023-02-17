@@ -15,7 +15,6 @@ from src.core.exceptions import (
     NotFoundException,
     ReportAlreadyReviewedException,
     ReportWaitingPhotoException,
-    SendTelegramNotifyException,
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
@@ -69,12 +68,7 @@ class ReportService:
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        try:
-            await self.__telegram_bot(bot).notify_approved_task(member.user, report, member.shift)
-        except Exception as exc:
-            raise SendTelegramNotifyException(
-                member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
-            )
+        await self.__telegram_bot(bot).notify_approved_task(member.user, report, member.shift)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
@@ -85,12 +79,7 @@ class ReportService:
         report.status = Report.Status.DECLINED
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
-        try:
-            await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
-        except Exception as exc:
-            raise SendTelegramNotifyException(
-                member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
-            )
+        await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
@@ -101,12 +90,7 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            try:
-                await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
-            except Exception as exc:
-                raise SendTelegramNotifyException(
-                    member.user.id, member.user.name, member.user.surname, member.user.telegram_id, exc
-                )
+            await self.__telegram_bot(bot).notify_member_that_shift_is_finished(member.user, member.shift)
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
