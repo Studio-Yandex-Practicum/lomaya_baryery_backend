@@ -14,6 +14,7 @@ from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
+from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core.db.db import get_session
 from src.core.db.repository import (
     ReportRepository,
@@ -34,10 +35,6 @@ from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
-
-
-LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
-SKIP_A_TASK = 'Пропустить задание'
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -143,7 +140,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         await skip_task(update.effective_chat.id)
 
 
-async def balance(telegram_id: int) -> None:
+async def balance(telegram_id: int) -> int:
     """Метод для получения баланса ломбарьеров."""
     session_gen = get_session()
     session = await session_gen.asend(None)
@@ -154,17 +151,3 @@ async def balance(telegram_id: int) -> None:
 
 async def skip_task(chat_id: int) -> None:
     pass
-
-
-async def error_handler(update: object, context: ContextTypes) -> None:
-    error = context.error
-    if isinstance(error) and error.message in (
-        'Forbidden: bot was blocked by the user',
-        'Chat not found',
-    ):
-        session = get_session()
-        user_service = await get_user_service_callback(session)
-        user = await user_service.get_user_by_telegram_id(context._chat_id)
-        await user_service.set_telegram_blocked(user)
-    else:
-        raise error

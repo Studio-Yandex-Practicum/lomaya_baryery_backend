@@ -15,6 +15,9 @@ from src.core.db.db import get_session
 from src.core.db.models import Shift
 from src.core.settings import settings
 
+LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
+SKIP_A_TASK = 'Пропустить задание'
+
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
@@ -38,7 +41,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
-    buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
+    buttons = ReplyKeyboardMarkup([[SKIP_A_TASK, LOMBARIERS_BALANCE]], resize_keyboard=True)
     report_session_generator = get_session()
     member_session_generator = get_session()
     report_service = await get_report_service_callback(report_session_generator)

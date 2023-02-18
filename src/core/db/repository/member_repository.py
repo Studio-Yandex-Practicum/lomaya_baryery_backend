@@ -63,7 +63,6 @@ class MemberRepository(AbstractRepository):
     async def get_by_user_id(self, telegram_id: UUID) -> Member:
         member = await self._session.execute(
             select(Member)
-            .options(joinedload(Member.user))
             .join(User).filter(User.telegram_id == telegram_id)
             .where(
                 Member.user_id == User.id
