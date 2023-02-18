@@ -35,9 +35,9 @@ class UserRepository(AbstractRepository):
                 Shift.started_at,
                 Shift.finished_at,
                 Member.numbers_lombaryers,
-                func.count(case([((Report.status == "approved"), Report.id)])).label("total_approved"),
-                func.count(case([((Report.status == "declined"), Report.id)])).label("total_declined"),
-                func.count(case([((Report.status == "waiting"), Report.id)])).label("total_skipped"),
+                func.count(case(((Report.status == "approved"), Report.id))).label("total_approved"),
+                func.count(case(((Report.status == "declined"), Report.id))).label("total_declined"),
+                func.count(case(((Report.status == "waiting"), Report.id))).label("total_skipped"),
             )
             .join(User.members, isouter=True)
             .join(Member.shift, isouter=True)
