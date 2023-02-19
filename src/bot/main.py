@@ -15,7 +15,7 @@ from telegram.ext import (
 from telegram.ext.filters import PHOTO, StatusUpdate
 
 from src.api.routers.telegram_webhook import TELEGRAM_WEBHOOK_ENDPOINT
-from src.bot.handlers import photo_handler, start, web_app_data, error_message
+from src.bot.handlers import photo_handler, start, web_app_data, incorrect_report_type_handler
 from src.bot.jobs import (
     finish_shift_automatically_job,
     send_daily_task_job,
@@ -37,7 +37,7 @@ def create_bot() -> Application:
         .build()
     )
     bot_instance.add_handler(CommandHandler("start", start))
-    bot_instance.add_handler(MessageHandler(filters.Document.ALL, error_message))
+    bot_instance.add_handler(MessageHandler(filters.Document.ALL, incorrect_report_type_handler))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
     bot_instance.job_queue.run_daily(

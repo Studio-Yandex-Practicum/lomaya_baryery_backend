@@ -130,7 +130,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         )
 
 
-async def error_message(update: Update, context: CallbackContext) -> None:
+async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
     """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
     await update.message.reply_text(
         "Отчёт по заданию должен быть отправлен в виде фотографии."
