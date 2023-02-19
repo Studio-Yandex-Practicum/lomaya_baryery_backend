@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
 from src.core.db.models import Request, User
 
-VALID_USER_TEXT = r"^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$"
+VALID_NAME_SURNAME = r"^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$"
 VALID_СITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
 DATE_FORMAT = "%d.%m.%Y"
@@ -26,13 +26,13 @@ class UserCreateRequest(BaseModel):
 
     @validator("name")
     def validate_name(cls, value: str):
-        if not re.compile(VALID_USER_TEXT).match(value):
+        if not re.compile(VALID_NAME_SURNAME).match(value):
             raise ValueError(INVALID_TEXT_ERROR.format('Имя'))
         return value.title()
 
     @validator("surname")
     def validate_surname(cls, value: str):
-        if not re.compile(VALID_USER_TEXT).match(value):
+        if not re.compile(VALID_NAME_SURNAME).match(value):
             raise ValueError(INVALID_TEXT_ERROR.format('Фамилия'))
         return value.title()
 
