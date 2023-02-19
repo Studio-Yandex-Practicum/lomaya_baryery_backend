@@ -65,6 +65,13 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     context.application.create_task(asyncio.gather(*send_message_tasks))
 
 
+async def finish_shift_automatically_job(context: CallbackContext) -> None:
+    """Автоматически закрывает смену в дату, указанную в finished_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    await shift_service.finish_shift_automatically(context.application)
+
+
 async def start_shift_automatically_job(context: CallbackContext) -> None:
     """Автоматически запускает смену в дату, указанную в started_at."""
     session = get_session()
