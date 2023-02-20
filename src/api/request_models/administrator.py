@@ -42,12 +42,6 @@ class AdministratorRegistrationRequest(RequestBase):
             )
         return value
 
-    async def parse_to_db_obj(self) -> Administrator:
-        administrator = Administrator()
-        administrator.name = self.name
-        administrator.surname = self.surname
-        return administrator
-
 
 class AdministratorListRequest(RequestBase):
     """Схема для запроса списка администраторов."""
