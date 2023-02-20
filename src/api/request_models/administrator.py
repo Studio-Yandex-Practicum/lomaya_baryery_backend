@@ -3,7 +3,7 @@ import re
 from pydantic import EmailStr, Field, SecretStr, validator
 
 from src.api.request_models.request_base import RequestBase
-from src.api.request_models.user import INVALID_TEXT_ERROR, VALID_TEXT
+from src.api.request_models.user import INVALID_TEXT_ERROR, VALID_NAME_SURNAME
 from src.core.db.models import Administrator
 from src.core.settings import settings
 
@@ -24,13 +24,13 @@ class AdministratorRegistrationRequest(RequestBase):
 
     @validator("name")
     def validate_name(cls, value: str) -> str:
-        if not re.compile(VALID_TEXT).match(value):
+        if not re.compile(VALID_NAME_SURNAME).match(value):
             raise ValueError(INVALID_TEXT_ERROR.format("Имя"))
         return value.title()
 
     @validator("surname")
     def validate_surname(cls, value: str) -> str:
-        if not re.compile(VALID_TEXT).match(value):
+        if not re.compile(VALID_NAME_SURNAME).match(value):
             raise ValueError(INVALID_TEXT_ERROR.format("Фамилия"))
         return value.title()
 
