@@ -74,7 +74,7 @@ class ReportRepository(AbstractRepository):
             Report.shift_id == Shift.id,
             Report.member_id == Member.id,
             Report.task_id == Task.id,
-            Member.user_id == User.id
+            Member.user_id == User.id,
         )
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]

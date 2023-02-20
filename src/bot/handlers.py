@@ -128,3 +128,10 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+
+
+async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
+    """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
+    await update.message.reply_text(
+        "Отчёт по заданию должен быть отправлен в виде фотографии."
+    )
