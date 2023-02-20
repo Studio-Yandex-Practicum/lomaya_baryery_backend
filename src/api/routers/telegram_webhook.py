@@ -38,7 +38,11 @@ def user_register_form_webhook():
 
 if settings.BOT_WEBHOOK_MODE:
 
-    @router.post("/webhook")
+    @router.post(
+        "/webhook",
+        summary="Получить обновления telegram",
+        response_description="Обновления получены",
+    )
     async def get_telegram_bot_updates(request: Request) -> dict:
         """Получение обновлений telegram в режиме работы бота webhook."""
         bot_instance = request.app.state.bot_instance
