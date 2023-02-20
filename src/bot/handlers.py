@@ -14,13 +14,14 @@ from telegram.ext import CallbackContext, ContextTypes
 
 from src.api.request_models.user import UserCreateRequest
 from src.bot.api_services import get_user_service_callback
+from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core.db.db import get_session
 from src.core.db.repository import (
-    MemberRepository,
     ReportRepository,
     RequestRepository,
     ShiftRepository,
     UserRepository,
+    MemberRepository
 )
 from src.core.exceptions import (
     CannotAcceptReportError,
@@ -29,6 +30,7 @@ from src.core.exceptions import (
     ExceededAttemptsReportError,
     RegistrationException,
 )
+from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
@@ -128,6 +130,27 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+
+
+async def button_handler(update: Update, context: CallbackContext) -> None:
+    if update.message.text == LOMBARIERS_BALANCE:
+        amount = await balance(update.effective_chat.id)
+        await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
+    elif update.message.text == SKIP_A_TASK:
+        await skip_task(update.effective_chat.id)
+
+
+async def balance(telegram_id: int) -> int:
+    """Метод для получения баланса ломбарьеров."""
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    member_service = MemberService(MemberRepository(session))
+    member = await member_service.get_by_user_id(telegram_id)
+    return member.numbers_lombaryers
+
+
+async def skip_task(chat_id: int) -> None:
+    pass
 
 
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
