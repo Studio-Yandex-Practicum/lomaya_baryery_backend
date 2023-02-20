@@ -124,12 +124,12 @@
         <p id="formtitle"></p>
       </div>
       <div class="input-field col s12">
-        <input id="name" name="name" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="name" name="name" type="text" class="validate" minlength="2" maximumlength="100" required>
         <label for="name">Имя</label>
         <span class="helper-text name"></span>
       </div>
       <div class="input-field col s12">
-        <input id="surname" name="surname" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="surname" name="surname" type="text" class="validate" minlength="2" maximumlength="100" required>
         <label for="surname">Фамилия</label>
         <span class="helper-text surname"></span>
       </div>
@@ -140,13 +140,12 @@
         <span class="helper-text date_of_birth"></span>
       </div>
       <div class="input-field col s12">
-        <input id="city" name="city" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="city" name="city" type="text" class="validate" minlength="2" maximumlength="50" required>
         <label for="city">Город</label>
         <span class="helper-text city"></span>
       </div>
       <div class="input-field col s12">
-        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maxlength="11"
-          required>
+        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maximumlength="11" required>
         <label for="phone_number">Телефон</label>
         <span class="helper-text phone_number"></span>
       </div>
@@ -206,11 +205,11 @@
     // validation settings and check actions
     const validationConfig = {
       name: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^А-Яа-я-]/g,
         isCapitalize: true,
       },
       surname: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^А-Яа-я-]/g,
         isCapitalize: true,
       },
       date_of_birth: {
@@ -218,7 +217,7 @@
         isCapitalize: false,
       },
       city: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^А-Яа-я- ]/g,
         isCapitalize: true,
       },
       phone_number: {
@@ -231,10 +230,16 @@
       name: {
         required: "Пожалуйста, укажите имя",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 100 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
       },
       surname: {
         required: "Пожалуйста, укажите фамилию",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 100 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
       },
       date_of_birth: {
         required: "Пожалуйста, укажите дату рождения",
@@ -243,10 +248,14 @@
       city: {
         required: "Пожалуйста, укажите название города",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 50 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
       },
       phone_number: {
         required: "Пожалуйста, укажите номер телефона",
         min: "Введите номер телефона без разделителей (включая 8)",
+        max: "Номер телефона не должен содержать более 11 цифр",
       },
     };
 
@@ -272,6 +281,9 @@
     ) => {
       let newValue = element.value;
       const minlength = element.getAttribute("minlength");
+      const maximumlength = element.getAttribute("maximumlength");
+      const capsPattern = /[А-ЯЁ]{2,}/g;
+      const dashPattern = /( -)|(- )|(^-)|(-$)/g;
 
       if (pattern) {
         newValue = newValue.trimStart().replace(pattern, "");
@@ -279,6 +291,13 @@
 
       if (isCapitalize && newValue) {
         newValue = newValue
+          .split("-")
+          .map((word) => (
+            word ? word.replace(
+              /^(?!на)[а-яё]{2}/, letter => letter[0].toUpperCase() + letter.slice(1)
+            ) : "")
+          )
+          .join("-")
           .split(" ")
           .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : ""))
           .join(" ");
@@ -293,6 +312,12 @@
         setInvalid(element, errElement, "invalidDate");
       } else if (minlength && newValue.length < minlength) {
         setInvalid(element, errElement, "min");
+      } else if (maximumlength && newValue.length > maximumlength) {
+        setInvalid(element, errElement, "max");
+      } else if (newValue.match(capsPattern)) {
+        setInvalid(element, errElement, "capsPattern");
+      } else if (newValue.match(dashPattern)) {
+        setInvalid(element, errElement, "dashPattern");
       } else {
         setValid(element, errElement);
       }
@@ -368,28 +393,23 @@
     });
 
     if (params.surname) {
-      var username = params.name;
-      document.getElementById("name").value = username;
-      var surname = params.surname;
-      document.getElementById("surname").value = surname;
-      var date_of_birth = params.date_of_birth;
-      document.getElementById("date_of_birth").value = date_of_birth;
-      var city = params.city;
-      document.getElementById("city").value = city;
-      var phone_number = params.phone_number;
-      document.getElementById("phone_number").value = phone_number;
-      var formtext = `Рады снова видеть Вас в нашем проекте.<br>
+      document.getElementById("name").value = params.name;
+      document.getElementById("surname").value = params.surname;
+      document.getElementById("date_of_birth").value = params.date_of_birth;
+      document.getElementById("city").value = params.city;
+      document.getElementById("phone_number").value = params.phone_number;
+      var formText = `Рады снова видеть Вас в нашем проекте.<br>
         Пожалуйста, проверьте свои данные.`;
-      var buttontext = "Подать заявку на участие в смене";
+      var buttonText = "Подать заявку на участие в смене";
     } else {
-      var formtext = "Пожалуйста, заполните данную форму.";
-      var buttontext = "Зарегистрироваться в проекте"
+      var formText = "Пожалуйста, заполните данную форму.";
+      var buttonText = "Зарегистрироваться в проекте";
     }
 
-    document.getElementById("formtitle").innerHTML = formtext
+    document.getElementById("formtitle").innerHTML = formText
 
     const showTgButton = (tgMainButton) => {
-      tgMainButton.setText(buttontext);
+      tgMainButton.setText(buttonText);
       tgMainButton.show();
     };
 

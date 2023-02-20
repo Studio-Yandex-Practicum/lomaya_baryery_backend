@@ -68,12 +68,17 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить url-ссылку на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}/telegram/register_form"
+        return f"{self.APPLICATION_URL}/telegram/registration_form"
 
     @property
-    def registration_template_directory(self):
-        """Получить директорию HTML-шаблона формы регистрации."""
-        return BASE_DIR / "src" / "templates" / "registration"
+    def telegram_webhook_url(self) -> str:
+        """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
+        return f"{self.APPLICATION_URL}/telegram/webhook"
+
+    @property
+    def registration_template(self):
+        """Получить HTML-шаблон формы регистрации."""
+        return BASE_DIR / "src" / "templates" / "registration" / "registration.html"
 
     @property
     def task_image_url(self) -> str:

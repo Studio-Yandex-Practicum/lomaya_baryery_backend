@@ -11,16 +11,16 @@ from telegram import (
     Update,
     WebAppInfo,
 )
-from telegram.error import TelegramError
-from telegram.ext import CallbackContext, ContextTypes
+from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.core.db.db import get_session
 from src.core.db.repository import (
+    MemberRepository,
     ReportRepository,
     RequestRepository,
-    TaskRepository,
+    ShiftRepository,
     UserRepository,
 )
 from src.core.exceptions import (
@@ -31,6 +31,7 @@ from src.core.exceptions import (
     RegistrationException,
 )
 from src.core.services.report_service import ReportService
+from src.core.services.shift_service import ShiftService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
 
@@ -52,7 +53,7 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await update_user(update, context)
+        await update_user_data(update, context)
     else:
         await register_user(update, context)
 
@@ -73,7 +74,7 @@ async def register_user(
     )
 
 
-async def update_user(
+async def update_user_data(
     update: Update,
     context: CallbackContext,
 ) -> None:
@@ -119,12 +120,13 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
-async def download_photo_report_callback(update: Update, context: CallbackContext) -> str:
+async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:
     """Сохранить фото отчёта на диск."""
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
-    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_name))
-    return file_name
+    file_path = f"{shift_user_dir}/{file_name}"
+    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_path))
+    return file_path
 
 
 async def photo_handler(update: Update, context: CallbackContext) -> None:
@@ -132,13 +134,16 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))
-    report_service = ReportService(ReportRepository(session), TaskRepository(session))
+    report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
+    shift_service = ShiftService(ShiftRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    file_name = await download_photo_report_callback(update, context)
-    photo_url = urljoin(settings.user_reports_url, file_name)
+    report = await report_service.get_current_report(user.id)
+    shift_dir = await shift_service.get_shift_dir(report.shift_id)
+    file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
+    photo_url = urljoin(settings.user_reports_url, file_path)
 
     try:
-        await report_service.send_report(user.id, photo_url)
+        await report_service.send_report(report, photo_url)
         await update.message.reply_text("Отчёт отправлен на проверку.")
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
@@ -158,15 +163,6 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         )
 
 
-async def error_handler(update: object, context: ContextTypes) -> None:
-    error = context.error
-    if isinstance(error, TelegramError) and error.message in (
-        'Forbidden: bot was blocked by the user',
-        'Chat not found',
-    ):
-        session = get_session()
-        user_service = await get_user_service_callback(session)
-        user = await user_service.get_user_by_telegram_id(context._chat_id)
-        await user_service.set_telegram_blocked(user)
-    else:
-        raise error
+async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
+    """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
+    await update.message.reply_text("Отчёт по заданию должен быть отправлен в виде фотографии.")
