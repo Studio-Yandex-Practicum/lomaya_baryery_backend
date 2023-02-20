@@ -4,7 +4,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.error_templates import ERROR_TEMPLATE_FOR_400, ERROR_TEMPLATE_FOR_422
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
@@ -63,7 +62,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.CREATED,
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
-        responses={400: ERROR_TEMPLATE_FOR_400, 422: ERROR_TEMPLATE_FOR_422},
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
     )
     async def register_new_administrator(
         self, token: UUID, schema: AdministratorRegistrationRequest
