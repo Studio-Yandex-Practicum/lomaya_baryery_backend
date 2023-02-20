@@ -151,3 +151,10 @@ async def balance(telegram_id: int) -> int:
 
 async def skip_task(chat_id: int) -> None:
     pass
+
+
+async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
+    """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
+    await update.message.reply_text(
+        "Отчёт по заданию должен быть отправлен в виде фотографии."
+    )
