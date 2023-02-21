@@ -24,15 +24,17 @@ class AdministratorRegistrationRequest(RequestBase):
 
     @validator("name")
     def validate_name(cls, value: str) -> str:
+        value = value.title()
         if re.compile(VALID_NAME_SURNAME).match(value) is None:
             raise ValueError(INVALID_TEXT_ERROR.format("Имя"))
-        return value.title()
+        return value
 
     @validator("surname")
     def validate_surname(cls, value: str) -> str:
+        value = value.title()
         if re.compile(VALID_NAME_SURNAME).match(value) is None:
             raise ValueError(INVALID_TEXT_ERROR.format("Фамилия"))
-        return value.title()
+        return value
 
     @validator("password")
     def validate_password(cls, value: SecretStr) -> SecretStr:
