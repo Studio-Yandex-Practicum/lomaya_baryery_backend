@@ -59,12 +59,12 @@ class Settings(BaseSettings):
     @property
     def user_reports_dir(self) -> PosixPath:
         """Получить директорию для сохранения фотоотчета."""
-        return BASE_DIR / "data/user_reports"
+        return BASE_DIR / "static/user_reports"
 
     @property
     def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
-        return "/data/user_reports/"
+        return "/static/user_reports/"
 
     @property
     def registration_template_url(self) -> str:
@@ -79,7 +79,7 @@ class Settings(BaseSettings):
     @property
     def task_image_dir(self) -> PosixPath:
         """Получить директорию c изображениями заданий."""
-        return BASE_DIR / "src/static/tasks"
+        return BASE_DIR / "static/tasks"
 
     @property
     def email_template_directory(self) -> PosixPath:
