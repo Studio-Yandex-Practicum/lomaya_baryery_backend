@@ -11,9 +11,10 @@ from telegram.ext import (
     PicklePersistence,
     filters,
 )
-from telegram.ext.filters import PHOTO, StatusUpdate
+from telegram.ext.filters import PHOTO, TEXT, StatusUpdate
 
 from src.bot.handlers import (
+    button_handler,
     incorrect_report_type_handler,
     photo_handler,
     start,
@@ -42,6 +43,7 @@ def create_bot() -> Application:
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(filters.Document.ALL, incorrect_report_type_handler))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
+    bot_instance.add_handler(MessageHandler(TEXT, button_handler))
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
     bot_instance.job_queue.run_daily(
         finish_shift_automatically_job,

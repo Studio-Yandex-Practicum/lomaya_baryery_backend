@@ -38,8 +38,8 @@ class Settings(BaseSettings):
 
     MAIL_SERVER: str = "smtp.ethereal.email"
     MAIL_PORT: int = 587
-    MAIL_LOGIN: str = "michel.bruen24@ethereal.email"
-    MAIL_PASSWORD: str = "tM7wbvvvtmRrWy54PD"
+    MAIL_LOGIN: str = "anabelle.nader@ethereal.email"
+    MAIL_PASSWORD: str = "XBGgyFyK4MfK2DCWm9"
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
 
