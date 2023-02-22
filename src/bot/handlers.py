@@ -68,7 +68,7 @@ async def register_user(
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=f"{settings.registration_template_url}"),
+                web_app=WebAppInfo(url=settings.registration_template_url),
             )
         ),
     )
@@ -87,7 +87,7 @@ async def update_user_data(
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Подать заявку на участие в смене",
-                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+                web_app=WebAppInfo(url=settings.registration_template_url + "?" + query),
             )
         ),
     )
@@ -110,14 +110,14 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         text = (
             " Обновленные данные приняты!\nПроцесс обработки заявок занимает некоторое время - вам придет уведомление."
         )
+    try:
+        await registration_service.register_user(user_scheme)
+    except (RegistrationException, ValueError) as e:
+        text = e.detail
     await update.message.reply_text(
         text=text,
         reply_markup=ReplyKeyboardRemove(),
     )
-    try:
-        await registration_service.register_user(user_scheme)
-    except RegistrationException as e:
-        await update.message.reply_text(text=e.detail, reply_markup=ReplyKeyboardRemove())
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:

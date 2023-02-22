@@ -1,3 +1,5 @@
+from typing import Iterator
+
 from fastapi import APIRouter, Request, status
 from fastapi.responses import StreamingResponse
 from telegram import Update
@@ -13,7 +15,7 @@ router = APIRouter(prefix="/telegram", tags=["Telegram template forms and webhoo
     summary="Вернуть шаблон формы в телеграм",
     response_description="Предоставить пользователю форму для заполнения",
 )
-def user_register_form_webhook():
+def user_register_form_webhook() -> StreamingResponse:
     """
     Вернуть пользователю в телеграм форму для заполнения персональных данных.
 
@@ -23,8 +25,13 @@ def user_register_form_webhook():
     - **city**: город пользователя
     - **phone_number**: телефон пользователя
     """
+    headers: dict[str, str] = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
 
-    def get_register_form():
+    def get_register_form() -> Iterator[bytes]:
         """
         Открывает для чтения html-шаблон формы регистрации пользователя.
 
@@ -33,7 +40,7 @@ def user_register_form_webhook():
         with open(settings.registration_template, 'rb') as html_form:
             yield from html_form
 
-    return StreamingResponse(get_register_form(), media_type="text/html")
+    return StreamingResponse(get_register_form(), media_type="text/html", headers=headers)
 
 
 if settings.BOT_WEBHOOK_MODE:

@@ -76,7 +76,7 @@ class Settings(BaseSettings):
         return f"{self.APPLICATION_URL}/telegram/webhook"
 
     @property
-    def registration_template(self):
+    def registration_template(self) -> PosixPath:
         """Получить HTML-шаблон формы регистрации."""
         return BASE_DIR / "src" / "templates" / "registration" / "registration.html"
 
