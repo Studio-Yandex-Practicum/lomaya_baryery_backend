@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
+    MIN_PASSWORD_LENGTH: int = 4
 
     MAIL_SERVER: str = "smtp.ethereal.email"
     MAIL_PORT: int = 587
