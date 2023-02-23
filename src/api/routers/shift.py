@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
@@ -176,7 +176,7 @@ class ShiftCBV:
     )
     async def get_all_shifts(
         self,
-        status: Optional[Shift.Status] = None,
+        status: Optional[list[Shift.Status]] = Query(default=None),
         sort: Optional[ShiftSortRequest] = None,
     ) -> list[ShiftWithTotalUsersResponse]:
         """Получить список смен с фильтрацией по статусу.
