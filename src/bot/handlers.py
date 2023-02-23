@@ -17,11 +17,11 @@ from src.bot.api_services import get_user_service_callback
 from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core.db.db import get_session
 from src.core.db.repository import (
+    MemberRepository,
     ReportRepository,
     RequestRepository,
     ShiftRepository,
     UserRepository,
-    MemberRepository
 )
 from src.core.exceptions import (
     CannotAcceptReportError,
@@ -29,6 +29,7 @@ from src.core.exceptions import (
     DuplicateReportError,
     ExceededAttemptsReportError,
     RegistrationException,
+    ReportSkippedError,
 )
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
@@ -130,6 +131,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+    except ReportSkippedError:
+        await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
@@ -137,7 +140,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         amount = await balance(update.effective_chat.id)
         await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
     elif update.message.text == SKIP_A_TASK:
-        await skip_task(update.effective_chat.id)
+        await skip_report(update.effective_chat.id)
 
 
 async def balance(telegram_id: int) -> int:
@@ -149,12 +152,17 @@ async def balance(telegram_id: int) -> int:
     return member.numbers_lombaryers
 
 
-async def skip_task(chat_id: int) -> None:
-    pass
+async def skip_report(chat_id: int) -> None:
+    """Метод для пропуска задания."""
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    user_service = UserService(UserRepository(session), RequestRepository(session))
+    report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
+    user = await user_service.get_user_by_telegram_id(chat_id)
+    report = await report_service.get_current_report(user.id)
+    await report_service.skip_report(report.id)
 
 
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
     """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
-    await update.message.reply_text(
-        "Отчёт по заданию должен быть отправлен в виде фотографии."
-    )
+    await update.message.reply_text("Отчёт по заданию должен быть отправлен в виде фотографии.")

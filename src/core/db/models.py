@@ -208,6 +208,7 @@ class Report(Base):
         APPROVED = "approved"
         DECLINED = "declined"
         WAITING = "waiting"
+        SKIPPED = "skipped"
 
     __tablename__ = "reports"
 
