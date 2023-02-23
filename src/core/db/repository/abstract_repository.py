@@ -43,7 +43,8 @@ class AbstractRepository(abc.ABC):
         await self._session.commit()
         return instance  # noqa: R504
 
-    async def update_all(self, instances):
+    async def update_all(self, instances: list[DatabaseModel]) -> list[DatabaseModel]:
+        """Обновляет несколько измененных объектов модели в базе."""
         self._session.add_all(instances)
         await self._session.commit()
         return instances

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class AdministratorInvitationResponse(BaseModel):
-    """Схема для отображения информации о приглашении администратора."""
+    """Схема для отображения информации о приглашенном администраторе."""
 
     name: str
     surname: str
