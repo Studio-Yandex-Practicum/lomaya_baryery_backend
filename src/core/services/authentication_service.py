@@ -28,7 +28,8 @@ class AuthenticationService:
     def __init__(self, administrator_repository: AdministratorRepository = Depends()):
         self.__administrator_repository = administrator_repository
 
-    def __get_hashed_password(self, password: str) -> str:
+    @staticmethod
+    def get_hashed_password(password: str) -> str:
         """Получить хэш пароля."""
         return PASSWORD_CONTEXT.hash(password)
 
