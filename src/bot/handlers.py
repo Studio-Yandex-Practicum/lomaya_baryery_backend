@@ -25,11 +25,11 @@ from src.core.db.repository import (
     UserRepository,
 )
 from src.core.exceptions import (
+    ApplicationError,
     CannotAcceptReportError,
     CurrentTaskNotFoundError,
     DuplicateReportError,
     ExceededAttemptsReportError,
-    RegistrationException,
 )
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
@@ -89,7 +89,7 @@ async def update_user_data(
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text="Подать заявку на участие в смене",
-                web_app=WebAppInfo(url=settings.registration_template_url + "?" + query),
+                web_app=WebAppInfo(url=f'{settings.registration_template_url}?{query}'),
             )
         ),
     )
@@ -114,7 +114,7 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         )
     try:
         await registration_service.register_user(user_scheme)
-    except (RegistrationException, ValueError) as e:
+    except ApplicationError as e:
         text = e.detail
     await update.message.reply_text(
         text=text,

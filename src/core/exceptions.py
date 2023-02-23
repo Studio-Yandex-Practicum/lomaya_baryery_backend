@@ -5,6 +5,20 @@ from uuid import UUID
 from starlette.exceptions import HTTPException
 
 
+class ApplicationError(Exception):
+    """Собственное исключение для бизнес-логики приложения."""
+
+    pass
+
+
+class NotValidValue(ApplicationError):
+    """Исключение для невалидных данных."""
+
+    def __init__(self, detail: str | None) -> None:
+        self.detail = detail
+        super().__init__()
+
+
 class ApplicationException(HTTPException):
     status_code: int = None
     detail: str = None
@@ -127,7 +141,7 @@ class GetStartedShiftException(ApplicationException):
         self.detail = detail
 
 
-class RegistrationException(HTTPException):
+class RegistrationException(ApplicationError):
     status_code: int = None
     detail: str = None
 
