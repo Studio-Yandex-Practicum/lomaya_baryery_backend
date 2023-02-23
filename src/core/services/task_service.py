@@ -42,4 +42,4 @@ class TaskService:
         return await self.__task_repository.get(id)
 
     async def get_all_tasks(self) -> list[Task]:
-        return await self.__task_repository.get_tasks()
+        return await self.__task_repository.get_all()

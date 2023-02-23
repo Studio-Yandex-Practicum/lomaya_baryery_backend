@@ -26,15 +26,3 @@ class AdministratorInvitationRepository(AbstractRepository):
         if result is None:
             raise AdministratorInvitationInvalid
         return result
-
-    async def get_all_invitations(self) -> list[AdministratorInvitation]:
-
-        result_statement = select(
-            AdministratorInvitation.name.label('name'),
-            AdministratorInvitation.surname.label('surname'),
-            AdministratorInvitation.email.label('email'),
-            AdministratorInvitation.expired_date.label('expired_datetime'),
-        )
-
-        invitations = await self._session.execute(result_statement)
-        return invitations.all()
