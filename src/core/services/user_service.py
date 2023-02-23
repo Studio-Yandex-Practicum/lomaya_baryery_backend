@@ -15,7 +15,7 @@ from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
     AlreadyRegisteredException,
-    NotValidValue,
+    NotValidValueError,
     RequestForbiddenException,
 )
 from src.core.services.shift_service import ShiftService
@@ -26,7 +26,7 @@ def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
     current_date = date.today()
     if current_date.year - value.year < settings.MIN_AGE:
-        raise NotValidValue(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
+        raise NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
 
 
 async def validate_user_not_exists(
@@ -35,7 +35,7 @@ async def validate_user_not_exists(
     """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
     user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
     if user_exists:
-        raise NotValidValue('Пользователь с таким номером телефона уже существует.')
+        raise NotValidValueError('Пользователь с таким номером телефона уже существует.')
 
 
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
