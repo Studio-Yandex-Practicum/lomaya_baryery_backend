@@ -48,3 +48,8 @@ class AbstractRepository(abc.ABC):
         self._session.add_all(instances)
         await self._session.commit()
         return instances
+
+    async def get_all(self) -> list[DatabaseModel]:
+        """Возвращает все объекты модели из базы данных."""
+        objects = await self._session.execute(select(self._model))
+        return objects.scalars().all()

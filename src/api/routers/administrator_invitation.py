@@ -23,9 +23,16 @@ class AdministratorInvitationCBV:
     email_provider: EmailProvider = Depends()
 
     @router.post(
-        '/invite',
+        '/invitations',
         response_model=None,
         status_code=HTTPStatus.CREATED,
+        responses=generate_error_responses(
+            HTTPStatus.FORBIDDEN,
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.BAD_REQUEST,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+        ),
         summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
     )
     async def create_and_send_invitation(
@@ -34,6 +41,17 @@ class AdministratorInvitationCBV:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
+
+    @router.get(
+        '/invitations',
+        response_model=list[AdministratorInvitationResponse],
+        status_code=HTTPStatus.OK,
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED),
+        summary="Получить информацию о приглашениях, отправленных администраторам",
+        response_description="Информация о приглашениях",
+    )
+    async def get_all_invitations(self) -> list[AdministratorInvitationResponse]:
+        return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
         '/register/{token}',

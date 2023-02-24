@@ -19,7 +19,3 @@ class TaskRepository(AbstractRepository):
         """Список всех task_id."""
         task_ids = await self._session.execute(select(Task.id))
         return task_ids.scalars().all()
-
-    async def get_tasks(self) -> list[Task]:
-        tasks = await self._session.execute(select(Task))
-        return tasks.scalars().all()

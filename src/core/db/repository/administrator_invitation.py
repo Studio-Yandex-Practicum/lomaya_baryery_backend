@@ -18,7 +18,10 @@ class AdministratorInvitationRepository(AbstractRepository):
 
     async def get_mail_request_by_token(self, token: UUID) -> Optional[AdministratorInvitation]:
         statement = select(AdministratorInvitation).where(
-            and_(AdministratorInvitation.token == token, AdministratorInvitation.expired_date > datetime.utcnow())
+            and_(
+                AdministratorInvitation.token == token,
+                AdministratorInvitation.expired_datetime > datetime.utcnow(),
+            )
         )
         result = (await self._session.scalars(statement)).first()
         if result is None:
