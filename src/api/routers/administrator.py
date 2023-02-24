@@ -8,13 +8,13 @@ from src.api.error_templates import (
     ERROR_TEMPLATE_FOR_401,
     ERROR_TEMPLATE_FOR_403,
 )
-from src.api.request_models.administrator import AdministratorAuthenticateRequest
-from src.api.response_models.administrator import AdministratorResponse, TokenResponse, RefreshToken
+from src.api.request_models.administrator import AdministratorAuthenticateRequest, RefreshToken
+from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import (
     OAUTH2_SCHEME,
-    AuthenticationService,
+    AuthenticationService
 )
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
@@ -54,8 +54,7 @@ class AdministratorCBV:
     )
     async def refresh(self, request_data: RefreshToken) -> TokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена."""
-        administrator = await self.get_me(request_data.refresh_token)
-        return await self.authentication_service.login(administrator)
+        return await self.authentication_service.refresh(request_data.refresh_token)
 
     @router.get(
         "/me",

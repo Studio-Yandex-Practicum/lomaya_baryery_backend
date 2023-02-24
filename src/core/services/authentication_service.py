@@ -59,10 +59,7 @@ class AuthenticationService:
 
     async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
         """Получить access и refresh токены."""
-        if type(auth_data) == Administrator:
-            administrator = auth_data
-        else:
-            administrator = await self.__authenticate_administrator(auth_data)
+        administrator = await self.__authenticate_administrator(auth_data)
         administrator.last_login_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
         return TokenResponse(
@@ -83,3 +80,11 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         return administrator
+
+    async def refresh(self, token: str) -> TokenResponse:
+        """Метод получения новой пары refresh- и access- токенов."""
+        administrator = await self.get_current_active_administrator(token)
+        return TokenResponse(
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+        )

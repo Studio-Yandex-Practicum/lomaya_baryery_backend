@@ -16,3 +16,9 @@ class AdministratorListRequest(RequestBase):
 
     status: Administrator.Status | None
     role: Administrator.Role | None
+
+
+class RefreshToken(RequestBase):
+    """Модель для отображения refresh токена."""
+
+    refresh_token: str
