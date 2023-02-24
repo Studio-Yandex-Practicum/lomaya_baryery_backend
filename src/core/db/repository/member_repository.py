@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report
+from src.core.db.models import Member, Report, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -24,11 +24,16 @@ class MemberRepository(AbstractRepository):
         )
         return member.scalars().first()
 
-    async def get_with_user(self, id: UUID) -> Member:
-        member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
+    async def get_with_user_and_shift(self, member_id: UUID) -> Member:
+        member = await self._session.execute(
+            select(Member)
+            .where(Member.id == member_id)
+            .options(selectinload(Member.user))
+            .options(selectinload(Member.shift))
+        )
         member = member.scalars().first()
         if not member:
-            raise NotFoundException(object_name=Member.__name__, object_id=id)
+            raise NotFoundException(object_name=Member.__name__, object_id=member_id)
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
@@ -59,3 +64,22 @@ class MemberRepository(AbstractRepository):
             )
         )
         return members.scalars().all()
+
+    async def get_by_user_id(self, telegram_id: UUID) -> Member:
+        member = await self._session.execute(
+            select(Member)
+            .join(User).filter(User.telegram_id == telegram_id)
+            .where(
+                Member.user_id == User.id
+            )
+        )
+        return member.scalars().first()
+
+    async def is_unreviewed_report_exists(self, member_id: UUID) -> bool:
+        """Проверка, есть ли у пользователя непроверенные задания в смене."""
+        stmt = select(Report).where(
+            Report.status == Report.Status.REVIEWING,
+            Report.member_id == member_id,
+        )
+        report_under_review = await self._session.execute(select(stmt.exists()))
+        return report_under_review.scalar()
