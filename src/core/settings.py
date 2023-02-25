@@ -40,8 +40,8 @@ class Settings(BaseSettings):
 
     MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_PORT: int = 465
-    MAIL_LOGIN: str
-    MAIL_PASSWORD: str
+    MAIL_LOGIN: str = ""
+    MAIL_PASSWORD: str = ""
     MAIL_STARTTLS: bool = False
     MAIL_SSL_TLS: bool = True
     USE_CREDENTIALS: bool = True
