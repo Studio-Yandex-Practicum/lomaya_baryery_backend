@@ -1,4 +1,4 @@
-name: Test backend build and deploy
+name: Test backend deploy
 
 on:
   workflow_run:
