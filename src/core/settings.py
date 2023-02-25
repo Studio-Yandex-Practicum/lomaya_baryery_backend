@@ -38,12 +38,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str = str(uuid.uuid4())
     MIN_PASSWORD_LENGTH: int = 4
 
-    MAIL_SERVER: str = "smtp.ethereal.email"
-    MAIL_PORT: int = 587
-    MAIL_LOGIN: str = "anabelle.nader@ethereal.email"
-    MAIL_PASSWORD: str = "XBGgyFyK4MfK2DCWm9"
-    MAIL_STARTTLS: bool = True
-    MAIL_SSL_TLS: bool = False
+    MAIL_SERVER: str = "smtp.yandex.ru"
+    MAIL_PORT: int = 465
+    MAIL_LOGIN: str = "lomayabaryery.noreply"
+    MAIL_PASSWORD: str = "kcsqyicsgyurjloj"
+    MAIL_STARTTLS: bool = False
+    MAIL_SSL_TLS: bool = True
+    USE_CREDENTIALS: bool = True
+    VALIDATE_CERTS: bool = True
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
@@ -99,7 +101,7 @@ def get_settings():
 settings = get_settings()
 
 # Organization data
-ORGANIZATIONS_EMAIL = "info@stereotipov.net"
+ORGANIZATIONS_EMAIL = "lomayabaryery.noreply@yandex.ru"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию

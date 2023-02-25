@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
@@ -24,7 +25,7 @@ class AdministratorInvitationCBV:
 
     @router.post(
         '/invitations',
-        response_model=None,
+        response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.CREATED,
         responses=generate_error_responses(
             HTTPStatus.FORBIDDEN,
@@ -37,10 +38,11 @@ class AdministratorInvitationCBV:
     )
     async def create_and_send_invitation(
         self, request: Request, invitation_data: AdministratorInvitationRequest
-    ) -> None:
+    ) -> Any:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
+        return invite
 
     @router.get(
         '/invitations',
