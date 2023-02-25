@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Any
+from urllib.parse import urljoin
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
@@ -14,6 +15,7 @@ from src.api.response_models.administrator_invitation import (
 from src.api.response_models.error import generate_error_responses
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
+from src.core.settings import settings
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
@@ -40,7 +42,7 @@ class AdministratorInvitationCBV:
         self, request: Request, invitation_data: AdministratorInvitationRequest
     ) -> Any:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
-        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
+        url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invite.token}")
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
         return invite
 
