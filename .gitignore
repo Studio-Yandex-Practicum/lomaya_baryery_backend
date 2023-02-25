@@ -26,5 +26,4 @@ data/
 bot_persistence_file
 
 # Task and photo report images
-/static/tasks/
-/static/user_reports/
+static/

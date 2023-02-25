@@ -4,7 +4,6 @@ volumes:
   postgres_data_stage:
   static_value:
   nginx_config:
-  user_reports:
   tasks:
 
 
@@ -35,7 +34,7 @@ services:
       - postgres
     volumes:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
-      - user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
+      - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
       - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
     env_file:
       - .env
@@ -63,7 +62,7 @@ services:
     volumes:
       - static_value:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
-      - user_reports:/var/static/user_reports/
+      - ./static/user_reports:/var/static/user_reports/
       - tasks:/var/static/tasks/
     env_file:
       - .env
