@@ -1,4 +1,4 @@
-name: Stage backend build and deploy
+name: Manually started stage backend build and deploy
 
 on:
   workflow_dispatch:
