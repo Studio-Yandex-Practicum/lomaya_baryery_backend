@@ -2,16 +2,14 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
-from src.core.services.authentication_service import (
-    OAUTH2_SCHEME,
-    AuthenticationService,
-)
+from src.core.services.authentication_service import AuthenticationService
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
@@ -47,9 +45,9 @@ class AdministratorCBV:
         response_description="Информация о текущем активном администраторе",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
-    async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
+    async def get_me(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
         """Получить информацию о текущем активном администраторе."""
-        return await self.authentication_service.get_current_active_administrator(token)
+        return await self.authentication_service.get_current_active_administrator(token.credentials)
 
     @router.get(
         "/",
