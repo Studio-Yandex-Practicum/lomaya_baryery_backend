@@ -79,7 +79,7 @@ async def start_shift_automatically_job(context: CallbackContext) -> None:
     """Автоматически запускает смену в дату, указанную в started_at."""
     session = get_session()
     shift_service = await get_shift_service_callback(session)
-    shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING)
+    shifts = await shift_service.list_all_shifts(status=[Shift.Status.PREPARING])
     if shifts:
         shift = shifts[0]
         if shift.started_at == date.today():
