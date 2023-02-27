@@ -26,6 +26,15 @@ jobs:
     environment:
       name: test_deploy
     steps:
+      - name: Copy docker-compose and nginx files
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "docker-compose.yaml,nginx/default.conf"
+          target: ${{ env.DEPLOY_PATH }}
+
       - name: Create .env file
         uses: appleboy/ssh-action@master
         with:
