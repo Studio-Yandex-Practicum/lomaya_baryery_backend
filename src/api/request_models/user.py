@@ -1,6 +1,6 @@
 import enum
 import re
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -102,3 +102,29 @@ class UserDescAscSortRequest(str, enum.Enum):
 
     ASC = "asc"
     DESC = "desc"
+
+
+class UserWebhookTelegram(BaseModel):
+    """
+    Валидируем и отдаем данные из базы в Query-форму.
+
+    - **name**: провалидированное имя пользователя
+    - **surname**: провалидированная фамилия пользовтаеля
+    - **date_of_birth**: Хранится в бд с отличным форматом
+    - **city**: Провалидированный город, хранящиеся в БД
+    - ***phone_number**: Провалидированный телефон, хранящиеся в БД
+    - **validate_date_of_birth**: Конвертация в нужный формат WebAppInfo
+    """
+
+    name: StrictStr
+    surname: StrictStr
+    date_of_birth: date
+    city: StrictStr
+    phone_number: int
+
+    @validator("date_of_birth")
+    def fix_date_of_birth(cls, value: date) -> str:
+        return value.strftime(DATE_FORMAT)
+
+    class Config:
+        orm_mode = True

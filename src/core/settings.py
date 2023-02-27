@@ -7,7 +7,6 @@ from pydantic import BaseSettings
 from pydantic.tools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 if os.path.exists(str(BASE_DIR / ".env")):
     ENV_FILE = ".env"
 else:
@@ -71,8 +70,18 @@ class Settings(BaseSettings):
 
     @property
     def registration_template_url(self) -> str:
-        """Получить ссылку на HTML шаблон регистрации."""
-        return "/static/registration.html"
+        """Получить url-ссылку на HTML шаблон регистрации."""
+        return f"{self.APPLICATION_URL}/telegram/registration_form"
+
+    @property
+    def telegram_webhook_url(self) -> str:
+        """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
+        return f"{self.APPLICATION_URL}/telegram/webhook"
+
+    @property
+    def registration_template(self) -> PosixPath:
+        """Получить HTML-шаблон формы регистрации."""
+        return BASE_DIR / "src" / "templates" / "registration" / "registration.html"
 
     @property
     def task_image_url(self) -> str:
