@@ -105,7 +105,10 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
+    description_perfect_aspect = Column(String(length=150), nullable=False)
     reports = relationship("Report", back_populates="task")
+
+    __table_args__ = (UniqueConstraint("description_perfect_aspect", name="uc_task_description_perfect_aspect"),)
 
     def __repr__(self):
         return f"<Task: {self.id}, description: {self.description}>"
