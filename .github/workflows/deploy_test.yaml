@@ -24,6 +24,9 @@ jobs:
     environment:
       name: test_deploy
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
       - name: Copy docker-compose and nginx files
         uses: appleboy/scp-action@master
         with:
