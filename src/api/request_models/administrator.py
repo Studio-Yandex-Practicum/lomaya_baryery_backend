@@ -19,6 +19,6 @@ class AdministratorListRequest(RequestBase):
 
 
 class RefreshToken(RequestBase):
-    """Модель для отображения refresh токена."""
+    """Схема для передачи refresh токена."""
 
     refresh_token: str

@@ -42,7 +42,7 @@ class AdministratorCBV:
         "/refresh",
         response_model=TokenResponse,
         status_code=HTTPStatus.OK,
-        summary="Восстановление аутентификационного токена.",
+        summary="Обновление аутентификационного токена.",
         response_description="Новая пара access и refresh токенов.",
     )
     async def refresh(self, request_data: RefreshToken) -> TokenResponse:
