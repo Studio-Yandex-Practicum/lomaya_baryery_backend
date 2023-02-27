@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
@@ -6,6 +7,10 @@ from fastapi_restful.cbv import cbv
 from src.api.request_models.administrator_invitation import (
     AdministratorInvitationRequest,
 )
+from src.api.response_models.administrator_invitation import (
+    AdministratorInvitationResponse,
+)
+from src.api.response_models.error import generate_error_responses
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
 
@@ -27,5 +32,22 @@ class AdministratorInvitationCBV:
         self, request: Request, invitation_data: AdministratorInvitationRequest
     ) -> None:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
-        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.id}"
+        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/administrators/register/{invite.token}"
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
+
+    @router.get(
+        '/register/{token}',
+        response_model=AdministratorInvitationResponse,
+        status_code=HTTPStatus.OK,
+        summary="Получить данные приглашенного администратора по токену.",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
+    )
+    async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitationResponse:
+        """
+        Получить информацию о приглашенном администраторе по токену.
+
+        - **name**: имя администратора
+        - **surname**: фамилия администратора
+        - **email**: адрес электронной почты
+        """
+        return await self.administrator_invitation_service.get_invitation_by_token(token)

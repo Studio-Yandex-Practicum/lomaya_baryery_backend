@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, subqueryload
 
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoRespone
 from src.core.db.db import get_session
-from src.core.db.models import Member, Request, Shift, User
+from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import (
     GetStartedShiftException,
@@ -74,7 +74,7 @@ class ShiftRepository(AbstractRepository):
 
     async def get_shifts_with_total_users(
         self,
-        status: Optional[Shift.Status],
+        status: Optional[list[Shift.Status]],
         sort: Optional[ShiftSortRequest],
     ) -> list:
         shifts = (
@@ -90,9 +90,7 @@ class ShiftRepository(AbstractRepository):
             )
             .outerjoin(Shift.requests)
             .group_by(Shift.id)
-            .where(
-                or_(status is None, Shift.status == status),
-            )
+            .where(status is None or Shift.status.in_(status))
             .order_by(sort or Shift.started_at.desc())
         )
         shifts = await self._session.execute(shifts)
@@ -145,3 +143,65 @@ class ShiftRepository(AbstractRepository):
     async def check_shift_existence(self, shift_id: UUID) -> bool:
         shift_exists = await self._session.execute(select(select(Shift).where(Shift.id == shift_id).exists()))
         return shift_exists.scalar()
+
+    async def get_with_members_with_reviewed_reports(self, shift_id: UUID) -> Shift:
+        """Возвращает смену с активными участниками, у которых все задания проверены."""
+        members_id = (
+            select(Member.id)
+            .join(Report)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.member_id == Member.id,
+                Report.status == Report.Status.REVIEWING,
+            )
+            .group_by(Member.id)
+            .subquery()
+        )
+        shift = await self._session.execute(
+            select(Shift)
+            .where(Shift.id == shift_id)
+            .options(subqueryload(Shift.members.and_(Member.id.notin_(members_id))).subqueryload(Member.user))
+        )
+        return shift.scalars().first()
+
+    async def get_with_members_and_unreviewed_reports(self, shift_id: UUID) -> Shift:
+        """Возвращает смену с активными участниками и их непроверенными заданиями."""
+        members_id = (
+            select(Member.id)
+            .join(Report)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+                Report.member_id == Member.id,
+                Report.status == Report.Status.REVIEWING,
+            )
+            .group_by(Member.id)
+            .subquery()
+        )
+        member_stmt = Shift.members.and_(Member.id.in_(members_id))
+        shift = await self._session.execute(
+            select(Shift)
+            .where(Shift.id == shift_id)
+            .options(subqueryload(member_stmt).subqueryload(Member.user))
+            .options(
+                subqueryload(member_stmt).subqueryload(Member.reports.and_(Report.status == Report.Status.REVIEWING))
+            )
+        )
+        return shift.scalars().first()
+
+    async def is_unreviewed_report_exists(self, shift_id: UUID) -> bool:
+        """Проверяет, остались ли непроверенные задачи в смене."""
+        stmt = select(Report).where(Report.status == Report.Status.REVIEWING, Report.shift_id == shift_id)
+        report_under_review = await self._session.execute(select(stmt.exists()))
+        return report_under_review.scalar()
+
+    async def get_active_or_complete_shift(self) -> Optional[Shift]:
+        """Возвращает активную смену или смену, приготовленную к закрытию."""
+        statement = select(Shift).where(
+            or_(
+                Shift.status == Shift.Status.READY_FOR_COMPLETE,
+                Shift.status == Shift.Status.STARTED,
+            ),
+        )
+        return (await self._session.scalars(statement)).first()
