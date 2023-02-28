@@ -33,7 +33,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "docker-compose.yaml,nginx/default.conf"
+          source: "docker-compose.test.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
@@ -69,9 +69,9 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-            docker-compose --file docker-compose.yaml stop
-            docker-compose --file docker-compose.yaml rm backend
-            docker-compose --file docker-compose.yaml up -d
+            docker-compose --file docker-compose.test.yaml stop
+            docker-compose --file docker-compose.test.yaml rm backend
+            docker-compose --file docker-compose.test.yaml up -d
 
       - name: Making migrations
         uses: appleboy/ssh-action@master
