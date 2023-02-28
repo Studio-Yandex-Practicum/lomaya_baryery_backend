@@ -14,10 +14,7 @@ from src.api.response_models.administrator import AdministratorResponse, TokenRe
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
-from src.core.services.authentication_service import (
-    OAUTH2_SCHEME,
-    AuthenticationService
-)
+from src.core.services.authentication_service import AuthenticationService
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
