@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
@@ -63,9 +64,9 @@ class AdministratorCBV:
         response_description="Информация о текущем активном администраторе",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
-    async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
+    async def get_me(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
         """Получить информацию о текущем активном администраторе."""
-        return await self.authentication_service.get_current_active_administrator(token)
+        return await self.authentication_service.get_current_active_administrator(token.credentials)
 
     @router.post(
         '/register/{token}',

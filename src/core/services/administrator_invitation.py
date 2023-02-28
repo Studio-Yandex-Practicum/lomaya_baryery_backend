@@ -23,14 +23,17 @@ class AdministratorInvitationService:
         """
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(
-            AdministratorInvitation(**invitation_data.dict(), expired_date=expiration_date)
+            AdministratorInvitation(**invitation_data.dict(), expired_datetime=expiration_date)
         )
 
     async def get_invitation_by_token(self, token: UUID) -> AdministratorInvitation:
         return await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
 
     async def close_invitation(self, token: UUID) -> None:
-        """Устанавливаем прошедшую дату в invitation.expired_date."""
+        """Устанавливаем прошедшую дату в invitation.expired_datetime."""
         invitation = await self.__administrator_mail_request_repository.get_mail_request_by_token(token)
-        invitation.expired_date = date.today() - timedelta(days=1)
+        invitation.expired_datetime = date.today() - timedelta(days=1)
         await self.__administrator_mail_request_repository.update(invitation.id, invitation)
+
+    async def list_all_invitations(self) -> list[AdministratorInvitation]:
+        return await self.__administrator_mail_request_repository.get_all()
