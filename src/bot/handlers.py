@@ -82,17 +82,22 @@ async def update_user_data(
 ) -> None:
     """Инициализация формы для обновления регистрационных данных пользователя."""
     user = context.user_data.get('user')
-    web_hook = UserWebhookTelegram.from_orm(user)
-    query = urllib.parse.urlencode(web_hook.dict())
-    await update.message.reply_text(
-        "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
-        reply_markup=ReplyKeyboardMarkup.from_button(
-            KeyboardButton(
-                text="Подать заявку на участие в смене",
-                web_app=WebAppInfo(url=f'{settings.registration_template_url}?{query}'),
-            )
-        ),
-    )
+    if user.application_status == 'pending':
+        await update.message.reply_text(
+            "Ваша заявка на рассмотрении."
+        )
+    else:
+        web_hook = UserWebhookTelegram.from_orm(user)
+        query = urllib.parse.urlencode(web_hook.dict())
+        await update.message.reply_text(
+            "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
+            reply_markup=ReplyKeyboardMarkup.from_button(
+                KeyboardButton(
+                    text="Подать заявку на участие в смене",
+                    web_app=WebAppInfo(url=f'{settings.registration_template_url}?{query}'),
+                )
+            ),
+        )
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
