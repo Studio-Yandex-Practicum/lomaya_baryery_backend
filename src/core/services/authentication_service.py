@@ -81,3 +81,11 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         return administrator
+
+    async def refresh(self, token: str) -> TokenResponse:
+        """Метод получения новой пары refresh- и access- токенов."""
+        administrator = await self.get_current_active_administrator(token)
+        return TokenResponse(
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+        )

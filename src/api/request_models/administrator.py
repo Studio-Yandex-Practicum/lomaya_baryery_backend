@@ -50,3 +50,9 @@ class AdministratorListRequest(RequestBase):
 
     status: Administrator.Status | None
     role: Administrator.Role | None
+
+
+class RefreshToken(RequestBase):
+    """Схема для передачи refresh токена."""
+
+    refresh_token: str
