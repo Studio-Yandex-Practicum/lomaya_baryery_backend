@@ -38,8 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(routers.administrator_router)
     app.include_router(routers.task_router)
     app.include_router(routers.administrator_invitation_router)
-    if settings.BOT_WEBHOOK_MODE:
-        app.include_router(routers.webhook_router)
+    app.include_router(routers.telegram)
 
     @app.on_event("startup")
     async def on_startup():
