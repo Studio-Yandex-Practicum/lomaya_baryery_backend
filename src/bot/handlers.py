@@ -201,8 +201,7 @@ async def skip_report(chat_id: int) -> None:
         ReportRepository(session), ShiftRepository(session), MemberRepository(session), task_service
     )
     user = await user_service.get_user_by_telegram_id(chat_id)
-    report = await report_service.get_current_report(user.id)
-    await report_service.skip_report(report.id)
+    await report_service.skip_report(user.id)
 
 
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
