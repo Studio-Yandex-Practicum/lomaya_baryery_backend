@@ -53,8 +53,7 @@ class ReportService:
         if report:
             raise DuplicateReportError()
 
-    async def check_report_skipped(self, report_id: UUID) -> None:
-        report = await self.__report_repository.get(report_id)
+    async def check_report_skipped(self, report: Report) -> None:
         if report.status == Report.Status.SKIPPED:
             raise ReportSkippedError()
 
@@ -89,9 +88,11 @@ class ReportService:
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
-    async def skip_report(self, report_id: UUID) -> Report:
+    async def skip_report(self, user_id: UUID) -> Report:
         """Задание пропущено: изменение статуса."""
-        report = await self.__report_repository.get(report_id)
+        report = await self.__report_repository.get_current_report(user_id)
+        if report.status is not Report.Status.WAITING:
+            raise ReportAlreadyReviewedException(status=report.status)
         report.status = Report.Status.SKIPPED
         return await self.__report_repository.update(report.id, report)
 
@@ -140,7 +141,7 @@ class ReportService:
         return await self.__report_repository.get_current_report(user_id)
 
     async def send_report(self, report: Report, photo_url: str) -> Report:
-        await self.check_report_skipped(report.id)
+        await self.check_report_skipped(report)
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
