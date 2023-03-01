@@ -33,7 +33,7 @@ class TaskCBV:
 
         - **url**: изображение задания
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_perfect_aspect**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.create_task(task)
 
@@ -52,7 +52,7 @@ class TaskCBV:
         - **id**: id задания
         - **url**: url задания
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_perfect_aspect**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.get_all_tasks()
 
@@ -75,6 +75,6 @@ class TaskCBV:
         - **id**: id задания
         - **url**: url задания
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_perfect_aspect**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.get_task(task_id)

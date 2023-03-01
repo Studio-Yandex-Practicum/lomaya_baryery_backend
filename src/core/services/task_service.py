@@ -37,7 +37,7 @@ class TaskService:
     async def create_task(self, new_task: TaskCreateRequest) -> Task:
         task = Task(
             description=new_task.description,
-            description_perfect_aspect=new_task.description_perfect_aspect,
+            description_for_message=new_task.description_for_message,
         )
         task.url = await self.__download_file(new_task.image)
         return await self.__task_repository.create(instance=task)
