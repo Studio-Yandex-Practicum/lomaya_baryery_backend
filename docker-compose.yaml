@@ -32,7 +32,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static_value:/LOMAYA_BARYERY_BACKEND/src/static/
+      - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
       - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
     env_file:
@@ -61,6 +61,7 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - frontend
     volumes:
       - static_value:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf

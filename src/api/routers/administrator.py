@@ -2,13 +2,13 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken
+    RefreshToken,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
@@ -113,5 +113,5 @@ class AdministratorCBV:
         summary="Проверить валидность токена",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
-    def is_authenticated(self, token: str = Depends(OAUTH2_SCHEME)):
+    def is_authenticated(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
         pass
