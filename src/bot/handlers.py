@@ -90,15 +90,18 @@ async def update_user_data(
             reply_markup=ReplyKeyboardMarkup.from_button(
                 KeyboardButton(
                     text="Подать заявку на участие в смене",
-                    web_app=WebAppInfo(url=f'{settings.registration_template_url}?{query}'),
+                    web_app=WebAppInfo(
+                        url=f'{settings.registration_template_url}?{query}'),
                 )
             ),
         )
     else:
         if user.UserCreateRequest.status == 'pending':
-            await update.message.reply_text("Ваша заявка еще на рассмотрении.")
+            await update.message.reply_text(
+                "Ваша заявка еще на рассмотрении.")
         elif user.UserCreateRequest.status == 'approved':
-            await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
+            await update.message.reply_text(
+                "Ваша заявка уже одобрена и не может быть изменена.")
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
