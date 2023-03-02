@@ -6,6 +6,7 @@ from pydantic.schema import UUID
 
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
+from src.api.routers.base import BaseCBV
 from src.core.db.models import Report
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/reports", tags=["Report"])
 
 
 @cbv(router)
-class ReportsCBV:
+class ReportsCBV(BaseCBV):
     shift_service: ShiftService = Depends()
     report_service: ReportService = Depends()
 
@@ -94,4 +95,5 @@ class ReportsCBV:
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
+        await self.check_query_params()
         return await self.report_service.get_summaries_of_reports(shift_id, status)

@@ -2,16 +2,17 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken
+    RefreshToken,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
+from src.api.routers.base import BaseCBV
 from src.core.db.models import Administrator
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
 
 @cbv(router)
-class AdministratorCBV:
+class AdministratorCBV(BaseCBV):
     authentication_service: AuthenticationService = Depends()
     administrator_service: AdministratorService = Depends()
 
@@ -104,4 +105,5 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
+        await self.check_query_params()
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

@@ -8,6 +8,7 @@ from fastapi_restful.cbv import cbv
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
+from src.api.routers.base import BaseCBV
 from src.core.db.models import User
 from src.core.services.user_service import UserService
 
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @cbv(router)
-class UserCBV:
+class UserCBV(BaseCBV):
     user_service: UserService = Depends()
 
     @router.get(
@@ -43,6 +44,7 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
         """
+        await self.check_query_params()
         return await self.user_service.list_all_users(status, field_sort, direction_sort)
 
     @router.get(

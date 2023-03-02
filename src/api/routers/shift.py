@@ -19,6 +19,7 @@ from src.api.response_models.shift import (
     ShiftResponse,
     ShiftWithTotalUsersResponse,
 )
+from src.api.routers.base import BaseCBV
 from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
@@ -26,7 +27,7 @@ router = APIRouter(prefix="/shifts", tags=["Shift"])
 
 
 @cbv(router)
-class ShiftCBV:
+class ShiftCBV(BaseCBV):
     shift_service: ShiftService = Depends()
 
     @router.post(
@@ -134,6 +135,7 @@ class ShiftCBV:
         - **shift**: Информация о смене
         - **members**: Список всех одобренных пользователей смены.
         """
+        await self.check_query_params()
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
     @router.get(
@@ -164,6 +166,7 @@ class ShiftCBV:
         - **request_id**: Номер заявки
         - **status**: Статус заявки
         """
+        await self.check_query_params()
         return await self.shift_service.list_all_requests(id=shift_id, status=status)
 
     @router.get(
@@ -189,6 +192,7 @@ class ShiftCBV:
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
+        await self.check_query_params()
         return await self.shift_service.list_all_shifts(status, sort)
 
     @router.patch(
