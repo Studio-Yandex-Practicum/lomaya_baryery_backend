@@ -3,7 +3,6 @@ version: '3.3'
 volumes:
   postgres_data_stage:
   static_value:
-  nginx_config:
   tasks:
   frontend_volume:
 
@@ -65,8 +64,8 @@ services:
     volumes:
       - static_value:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
-      - ./static/user_reports:/var/static/user_reports/
-      - tasks:/var/static/tasks/
-      - frontend_volume:/var/frontend/
+      - ./static/user_reports:/var/html/user_reports/
+      - tasks:/var/html/tasks/
+      - frontend_volume:/var/html/frontend/
     env_file:
       - .env
