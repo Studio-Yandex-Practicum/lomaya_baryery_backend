@@ -229,3 +229,9 @@ class InvalidDateFormatException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
+
+
+class InvalidSortParameterException(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Некорректный параметр для сортировки данных."

@@ -9,6 +9,7 @@ from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.request import RequestResponse
 from src.core.db import DTO_models, models
+from src.core.exceptions import InvalidSortParameterException
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/requests", tags=["Request"])
 
 @cbv(router)
 class RequestCBV:
+    request: Request
     request_service: RequestService = Depends()
 
     @router.patch(
@@ -28,10 +30,9 @@ class RequestCBV:
     async def approve_request_status(
         self,
         request_id: UUID,
-        request: Request,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        return await self.request_service.approve_request(request_id, request.app.state.bot_instance)
+        return await self.request_service.approve_request(request_id, self.request.app.state.bot_instance)
 
     @router.patch(
         "/{request_id}/decline",
@@ -43,12 +44,11 @@ class RequestCBV:
     async def decline_request_status(
         self,
         request_id: UUID,
-        request: Request,
         decline_request_data: RequestDeclineRequest | None = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(
-            request_id, request.app.state.bot_instance, decline_request_data
+            request_id, self.request.app.state.bot_instance, decline_request_data
         )
 
     @router.get(
@@ -71,4 +71,6 @@ class RequestCBV:
         - **request_status**: статус заявки
         - **user_status**: статус участника
         """
+        if self.request.query_params and "status" not in self.request.query_params:
+            raise InvalidSortParameterException
         return await self.request_service.get_requests_list(status)
