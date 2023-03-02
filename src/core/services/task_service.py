@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from fastapi import Depends, UploadFile
 from pydantic.schema import UUID
 
-from src.api.request_models.task import TaskCreateRequest
+from src.api.request_models.task import TaskCreateRequest, TaskUpdateRequest
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
@@ -44,3 +44,9 @@ class TaskService:
 
     async def get_all_tasks(self) -> list[Task]:
         return await self.__task_repository.get_all()
+
+    async def update_task(self, id: UUID, update_task_data: TaskUpdateRequest) -> Task:
+        task = await self.__task_repository.get(id)
+        task.description = update_task_data.description
+        task.url = update_task_data.url
+        return await self.__task_repository.update(id, task)
