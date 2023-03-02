@@ -49,6 +49,7 @@ jobs:
   start_application:
     name: Start application
     runs-on: ubuntu-latest
+    needs: build_and_push_docker_image
     environment:
       name: test_deploy
     steps:
