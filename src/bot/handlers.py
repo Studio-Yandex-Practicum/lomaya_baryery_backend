@@ -32,6 +32,7 @@ from src.core.exceptions import (
     DuplicateReportError,
     ExceededAttemptsReportError,
     ReportSkippedError,
+    ReportAlreadyReviewedException,
 )
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
@@ -179,6 +180,10 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             await skip_report(update.effective_chat.id)
         except CurrentTaskNotFoundError:
             await update.message.reply_text("Сейчас заданий нет.")
+        except ReportAlreadyReviewedException:
+            await update.message.reply_text(
+                "Ранее отправленный отчет проверяется или уже принят, нельзя пропустить отчет."
+            )
 
 
 async def balance(telegram_id: int) -> int:
@@ -201,7 +206,7 @@ async def skip_report(chat_id: int) -> None:
         ReportRepository(session), ShiftRepository(session), MemberRepository(session), task_service
     )
     user = await user_service.get_user_by_telegram_id(chat_id)
-    await report_service.skip_report(user.id)
+    await report_service.skip_current_report(user.id)
 
 
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:

@@ -88,7 +88,7 @@ class ReportService:
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
-    async def skip_report(self, user_id: UUID) -> Report:
+    async def skip_current_report(self, user_id: UUID) -> Report:
         """Задание пропущено: изменение статуса."""
         report = await self.__report_repository.get_current_report(user_id)
         if report.status is not Report.Status.WAITING:
