@@ -5,6 +5,7 @@ volumes:
   static_value:
   nginx_config:
   tasks:
+  frontend_volume:
 
 
 services:
@@ -21,8 +22,6 @@ services:
     env_file:
       - .env
     command: -p 6100
-    networks:
-      - db_network
 
   backend:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
@@ -38,9 +37,12 @@ services:
       - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
     env_file:
       - .env
-    networks:
-      - swag_network
-      - db_network
+
+  frontend:
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
+    container_name: lomaya_baryery_frontend
+    volumes:
+      - frontend_volume:/app/dist/
 
   swag:
     image: linuxserver/swag
@@ -64,13 +66,6 @@ services:
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
       - ./static/user_reports:/var/static/user_reports/
       - tasks:/var/static/tasks/
+      - frontend_volume:/var/frontend/
     env_file:
       - .env
-    networks:
-      - swag_network
-
-networks:
-  swag_network:
-    name: swag_network
-  db_network:
-    name: db_network
