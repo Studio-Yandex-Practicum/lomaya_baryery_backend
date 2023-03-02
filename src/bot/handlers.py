@@ -82,11 +82,7 @@ async def update_user_data(
 ) -> None:
     """Инициализация формы для обновления регистрационных данных пользователя."""
     user = context.user_data.get('user')
-    if user.application_status == 'pending':
-        await update.message.reply_text(
-            "Ваша заявка на рассмотрении."
-        )
-    else:
+    if user.UserCreateRequest is None or user.UserCreateRequest.status == 'declined':
         web_hook = UserWebhookTelegram.from_orm(user)
         query = urllib.parse.urlencode(web_hook.dict())
         await update.message.reply_text(
@@ -98,6 +94,11 @@ async def update_user_data(
                 )
             ),
         )
+    else:
+        if user.UserCreateRequest.status == 'pending':
+            await update.message.reply_text("Ваша заявка еще на рассмотрении.")
+        elif user.UserCreateRequest.status == 'approved':
+            await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
