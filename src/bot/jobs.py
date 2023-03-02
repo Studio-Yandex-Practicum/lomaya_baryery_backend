@@ -15,6 +15,9 @@ from src.core.db.db import get_session
 from src.core.db.models import Shift
 from src.core.settings import settings
 
+LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
+SKIP_A_TASK = 'Пропустить задание'
+
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
@@ -38,7 +41,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
-    buttons = ReplyKeyboardMarkup([["Пропустить задание", "Баланс ломбарьеров"]], resize_keyboard=True)
+    buttons = ReplyKeyboardMarkup([[SKIP_A_TASK, LOMBARIERS_BALANCE]], resize_keyboard=True)
     report_session_generator = get_session()
     member_session_generator = get_session()
     report_service = await get_report_service_callback(report_session_generator)
@@ -65,11 +68,18 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     context.application.create_task(asyncio.gather(*send_message_tasks))
 
 
+async def finish_shift_automatically_job(context: CallbackContext) -> None:
+    """Автоматически закрывает смену в дату, указанную в finished_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    await shift_service.finish_shift_automatically(context.application)
+
+
 async def start_shift_automatically_job(context: CallbackContext) -> None:
     """Автоматически запускает смену в дату, указанную в started_at."""
     session = get_session()
     shift_service = await get_shift_service_callback(session)
-    shifts = await shift_service.list_all_shifts(status=Shift.Status.PREPARING)
+    shifts = await shift_service.list_all_shifts(status=[Shift.Status.PREPARING])
     if shifts:
         shift = shifts[0]
         if shift.started_at == date.today():

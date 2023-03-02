@@ -20,8 +20,13 @@ from src.api.response_models.shift import (
     ShiftWithTotalUsersResponse,
 )
 from src.bot import services
-from src.core.db.models import Member, Request, Shift, User
-from src.core.db.repository import RequestRepository, ShiftRepository, UserRepository
+from src.core.db.models import Member, Report, Request, Shift, User
+from src.core.db.repository import (
+    ReportRepository,
+    RequestRepository,
+    ShiftRepository,
+    UserRepository,
+)
 from src.core.exceptions import (
     CreateShiftForbiddenException,
     NotFoundException,
@@ -45,11 +50,13 @@ class ShiftService:
         self,
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
+        report_repository: ReportRepository = Depends(),
         user_repository: UserRepository = Depends(),
         request_repository: RequestRepository = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__task_service = task_service
+        self.__report_repository = report_repository
         self.__user_repository = user_repository
         self.__request_repository = request_repository
         self.__telegram_bot = services.BotService
@@ -216,12 +223,42 @@ class ShiftService:
         return await self.__shift_repository.list_all_requests(id=id, status=status)
 
     async def list_all_shifts(
-        self, status: Optional[Shift.Status] = None, sort: Optional[ShiftSortRequest] = None
+        self, status: Optional[list[Shift.Status]] = None, sort: Optional[ShiftSortRequest] = None
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
 
     async def get_open_for_registration_shift_id(self) -> UUID:
         return await self.__shift_repository.get_open_for_registration_shift_id()
+
+    async def finish_shift_automatically(self, bot: Application) -> None:
+        shift = await self.__shift_repository.get_active_or_complete_shift()
+        if not shift:
+            return
+        if shift.status is Shift.Status.READY_FOR_COMPLETE:
+            await self.__decline_reports_and_notify_users(shift.id, bot)
+            shift.status = Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
+        if shift.finished_at + timedelta(days=1) == date.today():
+            await self.__notify_users_with_reviewed_reports(shift.id, bot)
+            unreviewed_report_exists = await self.__shift_repository.is_unreviewed_report_exists(shift.id)
+            shift.status = Shift.Status.READY_FOR_COMPLETE if unreviewed_report_exists else Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
+
+    async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:
+        """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
+        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift_id)
+        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+
+    async def __decline_reports_and_notify_users(self, shift_id: UUID, bot: Application) -> None:
+        """Отклоняет непроверенные задания, уведомляет пользователей об окончании смены."""
+        shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift_id)
+        reports_for_update = []
+        for member in shift.members:
+            for report in member.reports:
+                report.status = Report.Status.DECLINED
+                reports_for_update.append(report)
+        await self.__report_repository.update_all(reports_for_update)
+        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
     async def cancel_shift(
         self, bot: Application, id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
