@@ -1,23 +1,22 @@
 from http import HTTPStatus
 from typing import Optional
 
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.request import RequestResponse
+from src.api.routers.base import BaseCBV
 from src.core.db import DTO_models, models
-from src.core.exceptions import InvalidSortParameterException
 from src.core.services.request_service import RequestService
 
 router = APIRouter(prefix="/requests", tags=["Request"])
 
 
 @cbv(router)
-class RequestCBV:
-    request: Request
+class RequestCBV(BaseCBV):
     request_service: RequestService = Depends()
 
     @router.patch(
@@ -71,6 +70,5 @@ class RequestCBV:
         - **request_status**: статус заявки
         - **user_status**: статус участника
         """
-        if self.request.query_params and "status" not in self.request.query_params:
-            raise InvalidSortParameterException
+        await self.check_query_params()
         return await self.request_service.get_requests_list(status)
