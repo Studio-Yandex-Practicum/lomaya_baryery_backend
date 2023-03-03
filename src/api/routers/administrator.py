@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
@@ -96,6 +96,7 @@ class AdministratorCBV(BaseCBV):
     )
     async def get_administrators(
         self,
+        request: Request,
         status: Administrator.Status = None,
         role: Administrator.Role = None,
     ) -> list[AdministratorResponse]:
@@ -105,5 +106,5 @@ class AdministratorCBV(BaseCBV):
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

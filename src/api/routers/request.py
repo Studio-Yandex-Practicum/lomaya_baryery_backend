@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Optional
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Request
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
@@ -57,7 +57,9 @@ class RequestCBV(BaseCBV):
         summary="Получить список заявок на участие.",
         response_description="Список заявок участников с фильтрацией по статусу заявки.",
     )
-    async def get_requests_list(self, status: Optional[models.Request.Status] = None) -> list[DTO_models.RequestDTO]:
+    async def get_requests_list(
+        self, request: Request, status: Optional[models.Request.Status] = None
+    ) -> list[DTO_models.RequestDTO]:
         """Получить список заявок с фильтрацией по статусу заявки.
 
         - **request_id**: id заявки
@@ -70,5 +72,5 @@ class RequestCBV(BaseCBV):
         - **request_status**: статус заявки
         - **user_status**: статус участника
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.request_service.get_requests_list(status)

@@ -232,6 +232,8 @@ class InvalidDateFormatException(ApplicationException):
 
 
 class InvalidSortParameterException(ApplicationException):
-    def __init__(self):
+    def __init__(self, param: str, allowed_params: list):
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Некорректный параметр для сортировки данных."
+        self.detail = (
+            f"Некорректный параметр для сортировки данных: '{param}'. Возможные параметры: {str(allowed_params)[1:-1]}."
+        )

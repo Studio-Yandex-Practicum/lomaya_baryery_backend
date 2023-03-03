@@ -3,6 +3,7 @@ from typing import Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from fastapi import Request as ApiRequest
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
@@ -127,7 +128,7 @@ class ShiftCBV(BaseCBV):
         responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_shift_members(
-        self, shift_id: UUID, member_status: Optional[Member.Status] = None
+        self, shift_id: UUID, request: ApiRequest, member_status: Optional[Member.Status] = None
     ) -> ShiftMembersResponse:
         """
         Получить список пользователей смены.
@@ -135,7 +136,7 @@ class ShiftCBV(BaseCBV):
         - **shift**: Информация о смене
         - **members**: Список всех одобренных пользователей смены.
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
     @router.get(
@@ -149,6 +150,7 @@ class ShiftCBV(BaseCBV):
     async def get_list_all_requests_on_project(
         self,
         shift_id: UUID,
+        request: ApiRequest,
         status: Optional[Request.Status] = None,
     ) -> Any:
         """
@@ -166,7 +168,7 @@ class ShiftCBV(BaseCBV):
         - **request_id**: Номер заявки
         - **status**: Статус заявки
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.shift_service.list_all_requests(id=shift_id, status=status)
 
     @router.get(
@@ -179,6 +181,7 @@ class ShiftCBV(BaseCBV):
     )
     async def get_all_shifts(
         self,
+        request: ApiRequest,
         status: Optional[list[Shift.Status]] = Query(default=None),
         sort: Optional[ShiftSortRequest] = None,
     ) -> list[ShiftWithTotalUsersResponse]:
@@ -192,7 +195,7 @@ class ShiftCBV(BaseCBV):
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.shift_service.list_all_shifts(status, sort)
 
     @router.patch(

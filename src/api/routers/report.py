@@ -83,6 +83,7 @@ class ReportsCBV(BaseCBV):
     async def get_report_summary(
         self,
         shift_id: UUID,
+        request: Request,
         status: Report.Status = None,
     ) -> list[ReportSummaryResponse]:
         """
@@ -95,5 +96,5 @@ class ReportsCBV(BaseCBV):
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
-        await self.check_query_params()
+        await self.check_query_params(request)
         return await self.report_service.get_summaries_of_reports(shift_id, status)
