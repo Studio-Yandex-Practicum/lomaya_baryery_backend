@@ -25,4 +25,4 @@ class TokenResponse(BaseModel):
     """Схема для отображения access и refresh токенов."""
 
     access_token: str
-    refresh_token: str
+    refresh_token: str | None

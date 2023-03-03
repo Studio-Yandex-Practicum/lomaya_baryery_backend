@@ -1,14 +1,15 @@
 from http import HTTPStatus
+from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken
+    RefreshToken,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
@@ -26,31 +27,47 @@ class AdministratorCBV:
 
     @router.post(
         "/login",
-        response_model=TokenResponse,
+        response_model=dict[str, Union[TokenResponse, AdministratorResponse]],
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
-        response_description="Access и refresh токены.",
+        response_description="Access-токен и информация о пользователе.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
     )
-    async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Аутентифицировать администратора по email и паролю.
+    async def login(
+        self, response: Response, auth_data: AdministratorAuthenticateRequest
+    ) -> dict[str, Union[TokenResponse, AdministratorResponse]]:
+        """Аутентифицировать администратора по email и паролю. Вернуть access-токен и информацию об администраторе.
 
         - **email**: электронная почта
         - **password**: пароль
         """
-        return await self.authentication_service.login(auth_data)
+        tokens = await self.authentication_service.login(auth_data)
+        administrator = await self.authentication_service._AuthenticationService__authenticate_administrator(auth_data)
+        response.set_cookie(key="refresh_token", value=tokens.refresh_token, httponly=True, samesite="strict")
+        tokens.refresh_token = None
+        return {"access": tokens, "administrator": administrator}
 
     @router.post(
         "/refresh",
-        response_model=TokenResponse,
+        response_model=dict[str, Union[TokenResponse, AdministratorResponse]],
+        response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Обновление аутентификационного токена.",
-        response_description="Новая пара access и refresh токенов.",
+        response_description="Access-токен и информация о пользователе.",
     )
-    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
-        """Обновление access и refresh токенов при помощи refresh токена."""
-        return await self.authentication_service.refresh(request_data.refresh_token)
+    async def refresh(
+        self, response: Response, request_data: RefreshToken
+    ) -> dict[str, Union[TokenResponse, AdministratorResponse]]:
+        """Обновление access и refresh токенов при помощи refresh токена.
+
+        Вернуть access-токен и информацию об администраторе.
+        """
+        tokens = await self.authentication_service.refresh(request_data.refresh_token)
+        response.set_cookie(key="refresh_token", value=tokens.refresh_token, httponly=True, samesite="strict")
+        tokens.refresh_token = None
+        administrator = await self.authentication_service.get_current_active_administrator(tokens.access_token)
+        return {"access": tokens, "administrator": administrator}
 
     @router.get(
         "/me",
