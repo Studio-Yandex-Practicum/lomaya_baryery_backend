@@ -8,6 +8,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
+    RefreshToken
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
@@ -39,6 +40,17 @@ class AdministratorCBV:
         - **password**: пароль
         """
         return await self.authentication_service.login(auth_data)
+
+    @router.post(
+        "/refresh",
+        response_model=TokenResponse,
+        status_code=HTTPStatus.OK,
+        summary="Обновление аутентификационного токена.",
+        response_description="Новая пара access и refresh токенов.",
+    )
+    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
+        """Обновление access и refresh токенов при помощи refresh токена."""
+        return await self.authentication_service.refresh(request_data.refresh_token)
 
     @router.get(
         "/me",
