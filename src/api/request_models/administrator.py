@@ -1,4 +1,4 @@
-from pydantic import EmailStr, Field, SecretStr, validator
+from pydantic import EmailStr, Field, SecretStr, StrictStr, validator
 
 from src.api.request_models.request_base import RequestBase
 from src.api.request_models.validators import name_surname_validator
@@ -16,8 +16,8 @@ class AdministratorAuthenticateRequest(RequestBase):
 class AdministratorRegistrationRequest(RequestBase):
     """Схема для регистрации администратора."""
 
-    name: str = Field(min_length=2, max_length=100)
-    surname: str = Field(min_length=2, max_length=100)
+    name: StrictStr = Field(min_length=2, max_length=100)
+    surname: StrictStr = Field(min_length=2, max_length=100)
     password: SecretStr
 
     _validate_name = name_surname_validator("name")
