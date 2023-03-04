@@ -97,6 +97,7 @@ class TaskCBV:
         Обновить информацию о задании с указанным ID.
 
         - **url**: url задания
-        - **description**: описание задания
+        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.update_task(task_id, update_task_data)
