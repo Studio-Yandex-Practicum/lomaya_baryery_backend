@@ -50,5 +50,6 @@ class TaskService:
     async def update_task(self, task_id: UUID, update_task_data: TaskUpdateRequest) -> Task:
         task = await self.__task_repository.get(task_id)
         task.description = update_task_data.description
+        task.description_for_message = update_task_data.description_for_message
         task.url = update_task_data.url
         return await self.__task_repository.update(task_id, task)
