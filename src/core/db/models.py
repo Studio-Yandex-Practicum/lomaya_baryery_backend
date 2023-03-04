@@ -105,6 +105,7 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
+    description_for_message = Column(String(length=150), unique=True, nullable=False)
     reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
@@ -289,7 +290,7 @@ class AdministratorInvitation(Base):
     surname = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     token = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
-    expired_date = Column(TIMESTAMP, nullable=False)
+    expired_datetime = Column(TIMESTAMP, nullable=False)
 
     def __repr__(self) -> str:
         return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"

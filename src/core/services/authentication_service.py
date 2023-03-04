@@ -28,7 +28,8 @@ class AuthenticationService:
     def __init__(self, administrator_repository: AdministratorRepository = Depends()):
         self.__administrator_repository = administrator_repository
 
-    def __get_hashed_password(self, password: str) -> str:
+    @staticmethod
+    def get_hashed_password(password: str) -> str:
         """Получить хэш пароля."""
         return PASSWORD_CONTEXT.hash(password)
 
@@ -80,3 +81,11 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         return administrator
+
+    async def refresh(self, token: str) -> TokenResponse:
+        """Метод получения новой пары refresh- и access- токенов."""
+        administrator = await self.get_current_active_administrator(token)
+        return TokenResponse(
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+        )

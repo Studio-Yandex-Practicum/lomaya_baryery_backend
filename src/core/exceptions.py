@@ -5,6 +5,20 @@ from uuid import UUID
 from starlette.exceptions import HTTPException
 
 
+class ApplicationError(Exception):
+    """Собственное исключение для бизнес-логики приложения."""
+
+    pass
+
+
+class NotValidValueError(ApplicationError):
+    """Исключение для невалидных данных."""
+
+    def __init__(self, detail: str | None) -> None:
+        self.detail = detail
+        super().__init__()
+
+
 class ApplicationException(HTTPException):
     status_code: int = None
     detail: str = None
@@ -127,7 +141,7 @@ class GetStartedShiftException(ApplicationException):
         self.detail = detail
 
 
-class RegistrationException(HTTPException):
+class RegistrationException(ApplicationError):  # noqa N818
     status_code: int = None
     detail: str = None
 
@@ -135,7 +149,7 @@ class RegistrationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail)
 
 
-class RegistrationForbidenException(RegistrationException):
+class RegistrationForbidenException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -145,7 +159,7 @@ class RegistrationForbidenException(RegistrationException):
         )
 
 
-class AlreadyRegisteredException(RegistrationException):
+class AlreadyRegisteredException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.OK
         self.detail = (
@@ -161,7 +175,7 @@ class RequestAlreadyReviewedException(ApplicationException):
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
-class RequestForbiddenException(RegistrationException):
+class RequestForbiddenException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -199,7 +213,7 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorInvitationInvalid(RegistrationException):
+class AdministratorInvitationInvalid(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."

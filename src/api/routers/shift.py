@@ -1,8 +1,8 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
@@ -41,7 +41,7 @@ class ShiftCBV:
     async def create_new_shift(
         self,
         shift: ShiftCreateRequest,
-    ) -> ShiftResponse:
+    ) -> Any:
         """Создать новую смену.
 
         - **started_at**: дата начала смены
@@ -61,7 +61,7 @@ class ShiftCBV:
     async def get_shift(
         self,
         shift_id: UUID,
-    ) -> ShiftResponse:
+    ) -> Any:
         """Получить информацию о смене по её ID.
 
         - **shift_id**: уникальный идентификатор смены
@@ -86,7 +86,7 @@ class ShiftCBV:
         self,
         shift_id: UUID,
         update_shift_data: ShiftUpdateRequest,
-    ) -> ShiftResponse:
+    ) -> Any:
         """Обновить информацию о смене с указанным ID.
 
         - **shift_id**: уникальный идентификатор смены
@@ -97,8 +97,8 @@ class ShiftCBV:
         """
         return await self.shift_service.update_shift(shift_id, update_shift_data)
 
-    @router.put(
-        "/{shift_id}/actions/start",
+    @router.patch(
+        "/{shift_id}/start",
         response_model=ShiftResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
@@ -109,7 +109,7 @@ class ShiftCBV:
     async def start_shift(
         self,
         shift_id: UUID,
-    ) -> ShiftResponse:
+    ) -> Any:
         """Начать смену.
 
         - **shift_id**: уникальный идентификатор смены
@@ -148,7 +148,7 @@ class ShiftCBV:
         self,
         shift_id: UUID,
         status: Optional[Request.Status] = None,
-    ) -> ShiftDtoRespone:
+    ) -> Any:
         """
         Получить сведения обо всех заявках смены.
 
@@ -176,7 +176,7 @@ class ShiftCBV:
     )
     async def get_all_shifts(
         self,
-        status: Optional[Shift.Status] = None,
+        status: Optional[list[Shift.Status]] = Query(default=None),
         sort: Optional[ShiftSortRequest] = None,
     ) -> list[ShiftWithTotalUsersResponse]:
         """Получить список смен с фильтрацией по статусу.
@@ -200,7 +200,7 @@ class ShiftCBV:
         response_description="Информация о завершенной смене",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
-    async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> ShiftResponse:
+    async def finish_shift(self, request: FastAPIRequest, shift_id: UUID) -> Any:
         """Закончить смену.
 
         - **shift_id**: уникальный идентификатор смены
@@ -218,7 +218,7 @@ class ShiftCBV:
     )
     async def cancel_shift(
         self, request: FastAPIRequest, shift_id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
-    ) -> ShiftResponse:
+    ) -> Any:
         """Отменить смену.
 
         - **shift_id**: уникальный идентификатор смены

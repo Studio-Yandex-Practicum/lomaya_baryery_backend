@@ -1,6 +1,6 @@
 import enum
 import re
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -8,10 +8,10 @@ import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
+from src.api.request_models.validators import name_surname_validator
 from src.core.db.models import Request, User
 
-VALID_NAME_SURNAME = r"^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$"
-VALID_СITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
+VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
 DATE_FORMAT = "%d.%m.%Y"
 
@@ -24,21 +24,12 @@ class UserCreateRequest(BaseModel):
     city: StrictStr = Field(min_length=2, max_length=50)
     phone_number: StrictStr
 
-    @validator("name")
-    def validate_name(cls, value: str):
-        if not re.compile(VALID_NAME_SURNAME).match(value):
-            raise ValueError(INVALID_TEXT_ERROR.format('Имя'))
-        return value.title()
-
-    @validator("surname")
-    def validate_surname(cls, value: str):
-        if not re.compile(VALID_NAME_SURNAME).match(value):
-            raise ValueError(INVALID_TEXT_ERROR.format('Фамилия'))
-        return value.title()
+    _validate_name = name_surname_validator("name")
+    _validate_surname = name_surname_validator("surname")
 
     @validator("city")
     def validate_city(cls, value: str):
-        if not re.compile(VALID_СITY_TEXT).match(value):
+        if not re.compile(VALID_CITY_TEXT).match(value):
             raise ValueError(INVALID_TEXT_ERROR.format('Город'))
         return value.title()
 
@@ -102,3 +93,29 @@ class UserDescAscSortRequest(str, enum.Enum):
 
     ASC = "asc"
     DESC = "desc"
+
+
+class UserWebhookTelegram(BaseModel):
+    """
+    Валидируем и отдаем данные из базы в Query-форму.
+
+    - **name**: провалидированное имя пользователя
+    - **surname**: провалидированная фамилия пользовтаеля
+    - **date_of_birth**: Хранится в бд с отличным форматом
+    - **city**: Провалидированный город, хранящиеся в БД
+    - ***phone_number**: Провалидированный телефон, хранящиеся в БД
+    - **validate_date_of_birth**: Конвертация в нужный формат WebAppInfo
+    """
+
+    name: StrictStr
+    surname: StrictStr
+    date_of_birth: date
+    city: StrictStr
+    phone_number: int
+
+    @validator("date_of_birth")
+    def fix_date_of_birth(cls, value: date) -> str:
+        return value.strftime(DATE_FORMAT)
+
+    class Config:
+        orm_mode = True

@@ -74,7 +74,7 @@ class ShiftRepository(AbstractRepository):
 
     async def get_shifts_with_total_users(
         self,
-        status: Optional[Shift.Status],
+        status: Optional[list[Shift.Status]],
         sort: Optional[ShiftSortRequest],
     ) -> list:
         shifts = (
@@ -86,13 +86,11 @@ class ShiftRepository(AbstractRepository):
                 Shift.title,
                 Shift.final_message,
                 Shift.sequence_number,
-                func.count(Request.user_id).label('total_users'),
+                func.count(Member.user_id).label('total_users'),
             )
-            .outerjoin(Shift.requests)
+            .outerjoin(Shift.members)
             .group_by(Shift.id)
-            .where(
-                or_(status is None, Shift.status == status),
-            )
+            .where(status is None or Shift.status.in_(status))
             .order_by(sort or Shift.started_at.desc())
         )
         shifts = await self._session.execute(shifts)
