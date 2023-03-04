@@ -11,7 +11,6 @@ from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 from src.api.request_models.validators import name_surname_validator
 from src.core.db.models import Request, User
 
-VALID_NAME_SURNAME = r"^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$"
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
 DATE_FORMAT = "%d.%m.%Y"
