@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -74,9 +75,7 @@ class AdministratorCBV:
         response_description="Регистрация нового администратора по токену приглашения.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
     )
-    async def register_new_administrator(
-        self, token: UUID, schema: AdministratorRegistrationRequest
-    ) -> AdministratorResponse:
+    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
         """Зарегистрировать нового администратора по токену из приглашения.
 
         - **name**: Имя
@@ -97,7 +96,7 @@ class AdministratorCBV:
         self,
         status: Administrator.Status = None,
         role: Administrator.Role = None,
-    ) -> list[AdministratorResponse]:
+    ) -> Any:
         """Получить список администраторов с опциональной фильтрацией по статусу и роли.
 
         Аргументы:
@@ -105,13 +104,3 @@ class AdministratorCBV:
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
-
-    @router.get(
-        "/is_authenticated",
-        response_model=None,
-        status_code=HTTPStatus.OK,
-        summary="Проверить валидность токена",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
-    )
-    def is_authenticated(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
-        pass
