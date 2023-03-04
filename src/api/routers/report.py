@@ -96,5 +96,5 @@ class ReportsCBV(BaseCBV):
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
-        await self.check_query_params(request)
+        ReportsCBV._check_query_params(request)
         return await self.report_service.get_summaries_of_reports(shift_id, status)

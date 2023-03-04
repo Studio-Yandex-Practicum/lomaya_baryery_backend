@@ -136,7 +136,7 @@ class ShiftCBV(BaseCBV):
         - **shift**: Информация о смене
         - **members**: Список всех одобренных пользователей смены.
         """
-        await self.check_query_params(request)
+        ShiftCBV._check_query_params(request)
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
     @router.get(
@@ -168,7 +168,7 @@ class ShiftCBV(BaseCBV):
         - **request_id**: Номер заявки
         - **status**: Статус заявки
         """
-        await self.check_query_params(request)
+        ShiftCBV._check_query_params(request)
         return await self.shift_service.list_all_requests(id=shift_id, status=status)
 
     @router.get(
@@ -195,7 +195,7 @@ class ShiftCBV(BaseCBV):
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
-        await self.check_query_params(request)
+        ShiftCBV._check_query_params(request)
         return await self.shift_service.list_all_shifts(status, sort)
 
     @router.patch(

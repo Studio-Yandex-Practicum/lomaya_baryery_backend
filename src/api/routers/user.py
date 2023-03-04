@@ -45,7 +45,7 @@ class UserCBV(BaseCBV):
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
         """
-        await self.check_query_params(request)
+        UserCBV._check_query_params(request)
         return await self.user_service.list_all_users(status, field_sort, direction_sort)
 
     @router.get(

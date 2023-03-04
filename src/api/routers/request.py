@@ -29,9 +29,10 @@ class RequestCBV(BaseCBV):
     async def approve_request_status(
         self,
         request_id: UUID,
+        request: Request,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        return await self.request_service.approve_request(request_id, self.request.app.state.bot_instance)
+        return await self.request_service.approve_request(request_id, request.app.state.bot_instance)
 
     @router.patch(
         "/{request_id}/decline",
@@ -43,11 +44,12 @@ class RequestCBV(BaseCBV):
     async def decline_request_status(
         self,
         request_id: UUID,
+        request: Request,
         decline_request_data: RequestDeclineRequest | None = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
         return await self.request_service.decline_request(
-            request_id, self.request.app.state.bot_instance, decline_request_data
+            request_id, request.app.state.bot_instance, decline_request_data
         )
 
     @router.get(
@@ -72,5 +74,5 @@ class RequestCBV(BaseCBV):
         - **request_status**: статус заявки
         - **user_status**: статус участника
         """
-        await self.check_query_params(request)
+        RequestCBV._check_query_params(request)
         return await self.request_service.get_requests_list(status)
