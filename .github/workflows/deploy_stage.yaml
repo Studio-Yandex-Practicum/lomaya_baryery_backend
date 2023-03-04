@@ -10,7 +10,7 @@ env:
   REGISTRY: ghcr.io
   REP_OWNER: studio-yandex-practicum
   IMAGE_NAME: lomaya_baryery_backend
-  DEPLOY_PATH: /lombarye/back
+  DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
   HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
 
@@ -90,6 +90,7 @@ jobs:
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+            echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
 
   start_application:
     name: Start application
