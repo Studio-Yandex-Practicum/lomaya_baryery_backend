@@ -15,7 +15,7 @@ def create_app() -> FastAPI:
     origins = ["*"]
 
     # для локального тестирования монтируем статику
-    app.mount("/static", StaticFiles(directory="src/static"), name="static")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     reports_path = Path("data")
     reports_path.mkdir(exist_ok=True)
