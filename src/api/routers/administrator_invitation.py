@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator_invitation import (
@@ -39,7 +40,10 @@ class AdministratorInvitationCBV:
         summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
     )
     async def create_and_send_invitation(
-        self, request: Request, invitation_data: AdministratorInvitationRequest
+        self,
+        request: Request,
+        invitation_data: AdministratorInvitationRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invite.token}")
@@ -54,7 +58,9 @@ class AdministratorInvitationCBV:
         summary="Получить информацию о приглашениях, отправленных администраторам",
         response_description="Информация о приглашениях",
     )
-    async def get_all_invitations(self) -> list[AdministratorInvitationResponse]:
+    async def get_all_invitations(
+        self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> list[AdministratorInvitationResponse]:
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(

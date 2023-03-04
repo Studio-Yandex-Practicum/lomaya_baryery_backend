@@ -2,13 +2,13 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken
+    RefreshToken,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
@@ -95,6 +95,7 @@ class AdministratorCBV:
     )
     async def get_administrators(
         self,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
         status: Administrator.Status = None,
         role: Administrator.Role = None,
     ) -> list[AdministratorResponse]:
