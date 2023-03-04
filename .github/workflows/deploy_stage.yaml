@@ -90,6 +90,7 @@ jobs:
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+            echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
 
   start_application:
     name: Start application
