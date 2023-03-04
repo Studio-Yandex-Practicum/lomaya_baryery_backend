@@ -10,7 +10,7 @@ env:
   REGISTRY: ghcr.io
   REP_OWNER: studio-yandex-practicum
   IMAGE_NAME: lomaya_baryery_backend
-  DEPLOY_PATH: /lombarye/back
+  DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
   HEALTHCHECK_URL: http://test.lombaryery.tk/healthcheck
 
