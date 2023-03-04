@@ -1,19 +1,21 @@
 from http import HTTPStatus
-from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken,
 )
-from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.api.response_models.administrator import (
+    AdministratorResponse,
+    TokenAdministratorResponse,
+)
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
+from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -27,7 +29,7 @@ class AdministratorCBV:
 
     @router.post(
         "/login",
-        response_model=dict[str, Union[TokenResponse, AdministratorResponse]],
+        response_model=TokenAdministratorResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
@@ -36,38 +38,36 @@ class AdministratorCBV:
     )
     async def login(
         self, response: Response, auth_data: AdministratorAuthenticateRequest
-    ) -> dict[str, Union[TokenResponse, AdministratorResponse]]:
+    ) -> TokenAdministratorResponse:
         """Аутентифицировать администратора по email и паролю. Вернуть access-токен и информацию об администраторе.
 
         - **email**: электронная почта
         - **password**: пароль
         """
-        tokens = await self.authentication_service.login(auth_data)
-        administrator = await self.authentication_service._AuthenticationService__authenticate_administrator(auth_data)
-        response.set_cookie(key="refresh_token", value=tokens.refresh_token, httponly=True, samesite="strict")
-        tokens.refresh_token = None
-        return {"access": tokens, "administrator": administrator}
+        data = await self.authentication_service.login(auth_data)
+        response.set_cookie(key="refresh_token", value=data.refresh_token, httponly=True, samesite="strict")
+        return data
 
-    @router.post(
+    @router.get(
         "/refresh",
-        response_model=dict[str, Union[TokenResponse, AdministratorResponse]],
+        response_model=TokenAdministratorResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Обновление аутентификационного токена.",
         response_description="Access-токен и информация о пользователе.",
     )
     async def refresh(
-        self, response: Response, request_data: RefreshToken
-    ) -> dict[str, Union[TokenResponse, AdministratorResponse]]:
-        """Обновление access и refresh токенов при помощи refresh токена.
+        self, response: Response, refresh_token: str | None = Cookie(default=None)
+    ) -> TokenAdministratorResponse:
+        """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
 
         Вернуть access-токен и информацию об администраторе.
         """
-        tokens = await self.authentication_service.refresh(request_data.refresh_token)
-        response.set_cookie(key="refresh_token", value=tokens.refresh_token, httponly=True, samesite="strict")
-        tokens.refresh_token = None
-        administrator = await self.authentication_service.get_current_active_administrator(tokens.access_token)
-        return {"access": tokens, "administrator": administrator}
+        if not refresh_token:
+            raise UnauthorizedException()
+        data = await self.authentication_service.refresh(refresh_token)
+        response.set_cookie(key="refresh_token", value=data.refresh_token, httponly=True, samesite="strict")
+        return data
 
     @router.get(
         "/me",

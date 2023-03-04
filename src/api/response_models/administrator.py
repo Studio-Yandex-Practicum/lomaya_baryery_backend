@@ -21,8 +21,31 @@ class AdministratorResponse(BaseModel):
         orm_mode = True
 
 
-class TokenResponse(BaseModel):
-    """Схема для отображения access и refresh токенов."""
+class TwoTokensAdministratorResponse(BaseModel):
+    """Схема для передачи access-, refresh-токенов и информации об администраторе."""
 
     access_token: str
-    refresh_token: str | None
+    refresh_token: str
+    id: UUID
+    name: str
+    surname: str
+    email: str
+    role: Administrator.Role
+    status: Administrator.Status
+    last_login_at: datetime | None
+
+
+class TokenAdministratorResponse(BaseModel):
+    """Схема для отображения access-токена и информации об администраторе."""
+
+    access_token: str
+    id: UUID
+    name: str
+    surname: str
+    email: str
+    role: Administrator.Role
+    status: Administrator.Status
+    last_login_at: datetime | None
+
+    class Config:
+        orm_mode = True
