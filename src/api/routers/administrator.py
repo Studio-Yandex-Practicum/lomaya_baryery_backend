@@ -10,8 +10,8 @@ from src.api.request_models.administrator import (
     AdministratorRegistrationRequest,
 )
 from src.api.response_models.administrator import (
+    AdministratorAndAccessTokenResponse,
     AdministratorResponse,
-    TokenAdministratorResponse,
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
@@ -29,7 +29,7 @@ class AdministratorCBV:
 
     @router.post(
         "/login",
-        response_model=TokenAdministratorResponse,
+        response_model=AdministratorAndAccessTokenResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
@@ -38,19 +38,20 @@ class AdministratorCBV:
     )
     async def login(
         self, response: Response, auth_data: AdministratorAuthenticateRequest
-    ) -> TokenAdministratorResponse:
+    ) -> AdministratorAndAccessTokenResponse:
         """Аутентифицировать администратора по email и паролю. Вернуть access-токен и информацию об администраторе.
 
         - **email**: электронная почта
         - **password**: пароль
         """
-        data = await self.authentication_service.login(auth_data)
-        response.set_cookie(key="refresh_token", value=data.refresh_token, httponly=True, samesite="strict")
-        return data
+        admin_and_token = await self.authentication_service.login(auth_data)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
 
     @router.get(
         "/refresh",
-        response_model=TokenAdministratorResponse,
+        response_model=AdministratorAndAccessTokenResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Обновление аутентификационного токена.",
@@ -58,16 +59,17 @@ class AdministratorCBV:
     )
     async def refresh(
         self, response: Response, refresh_token: str | None = Cookie(default=None)
-    ) -> TokenAdministratorResponse:
+    ) -> AdministratorAndAccessTokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
 
         Вернуть access-токен и информацию об администраторе.
         """
         if not refresh_token:
             raise UnauthorizedException()
-        data = await self.authentication_service.refresh(refresh_token)
-        response.set_cookie(key="refresh_token", value=data.refresh_token, httponly=True, samesite="strict")
-        return data
+        admin_and_token = await self.authentication_service.refresh(refresh_token)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
 
     @router.get(
         "/me",
