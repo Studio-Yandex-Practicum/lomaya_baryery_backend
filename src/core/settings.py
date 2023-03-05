@@ -115,7 +115,6 @@ def get_settings():
 
 settings = get_settings()
 
-
 # Organization data
 ORGANIZATIONS_EMAIL = "lomayabaryery.noreply@yandex.ru"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
