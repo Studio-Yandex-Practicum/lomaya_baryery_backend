@@ -3,7 +3,6 @@ from typing import Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from fastapi import Request as ApiRequest
 from fastapi import Request as FastAPIRequest
 from fastapi_restful.cbv import cbv
 
@@ -128,7 +127,7 @@ class ShiftCBV(BaseCBV):
         responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_shift_members(
-        self, shift_id: UUID, request: ApiRequest, member_status: Optional[Member.Status] = None
+        self, shift_id: UUID, request: FastAPIRequest, member_status: Optional[Member.Status] = None
     ) -> ShiftMembersResponse:
         """
         Получить список пользователей смены.
@@ -150,7 +149,7 @@ class ShiftCBV(BaseCBV):
     async def get_list_all_requests_on_project(
         self,
         shift_id: UUID,
-        request: ApiRequest,
+        request: FastAPIRequest,
         status: Optional[Request.Status] = None,
     ) -> Any:
         """
@@ -181,7 +180,7 @@ class ShiftCBV(BaseCBV):
     )
     async def get_all_shifts(
         self,
-        request: ApiRequest,
+        request: FastAPIRequest,
         status: Optional[list[Shift.Status]] = Query(default=None),
         sort: Optional[ShiftSortRequest] = None,
     ) -> list[ShiftWithTotalUsersResponse]:

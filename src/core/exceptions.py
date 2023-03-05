@@ -231,7 +231,7 @@ class InvalidDateFormatException(ApplicationException):
         self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
 
 
-class InvalidSortParameterException(ApplicationException):
+class InvalidQueryParametersException(ApplicationException):
     def __init__(self, param: str, allowed_params: list):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
