@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
     MIN_PASSWORD_LENGTH: int = 4
+    ROOT_PATH: str = "/api"
 
     MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_PORT: int = 465
@@ -61,12 +62,12 @@ class Settings(BaseSettings):
     @property
     def user_reports_dir(self) -> PosixPath:
         """Получить директорию для сохранения фотоотчета."""
-        return BASE_DIR / "data/user_reports"
+        return BASE_DIR / "static" / "user_reports"
 
     @property
     def user_reports_url(self) -> str:
         """Получить ссылку на изображения фотоотчетов."""
-        return "/data/user_reports/"
+        return "/static/user_reports/"
 
     @property
     def registration_template_url(self) -> str:
@@ -91,12 +92,12 @@ class Settings(BaseSettings):
     @property
     def task_image_dir(self) -> PosixPath:
         """Получить директорию c изображениями заданий."""
-        return BASE_DIR / "src/static/tasks"
+        return BASE_DIR / "static" / "tasks"
 
     @property
     def email_template_directory(self) -> PosixPath:
         """Получить директорию шаблонов электронной почты."""
-        return BASE_DIR / "src/templates/email"
+        return BASE_DIR / "src" / "templates" / "email"
 
     class Config:
         env_file = ENV_FILE
