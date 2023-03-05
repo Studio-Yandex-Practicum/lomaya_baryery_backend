@@ -11,7 +11,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: http://test.lombaryery.tk/healthcheck
+  HEALTHCHECK_URL: https://test.lombaryery.tk/healthcheck
 
 defaults:
   run:
