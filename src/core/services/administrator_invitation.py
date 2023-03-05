@@ -8,12 +8,24 @@ from src.api.request_models.administrator_invitation import (
 )
 from src.core import settings
 from src.core.db.models import AdministratorInvitation
-from src.core.db.repository import AdministratorInvitationRepository
+from src.core.db.repository import (
+    AdministratorInvitationRepository,
+    AdministratorRepository,
+)
+from src.core.exceptions import (
+    AdministratorAlreadyExistsException,
+    AdministratorNotFoundException,
+)
 
 
 class AdministratorInvitationService:
-    def __init__(self, administrator_mail_request_repository: AdministratorInvitationRepository = Depends()) -> None:
+    def __init__(
+        self,
+        administrator_mail_request_repository: AdministratorInvitationRepository = Depends(),
+        administrator_repository: AdministratorRepository = Depends(),
+    ) -> None:
         self.__administrator_mail_request_repository = administrator_mail_request_repository
+        self.__administrator_repository = administrator_repository
 
     async def create_mail_request(self, invitation_data: AdministratorInvitationRequest) -> AdministratorInvitation:
         """Создает в БД приглашение для регистрации нового администратора/психолога.
@@ -21,6 +33,12 @@ class AdministratorInvitationService:
         Аргументы:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные
         """
+        try:
+            administrators = await self.__administrator_repository.get_by_email(invitation_data.email)
+            if administrators:
+                raise AdministratorAlreadyExistsException
+        except AdministratorNotFoundException:
+            pass
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(
             AdministratorInvitation(**invitation_data.dict(), expired_datetime=expiration_date)
