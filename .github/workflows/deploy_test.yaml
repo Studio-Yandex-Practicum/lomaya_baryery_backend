@@ -99,9 +99,9 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:test
-            docker-compose --file docker-compose.test.yaml stop
-            docker-compose --file docker-compose.test.yaml rm backend
-            docker-compose --file docker-compose.test.yaml up -d
+            docker-compose --file docker-compose.yaml stop
+            docker-compose --file docker-compose.yaml rm backend
+            docker-compose --file docker-compose.yaml up -d
 
       - name: Making migrations
         uses: appleboy/ssh-action@master
