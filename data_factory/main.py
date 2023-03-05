@@ -4,6 +4,7 @@ from uuid import UUID
 
 import click
 import factory
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -13,7 +14,7 @@ from data_factory.factories import (
     RequestFactory,
     ShiftFactory,
     UserFactory,
-    session,
+    session, AdministratorFactory,
 )
 from src.core.db.models import Member, Request, Shift, User
 
@@ -39,7 +40,7 @@ def get_random_user_ids(count: int, status: User.Status) -> list:
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute("""TRUNCATE TABLE requests, shifts, reports, users, members""")
+    session.execute(sqlalchemy.text("""TRUNCATE TABLE requests, shifts, reports, users, members"""))
     session.commit()
 
 
@@ -58,6 +59,10 @@ def create_declined_requests(user_ids: list[UUID], shift: Shift):
 def create_pending_requests(user_ids: list[UUID], shift: Shift):
     for user_id in user_ids:
         RequestFactory.create(user_id=user_id, shift_id=shift.id, status=Request.Status.PENDING)
+
+
+def create_administrator():
+    AdministratorFactory.create()
 
 
 def generate_fake_data() -> None:
@@ -99,6 +104,8 @@ def generate_fake_data() -> None:
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
             create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
+        logger.info("Создание администратора")
+        create_administrator()
 
     logger.info("Создание тестовых данных завершено!")
 
