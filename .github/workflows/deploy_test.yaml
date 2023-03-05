@@ -64,7 +64,8 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           source: "docker-compose.test.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
-          script:
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
             mv docker-compose.test.yaml docker-compose.yaml
 
       - name: Create .env file
