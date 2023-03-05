@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -16,11 +14,6 @@ def create_app() -> FastAPI:
 
     # для локального тестирования монтируем статику
     app.mount("/static", StaticFiles(directory="static"), name="static")
-
-    reports_path = Path("data")
-    reports_path.mkdir(exist_ok=True)
-
-    app.mount("/data", StaticFiles(directory="data"), name="data")
 
     app.add_middleware(
         CORSMiddleware,
