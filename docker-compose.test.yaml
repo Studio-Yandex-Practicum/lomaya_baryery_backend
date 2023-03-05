@@ -1,7 +1,7 @@
 version: '3.3'
 
 volumes:
-  postgres_data_stage:
+  postgres_data_test:
   static_value:
   tasks:
   frontend_volume:
@@ -10,12 +10,12 @@ volumes:
 services:
   postgres:
     image: postgres:13.2
-    container_name: postgres_stage
+    container_name: postgres_test
     restart: always
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - postgres_data_stage:/var/lib/postgresql/data/
+      - postgres_data_test:/var/lib/postgresql/data/
     ports:
       - "6100:6100"
     env_file:
