@@ -1,9 +1,10 @@
 name: Test backend build and deploy
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/deploy_to_test_server
+      - develop
+    types: [ closed ]
 
 env:
   REGISTRY: ghcr.io
