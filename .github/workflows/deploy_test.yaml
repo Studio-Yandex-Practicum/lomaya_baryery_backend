@@ -64,9 +64,6 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           source: "docker-compose.test.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
-          script: |
-            cd ${{ env.DEPLOY_PATH }}
-            mv docker-compose.test.yaml docker-compose.yaml
 
       - name: Create .env file
         uses: appleboy/ssh-action@master
@@ -76,6 +73,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
+            mv docker-compose.test.yaml docker-compose.yaml
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
