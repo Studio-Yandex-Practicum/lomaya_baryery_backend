@@ -213,7 +213,7 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorInvitationInvalid(RegistrationException):  # noqa N818
+class AdministratorInvitationInvalid(ApplicationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."
