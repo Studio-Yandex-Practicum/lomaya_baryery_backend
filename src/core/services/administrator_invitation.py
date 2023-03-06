@@ -20,7 +20,6 @@ from src.core.exceptions import (
 )
 
 
-
 class AdministratorInvitationService:
     def __init__(
         self,
