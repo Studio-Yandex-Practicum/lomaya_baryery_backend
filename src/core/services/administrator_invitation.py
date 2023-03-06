@@ -39,8 +39,8 @@ class AdministratorInvitationService:
     async def list_all_invitations(self) -> list[AdministratorInvitation]:
         return await self.__administrator_mail_request_repository.get_all()
 
-    async def get_invitation_by_id(self, id: UUID) -> AdministratorInvitation:
-        return await self.__administrator_mail_request_repository.get(id)
+    async def get_invitation_by_id(self, invitation_id: UUID) -> AdministratorInvitation:
+        return await self.__administrator_mail_request_repository.get(invitation_id)
 
     async def deactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)

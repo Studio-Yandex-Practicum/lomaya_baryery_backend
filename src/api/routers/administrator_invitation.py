@@ -75,18 +75,18 @@ class AdministratorInvitationCBV:
         return await self.administrator_invitation_service.get_invitation_by_token(token)
 
     @router.patch(
-        '/invitations/{id}/deactivate',
+        '/invitations/{invitation_id}/deactivate',
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
         summary="Деактивировать приглашение, отравленное администратору",
         response_description="Информация о приглашении",
     )
-    async def deactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitationResponse:
+    async def deactivate_invitation(self, invitation_id: UUID) -> Any:
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
-        '/invitations/{id}/reactivate',
+        '/invitations/{invitation_id}/reactivate',
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
@@ -96,7 +96,7 @@ class AdministratorInvitationCBV:
         ),
         response_description="Информация о приглашении",
     )
-    async def reactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitationResponse:
+    async def reactivate_invitation(self, invitation_id: UUID) -> Any:
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
