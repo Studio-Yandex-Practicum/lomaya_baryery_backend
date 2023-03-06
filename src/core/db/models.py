@@ -233,7 +233,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
             raise ExceededAttemptsReportError
         if not photo_url:
             raise EmptyReportError()
