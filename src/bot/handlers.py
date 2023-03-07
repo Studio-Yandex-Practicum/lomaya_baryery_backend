@@ -55,7 +55,15 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await update_user_data(update, context)
+        if user.UserCreateRequest is None or user.UserCreateRequest.status == 'declined':
+            await update_user_data(update, context)
+        else:
+            if user.UserCreateRequest.status == 'pending':
+                await update.message.reply_text(
+                    "Ваша заявка еще на рассмотрении.")
+            elif user.UserCreateRequest.status == 'approved':
+                await update.message.reply_text(
+                    "Ваша заявка уже одобрена и не может быть изменена.")
     else:
         await register_user(update, context)
 
@@ -82,26 +90,19 @@ async def update_user_data(
 ) -> None:
     """Инициализация формы для обновления регистрационных данных пользователя."""
     user = context.user_data.get('user')
-    if user.UserCreateRequest is None or user.UserCreateRequest.status == 'declined':
-        web_hook = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_hook.dict())
-        await update.message.reply_text(
-            "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
-            reply_markup=ReplyKeyboardMarkup.from_button(
-                KeyboardButton(
-                    text="Подать заявку на участие в смене",
-                    web_app=WebAppInfo(
-                        url=f'{settings.registration_template_url}?{query}'),
-                )
-            ),
-        )
-    else:
-        if user.UserCreateRequest.status == 'pending':
-            await update.message.reply_text(
-                "Ваша заявка еще на рассмотрении.")
-        elif user.UserCreateRequest.status == 'approved':
-            await update.message.reply_text(
-                "Ваша заявка уже одобрена и не может быть изменена.")
+    web_hook = UserWebhookTelegram.from_orm(user)
+    query = urllib.parse.urlencode(web_hook.dict())
+    await update.message.reply_text(
+        "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
+        reply_markup=ReplyKeyboardMarkup.from_button(
+            KeyboardButton(
+                text="Подать заявку на участие в смене",
+                web_app=WebAppInfo(
+                    url=f'{settings.registration_template_url}?{query}'),
+            )
+        ),
+    )
+
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
@@ -129,6 +130,11 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         text=text,
         reply_markup=ReplyKeyboardRemove(),
     )
+    if user_scheme.telegram_id != update.effective_user.id:
+        await update.message.reply_text(
+            "Вы пытаетесь завершить регистрацию с другого устройства. Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
+        )
+        return
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:
