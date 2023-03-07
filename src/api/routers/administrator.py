@@ -1,13 +1,15 @@
 from http import HTTPStatus
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
+    RefreshToken,
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
@@ -40,6 +42,17 @@ class AdministratorCBV:
         """
         return await self.authentication_service.login(auth_data)
 
+    @router.post(
+        "/refresh",
+        response_model=TokenResponse,
+        status_code=HTTPStatus.OK,
+        summary="Обновление аутентификационного токена.",
+        response_description="Новая пара access и refresh токенов.",
+    )
+    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
+        """Обновление access и refresh токенов при помощи refresh токена."""
+        return await self.authentication_service.refresh(request_data.refresh_token)
+
     @router.get(
         "/me",
         response_model=AdministratorResponse,
@@ -62,9 +75,7 @@ class AdministratorCBV:
         response_description="Регистрация нового администратора по токену приглашения.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
     )
-    async def register_new_administrator(
-        self, token: UUID, schema: AdministratorRegistrationRequest
-    ) -> AdministratorResponse:
+    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
         """Зарегистрировать нового администратора по токену из приглашения.
 
         - **name**: Имя
@@ -85,7 +96,7 @@ class AdministratorCBV:
         self,
         status: Administrator.Status = None,
         role: Administrator.Role = None,
-    ) -> list[AdministratorResponse]:
+    ) -> Any:
         """Получить список администраторов с опциональной фильтрацией по статусу и роли.
 
         Аргументы:

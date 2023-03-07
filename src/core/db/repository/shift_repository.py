@@ -86,9 +86,9 @@ class ShiftRepository(AbstractRepository):
                 Shift.title,
                 Shift.final_message,
                 Shift.sequence_number,
-                func.count(Request.user_id).label('total_users'),
+                func.count(Member.user_id).label('total_users'),
             )
-            .outerjoin(Shift.requests)
+            .outerjoin(Shift.members)
             .group_by(Shift.id)
             .where(status is None or Shift.status.in_(status))
             .order_by(sort or Shift.started_at.desc())

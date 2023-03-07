@@ -235,3 +235,15 @@ class InvalidDateFormatException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
+
+
+class InvitationAlreadyDeactivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение уже деактивировано"
+
+
+class InvitationAlreadyActivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение активно"

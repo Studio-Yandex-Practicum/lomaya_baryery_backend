@@ -62,6 +62,7 @@ class ReportRepository(AbstractRepository):
             User.surname,
             Report.task_id,
             Task.description,
+            Task.description_for_message,
             Task.url,
             Report.report_url.label("photo_url"),
         )
