@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
+  HEALTHCHECK_URL: https://lombaryery.tk/api/healthcheck
 
 defaults:
   run:
@@ -121,6 +121,9 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:

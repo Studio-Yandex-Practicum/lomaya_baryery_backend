@@ -1,7 +1,8 @@
 import os
 import uuid
 from datetime import timedelta
-from pathlib import Path, PosixPath
+from pathlib import Path
+from urllib.parse import urljoin
 
 from pydantic import BaseSettings
 from pydantic.tools import lru_cache
@@ -36,7 +37,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
     MIN_PASSWORD_LENGTH: int = 4
-    ROOT_PATH: str = "/api"
+    ROOT_PATH: str = "/api/"
 
     MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_PORT: int = 465
@@ -60,7 +61,11 @@ class Settings(BaseSettings):
         )
 
     @property
-    def user_reports_dir(self) -> PosixPath:
+    def api_url(self) -> str:
+        return urljoin(self.APPLICATION_URL, self.ROOT_PATH)
+
+    @property
+    def user_reports_dir(self) -> Path:
         """Получить директорию для сохранения фотоотчета."""
         return BASE_DIR / "static" / "user_reports"
 
@@ -72,15 +77,15 @@ class Settings(BaseSettings):
     @property
     def registration_template_url(self) -> str:
         """Получить url-ссылку на HTML шаблон регистрации."""
-        return f"{self.APPLICATION_URL}/telegram/registration_form"
+        return urljoin(self.api_url, "telegram/registration_form")
 
     @property
     def telegram_webhook_url(self) -> str:
         """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
-        return f"{self.APPLICATION_URL}/telegram/webhook"
+        return urljoin(self.api_url, "telegram/webhook")
 
     @property
-    def registration_template(self) -> PosixPath:
+    def registration_template(self) -> Path:
         """Получить HTML-шаблон формы регистрации."""
         return BASE_DIR / "src" / "templates" / "registration" / "registration.html"
 
@@ -90,12 +95,12 @@ class Settings(BaseSettings):
         return "/static/tasks/"
 
     @property
-    def task_image_dir(self) -> PosixPath:
+    def task_image_dir(self) -> Path:
         """Получить директорию c изображениями заданий."""
         return BASE_DIR / "static" / "tasks"
 
     @property
-    def email_template_directory(self) -> PosixPath:
+    def email_template_directory(self) -> Path:
         """Получить директорию шаблонов электронной почты."""
         return BASE_DIR / "src" / "templates" / "email"
 
@@ -113,5 +118,5 @@ settings = get_settings()
 # Organization data
 ORGANIZATIONS_EMAIL = "lomayabaryery.noreply@yandex.ru"
 ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
-NUMBER_ATTEMPTS_SUMBIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
+NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
