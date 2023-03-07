@@ -1,18 +1,19 @@
-"""add report status skipped
+"""add_report_status_skipped
 
-Revision ID: 0f1fa84f5579
-Revises: ef4034f91b1c
-Create Date: 2023-03-01 20:41:57.540692
+Revision ID: dc87d0573547
+Revises: e0226d762401
+Create Date: 2023-03-08 01:08:52.247564
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '0f1fa84f5579'
-down_revision = 'ef4034f91b1c'
+revision = 'dc87d0573547'
+down_revision = 'e0226d762401'
 branch_labels = None
 depends_on = None
+
 
 name = 'report_status'
 tmp_name = f'tmp_{name}'
