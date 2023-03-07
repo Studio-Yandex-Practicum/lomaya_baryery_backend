@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import or_, select
+from sqlalchemy import TIMESTAMP, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session

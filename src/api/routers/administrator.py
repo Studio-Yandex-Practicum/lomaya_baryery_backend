@@ -8,12 +8,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
+    AdministratorPasswordResetRequest
 )
 from src.api.response_models.administrator import AdministratorResponse, TokenResponse
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
+from src.core.email import EmailProvider
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
+from src.core.db.repository.administrator_password_reset import AdministratorPasswordResetRepository
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
@@ -22,6 +25,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 class AdministratorCBV:
     authentication_service: AuthenticationService = Depends()
     administrator_service: AdministratorService = Depends()
+    email: EmailProvider = Depends()
 
     @router.post(
         "/login",
@@ -93,3 +97,24 @@ class AdministratorCBV:
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
+
+    @router.post(
+        "/password_reset",
+        status_code=HTTPStatus.OK,
+        summary="Восстановление пароля",
+        response_description="email пользователя.",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
+    )
+    async def password_reset(self, request_data: AdministratorPasswordResetRequest) -> None:
+        """Восстановление пароля администратора по email."""
+        await self.administrator_service.get_by_email(request_data.email)
+        administrator_password_reset = await self.administrator_service.create_password_reset_object(request_data.email)
+        return await self.email.send_reset_password_message(
+            email=administrator_password_reset.email,
+            token=administrator_password_reset.token
+        )
+
+    # @router.post(
+    #     "/password_reset/{token}",
+
+    # )

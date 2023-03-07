@@ -15,6 +15,12 @@ class AdministratorAuthenticateRequest(RequestBase):
     password: SecretStr
 
 
+class AdministratorPasswordResetRequest(RequestBase):
+    """Схема для восстановления пароля администратора."""
+
+    email: EmailStr
+
+
 class AdministratorRegistrationRequest(RequestBase):
     """Схема для регистрации администратора."""
 
