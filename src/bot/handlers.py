@@ -31,8 +31,8 @@ from src.core.exceptions import (
     CurrentTaskNotFoundError,
     DuplicateReportError,
     ExceededAttemptsReportError,
-    ReportSkippedError,
     ReportAlreadyReviewedException,
+    ReportSkippedError,
 )
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
@@ -175,16 +175,18 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
         amount = await balance(update.effective_chat.id)
         await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
-    elif update.message.text == SKIP_A_TASK:
+    if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
+            await update.message.reply_text("Задание пропущено, следующее задание придет в 8.00 мск.")
         except CurrentTaskNotFoundError:
             await update.message.reply_text("Сейчас заданий нет.")
         except ReportAlreadyReviewedException:
             await update.message.reply_text(
                 "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
-
             )
+        except ReportSkippedError:
+            await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
 async def balance(telegram_id: int) -> int:

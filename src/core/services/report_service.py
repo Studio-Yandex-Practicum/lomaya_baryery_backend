@@ -91,6 +91,8 @@ class ReportService:
     async def skip_current_report(self, user_id: UUID) -> Report:
         """Задание пропущено: изменение статуса."""
         report = await self.__report_repository.get_current_report(user_id)
+        if report.status is Report.Status.SKIPPED:
+            raise ReportSkippedError()
         if report.status is not Report.Status.WAITING:
             raise ReportAlreadyReviewedException(status=report.status)
         report.status = Report.Status.SKIPPED
