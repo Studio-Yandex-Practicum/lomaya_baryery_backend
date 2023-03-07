@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
 
 from src.core.exceptions import EmailSendException
@@ -71,3 +72,15 @@ class EmailProvider:
             "Приглашение в проект \"Ломая Барьеры\"",
             "send_invitation_link.html",
         )
+
+    async def send_reset_password_message(self, email: str, token: str) -> None:
+        """Отправляет на указанный адрес ссылку для восстановления пароля."""
+        template_body = {"url": f"http://127.0.0.1:8080/administrators/password_reset/{token}"}
+        recipients = [email]
+        email_obj = EmailSchema(recipients=recipients, template_body=template_body)
+        await self.__send_mail(
+            email_obj,
+            "Ссылка для восстановления пароля.",
+            "reset_password.html",
+        )
+        return JSONResponse(status_code=200, content={"message": "email has been sent"})

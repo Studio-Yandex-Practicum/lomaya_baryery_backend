@@ -296,3 +296,16 @@ class AdministratorInvitation(Base):
 
     def __repr__(self) -> str:
         return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"
+
+
+class AdministratorPasswordReset(Base):
+    """Модель восстановления пароля администратора."""
+
+    __tablename__ = "administrator_password_reset"
+
+    email = Column(String(100), nullable=False)
+    token = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
+    expired_datetime = Column(TIMESTAMP, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"Восстановление пароля для пользователя с email: {self.email}"
