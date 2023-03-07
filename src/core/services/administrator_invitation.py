@@ -14,7 +14,6 @@ from src.core.db.repository import (
 )
 from src.core.exceptions import (
     AdministratorAlreadyExistsException,
-    AdministratorNotFoundException,
     InvitationAlreadyActivated,
     InvitationAlreadyDeactivated,
 )
@@ -35,12 +34,8 @@ class AdministratorInvitationService:
         Аргументы:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные
         """
-        try:
-            administrators = await self.__administrator_repository.get_by_email(invitation_data.email)
-            if administrators:
-                raise AdministratorAlreadyExistsException
-        except AdministratorNotFoundException:
-            pass
+        if await self.__administrator_repository.check_administrator_existence(invitation_data.email):
+            raise AdministratorAlreadyExistsException
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(
             AdministratorInvitation(**invitation_data.dict(), expired_datetime=expiration_date)
