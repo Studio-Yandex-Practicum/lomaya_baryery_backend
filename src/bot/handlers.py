@@ -177,8 +177,12 @@ async def balance(telegram_id: int) -> int:
     """Метод для получения баланса ломбарьеров."""
     session_gen = get_session()
     session = await session_gen.asend(None)
+    shift_service = ShiftService(ShiftRepository(session))
+    shift = await shift_service.get_current_shift()
+    user_service = UserService(UserRepository(session))
+    user = await user_service.get_user_by_telegram_id(telegram_id)
     member_service = MemberService(MemberRepository(session))
-    member = await member_service.get_by_user_id(telegram_id)
+    member = await member_service.get_by_user_id_and_shift_id(shift.id, user.id)
     return member.numbers_lombaryers
 
 
