@@ -10,11 +10,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data_factory.factories import (
+    AdministratorFactory,
     MemberFactory,
     RequestFactory,
     ShiftFactory,
     UserFactory,
-    session, AdministratorFactory,
+    session,
 )
 from src.core.db.models import Member, Request, Shift, User
 
@@ -40,7 +41,7 @@ def get_random_user_ids(count: int, status: User.Status) -> list:
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute(sqlalchemy.text("""TRUNCATE TABLE requests, shifts, reports, users, members"""))
+    session.execute(sqlalchemy.text("""TRUNCATE TABLE requests, shifts, reports, users, members, administrators"""))
     session.commit()
 
 
