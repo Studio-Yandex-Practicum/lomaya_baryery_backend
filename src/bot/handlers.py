@@ -182,7 +182,8 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text("Сейчас заданий нет.")
         except ReportAlreadyReviewedException:
             await update.message.reply_text(
-                "Ранее отправленный отчет проверяется или уже принят, нельзя пропустить отчет."
+                "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
+
             )
 
 
