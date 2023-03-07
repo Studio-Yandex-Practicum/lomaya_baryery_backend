@@ -4,7 +4,6 @@ volumes:
   postgres_data_test:
   static_value:
   tasks:
-  frontend_volume:
 
 
 services:
@@ -41,7 +40,7 @@ services:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
     container_name: lomaya_baryery_frontend
     volumes:
-      - frontend_volume:/app/dist/
+      - ./frontend/:/app/result_build/
     env_file:
       - .env
 
@@ -68,6 +67,6 @@ services:
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
       - ./static/user_reports:/var/html/user_reports/
       - tasks:/var/html/tasks/
-      - frontend_volume:/var/html/frontend/
+      - ./frontend/:/var/html/frontend/
     env_file:
       - .env
