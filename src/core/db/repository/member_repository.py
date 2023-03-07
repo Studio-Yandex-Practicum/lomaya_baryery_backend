@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import func, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -68,10 +68,10 @@ class MemberRepository(AbstractRepository):
     async def get_by_user_id(self, telegram_id: UUID) -> Member:
         member = await self._session.execute(
             select(Member)
-            .join(User).filter(User.telegram_id == telegram_id)
-            .where(
-                Member.user_id == User.id
-            )
+            .join(User)
+            .filter(User.telegram_id == telegram_id)
+            .where(Member.user_id == User.id)
+            .order_by(desc(Member.created_at))
         )
         return member.scalars().first()
 
