@@ -131,8 +131,8 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     )
     if user_scheme.telegram_id != update.effective_user.id:
         await update.message.reply_text(
-            f"Вы пытаетесь завершить регистрацию с другого устройства."
-            f"Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
+            "Вы пытаетесь завершить регистрацию с другого устройства."
+            "Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
         )
         return
 
