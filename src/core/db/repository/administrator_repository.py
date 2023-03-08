@@ -14,22 +14,14 @@ class AdministratorRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Administrator)
 
-    async def _get_by_email(self, email: str) -> Administrator:
-        """Метод для получения администратора из БД по email.
-
-        Аргументы:
-            email (str) - email администратора.
-        """
-        administrator = await self._session.execute(select(Administrator).where(Administrator.email == email))
-        return administrator.scalars().first()
-
     async def get_by_email(self, email: str) -> Administrator:
         """Получает из БД администратора по его email. В случае отсутствия бросает ошибку.
 
         Аргументы:
             email (str) - email администратора.
         """
-        administrator = await self._get_by_email(email)
+        administrator = await self._session.execute(select(Administrator).where(Administrator.email == email))
+        administrator = administrator.scalars().first()
         if not administrator:
             raise AdministratorNotFoundException()
         return administrator
@@ -40,8 +32,10 @@ class AdministratorRepository(AbstractRepository):
         Аргументы:
             email (str) - email администратора.
         """
-        administrator_exists = await self._get_by_email(email)
-        return bool(administrator_exists)
+        administrator_exists = await self._session.execute(
+            select(select(Administrator).where(Administrator.email == email).exists())
+        )
+        return administrator_exists.scalar()
 
     async def get_administrators_filter_by_role_and_status(
         self, status: Administrator.Status | None, role: Administrator.Role | None
