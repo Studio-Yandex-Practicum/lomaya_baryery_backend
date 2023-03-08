@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
-    MIN_PASSWORD_LENGTH: int = 4
+    MIN_PASSWORD_LENGTH: int = 8
     ROOT_PATH: str = "/api/"
 
     MAIL_SERVER: str = "smtp.yandex.ru"

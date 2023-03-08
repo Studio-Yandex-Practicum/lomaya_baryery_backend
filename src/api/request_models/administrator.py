@@ -25,10 +25,19 @@ class AdministratorRegistrationRequest(RequestBase):
 
     @validator("password")
     def validate_password(cls, value: SecretStr) -> SecretStr:
-        if len(value.get_secret_value()) < settings.MIN_PASSWORD_LENGTH:
+        password = value.get_secret_value()
+        if len(password) < settings.MIN_PASSWORD_LENGTH:
             raise ValueError(
                 "Пароль слишком короткий. Минимальная длина пароля: {}.".format(settings.MIN_PASSWORD_LENGTH)
             )
+        if not all(
+            (
+                any(s.isupper() for s in password),
+                any(s.islower() for s in password),
+                any(s.isdigit() for s in password),
+            )
+        ):
+            raise ValueError("Пароль должен содержать хотя бы одну заглавную букву, одну строчную и одну цифру.")
         return value
 
 
