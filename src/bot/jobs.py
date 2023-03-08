@@ -58,7 +58,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
             task_photo,
             (
                 f"Привет, {member.user.name}!\n"
-                f"Сегодня твоим заданием будет {task.description}. "
+                f"Сегодня твоим заданием будет {task.description_for_message}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
             buttons,

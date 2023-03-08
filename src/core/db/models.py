@@ -105,6 +105,7 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
+    description_for_message = Column(String(length=150), unique=True, nullable=False)
     reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
@@ -232,7 +233,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
             raise ExceededAttemptsReportError
         if not photo_url:
             raise EmptyReportError()

@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Cookie, Depends, Response
@@ -93,9 +94,7 @@ class AdministratorCBV:
         response_description="Регистрация нового администратора по токену приглашения.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
     )
-    async def register_new_administrator(
-        self, token: UUID, schema: AdministratorRegistrationRequest
-    ) -> AdministratorResponse:
+    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
         """Зарегистрировать нового администратора по токену из приглашения.
 
         - **name**: Имя
@@ -116,7 +115,7 @@ class AdministratorCBV:
         self,
         status: Administrator.Status = None,
         role: Administrator.Role = None,
-    ) -> list[AdministratorResponse]:
+    ) -> Any:
         """Получить список администраторов с опциональной фильтрацией по статусу и роли.
 
         Аргументы:
