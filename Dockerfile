@@ -7,8 +7,10 @@ RUN apt-get -y install gcc
 WORKDIR  /LOMAYA_BARYERY_BACKEND
 
 # устанавливаем зависимости в отдельном слое
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+COPY poetry.lock pyproject.toml ./
+RUN pip install poetry==1.2.2
+RUN poetry config virtualenvs.create false
+RUN poetry install --without dev
 
 COPY . .
 
