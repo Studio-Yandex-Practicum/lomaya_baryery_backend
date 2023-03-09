@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,17 +8,12 @@ from src.core.settings import settings
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(debug=settings.DEBUG)
+    app = FastAPI(debug=settings.DEBUG, root_path=settings.ROOT_PATH)
 
     origins = ["*"]
 
     # для локального тестирования монтируем статику
-    app.mount("/static", StaticFiles(directory="src/static"), name="static")
-
-    reports_path = Path("data")
-    reports_path.mkdir(exist_ok=True)
-
-    app.mount("/data", StaticFiles(directory="data"), name="data")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     app.add_middleware(
         CORSMiddleware,

@@ -83,3 +83,31 @@ class AdministratorInvitationCBV:
         - **email**: адрес электронной почты
         """
         return await self.administrator_invitation_service.get_invitation_by_token(token)
+
+    @router.patch(
+        '/invitations/{invitation_id}/deactivate',
+        status_code=HTTPStatus.OK,
+        response_model=AdministratorInvitationResponse,
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
+        summary="Деактивировать приглашение, отравленное администратору",
+        response_description="Информация о приглашении",
+    )
+    async def deactivate_invitation(self, invitation_id: UUID) -> Any:
+        return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
+
+    @router.patch(
+        '/invitations/{invitation_id}/reactivate',
+        status_code=HTTPStatus.OK,
+        response_model=AdministratorInvitationResponse,
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
+        summary=(
+            "Активировать приглашение повторно и отправить ссылку"
+            "на почту для регистрации нового администратора/психолога"
+        ),
+        response_description="Информация о приглашении",
+    )
+    async def reactivate_invitation(self, invitation_id: UUID) -> Any:
+        invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
+        url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
+        await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
+        return invitation

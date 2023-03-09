@@ -70,6 +70,12 @@ class EmptyReportError(Exception):
     pass
 
 
+class ReportSkippedError(Exception):
+    """Отчет пропущен."""
+
+    pass
+
+
 class ShiftStartForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
@@ -213,6 +219,13 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
+class AdministratorAlreadyExistsException(ApplicationException):
+    """Пользователь с таким email уже существует."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Администратор с указанным email уже существует."
+
+
 class AdministratorInvitationInvalid(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
@@ -229,3 +242,15 @@ class InvalidDateFormatException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
+
+
+class InvitationAlreadyDeactivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение уже деактивировано"
+
+
+class InvitationAlreadyActivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение активно"
