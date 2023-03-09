@@ -48,8 +48,11 @@ class AdministratorCBV:
         summary="Обновление аутентификационного токена.",
         response_description="Новая пара access и refresh токенов.",
     )
-    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
+    async def refresh(
+        self, request_data: RefreshToken, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> TokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена."""
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.authentication_service.refresh(request_data.refresh_token)
 
     @router.get(
@@ -105,4 +108,5 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

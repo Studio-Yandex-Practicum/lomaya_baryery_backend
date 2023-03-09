@@ -16,6 +16,7 @@ from src.api.response_models.administrator_invitation import (
 from src.api.response_models.error import generate_error_responses
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
+from src.core.services.authentication_service import AuthenticationService
 from src.core.settings import settings
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 @cbv(router)
 class AdministratorInvitationCBV:
     administrator_invitation_service: AdministratorInvitationService = Depends()
+    authentication_service: AuthenticationService = Depends()
     email_provider: EmailProvider = Depends()
 
     @router.post(
@@ -45,6 +47,7 @@ class AdministratorInvitationCBV:
         invitation_data: AdministratorInvitationRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invite.token}")
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
@@ -61,6 +64,7 @@ class AdministratorInvitationCBV:
     async def get_all_invitations(
         self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> list[AdministratorInvitationResponse]:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
