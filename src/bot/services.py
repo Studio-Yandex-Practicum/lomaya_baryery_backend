@@ -35,14 +35,14 @@ class BotService:
         except Exception as exc:
             await error_handler(chat_id, exc)
 
-    async def notify_approved_request(self, user: models.User, first_task_date: date) -> None:
+    async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка принята.
         """
         text = (
             f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте! "
-            f"{first_task_date.strftime('%d.%m.%Y')} в {settings.SEND_NEW_TASK_HOUR} часов "
+            f"{first_task_date} в {settings.SEND_NEW_TASK_HOUR} часов "
             "утра тебе поступит первое задание."
         )
         await self.send_message(user, text)

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     MIN_DAYS: int = 1
     MAX_DAYS: int = 93
     SEND_NEW_TASK_HOUR: int = 8  # время для отправки задания
-    SEND_NO_REPORT_REMINDER_HOUR: int = 20  # время для напоминания о невыполненном задании
+    SEND_NO_REPORT_REMINDER_HOUR: int = 19  # время для напоминания о невыполненном задании
     MIN_AGE: int = 3  # минимальный возраст участника
     DAYS_FROM_START_OF_SHIFT_TO_JOIN: int = 2  # сколько дней от начала смены возможна регистрация
     MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
     MIN_PASSWORD_LENGTH: int = 8
-    ROOT_PATH: str = "/api/"
+    ROOT_PATH: str = ""
 
     MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_PORT: int = 465

@@ -150,7 +150,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
     try:
         await report_service.send_report(report, photo_url)
-        await update.message.reply_text("Отчёт отправлен на проверку.")
+        await update.message.reply_text("Твой отчет отправлен на модерацию, после проверки тебе придет уведомление")
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
     except CannotAcceptReportError:

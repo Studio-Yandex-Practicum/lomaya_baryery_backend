@@ -56,7 +56,7 @@ class RequestService:
         if get_current_task_date() >= shift.started_at:
             first_task_date = get_current_task_date() + timedelta(days=1)
 
-        await self.__telegram_bot(bot).notify_approved_request(request.user, first_task_date)
+        await self.__telegram_bot(bot).notify_approved_request(request.user, first_task_date.strftime('%d.%m.%Y'))
         return RequestResponse.parse_from(request)
 
     async def decline_request(
