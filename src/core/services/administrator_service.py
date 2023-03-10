@@ -1,12 +1,14 @@
 import datetime as dt
-
 from uuid import UUID, uuid4
 
 from fastapi import Depends
 
 from src.api.request_models.administrator import AdministratorRegistrationRequest
 from src.core.db.models import Administrator, AdministratorPasswordReset
-from src.core.db.repository import AdministratorRepository, AdministratorPasswordResetRepository
+from src.core.db.repository import (
+    AdministratorPasswordResetRepository,
+    AdministratorRepository,
+)
 from src.core.services.administrator_invitation import AdministratorInvitationService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -51,20 +53,17 @@ class AdministratorService:
 
     async def create_password_reset_object(self, email: str) -> AdministratorPasswordReset:
         """
-        Создание объекта AdministratorPasswordReset:
+        Создание объекта AdministratorPasswordReset.
+
         -Объект служит для создания связки email и токена участвующего в генерации ссылки
         для восстановления пароля.
         -Объект создается с целью исключения существования одновременно нескольких рабочих ссылок.
         -При каждом запросе на эндпоинт /password_reset запись в БД обновляется.
         """
         administrator_password_reset = await self.__administrator_password_reset.get_administrator_password_reset(email)
-        instance = AdministratorPasswordReset(
-            email = email,
-            token = str(uuid4()),
-            expired_datetime = dt.datetime.utcnow()
-        )
+        instance = AdministratorPasswordReset(token=str(uuid4()), email=email, expired_datetime=dt.datetime.utcnow())
         if administrator_password_reset:
             await self.__administrator_password_reset.update(administrator_password_reset.id, instance)
         else:
             await self.__administrator_password_reset.create(instance)
-        return administrator_password_reset
+        return await self.__administrator_password_reset.get_administrator_password_reset(email)
