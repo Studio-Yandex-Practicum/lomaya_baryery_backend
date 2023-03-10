@@ -55,13 +55,13 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        if user.UserCreateRequest is None or user.UserCreateRequest.status == 'declined':
+        if user.status is None or user.status == 'declined':
             await update_user_data(update, context)
         else:
-            if user.UserCreateRequest.status == 'pending':
+            if user.status == 'pending':
                 await update.message.reply_text(
                     "Ваша заявка еще на рассмотрении.")
-            elif user.UserCreateRequest.status == 'approved':
+            elif user.status == 'approved':
                 await update.message.reply_text(
                     "Ваша заявка уже одобрена и не может быть изменена.")
     else:
@@ -106,6 +106,14 @@ async def update_user_data(
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
+    user = context.user_data.get('user')
+    if user_scheme.telegram_id != update.effective_user.id:
+        if user.status is None or user.status == 'declined':
+            await update.message.reply_text(
+                "Вы пытаетесь завершить регистрацию с другого устройства."
+                "Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
+            )
+            return
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
@@ -129,12 +137,6 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         text=text,
         reply_markup=ReplyKeyboardRemove(),
     )
-    if user_scheme.telegram_id != update.effective_user.id:
-        await update.message.reply_text(
-            "Вы пытаетесь завершить регистрацию с другого устройства."
-            "Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
-        )
-        return
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:
