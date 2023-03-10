@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
 
+    # Organization data
+    ORGANIZATIONS_EMAIL: str = "lomayabaryery.noreply@yandex.ru"
+    ORGANIZATIONS_GROUP: str = "https://vk.com/socialrb02"
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
@@ -115,8 +119,5 @@ def get_settings():
 
 settings = get_settings()
 
-# Organization data
-ORGANIZATIONS_EMAIL = "lomayabaryery.noreply@yandex.ru"
-ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию

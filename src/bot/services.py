@@ -7,7 +7,7 @@ from telegram.ext import Application
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
-from src.core.settings import ORGANIZATIONS_EMAIL, ORGANIZATIONS_GROUP, settings
+from src.core.settings import settings
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -60,9 +60,9 @@ class BotService:
             text = (
                 f"К сожалению, на данный момент мы не можем зарегистрировать вас"
                 f" в проекте. Вы можете написать на почту "
-                f"{ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
+                f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
-                f"{ORGANIZATIONS_GROUP}"
+                f"{settings.ORGANIZATIONS_GROUP}"
             )
         await self.send_message(user, text)
 
@@ -100,7 +100,7 @@ class BotService:
             "Вы не отправили ни одного отчета на несколько последних заданий подряд. "
             "Вы не сможете получать новые задания, но всё еще можете потратить свои накопленные ломбарьерчики. "
             "Если Вы считаете, что произошла ошибка - обращайтесь "
-            f"за помощью на электронную почту {ORGANIZATIONS_EMAIL}."
+            f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
         send_message_tasks = [self.send_message(member.user, text) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
