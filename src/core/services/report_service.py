@@ -14,6 +14,7 @@ from src.core.exceptions import (
     DuplicateReportError,
     NotFoundException,
     ReportAlreadyReviewedException,
+    ReportSkippedError,
     ReportWaitingPhotoException,
 )
 from src.core.services.task_service import TaskService
@@ -52,6 +53,10 @@ class ReportService:
         if report:
             raise DuplicateReportError()
 
+    async def check_report_skipped(self, report: Report) -> None:
+        if report.status == Report.Status.SKIPPED:
+            raise ReportSkippedError()
+
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
         shift_id = await self.__shift_repository.get_started_shift_id()
@@ -82,6 +87,16 @@ class ReportService:
         await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
+
+    async def skip_current_report(self, user_id: UUID) -> Report:
+        """Задание пропущено: изменение статуса."""
+        report = await self.__report_repository.get_current_report(user_id)
+        if report.status is Report.Status.SKIPPED:
+            raise ReportSkippedError()
+        if report.status is not Report.Status.WAITING:
+            raise ReportAlreadyReviewedException(status=report.status)
+        report.status = Report.Status.SKIPPED
+        return await self.__report_repository.update(report.id, report)
 
     async def __notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
         """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""
@@ -128,6 +143,7 @@ class ReportService:
         return await self.__report_repository.get_current_report(user_id)
 
     async def send_report(self, report: Report, photo_url: str) -> Report:
+        await self.check_report_skipped(report)
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
