@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
     MIN_PASSWORD_LENGTH: int = 8
-    ROOT_PATH: str = ""
+    ROOT_PATH: str = "/api/"
 
     MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_PORT: int = 465
