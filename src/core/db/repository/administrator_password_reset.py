@@ -12,7 +12,7 @@ class AdministratorPasswordResetRepository(AbstractRepository):
         super().__init__(session, AdministratorPasswordReset)
 
     async def get_administrator_password_reset(self, email: str) -> AdministratorPasswordReset:
-        """Проверяет есть ли запись о восстановлении пароля в БД."""
+        """Возвращает объект восстановления пароля администратора."""
         administrator_password_reset = await self._session.execute(
             select(AdministratorPasswordReset).where(AdministratorPasswordReset.email == email)
         )
