@@ -2,7 +2,7 @@ from fastapi import Depends
 from telegram.ext import Application
 
 from src.bot import services
-from src.core.db.models import Member, Shift, User
+from src.core.db.models import Member
 from src.core.db.repository import MemberRepository, ShiftRepository
 from src.core.settings import settings
 from src.core.utils import get_current_task_date
@@ -39,6 +39,6 @@ class MemberService:
         current_task_date = get_current_task_date()
         return await self.__member_repository.get_members_for_reminding(shift_id, current_task_date)
 
-    async def get_by_user_and_shift(self, shift: Shift, user: User) -> Member:
+    async def get_by_user_and_shift(self, telegram_id) -> Member:
         """Получение участника по id."""
-        return await self.__member_repository.get_by_user_and_shift(shift.id, user.id)
+        return await self.__member_repository.get_number_of_lombariers_by_telegram_id(telegram_id)

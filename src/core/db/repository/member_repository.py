@@ -2,12 +2,12 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report
+from src.core.db.models import Member, Report, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -73,3 +73,18 @@ class MemberRepository(AbstractRepository):
         )
         report_under_review = await self._session.execute(select(stmt.exists()))
         return report_under_review.scalar()
+
+    async def get_number_of_lombariers_by_telegram_id(self, telegram_id: int) -> int:
+        amount = await self._session.execute(
+            select(Member.numbers_lombaryers)
+            .join(User)
+            .where(User.telegram_id == telegram_id)
+            .join(Shift)
+            .where(
+                or_(
+                    Shift.status == Shift.Status.READY_FOR_COMPLETE,
+                    Shift.status == Shift.Status.STARTED,
+                )
+            )
+        )
+        return amount.scalars().first()
