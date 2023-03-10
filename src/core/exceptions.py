@@ -1,8 +1,11 @@
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
 from starlette.exceptions import HTTPException
+
+if TYPE_CHECKING:
+    from src.core.db.models import Base as DatabaseModel
 
 
 class ApplicationError(Exception):
@@ -32,6 +35,12 @@ class NotFoundException(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+
+
+class AlreadyExistsException(ApplicationException):
+    def __init__(self, obj: DatabaseModel):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Объект {obj} уже существует"
 
 
 class CurrentTaskNotFoundError(Exception):

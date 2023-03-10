@@ -3,9 +3,10 @@ from typing import Optional, TypeVar
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import AlreadyExistsException, NotFoundException
 
 DatabaseModel = TypeVar("DatabaseModel")
 
@@ -32,7 +33,11 @@ class AbstractRepository(abc.ABC):
     async def create(self, instance: DatabaseModel) -> DatabaseModel:
         """Создает новый объект модели и сохраняет в базе."""
         self._session.add(instance)
-        await self._session.commit()
+        try:
+            await self._session.commit()
+        except IntegrityError:
+            raise AlreadyExistsException(instance)
+
         await self._session.refresh(instance)
         return instance
 
