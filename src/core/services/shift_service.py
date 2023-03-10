@@ -168,7 +168,7 @@ class ShiftService:
 
     async def get_shift_dir(self, shift_id: UUID) -> str:
         shift = await self.__shift_repository.get(shift_id)
-        return f"{shift.started_at}_to_{shift.finished_at}"
+        return f"shift_{shift.sequence_number}"
 
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
