@@ -6,8 +6,8 @@ from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
-from src.core import settings
 from src.core.db import models
+from src.core.settings import ORGANIZATIONS_EMAIL, ORGANIZATIONS_GROUP, settings
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -35,12 +35,16 @@ class BotService:
         except Exception as exc:
             await error_handler(chat_id, exc)
 
-    async def notify_approved_request(self, user: models.User) -> None:
+    async def notify_approved_request(self, user: models.User, first_task_date: date) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка принята.
         """
-        text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
+        text = (
+            f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте! "
+            f"{first_task_date.strftime('%d.%m.%Y')} в {settings.SEND_NEW_TASK_HOUR} часов "
+            "утра тебе поступит первое задание."
+        )
         await self.send_message(user, text)
 
     async def notify_declined_request(
@@ -56,9 +60,9 @@ class BotService:
             text = (
                 f"К сожалению, на данный момент мы не можем зарегистрировать вас"
                 f" в проекте. Вы можете написать на почту "
-                f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
+                f"{ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
-                f"{settings.ORGANIZATIONS_GROUP}"
+                f"{ORGANIZATIONS_GROUP}"
             )
         await self.send_message(user, text)
 
@@ -96,7 +100,7 @@ class BotService:
             "Вы не отправили ни одного отчета на несколько последних заданий подряд. "
             "Вы не сможете получать новые задания, но всё еще можете потратить свои накопленные ломбарьерчики. "
             "Если Вы считаете, что произошла ошибка - обращайтесь "
-            f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
+            f"за помощью на электронную почту {ORGANIZATIONS_EMAIL}."
         )
         send_message_tasks = [self.send_message(member.user, text) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))

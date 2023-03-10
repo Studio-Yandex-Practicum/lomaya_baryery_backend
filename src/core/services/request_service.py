@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +15,7 @@ from src.core.db.repository import MemberRepository, RequestRepository, UserRepo
 from src.core.exceptions import RequestAlreadyReviewedException
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
+from src.core.utils import get_current_task_date
 
 
 class RequestService:
@@ -48,7 +50,13 @@ class RequestService:
             await self.__user_repository.update(user.id, user)
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
         await self.__member_repository.create(member)
-        await self.__telegram_bot(bot).notify_approved_request(request.user)
+        shift = await self.__shift_service.get_shift(request.shift_id)
+
+        first_task_date = shift.started_at
+        if get_current_task_date() >= shift.started_at:
+            first_task_date = get_current_task_date() + timedelta(days=1)
+
+        await self.__telegram_bot(bot).notify_approved_request(request.user, first_task_date)
         return RequestResponse.parse_from(request)
 
     async def decline_request(
@@ -70,7 +78,8 @@ class RequestService:
         """Список заявок на участие."""
         return await self.__request_repository.get_requests_list(status)
 
-    def __exception_if_request_is_processed(self, status: Request.Status) -> None:
+    @staticmethod
+    def __exception_if_request_is_processed(status: Request.Status) -> None:
         """Если заявка была обработана ранее, выбрасываем исключение."""
         if status not in (Request.Status.PENDING,):
             raise RequestAlreadyReviewedException(status)
