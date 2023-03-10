@@ -106,14 +106,6 @@ async def update_user_data(
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
-    user = context.user_data.get('user')
-    if user_scheme.telegram_id != update.effective_user.id:
-        if user.status is None or user.status == 'declined':
-            await update.message.reply_text(
-                "Вы пытаетесь завершить регистрацию с другого устройства."
-                "Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
-            )
-            return
     user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
@@ -125,6 +117,13 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     session = get_session()
     registration_service = await get_user_service_callback(session)
     text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+    if user_scheme.telegram_id != update.effective_user.id:
+        if context.user_data.get('user').status is None or context.user_data.get('user').status == 'declined':
+            await update.message.reply_text(
+                "Вы пытаетесь завершить регистрацию с другого устройства."
+                "Пожалуйста, повторите попытку с устройства, с которого начали регистрацию."
+            )
+            return
     if context.user_data.get('user'):
         text = (
             " Обновленные данные приняты!\nПроцесс обработки заявок занимает некоторое время - вам придет уведомление."
