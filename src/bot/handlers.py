@@ -178,8 +178,7 @@ async def balance(telegram_id: int) -> int:
     session_gen = get_session()
     session = await session_gen.asend(None)
     member_service = MemberService(MemberRepository(session))
-    number_of_lombariers = await member_service.get_by_user_and_shift(telegram_id)
-    return number_of_lombariers
+    return await member_service.get_by_user_and_shift(telegram_id)
 
 
 async def skip_task(chat_id: int) -> None:
