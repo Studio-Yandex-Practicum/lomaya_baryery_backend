@@ -2,12 +2,12 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import desc, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report, User
+from src.core.db.models import Member, Report
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -64,16 +64,6 @@ class MemberRepository(AbstractRepository):
             )
         )
         return members.scalars().all()
-
-    async def get_by_user_id(self, telegram_id: UUID) -> Member:
-        member = await self._session.execute(
-            select(Member)
-            .join(User)
-            .filter(User.telegram_id == telegram_id)
-            .where(Member.user_id == User.id)
-            .order_by(desc(Member.created_at))
-        )
-        return member.scalars().first()
 
     async def is_unreviewed_report_exists(self, member_id: UUID) -> bool:
         """Проверка, есть ли у пользователя непроверенные задания в смене."""

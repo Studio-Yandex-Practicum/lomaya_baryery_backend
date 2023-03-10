@@ -285,3 +285,6 @@ class ShiftService:
         await self.__user_repository.update_all(users_to_update)
         await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
         return shift
+
+    async def get_current_shift(self) -> Shift:
+        return await self.__shift_repository.get_active_or_complete_shift()
