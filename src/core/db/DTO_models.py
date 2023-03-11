@@ -4,7 +4,14 @@ from uuid import UUID
 
 from sqlalchemy.engine import Row
 
-from src.core.db.models import Report, Request, Shift, User
+from src.core.db.models import Administrator, Report, Request, Shift, User
+
+
+@dataclass
+class AdministratorAndTokensDTO:
+    access_token: str
+    refresh_token: str
+    administrator: Administrator
 
 
 @dataclass

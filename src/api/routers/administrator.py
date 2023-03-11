@@ -2,18 +2,21 @@ from http import HTTPStatus
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorRegistrationRequest,
-    RefreshToken,
 )
-from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.api.response_models.administrator import (
+    AdministratorAndAccessTokenResponse,
+    AdministratorResponse,
+)
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
+from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -27,31 +30,47 @@ class AdministratorCBV:
 
     @router.post(
         "/login",
-        response_model=TokenResponse,
+        response_model=AdministratorAndAccessTokenResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
-        response_description="Access и refresh токены.",
+        response_description="Access-токен и информация о пользователе.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
     )
-    async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Аутентифицировать администратора по email и паролю.
+    async def login(
+        self, response: Response, auth_data: AdministratorAuthenticateRequest
+    ) -> AdministratorAndAccessTokenResponse:
+        """Аутентифицировать администратора по email и паролю. Вернуть access-токен и информацию об администраторе.
 
         - **email**: электронная почта
         - **password**: пароль
         """
-        return await self.authentication_service.login(auth_data)
+        admin_and_token = await self.authentication_service.login(auth_data)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
 
-    @router.post(
+    @router.get(
         "/refresh",
-        response_model=TokenResponse,
+        response_model=AdministratorAndAccessTokenResponse,
+        response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Обновление аутентификационного токена.",
-        response_description="Новая пара access и refresh токенов.",
+        response_description="Access-токен и информация о пользователе.",
     )
-    async def refresh(self, request_data: RefreshToken) -> TokenResponse:
-        """Обновление access и refresh токенов при помощи refresh токена."""
-        return await self.authentication_service.refresh(request_data.refresh_token)
+    async def refresh(
+        self, response: Response, refresh_token: str | None = Cookie(default=None)
+    ) -> AdministratorAndAccessTokenResponse:
+        """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
+
+        Вернуть access-токен и информацию об администраторе.
+        """
+        if not refresh_token:
+            raise UnauthorizedException()
+        admin_and_token = await self.authentication_service.refresh(refresh_token)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
 
     @router.get(
         "/me",

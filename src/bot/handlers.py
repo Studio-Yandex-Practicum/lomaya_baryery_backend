@@ -22,6 +22,7 @@ from src.core.db.repository import (
     ReportRepository,
     RequestRepository,
     ShiftRepository,
+    TaskRepository,
     UserRepository,
 )
 from src.core.exceptions import (
@@ -30,10 +31,13 @@ from src.core.exceptions import (
     CurrentTaskNotFoundError,
     DuplicateReportError,
     ExceededAttemptsReportError,
+    ReportAlreadyReviewedException,
+    ReportSkippedError,
 )
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
+from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
 
@@ -146,7 +150,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
     try:
         await report_service.send_report(report, photo_url)
-        await update.message.reply_text("Отчёт отправлен на проверку.")
+        await update.message.reply_text("Твой отчет отправлен на модерацию, после проверки тебе придет уведомление.")
     except CurrentTaskNotFoundError:
         await update.message.reply_text("Сейчас заданий нет.")
     except CannotAcceptReportError:
@@ -163,6 +167,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
             "Предлагаем продолжить, ведь впереди много интересных заданий. "
             "Следующее задание придет в 8.00 мск."
         )
+    except ReportSkippedError:
+        await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
@@ -172,8 +178,18 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             f"Общее количество {amount} 'ломбарьерчиков'!"
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
         )
-    elif update.message.text == SKIP_A_TASK:
-        await skip_task(update.effective_chat.id)
+    if update.message.text == SKIP_A_TASK:
+        try:
+            await skip_report(update.effective_chat.id)
+            await update.message.reply_text("Задание пропущено, следующее задание придет в 8.00 мск.")
+        except CurrentTaskNotFoundError:
+            await update.message.reply_text("Сейчас заданий нет.")
+        except ReportAlreadyReviewedException:
+            await update.message.reply_text(
+                "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
+            )
+        except ReportSkippedError:
+            await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
 async def get_balance(telegram_id: int) -> int:
@@ -184,8 +200,18 @@ async def get_balance(telegram_id: int) -> int:
     return await member_service.get_number_of_lombariers_by_telegram_id(telegram_id)
 
 
-async def skip_task(chat_id: int) -> None:
-    pass
+async def skip_report(chat_id: int) -> None:
+    """Метод для пропуска задания."""
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    shift_service = ShiftService(ShiftRepository(session))
+    user_service = UserService(UserRepository(session), RequestRepository(session), shift_service)
+    task_service = TaskService(TaskRepository(session))
+    report_service = ReportService(
+        ReportRepository(session), ShiftRepository(session), MemberRepository(session), task_service
+    )
+    user = await user_service.get_user_by_telegram_id(chat_id)
+    await report_service.skip_current_report(user.id)
 
 
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:

@@ -25,3 +25,4 @@ __pypackages__/
 # Telegram Bot data
 data/
 bot_persistence_file
+fill_db.log

@@ -1,10 +1,10 @@
-name: Stage backend build and deploy
+name: Test backend build and deploy
 
 on:
   pull_request:
     branches:
       - develop
-    types: [closed]
+    types: [ closed ]
 
 env:
   REGISTRY: ghcr.io
@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: https://lombaryery.tk/api/healthcheck
+  HEALTHCHECK_URL: https://test.lombaryery.tk/healthcheck
 
 defaults:
   run:
@@ -23,7 +23,7 @@ jobs:
     name: Push Docker image to GitHub Packages
     runs-on: ubuntu-latest
     environment:
-      name: Stage
+      name: test_deploy
 
     steps:
       - name: Check out the repo
@@ -44,17 +44,15 @@ jobs:
           labels: runnumber=${GITHUB_RUN_ID}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
-            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:test,
             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-
-  deploy:
-    name: Deploy
+  start_application:
+    name: Start application
     runs-on: ubuntu-latest
     needs: build_and_push_docker_image
     environment:
-      name: Stage
+      name: test_deploy
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -65,7 +63,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "docker-compose.yaml,nginx/default.conf"
+          source: "docker-compose.test.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
@@ -76,6 +74,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
+            mv docker-compose.test.yaml docker-compose.yaml
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
@@ -92,13 +91,6 @@ jobs:
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
 
-  start_application:
-    name: Start application
-    runs-on: ubuntu-latest
-    environment:
-      name: Stage
-    needs: deploy
-    steps:
       - name: Start appication
         uses: appleboy/ssh-action@master
         with:
@@ -108,10 +100,11 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
-            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:test
             docker-compose --file docker-compose.yaml stop
             docker-compose --file docker-compose.yaml rm backend
             docker-compose --file docker-compose.yaml up -d
+
       - name: Making migrations
         uses: appleboy/ssh-action@master
         with:
@@ -121,9 +114,11 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
+
       - name: Sleep for 30 seconds
         run: sleep 30s
         shell: bash
+
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:
