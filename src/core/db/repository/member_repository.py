@@ -87,4 +87,4 @@ class MemberRepository(AbstractRepository):
                 )
             )
         )
-        return amount.scalars().first()
+        return amount.scalars().one_or_none()
