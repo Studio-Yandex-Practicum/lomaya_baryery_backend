@@ -39,18 +39,13 @@ class Settings(BaseSettings):
     MIN_PASSWORD_LENGTH: int = 8
     ROOT_PATH: str = "/api/"
 
-    # MAIL_SERVER: str = "smtp.yandex.ru"
     MAIL_SERVER = "smtp.yandex.ru"
     MAIL_PORT: int = 465
-    # MAIL_PORT=465
-    # MAIL_LOGIN: str = ""
     MAIL_LOGIN = "emaildebugerVlad"
-    # MAIL_PASSWORD: str = ""
-    MAIL_PASSWORD = "nadxtkqvuoqikols"
+    # MAIL_PASSWORD = "buwshjafxfppbjrb"
+    MAIL_PASSWORD = "wcuvadslftsjhzmp"  # пароль приложения Ломая барьеры
     MAIL_STARTTLS: bool = False
-    # MAIL_STARTTLS=False
     MAIL_SSL_TLS: bool = True
-    # MAIL_SSL_TLS: bool = True
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
