@@ -92,7 +92,10 @@ class AdministratorInvitationCBV:
         summary="Деактивировать приглашение, отравленное администратору",
         response_description="Информация о приглашении",
     )
-    async def deactivate_invitation(self, invitation_id: UUID) -> Any:
+    async def deactivate_invitation(
+        self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
@@ -106,7 +109,10 @@ class AdministratorInvitationCBV:
         ),
         response_description="Информация о приглашении",
     )
-    async def reactivate_invitation(self, invitation_id: UUID) -> Any:
+    async def reactivate_invitation(
+        self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
