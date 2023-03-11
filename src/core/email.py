@@ -4,7 +4,7 @@ from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 
 from src.core.exceptions import EmailSendException
-from src.core.settings import ORGANIZATIONS_EMAIL, settings
+from src.core.settings import settings
 
 
 class EmailSchema(BaseModel):
@@ -15,8 +15,8 @@ class EmailSchema(BaseModel):
 class EmailProvider:
     """Класс для отправки электронных писем."""
 
+    @staticmethod
     async def __send_mail(
-        self,
         email_obj: EmailSchema,
         subject: str,
         template_name: str,
@@ -32,7 +32,7 @@ class EmailProvider:
         conf = ConnectionConfig(
             MAIL_USERNAME=settings.MAIL_LOGIN,
             MAIL_PASSWORD=settings.MAIL_PASSWORD,
-            MAIL_FROM=ORGANIZATIONS_EMAIL,
+            MAIL_FROM=settings.ORGANIZATIONS_EMAIL,
             MAIL_PORT=settings.MAIL_PORT,
             MAIL_SERVER=settings.MAIL_SERVER,
             # MAIL_FROM_NAME="Администрация \"Ломая Барьеры\"",
