@@ -6,8 +6,8 @@ from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
-from src.core import settings
 from src.core.db import models
+from src.core.settings import settings
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -35,12 +35,16 @@ class BotService:
         except Exception as exc:
             await error_handler(chat_id, exc)
 
-    async def notify_approved_request(self, user: models.User) -> None:
+    async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
         - Заявка принята.
         """
-        text = f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте!"
+        text = (
+            f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте! "
+            f"{first_task_date} в {settings.SEND_NEW_TASK_HOUR} часов "
+            "утра тебе поступит первое задание."
+        )
         await self.send_message(user, text)
 
     async def notify_declined_request(

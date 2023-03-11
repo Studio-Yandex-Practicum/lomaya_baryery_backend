@@ -83,4 +83,4 @@ async def start_shift_automatically_job(context: CallbackContext) -> None:
     if shifts:
         shift = shifts[0]
         if shift.started_at == date.today():
-            await shift_service.start_shift(id=shift.id)
+            await shift_service.start_shift(_id=shift.id)
