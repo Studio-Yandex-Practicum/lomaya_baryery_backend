@@ -39,6 +39,6 @@ class MemberService:
         current_task_date = get_current_task_date()
         return await self.__member_repository.get_members_for_reminding(shift_id, current_task_date)
 
-    async def get_number_of_lombariers_by_telegram_id(self, telegram_id) -> Member:
+    async def get_number_of_lombariers_by_telegram_id(self, telegram_id) -> int:
         """Получение баланса ломбарьеров в текущей смене по telegram_id."""
         return await self.__member_repository.get_number_of_lombariers_by_telegram_id(telegram_id)
