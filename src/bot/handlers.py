@@ -175,7 +175,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
         amount = await get_balance(update.effective_chat.id)
         await update.message.reply_text(
-            f"Общее количество {amount} 'ломбарьерчиков'!"
+            f"Общее количество {amount}  'ломбарьерчиков'! "
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
         )
     if update.message.text == SKIP_A_TASK:
