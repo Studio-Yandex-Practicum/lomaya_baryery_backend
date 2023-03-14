@@ -5,7 +5,7 @@ from pydantic import validator
 VALID_NAME_SURNAME = r"^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = (
     "В поле `{field_name}` могут быть использованы только русские буквы и `-`."
-    " Поле `{field_name}` должно начинаться с заглавной буквы."
+    "Поле `{field_name}` должно начинаться с заглавной буквы."
 )
 EN_RU = {
     "name": "Имя",
