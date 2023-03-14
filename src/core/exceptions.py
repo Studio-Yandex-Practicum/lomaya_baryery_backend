@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class ApplicationError(Exception):
     """Собственное исключение для бизнес-логики приложения."""
 
-    pass
+    detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
 
 
 class NotValidValueError(ApplicationError):
@@ -21,6 +21,66 @@ class NotValidValueError(ApplicationError):
 
     def __init__(self, detail: str | None) -> None:
         self.detail = detail
+        super().__init__()
+
+
+class CurrentTaskNotFoundError(ApplicationError):
+    """Не найдено текущей задачи для пользователя."""
+
+    def __init__(self) -> None:
+        self.detail = "Сейчас заданий нет."
+        super().__init__()
+
+
+class TodayTaskNotFoundError(ApplicationError):
+    """Не найдено ежедневной задачи на текущий день."""
+
+    def __init__(self) -> None:
+        self.detail = "Не найдено ежедневной задачи на текущий день."
+        super().__init__()
+
+
+class CannotAcceptReportError(ApplicationError):
+    """Статус задания пользователя не позволяет выполнить операцию."""
+
+    def __init__(self) -> None:
+        self.detail = "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
+        super().__init__()
+
+
+class DuplicateReportError(ApplicationError):
+    """Отчет с таким фото уже отправлялся ранее."""
+
+    def __init__(self) -> None:
+        self.detail = "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
+        super().__init__()
+
+
+class ExceededAttemptsReportError(ApplicationError):
+    """Превышено количество попыток сдать отчет."""
+
+    def __init__(self) -> None:
+        self.detail = (
+            "Превышено количество попыток сдать отчет."
+            "Предлагаем продолжить, ведь впереди много интересных заданий. "
+            "Следующее задание придет в 8.00 мск."
+        )
+        super().__init__()
+
+
+class EmptyReportError(ApplicationError):
+    """Отчет должен содержать фото."""
+
+    def __init__(self) -> None:
+        self.detail = "Отчет должен содержать фото."
+        super().__init__()
+
+
+class ReportSkippedError(ApplicationError):
+    """Отчет пропущен."""
+
+    def __init__(self) -> None:
+        self.detail = "Задание было пропущено, следующее задание придет в 8.00 мск."
         super().__init__()
 
 
@@ -43,48 +103,6 @@ class AlreadyExistsException(ApplicationException):
     def __init__(self, obj: DatabaseModel):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Объект {obj} уже существует"
-
-
-class CurrentTaskNotFoundError(Exception):
-    """Не найдено текущей задачи для пользователя."""
-
-    pass
-
-
-class TodayTaskNotFoundError(Exception):
-    """Не найдено ежедневной задачи на текущий день."""
-
-    pass
-
-
-class CannotAcceptReportError(Exception):
-    """Статус задания пользователя не позволяет выполнить операцию."""
-
-    pass
-
-
-class DuplicateReportError(Exception):
-    """Отчет с таким фото уже отправлялся ранее."""
-
-    pass
-
-
-class ExceededAttemptsReportError(Exception):
-    """Превышено количество попыток сдать отчет."""
-
-    pass
-
-
-class EmptyReportError(Exception):
-    """Отчет должен содержать фото."""
-
-    pass
-
-
-class ReportSkippedError(Exception):
-    """Отчет пропущен."""
-
-    pass
 
 
 class ShiftStartForbiddenException(ApplicationException):
