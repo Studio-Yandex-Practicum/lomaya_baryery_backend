@@ -5,8 +5,8 @@ from src.api.request_models.validators import name_surname_validator
 
 
 class AdministratorInvitationRequest(RequestBase):
-    name: StrictStr = Field(min_length=2, max_length=100)
-    surname: StrictStr = Field(min_length=2, max_length=100)
+    name: StrictStr = Field(min_length=2, max_length=20)
+    surname: StrictStr = Field(min_length=2, max_length=20)
     email: EmailStr
 
     _validate_name = name_surname_validator("name")
