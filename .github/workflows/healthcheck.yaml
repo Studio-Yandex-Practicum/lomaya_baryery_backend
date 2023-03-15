@@ -11,7 +11,7 @@ env:
   POSTGRES_DB: lomaya_baryery_db_local
   POSTGRES_USER: postgres
   DB_HOST: localhost
-  DB_PORT: 5432
+  DB_PORT: 6100
   APPLICATION_URL: 'http://localhost:8080/'
   SWAGGER_URL: 'http://localhost:8080/docs'
   HEALTHCHECK_URL: 'http://localhost:8080/healthcheck'
@@ -34,7 +34,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 6100:6100
     steps:
     -
       name: Check out the repo
