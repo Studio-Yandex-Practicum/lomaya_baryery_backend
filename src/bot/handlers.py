@@ -66,13 +66,14 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def check_user_status(update: Update, context: CallbackContext) -> None:
     """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    if context.user_data.get('user').status is None or context.user_data.get('user').status == 'declined':
+    STATUS = context.user_data.get('user').status
+    if STATUS is None or STATUS == 'declined':
         await update_user_data(update, context)
     else:
-        if context.user_data.get('user').status == 'pending':
+        if STATUS == 'pending':
             await update.message.reply_text(
                 "Ваша заявка еще на рассмотрении.")
-        elif context.user_data.get('user').status == 'approved':
+        elif STATUS == 'approved':
             await update.message.reply_text(
                 "Ваша заявка уже одобрена и не может быть изменена.")
 
