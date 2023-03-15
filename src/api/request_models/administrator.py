@@ -16,7 +16,7 @@ class AdministratorAuthenticateRequest(RequestBase):
 class AdministratorRegistrationRequest(RequestBase):
     """Схема для регистрации администратора."""
 
-    name: StrictStr = Field(min_length=2, max_length=20)
+    name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
     password: SecretStr
 
