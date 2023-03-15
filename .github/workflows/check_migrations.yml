@@ -23,7 +23,6 @@ jobs:
           --health-retries 5
         ports:
           - 6100:6100
-        command: -p 6100
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
