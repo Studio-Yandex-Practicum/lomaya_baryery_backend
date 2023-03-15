@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
 from starlette.exceptions import HTTPException
+
+if TYPE_CHECKING:
+    from src.core.db.models import Base as DatabaseModel
 
 
 class ApplicationError(Exception):
@@ -32,6 +37,12 @@ class NotFoundException(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+
+
+class AlreadyExistsException(ApplicationException):
+    def __init__(self, obj: DatabaseModel):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Объект {obj} уже существует"
 
 
 class CurrentTaskNotFoundError(Exception):
@@ -66,6 +77,12 @@ class ExceededAttemptsReportError(Exception):
 
 class EmptyReportError(Exception):
     """Отчет должен содержать фото."""
+
+    pass
+
+
+class ReportSkippedError(Exception):
+    """Отчет пропущен."""
 
     pass
 
@@ -213,7 +230,14 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorInvitationInvalid(RegistrationException):  # noqa N818
+class AdministratorAlreadyExistsException(ApplicationException):
+    """Пользователь с таким email уже существует."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Администратор с указанным email уже существует."
+
+
+class AdministratorInvitationInvalid(ApplicationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."

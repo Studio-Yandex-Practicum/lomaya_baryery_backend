@@ -14,6 +14,7 @@ from src.core.exceptions import (
     DuplicateReportError,
     NotFoundException,
     ReportAlreadyReviewedException,
+    ReportSkippedError,
     ReportWaitingPhotoException,
 )
 from src.core.services.task_service import TaskService
@@ -52,6 +53,10 @@ class ReportService:
         if report:
             raise DuplicateReportError()
 
+    async def check_report_skipped(self, report: Report) -> None:
+        if report.status == Report.Status.SKIPPED:
+            raise ReportSkippedError()
+
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
         shift_id = await self.__shift_repository.get_started_shift_id()
@@ -83,6 +88,16 @@ class ReportService:
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
+    async def skip_current_report(self, user_id: UUID) -> Report:
+        """Задание пропущено: изменение статуса."""
+        report = await self.__report_repository.get_current_report(user_id)
+        if report.status is Report.Status.SKIPPED:
+            raise ReportSkippedError()
+        if report.status is not Report.Status.WAITING:
+            raise ReportAlreadyReviewedException(status=report.status)
+        report.status = Report.Status.SKIPPED
+        return await self.__report_repository.update(report.id, report)
+
     async def __notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
         """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""
         if (
@@ -90,7 +105,14 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            await self.__telegram_bot(bot).send_message(member.user, member.shift.final_message)
+            await self.__telegram_bot(bot).send_message(
+                member.user,
+                member.shift.final_message.format(
+                    name=member.user.name,
+                    surname=member.user.surname,
+                    numbers_lombaryers=member.numbers_lombaryers,
+                ),
+            )
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
@@ -128,6 +150,7 @@ class ReportService:
         return await self.__report_repository.get_current_report(user_id)
 
     async def send_report(self, report: Report, photo_url: str) -> Report:
+        await self.check_report_skipped(report)
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)

@@ -1,9 +1,12 @@
+from http import HTTPStatus
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from src.api import routers
 from src.bot.main import start_bot
+from src.core.exception_handlers import internal_exception_handler
 from src.core.settings import settings
 
 
@@ -32,6 +35,8 @@ def create_app() -> FastAPI:
     app.include_router(routers.task_router)
     app.include_router(routers.administrator_invitation_router)
     app.include_router(routers.telegram)
+
+    app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
 
     @app.on_event("startup")
     async def on_startup():

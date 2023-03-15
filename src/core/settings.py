@@ -29,14 +29,14 @@ class Settings(BaseSettings):
     MIN_DAYS: int = 1
     MAX_DAYS: int = 93
     SEND_NEW_TASK_HOUR: int = 8  # время для отправки задания
-    SEND_NO_REPORT_REMINDER_HOUR: int = 20  # время для напоминания о невыполненном задании
+    SEND_NO_REPORT_REMINDER_HOUR: int = 19  # время для напоминания о невыполненном задании
     MIN_AGE: int = 3  # минимальный возраст участника
     DAYS_FROM_START_OF_SHIFT_TO_JOIN: int = 2  # сколько дней от начала смены возможна регистрация
     MAX_REQUESTS: int = 3  # Максимальное число запросов на участие в смене
     HEALTHCHECK_API_URL: str
     DEBUG: bool = False
     SECRET_KEY: str = str(uuid.uuid4())
-    MIN_PASSWORD_LENGTH: int = 4
+    MIN_PASSWORD_LENGTH: int = 8
     ROOT_PATH: str = "/api/"
 
     MAIL_SERVER: str = "smtp.yandex.ru"
@@ -50,6 +50,10 @@ class Settings(BaseSettings):
 
     # количество заданий для исключения участника из смены, на которое подряд не было отправлено отчетов
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
+
+    # Organization data
+    ORGANIZATIONS_EMAIL: str = "lomayabaryery.noreply@yandex.ru"
+    ORGANIZATIONS_GROUP: str = "https://vk.com/socialrb02"
 
     @property
     def database_url(self) -> str:
@@ -115,8 +119,5 @@ def get_settings():
 
 settings = get_settings()
 
-# Organization data
-ORGANIZATIONS_EMAIL = "lomayabaryery.noreply@yandex.ru"
-ORGANIZATIONS_GROUP = "https://vk.com/socialrb02"
 NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию

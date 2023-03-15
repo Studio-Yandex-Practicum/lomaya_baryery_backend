@@ -7,8 +7,10 @@ import factory
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from src.bot import services  # noqa: prevent circular imports error
 from src.core.db import models
 from src.core.db.models import Report, Shift, Task
+from src.core.services.authentication_service import AuthenticationService
 from src.core.services.shift_service import FINAL_MESSAGE
 from src.core.settings import settings
 
@@ -149,3 +151,16 @@ class MemberFactory(BaseFactory):
             add_several_reports=1,
             **kwargs,
         )
+
+
+class AdministratorFactory(BaseFactory):
+    class Meta:
+        model = models.Administrator
+
+    id = factory.Faker("uuid4")
+    name = factory.Faker("first_name")
+    surname = factory.Faker("last_name")
+    email = "user@example.com"
+    hashed_password = AuthenticationService.get_hashed_password("string")
+    role = models.Administrator.Role.ADMINISTRATOR
+    status = models.Administrator.Status.ACTIVE
