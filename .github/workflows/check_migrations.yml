@@ -6,9 +6,6 @@ on:
       - develop
       - master
 
-env:
-  DB_PORT: 6100
-
 jobs:
   migrations:
     name: Check Migrations
@@ -25,8 +22,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - ${{ env.DB_PORT }}:${{ env.DB_PORT }}
-        command: -p ${{ env.DB_PORT }}
+          - 6100:6100
+        command: -p 6100
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
