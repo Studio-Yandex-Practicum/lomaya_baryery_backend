@@ -22,7 +22,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 6100:6100
+          - 5432:5432
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
