@@ -19,6 +19,7 @@ from src.core.exceptions import (
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
+from src.core.utils import lombaryers_case
 
 
 class ReportService:
@@ -105,24 +106,13 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            lombaryers_case = ''
-            numbers_lombaryers = member.numbers_lombaryers
-            if numbers_lombaryers == 1 or (numbers_lombaryers > 20 and (numbers_lombaryers % 10) == 1) and (
-                    numbers_lombaryers % 100) != 11:
-                lombaryers_case = 'ломбарьерчик'
-            elif (1 < numbers_lombaryers < 5) or (numbers_lombaryers > 20 and 1 < (numbers_lombaryers % 10) < 5):
-                lombaryers_case = 'ломбарьерчика'
-            elif numbers_lombaryers == 0 or (1 < numbers_lombaryers < 20) or (numbers_lombaryers % 10) == 0 or (
-                    numbers_lombaryers % 100) >= 11 or (numbers_lombaryers % 10) >= 5 or (
-                    numbers_lombaryers % 100) >= 10:
-                lombaryers_case = 'ломбарьерчиков'
             await self.__telegram_bot(bot).send_message(
                 member.user,
                 member.shift.final_message.format(
                     name=member.user.name,
                     surname=member.user.surname,
                     numbers_lombaryers=member.numbers_lombaryers,
-                    lombaryers_case=lombaryers_case,
+                    lombaryers_case=lombaryers_case(member.numbers_lombaryers),
                 ),
             )
 
