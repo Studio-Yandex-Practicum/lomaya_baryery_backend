@@ -22,7 +22,6 @@ from src.bot.handlers import (
 )
 from src.bot.jobs import (
     finish_shift_automatically_job,
-    send_daily_task_job,
     send_no_report_reminder_job,
     start_shift_automatically_job,
 )
@@ -52,14 +51,6 @@ def create_bot() -> Application:
     bot_instance.job_queue.run_daily(
         start_shift_automatically_job,
         time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
-    )
-    bot_instance.job_queue.run_daily(
-        send_daily_task_job,
-        time(
-            hour=settings.SEND_NEW_TASK_HOUR,
-            minute=5,  # Оставляем задержку для гарантированного старта смены
-            tzinfo=pytz.timezone("Europe/Moscow"),
-        ),
     )
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,
