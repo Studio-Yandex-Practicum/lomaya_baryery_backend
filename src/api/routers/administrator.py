@@ -59,12 +59,16 @@ class AdministratorCBV:
         response_description="Access-токен и информация о пользователе.",
     )
     async def refresh(
-        self, response: Response, refresh_token: str | None = Cookie(default=None)
+        self,
+        response: Response,
+        refresh_token: str | None = Cookie(default=None),
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorAndAccessTokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
 
         Вернуть access-токен и информацию об администраторе.
         """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         if not refresh_token:
             raise UnauthorizedException()
         admin_and_token = await self.authentication_service.refresh(refresh_token)
@@ -113,6 +117,7 @@ class AdministratorCBV:
     )
     async def get_administrators(
         self,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
         status: Administrator.Status = None,
         role: Administrator.Role = None,
     ) -> Any:
@@ -122,4 +127,5 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

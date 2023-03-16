@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator_invitation import (
@@ -15,6 +16,7 @@ from src.api.response_models.administrator_invitation import (
 from src.api.response_models.error import generate_error_responses
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
+from src.core.services.authentication_service import AuthenticationService
 from src.core.settings import settings
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
@@ -23,6 +25,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 @cbv(router)
 class AdministratorInvitationCBV:
     administrator_invitation_service: AdministratorInvitationService = Depends()
+    authentication_service: AuthenticationService = Depends()
     email_provider: EmailProvider = Depends()
 
     @router.post(
@@ -39,8 +42,12 @@ class AdministratorInvitationCBV:
         summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
     )
     async def create_and_send_invitation(
-        self, request: Request, invitation_data: AdministratorInvitationRequest
+        self,
+        request: Request,
+        invitation_data: AdministratorInvitationRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invite.token}")
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
@@ -54,7 +61,10 @@ class AdministratorInvitationCBV:
         summary="Получить информацию о приглашениях, отправленных администраторам",
         response_description="Информация о приглашениях",
     )
-    async def get_all_invitations(self) -> list[AdministratorInvitationResponse]:
+    async def get_all_invitations(
+        self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> list[AdministratorInvitationResponse]:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
@@ -82,7 +92,10 @@ class AdministratorInvitationCBV:
         summary="Деактивировать приглашение, отравленное администратору",
         response_description="Информация о приглашении",
     )
-    async def deactivate_invitation(self, invitation_id: UUID) -> Any:
+    async def deactivate_invitation(
+        self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
@@ -96,7 +109,10 @@ class AdministratorInvitationCBV:
         ),
         response_description="Информация о приглашении",
     )
-    async def reactivate_invitation(self, invitation_id: UUID) -> Any:
+    async def reactivate_invitation(
+        self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> Any:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
