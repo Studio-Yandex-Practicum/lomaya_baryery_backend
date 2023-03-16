@@ -23,4 +23,6 @@ def _is_russian_or_hyphen_or_len(value: str, regexp: str, field_name: str) -> st
 
 
 def name_surname_validator(field_name: str):
-    return validator(field_name, allow_reuse=True)(lambda v: _is_russian_or_hyphen_or_len(v, VALID_NAME_SURNAME, field_name))
+    return validator(field_name, allow_reuse=True)(
+        lambda v: _is_russian_or_hyphen_or_len(v, VALID_NAME_SURNAME, field_name)
+    )
