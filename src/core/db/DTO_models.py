@@ -22,7 +22,7 @@ class FullReportDto:
     report_id: UUID
     report_status: Report.Status
     report_created_at: date
-    report_uploaded_at: datetime
+    report_uploaded_at: datetime | None
     user_name: str
     user_surname: str
     task_id: UUID
