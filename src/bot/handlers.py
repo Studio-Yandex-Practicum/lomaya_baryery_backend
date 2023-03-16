@@ -173,8 +173,11 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
-        amount = await balance(update.effective_chat.id)
-        await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
+        amount = await get_balance(update.effective_chat.id)
+        await update.message.reply_text(
+            f"Общее количество {amount}  'ломбарьерчиков'! "
+            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
+        )
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
@@ -189,13 +192,12 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
-async def balance(telegram_id: int) -> int:
+async def get_balance(telegram_id: int) -> int:
     """Метод для получения баланса ломбарьеров."""
     session_gen = get_session()
     session = await session_gen.asend(None)
     member_service = MemberService(MemberRepository(session))
-    member = await member_service.get_by_user_id(telegram_id)
-    return member.numbers_lombaryers
+    return await member_service.get_number_of_lombariers_by_telegram_id(telegram_id)
 
 
 async def skip_report(chat_id: int) -> None:
