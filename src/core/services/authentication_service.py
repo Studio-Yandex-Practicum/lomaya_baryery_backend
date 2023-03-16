@@ -6,14 +6,10 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
+from src.core import exceptions
 from src.core.db.DTO_models import AdministratorAndTokensDTO
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
-from src.core.exceptions import (
-    AdministratorBlockedException,
-    InvalidAuthenticationDataException,
-    UnauthorizedException,
-)
 from src.core.settings import settings
 
 PASSWORD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -52,10 +48,10 @@ class AuthenticationService:
         """Аутентификация администратора по email и паролю."""
         administrator = await self.__administrator_repository.get_by_email(auth_data.email)
         if administrator.status == Administrator.Status.BLOCKED:
-            raise AdministratorBlockedException()
+            raise exceptions.AdministratorBlockedError()
         password = auth_data.password.get_secret_value()
         if not self.__verify_hashed_password(password, administrator.hashed_password):
-            raise InvalidAuthenticationDataException()
+            raise exceptions.InvalidAuthenticationDataError()
         return administrator
 
     async def login(self, auth_data: AdministratorAuthenticateRequest) -> AdministratorAndTokensDTO:
@@ -74,13 +70,13 @@ class AuthenticationService:
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         except JWTError:
-            raise UnauthorizedException()
+            raise exceptions.UnauthorizedError()
         email = payload.get("email")
         if not email:
-            raise UnauthorizedException()
+            raise exceptions.UnauthorizedError()
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
-            raise AdministratorBlockedException()
+            raise exceptions.AdministratorBlockedError()
         return administrator
 
     async def refresh(self, token: str) -> AdministratorAndTokensDTO:

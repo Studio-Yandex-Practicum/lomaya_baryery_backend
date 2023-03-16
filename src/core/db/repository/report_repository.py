@@ -6,11 +6,11 @@ from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.core import exceptions
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError, NotFoundException
 from src.core.utils import get_current_task_date
 
 
@@ -26,15 +26,15 @@ class ReportRepository(AbstractRepository):
 
     async def get_report_with_report_url(
         self,
-        id: UUID,
+        report_id: UUID,
     ) -> Report:
         """Получить отчет участника по id с url фото выполненного задания."""
         report = await self._session.execute(
-            select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == id)
+            select(Report).options(selectinload(Report.member).selectinload(Member.user)).where(Report.id == report_id)
         )
         report = report.scalars().first()
         if not report:
-            raise NotFoundException(Report.__name__, id)
+            raise exceptions.NotFoundError(Report.__name__, report_id)
         return report
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
@@ -90,5 +90,5 @@ class ReportRepository(AbstractRepository):
         )
         report = reports.scalars().first()
         if not report:
-            raise CurrentTaskNotFoundError()
+            raise exceptions.CurrentTaskNotFoundError()
         return report

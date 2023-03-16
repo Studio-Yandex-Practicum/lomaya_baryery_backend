@@ -1,12 +1,12 @@
-from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Request, User
@@ -30,10 +30,7 @@ class RequestRepository(AbstractRepository):
         )
         request = request.scalars().first()
         if request is None:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail=f"Объект Request c id={request_id} не найден.",
-            )
+            raise exceptions.NotFoundError(object_name=Request.__name__, object_id=request_id)
         return request
 
     async def get_by_user_and_shift(self, user_id: UUID, shift_id: UUID) -> Request:

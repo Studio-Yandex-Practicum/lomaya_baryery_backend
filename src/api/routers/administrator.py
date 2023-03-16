@@ -15,8 +15,8 @@ from src.api.response_models.administrator import (
     AdministratorResponse,
 )
 from src.api.response_models.error import generate_error_responses
+from src.core import exceptions
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -66,7 +66,7 @@ class AdministratorCBV:
         Вернуть access-токен и информацию об администраторе.
         """
         if not refresh_token:
-            raise UnauthorizedException()
+            raise exceptions.UnauthorizedError()
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token

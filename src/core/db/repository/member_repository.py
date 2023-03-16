@@ -6,10 +6,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import NotFoundException
 
 
 class MemberRepository(AbstractRepository):
@@ -33,7 +33,7 @@ class MemberRepository(AbstractRepository):
         )
         member = member.scalars().first()
         if not member:
-            raise NotFoundException(object_name=Member.__name__, object_id=member_id)
+            raise exceptions.NotFoundError(object_name=Member.__name__, object_id=member_id)
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
@@ -67,11 +67,7 @@ class MemberRepository(AbstractRepository):
 
     async def get_by_user_id(self, telegram_id: UUID) -> Member:
         member = await self._session.execute(
-            select(Member)
-            .join(User).filter(User.telegram_id == telegram_id)
-            .where(
-                Member.user_id == User.id
-            )
+            select(Member).join(User).filter(User.telegram_id == telegram_id).where(Member.user_id == User.id)
         )
         return member.scalars().first()
 

@@ -16,6 +16,7 @@ from telegram.ext import CallbackContext
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.repository import (
     MemberRepository,
@@ -25,7 +26,6 @@ from src.core.db.repository import (
     TaskRepository,
     UserRepository,
 )
-from src.core.exceptions import ApplicationError, ReportAlreadyReviewedException
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
@@ -110,7 +110,7 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         )
     try:
         await registration_service.register_user(user_scheme)
-    except ApplicationError as e:
+    except exceptions.ApplicationError as e:
         text = e.detail
     await update.message.reply_text(
         text=text,
@@ -144,7 +144,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         await report_service.send_report(report, photo_url)
 
         text = "Твой отчет отправлен на модерацию, после проверки тебе придет уведомление."
-    except ApplicationError as e:
+    except exceptions.ApplicationError as e:
         text = e.detail
 
     await update.message.reply_text(text)
@@ -158,11 +158,11 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         try:
             await skip_report(update.effective_chat.id)
             await update.message.reply_text("Задание пропущено, следующее задание придет в 8.00 мск.")
-        except ReportAlreadyReviewedException:
+        except exceptions.ReportAlreadyReviewedError:
             await update.message.reply_text(
                 "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
             )
-        except ApplicationError as e:
+        except exceptions.ApplicationError as e:
             await update.message.reply_text(e.detail)
 
 
