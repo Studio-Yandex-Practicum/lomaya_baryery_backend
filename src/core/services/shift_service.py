@@ -15,7 +15,7 @@ from src.api.request_models.shift import (
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
-    ShiftDtoRespone,
+    ShiftDtoResponse,
     ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
@@ -214,9 +214,9 @@ class ShiftService:
 
     async def get_shift_with_members(self, _id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
         shift = await self.__shift_repository.get_with_members(_id, member_status)
-        return ShiftMembersResponse(shift=shift, members=shift.members)
+        return ShiftMembersResponse(members=shift.members)
 
-    async def list_all_requests(self, _id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
+    async def list_all_requests(self, _id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
         shift_exists = await self.__shift_repository.check_shift_existence(_id)
         if not shift_exists:
             raise NotFoundException(object_name=Shift.__name__, object_id=_id)

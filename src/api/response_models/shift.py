@@ -23,11 +23,10 @@ class ShiftResponse(BaseModel):
 class ShiftMembersResponse(BaseModel):
     """Модель для вывода пользователей смены."""
 
-    shift: ShiftResponse
     members: list[MemberResponse]
 
 
-class ShiftDtoRespone(BaseModel):
+class ShiftDtoResponse(BaseModel):
     user_id: UUID
     name: str
     surname: str

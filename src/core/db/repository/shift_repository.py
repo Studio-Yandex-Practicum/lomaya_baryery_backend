@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, subqueryload
 
 from src.api.request_models.shift import ShiftSortRequest
-from src.api.response_models.shift import ShiftDtoRespone
+from src.api.response_models.shift import ShiftDtoResponse
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
@@ -50,7 +50,7 @@ class ShiftRepository(AbstractRepository):
             raise NotFoundException(object_name=Shift.__doc__, object_id=id)
         return request
 
-    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
+    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
         db_list_request = await self._session.execute(
             select(
                 Request.user_id,

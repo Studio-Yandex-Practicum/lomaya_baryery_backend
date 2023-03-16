@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from sqlalchemy.engine import Row
@@ -22,6 +22,7 @@ class FullReportDto:
     report_id: UUID
     report_status: Report.Status
     report_created_at: date
+    report_uploaded_at: datetime
     user_name: str
     user_surname: str
     task_id: UUID
