@@ -2,8 +2,6 @@ version: '3.3'
 
 volumes:
   postgres_data_stage:
-  static_value:
-  tasks:
 
 
 services:
@@ -30,9 +28,9 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
+      - ./static/registration:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
-      - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
+      - ./static/tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
     env_file:
       - .env
 
@@ -61,11 +59,11 @@ services:
       - backend
       - frontend
     volumes:
-      - static_value:/var/html/static/
+      - ./static/registration:/var/html/static/
       - ./nginx/default.conf:/config/nginx/site-confs/default.conf
       - ./fail2ban/jail.local:/config/fail2ban/jail.local
       - ./static/user_reports:/var/html/user_reports/
-      - tasks:/var/html/tasks/
+      - ./static/tasks:/var/html/tasks/
       - ./frontend/:/var/html/frontend/
     env_file:
       - .env
