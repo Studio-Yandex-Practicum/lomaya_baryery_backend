@@ -12,7 +12,7 @@ from src.api.request_models.validators import name_surname_validator
 from src.core.db.models import Request, User
 
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
-INVALID_TEXT_ERROR = "В поле {} могут быть использованы только русские буквы и \"-\"."
+INVALID_TEXT_ERROR = "В поле {} может быть использована только кириллица и \"-\"."
 DATE_FORMAT = "%d.%m.%Y"
 
 
