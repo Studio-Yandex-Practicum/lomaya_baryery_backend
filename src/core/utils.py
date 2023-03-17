@@ -10,15 +10,15 @@ def get_current_task_date() -> datetime.date:
 
 
 def lombaryers_case(numbers_lombaryers: int) -> str:
-    PLURAL = 'ломбарьерчиков'
-    SINGULAR = 'ломбарьерчик'
-    GENITIVE = 'ломбарьерчика'
+    plural = 'ломбарьерчиков'
+    singular = 'ломбарьерчик'
+    genitive = 'ломбарьерчика'
     last_two_digits = numbers_lombaryers % 100
     if 11 <= last_two_digits <= 19:
-        return PLURAL
+        return plural
     last_digit = last_two_digits % 10
     if last_digit == 1:
-        return SINGULAR
+        return singular
     if 1 < last_digit < 5:
-        return GENITIVE
-    return PLURAL
+        return genitive
+    return plural
