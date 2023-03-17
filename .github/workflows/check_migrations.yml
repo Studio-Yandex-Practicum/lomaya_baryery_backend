@@ -22,8 +22,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 6100:6100
-        command: -p 6100
+          - 5432:5432
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -38,6 +37,6 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --without dev
       - name: Alembic Upgrade
-        run: alembic upgrade heads
+        run: poetry run alembic upgrade head
       - name: Check Migrations
         run: alembic-autogen-check --config ./alembic.ini
