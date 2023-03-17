@@ -15,7 +15,7 @@ from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
-from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
+from src.bot.ui import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core.db.db import get_session
 from src.core.db.repository import (
     MemberRepository,

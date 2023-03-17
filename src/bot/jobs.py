@@ -2,7 +2,6 @@ import asyncio
 from datetime import date
 from urllib.parse import urljoin
 
-from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
 from src.bot.api_services import (
@@ -10,13 +9,10 @@ from src.bot.api_services import (
     get_report_service_callback,
     get_shift_service_callback,
 )
-from src.bot.services import BotService
+from src.bot.services import BotService, start_shift_service
+from src.bot.ui import buttons
 from src.core.db.db import get_session
-from src.core.db.models import Shift
 from src.core.settings import settings
-
-LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
-SKIP_A_TASK = 'Пропустить задание'
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
@@ -47,8 +43,8 @@ async def finish_shift_automatically_job(context: CallbackContext) -> None:
     await shift_service.finish_shift_automatically(context.application)
 
 
-async def start_shift_automatically_job(context: CallbackContext) -> None:
-    """Автоматически запускает смену в дату, указанную в started_at."""
+async def send_daily_task_job(context: CallbackContext) -> None:
+    """Автоматически запускает смену и рассылает задания"""
     shift_session = get_session()
     report_session = get_session()
     member_session = get_session()
@@ -56,15 +52,8 @@ async def start_shift_automatically_job(context: CallbackContext) -> None:
     report_service = await get_report_service_callback(report_session)
     member_service = await get_member_service_callback(member_session)
 
-    shifts = await shift_service.list_all_shifts(status=[Shift.Status.PREPARING])
-    if shifts:
-        shift = shifts[0]
-        if shift.started_at == date.today():
-            await shift_service.start_shift(_id=shift.id)
+    await start_shift_service(shift_service)
 
-    await asyncio.sleep(300)  # Оставляем задержку для гарантированного старта смены
-
-    buttons = ReplyKeyboardMarkup([[SKIP_A_TASK, LOMBARIERS_BALANCE]], resize_keyboard=True)
     bot_service = BotService(context)
     await member_service.exclude_lagging_members(context.application)
     task, members = await report_service.get_today_task_and_active_members(date.today().day)
