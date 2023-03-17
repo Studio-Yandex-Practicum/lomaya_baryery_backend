@@ -1,0 +1,71 @@
+version: '3.3'
+
+volumes:
+  postgres_data_stage:
+  static_value:
+  tasks:
+
+
+services:
+  postgres:
+    image: postgres:13.2
+    container_name: postgres_stage
+    restart: always
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - postgres_data_stage:/var/lib/postgresql/data/
+    ports:
+      - "6100:6100"
+    env_file:
+      - .env
+    command: -p 6100
+
+  backend:
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
+    container_name: lomaya_baryery_backend
+    restart: always
+    environment:
+      - TZ=Europe/Moscow
+    depends_on:
+      - postgres
+    volumes:
+      - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
+      - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
+      - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
+    env_file:
+      - .env
+
+  frontend:
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
+    container_name: lomaya_baryery_frontend
+    volumes:
+      - ./frontend/:/app/result_build/
+
+  swag:
+    image: linuxserver/swag
+    container_name: swag
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=Europe/Moscow
+      - URL=lombaryery.tk
+      - VALIDATION=http
+      - CERTPROVIDER=zerossl
+      - EMAIL=lomayabaryery@yandex.ru
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - static_value:/var/html/static/
+      - ./nginx/default.conf:/config/nginx/site-confs/default.conf
+      - ./fail2ban/jail.local:/config/fail2ban/jail.local
+      - ./static/user_reports:/var/html/user_reports/
+      - tasks:/var/html/tasks/
+      - ./frontend/:/var/html/frontend/
+    env_file:
+      - .env
