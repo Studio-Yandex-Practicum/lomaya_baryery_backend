@@ -17,6 +17,7 @@ from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core.db.db import get_session
+from src.core.db.models import Request
 from src.core.db.repository import (
     MemberRepository,
     ReportRepository,
@@ -66,14 +67,13 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def check_user_status(update: Update, context: CallbackContext) -> None:
     """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    status = context.user_data.get('user').status
-    if status is None or status == 'declined':
+    if Request.status is None or Request.status.DECLINED:
         await update_user_data(update, context)
     else:
-        if status == 'pending':
+        if Request.status.PENDING:
             await update.message.reply_text(
                 "Ваша заявка еще на рассмотрении.")
-        elif status == 'approved':
+        elif Request.status.APPROVED:
             await update.message.reply_text(
                 "Ваша заявка уже одобрена и не может быть изменена.")
 
