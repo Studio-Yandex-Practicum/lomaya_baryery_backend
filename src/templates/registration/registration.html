@@ -205,11 +205,11 @@
     // validation settings and check actions
     const validationConfig = {
       name: {
-        pattern: /[^А-Яа-я-]/g,
+        pattern: /[^ЁА-Яёа-я-]/g,
         isCapitalize: true,
       },
       surname: {
-        pattern: /[^А-Яа-я-]/g,
+        pattern: /[^ЁА-Яёа-я-]/g,
         isCapitalize: true,
       },
       date_of_birth: {
@@ -217,7 +217,7 @@
         isCapitalize: false,
       },
       city: {
-        pattern: /[^А-Яа-я- ]/g,
+        pattern: /[^ЁА-Яёа-я- ]/g,
         isCapitalize: true,
       },
       phone_number: {
@@ -233,6 +233,7 @@
         max: "Допускается ввод не более 100 символов",
         capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
         dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        nameSurnamePattern: "Доступно использование только кириллицы и \"-\"",
       },
       surname: {
         required: "Пожалуйста, укажите фамилию",
@@ -240,6 +241,7 @@
         max: "Допускается ввод не более 100 символов",
         capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
         dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        nameSurnamePattern: "Доступно использование только кириллицы и \"-\"",
       },
       date_of_birth: {
         required: "Пожалуйста, укажите дату рождения",
@@ -251,11 +253,14 @@
         max: "Допускается ввод не более 50 символов",
         capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
         dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        cityPattern: "Доступно использование только кириллицы, пробела и \"-\"",
       },
       phone_number: {
         required: "Пожалуйста, укажите номер телефона",
         min: "Введите номер телефона без разделителей (включая 8)",
         max: "Номер телефона не должен содержать более 11 цифр",
+        phonePattern: `Допускаются номера только мобильных
+          операторов РФ - \"89.........\" или \"79.........\"`,
       },
     };
 
@@ -284,6 +289,9 @@
       const maximumlength = element.getAttribute("maximumlength");
       const capsPattern = /[А-ЯЁ]{2,}/g;
       const dashPattern = /( -)|(- )|(^-)|(-$)/g;
+      const phonePattern = /^[7|8][9][\d]{9}$/g;
+      const nameSurnamePattern = /^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$/g;
+      const cityPattern = /^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$/g;
 
       if (pattern) {
         newValue = newValue.trimStart().replace(pattern, "");
@@ -318,6 +326,19 @@
         setInvalid(element, errElement, "capsPattern");
       } else if (newValue.match(dashPattern)) {
         setInvalid(element, errElement, "dashPattern");
+      } else if (
+        element.name === "phone_number" && !(newValue.match(phonePattern))
+      ) {
+        setInvalid(element, errElement, "phonePattern");
+      } else if (
+        (element.name === "name" || element.name === "surname") &&
+        !(newValue.match(nameSurnamePattern))
+      ) {
+        setInvalid(element, errElement, "nameSurnamePattern");
+      } else if (
+        element.name === "city" && !(newValue.match(cityPattern))
+      ) {
+        setInvalid(element, errElement, "cityPattern");
       } else {
         setValid(element, errElement);
       }
@@ -398,6 +419,9 @@
       document.getElementById("date_of_birth").value = params.date_of_birth;
       document.getElementById("city").value = params.city;
       document.getElementById("phone_number").value = params.phone_number;
+    }
+
+    if (params.update) {
       var formText = `Рады снова видеть Вас в нашем проекте.<br>
         Пожалуйста, проверьте свои данные.`;
       var buttonText = "Подать заявку на участие в смене";

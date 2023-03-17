@@ -58,6 +58,7 @@ class ReportRepository(AbstractRepository):
             Report.id,
             Report.status,
             Report.created_at,
+            Report.uploaded_at,
             User.name,
             User.surname,
             Report.task_id,
