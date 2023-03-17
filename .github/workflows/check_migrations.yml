@@ -6,6 +6,9 @@ on:
       - develop
       - master
 
+env:
+  DB_PORT: 5432
+
 jobs:
   migrations:
     name: Check Migrations
