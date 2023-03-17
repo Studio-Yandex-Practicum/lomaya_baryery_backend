@@ -31,6 +31,7 @@ from src.core.exceptions import (
     CurrentTaskNotFoundError,
     DuplicateReportError,
     ExceededAttemptsReportError,
+    NotValidValueError,
     ReportAlreadyReviewedException,
     ReportSkippedError,
 )
@@ -40,6 +41,7 @@ from src.core.services.shift_service import ShiftService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
+from src.core.utils import lombaryers_case
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -54,7 +56,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     session = get_session()
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    context.user_data['user'] = user
+    context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
@@ -69,12 +71,17 @@ async def register_user(
     context: CallbackContext,
 ) -> None:
     """Инициализация формы регистрации пользователя."""
+    query = None
+    text = "Зарегистрироваться в проекте"
+    if update.effective_message.web_app_data:
+        query = urllib.parse.urlencode(json.loads(update.effective_message.web_app_data.data))
+        text = "Исправить неверно внесенные данные"
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
-                text="Зарегистрироваться в проекте",
-                web_app=WebAppInfo(url=settings.registration_template_url),
+                text=text,
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
@@ -85,15 +92,20 @@ async def update_user_data(
     context: CallbackContext,
 ) -> None:
     """Инициализация формы для обновления регистрационных данных пользователя."""
-    user = context.user_data.get('user')
-    web_hook = UserWebhookTelegram.from_orm(user)
-    query = urllib.parse.urlencode(web_hook.dict())
+    if update.effective_message.web_app_data:
+        query = urllib.parse.urlencode(json.loads(update.effective_message.web_app_data.data))
+        text = "Исправить неверно внесенные данные"
+    else:
+        text = "Подать заявку на участие в смене"
+        user = context.user_data.get("user")
+        web_hook = UserWebhookTelegram.from_orm(user)
+        query = urllib.parse.urlencode(web_hook.dict())
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
-                text="Подать заявку на участие в смене",
-                web_app=WebAppInfo(url=f'{settings.registration_template_url}?{query}'),
+                text=text,
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?update=true&{query}"),
             )
         ),
     )
@@ -107,23 +119,39 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     except ValidationError as e:
         e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
+        if context.user_data.get("user"):
+            await update_user_data(update, context)
+        else:
+            await register_user(update, context)
         return
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
-    text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-    if context.user_data.get('user'):
-        text = (
-            " Обновленные данные приняты!\nПроцесс обработки заявок занимает некоторое время - вам придет уведомление."
-        )
+    reply_markup, validation_error = None, False
     try:
         await registration_service.register_user(user_scheme)
+    except NotValidValueError as e:
+        text = e.detail
+        validation_error = True
     except ApplicationError as e:
         text = e.detail
-    await update.message.reply_text(
-        text=text,
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    else:
+        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+        if context.user_data.get('user'):
+            text = (
+                "Обновленные данные приняты!\n"
+                "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
+            )
+        reply_markup = ReplyKeyboardRemove()
+    finally:
+        await update.message.reply_text(
+            text=text,
+            reply_markup=reply_markup,
+        )
+        if validation_error and context.user_data.get("user"):
+            await update_user_data(update, context)
+        elif validation_error:
+            await register_user(update, context)
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:
@@ -173,8 +201,11 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
-        amount = await balance(update.effective_chat.id)
-        await update.message.reply_text(f"Количество ломбарьеров = {amount}.")
+        amount, lombaryers = await get_balance(update.effective_chat.id)
+        await update.message.reply_text(
+            f"Общее количество {amount}  {lombaryers}! "
+            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
+        )
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
@@ -189,13 +220,13 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
-async def balance(telegram_id: int) -> int:
+async def get_balance(telegram_id: int) -> int and str:
     """Метод для получения баланса ломбарьеров."""
     session_gen = get_session()
     session = await session_gen.asend(None)
     member_service = MemberService(MemberRepository(session))
-    member = await member_service.get_by_user_id(telegram_id)
-    return member.numbers_lombaryers
+    number_lombaryres = await member_service.get_number_of_lombariers_by_telegram_id(telegram_id)
+    return number_lombaryres, lombaryers_case(number_lombaryres)
 
 
 async def skip_report(chat_id: int) -> None:

@@ -2,9 +2,7 @@ from datetime import datetime, timedelta
 
 from src.core.settings import settings
 
-PLURAL = 'ломбарьерчиков'
-SINGULAR = 'ломбарьерчик'
-GENITIVE = 'ломбарьерчика'
+
 
 
 def get_current_task_date() -> datetime.date:
@@ -14,6 +12,9 @@ def get_current_task_date() -> datetime.date:
 
 
 def lombaryers_case(numbers_lombaryers: int) -> str:
+    PLURAL = 'ломбарьерчиков'
+    SINGULAR = 'ломбарьерчик'
+    GENITIVE = 'ломбарьерчика'
     last_two_digits = numbers_lombaryers % 100
     if 11 <= last_two_digits <= 19:
         return PLURAL
