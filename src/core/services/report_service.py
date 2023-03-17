@@ -19,6 +19,7 @@ from src.core.exceptions import (
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
+from src.core.utils import lombaryers_case
 
 
 class ReportService:
@@ -111,6 +112,7 @@ class ReportService:
                     name=member.user.name,
                     surname=member.user.surname,
                     numbers_lombaryers=member.numbers_lombaryers,
+                    lombaryers_case=lombaryers_case(member.numbers_lombaryers),
                 ),
             )
 
