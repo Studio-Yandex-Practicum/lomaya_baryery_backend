@@ -3,6 +3,7 @@ import urllib
 from pathlib import Path
 from urllib.parse import urljoin
 
+
 from pydantic import ValidationError
 from telegram import (
     KeyboardButton,
