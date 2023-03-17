@@ -9,7 +9,7 @@ def get_current_task_date() -> datetime.date:
     return now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
 
 
-def lombaryers_case(numbers_lombaryers: int) -> str:
+def get_lombaryers_for_quantity(numbers_lombaryers: int) -> str:
     """Склоняем слово ломбарьерчик в зависимости от кол-ва"""
     last_two_digits = numbers_lombaryers % 100
     if 11 <= last_two_digits <= 19:

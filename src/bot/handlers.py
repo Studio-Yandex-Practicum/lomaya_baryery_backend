@@ -41,7 +41,7 @@ from src.core.services.shift_service import ShiftService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
-from src.core.utils import lombaryers_case
+from src.core.utils import get_lombaryers_for_quantity
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -201,9 +201,9 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
-        amount, lombaryers = await get_balance(update.effective_chat.id)
+        amount = await get_balance(update.effective_chat.id)
         await update.message.reply_text(
-            f"Общее количество {amount}  {lombaryers}! "
+            f"Общее количество: {amount}  {get_lombaryers_for_quantity(amount)}! "
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
         )
     if update.message.text == SKIP_A_TASK:
@@ -220,13 +220,12 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
 
 
-async def get_balance(telegram_id: int) -> int and str:
+async def get_balance(telegram_id: int) -> int:
     """Метод для получения баланса ломбарьеров."""
     session_gen = get_session()
     session = await session_gen.asend(None)
     member_service = MemberService(MemberRepository(session))
-    amount_lombaryres = await member_service.get_number_of_lombariers_by_telegram_id(telegram_id)
-    return amount_lombaryres, lombaryers_case(amount_lombaryres)
+    return await member_service.get_number_of_lombariers_by_telegram_id(telegram_id)
 
 
 async def skip_report(chat_id: int) -> None:
