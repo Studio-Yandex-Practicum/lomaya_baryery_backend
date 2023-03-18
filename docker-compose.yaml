@@ -11,8 +11,6 @@ services:
     image: postgres:13.2
     container_name: postgres_stage
     restart: always
-    environment:
-      - TZ=Europe/Moscow
     volumes:
       - postgres_data_stage:/var/lib/postgresql/data/
     ports:
@@ -25,8 +23,6 @@ services:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_backend:latest
     container_name: lomaya_baryery_backend
     restart: always
-    environment:
-      - TZ=Europe/Moscow
     depends_on:
       - postgres
     volumes:
@@ -49,7 +45,6 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - TZ=Europe/Moscow
       - URL=lombaryery.tk
       - VALIDATION=http
       - CERTPROVIDER=zerossl

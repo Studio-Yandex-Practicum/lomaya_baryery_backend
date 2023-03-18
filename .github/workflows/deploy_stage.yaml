@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - develop
-    types: [closed]
+#    types: [closed]
 
 env:
   REGISTRY: ghcr.io
@@ -91,6 +91,7 @@ jobs:
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
+            echo TZ=${{ secrets.TZ }} >> .env
 
   start_application:
     name: Start application
@@ -99,7 +100,7 @@ jobs:
       name: Stage
     needs: deploy
     steps:
-      - name: Start appication
+      - name: Start application
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
