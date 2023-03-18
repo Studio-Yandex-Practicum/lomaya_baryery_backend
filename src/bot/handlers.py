@@ -139,7 +139,6 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
-    reply_markup, validation_error = None, False
     try:
         await registration_service.register_user(user_scheme)
     except NotValidValueError as e:
