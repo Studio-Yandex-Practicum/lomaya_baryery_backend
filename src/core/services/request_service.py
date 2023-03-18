@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -13,6 +13,7 @@ from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
 from src.core.exceptions import RequestAlreadyReviewedException
+from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 from src.core.utils import get_current_task_date
@@ -25,11 +26,13 @@ class RequestService:
         member_repository: MemberRepository = Depends(),
         user_repository: UserRepository = Depends(),
         shift_service: ShiftService = Depends(),
+        report_service: ReportService = Depends(),
     ) -> None:
         self.__request_repository = request_repository
         self.__member_repository = member_repository
         self.__user_repository = user_repository
         self.__shift_service = shift_service
+        self.__report_service = report_service
         self.__telegram_bot = services.BotService
 
     async def __create_user_dir(self, user: User, request: Request) -> None:
@@ -49,8 +52,10 @@ class RequestService:
             user.status = User.Status.VERIFIED
             await self.__user_repository.update(user.id, user)
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
-        await self.__member_repository.create(member)
+        member = await self.__member_repository.create(member)
         shift = await self.__shift_service.get_shift(request.shift_id)
+        if shift.started_at < date.today():
+            await self.__report_service.create_not_participated_reports(member_id=member.id, shift_id=shift.id)
 
         first_task_date = shift.started_at
         if get_current_task_date() >= shift.started_at:
