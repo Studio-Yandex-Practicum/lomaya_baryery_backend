@@ -178,9 +178,8 @@ class ReportService:
         """Устанавливаем статус всем отчетам из списка."""
         return await self.__report_repository.set_status_to_reports(reports_list, status)
 
-    async def create_not_participated_reports(self, member_id: UUID) -> None:
+    async def create_not_participated_reports(self, member_id: UUID, shift_id: UUID) -> None:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
-        shift_id = await self.__shift_repository.get_started_shift_id()
         shift = await self.__shift_repository.get(shift_id)
         tasks = json.loads(shift.tasks)
         today = date.today()
