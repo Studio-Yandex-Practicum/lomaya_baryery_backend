@@ -46,6 +46,7 @@ class MemberRepository(AbstractRepository):
                 Report.task_date >= func.current_date() - task_amount,
             )
             .join(Report)
+            .join(User)
             .group_by(Member)
             .having(func.count() == task_amount)
         )
