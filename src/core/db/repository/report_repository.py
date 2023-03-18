@@ -93,3 +93,14 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
+
+    async def get_waiting_reports(self) -> Optional[list[Report]]:
+        reports = await self._session.execute(select(Report).where(Report.status == Report.Status.WAITING))
+        return reports.all()
+
+    async def set_status_to_reports(self, reports_list: list[Report], status: Report.Status) -> list[Report]:
+        for report in reports_list:
+            report.status = status
+        self._session.add_all(reports_list)
+        await self._session.commit()
+        return reports_list

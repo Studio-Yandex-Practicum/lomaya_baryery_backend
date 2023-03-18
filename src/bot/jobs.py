@@ -12,7 +12,7 @@ from src.bot.api_services import (
 )
 from src.bot.services import BotService
 from src.core.db.db import get_session
-from src.core.db.models import Shift
+from src.core.db.models import Report, Shift
 from src.core.settings import settings
 
 LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
@@ -49,6 +49,8 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     bot_service = BotService(context)
     await member_service.exclude_lagging_members(context.application)
     current_day_of_month = date.today().day
+    reports_list = await report_service.get_waiting_reports()
+    await report_service.set_status_to_reports(reports_list, Report.Status.SKIPPED)
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)

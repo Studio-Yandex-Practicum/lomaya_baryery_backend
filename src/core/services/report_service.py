@@ -168,3 +168,11 @@ class ReportService:
             for member in members
         ]
         await self.__report_repository.create_all(reports)
+
+    async def get_waiting_reports(self) -> list[Report]:
+        """Получаем список отчетов участников со статусом waiting."""
+        return await self.__report_repository.get_waiting_reports()
+
+    async def set_status_to_reports(self, reports_list: list[Report], status: Report.Status):
+        """Устанавливаем статус всем отчетам из списка."""
+        return await self.__report_repository.set_status_to_reports(reports_list, status)
