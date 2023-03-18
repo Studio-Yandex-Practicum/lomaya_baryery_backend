@@ -1,5 +1,4 @@
-import json
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urljoin
 
 from fastapi import Depends
@@ -183,16 +182,17 @@ class ReportService:
     async def create_not_participated_reports(self, member_id: UUID, shift_id: UUID) -> None:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
         shift = await self.__shift_repository.get(shift_id)
-        tasks = json.loads(shift.tasks)
+        tasks = shift.tasks
         today = date.today()
         reports = [
             Report(
                 shift_id=shift_id,
                 task_id=tasks[str(day)],
                 status=Report.Status.NOT_PARTICIPATE,
-                task_date=date(today.year, today.month, day),
+                task_date=today - timedelta(days=day),
                 member_id=member_id,
+                uploaded_at=today,
             )
-            for day in range(1, today.day)
+            for day in range((today - shift.started_at).days, 0, -1)
         ]
         await self.__report_repository.create_all(reports)
