@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from urllib.parse import urljoin
 
@@ -176,3 +177,21 @@ class ReportService:
     async def set_status_to_reports(self, reports_list: list[Report], status: Report.Status):
         """Устанавливаем статус всем отчетам из списка."""
         return await self.__report_repository.set_status_to_reports(reports_list, status)
+
+    async def create_not_participated_reports(self, member_id: UUID) -> None:
+        """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
+        shift_id = await self.__shift_repository.get_started_shift_id()
+        shift = await self.__shift_repository.get(shift_id)
+        tasks = json.loads(shift.tasks)
+        today = date.today()
+        reports = [
+            Report(
+                shift_id=shift_id,
+                task_id=tasks[str(day)],
+                status=Report.Status.NOT_PARTICIPATE,
+                task_date=date(today.year, today.month, day),
+                member_id=member_id,
+            )
+            for day in range(1, today.day)
+        ]
+        await self.__report_repository.create_all(reports)
