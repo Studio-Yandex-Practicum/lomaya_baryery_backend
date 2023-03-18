@@ -62,22 +62,20 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await check_user_status(user, update, context)
+        await check_handle_user_status(user, update, context)
     else:
         await register_user(update, context)
 
 
-async def check_user_status(update: Update, context: CallbackContext) -> None:
+async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
     """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    if Request.status is None or Request.status.DECLINED:
-        await update_user_data(update, context)
+    status = Request.status
+    if status.PENDING:
+        await update.message.reply_text("Ваша заявка еще на рассмотрении.")
+    elif status.APPROVED:
+        await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
     else:
-        if Request.status.PENDING:
-            await update.message.reply_text(
-                "Ваша заявка еще на рассмотрении.")
-        elif Request.status.APPROVED:
-            await update.message.reply_text(
-                "Ваша заявка уже одобрена и не может быть изменена.")
+        await update_user_data(update, context)
 
 
 async def register_user(
