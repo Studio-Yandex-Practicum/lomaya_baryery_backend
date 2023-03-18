@@ -162,7 +162,9 @@ class ReportService:
             Report(
                 shift_id=member.shift_id,
                 task_id=task.id,
-                status=Report.Status.WAITING,
+                status=(
+                    Report.Status.WAITING if member.status == Member.Status.ACTIVE else Report.Status.NOT_PARTICIPATE
+                ),
                 task_date=current_date,
                 member_id=member.id,
             )
