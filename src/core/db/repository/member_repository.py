@@ -42,13 +42,13 @@ class MemberRepository(AbstractRepository):
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
-                Report.status == Report.Status.WAITING,
+                Report.status == Report.Status.SKIPPED,
                 Report.task_date >= func.current_date() - task_amount,
             )
             .join(Report)
             .join(User)
             .group_by(Member)
-            .having(func.count() == task_amount)
+            .having(func.count() >= task_amount)
         )
         return members.all()
 
