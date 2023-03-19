@@ -47,10 +47,9 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     report_service = await get_report_service_callback(report_session_generator)
     member_service = await get_member_service_callback(member_session_generator)
     bot_service = BotService(context)
+    await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
     await member_service.exclude_lagging_members(context.application)
     current_day_of_month = date.today().day
-    waiting_reports_list = await report_service.get_waiting_reports()
-    await report_service.set_status_to_reports(waiting_reports_list, Report.Status.SKIPPED)
     task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
