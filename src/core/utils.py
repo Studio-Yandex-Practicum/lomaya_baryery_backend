@@ -11,15 +11,15 @@ def get_current_task_date() -> datetime.date:
 
 def get_lombaryers_for_quantity(numbers_lombaryers: int) -> str:
     """Склоняем слово ломбарьерчик в зависимости от кол-ва"""
-    plural = 'ломбарьерчиков'
-    singular = 'ломбарьерчик'
-    genitive = 'ломбарьерчика'
+    PLURAL = 'ломбарьерчиков'
+    SINGULAR = 'ломбарьерчик'
+    GENITIVE = 'ломбарьерчика'
     last_two_digits = numbers_lombaryers % 100
     if 11 <= last_two_digits <= 19:
-        return plural
+        return PLURAL
     last_digit = last_two_digits % 10
     if last_digit == 1:
-        return singular
+        return SINGULAR
     if 1 < last_digit < 5:
-        return genitive
-    return plural
+        return GENITIVE
+    return PLURAL
