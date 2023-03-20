@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     ORGANIZATIONS_EMAIL: str = "lomayabaryery.noreply@yandex.ru"
     ORGANIZATIONS_GROUP: str = "https://vk.com/socialrb02"
 
+    TIME_ZONE: str = "Asia/Yekaterinburg"
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""

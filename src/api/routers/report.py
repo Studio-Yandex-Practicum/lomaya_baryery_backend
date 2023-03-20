@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi_restful.cbv import cbv
@@ -83,7 +84,7 @@ class ReportsCBV:
         self,
         shift_id: UUID,
         status: Report.Status = None,
-    ) -> list[ReportSummaryResponse]:
+    ) -> Any:
         """
         Получения списка задач на проверку с возможностью фильтрации по полям status и shift_id.
 

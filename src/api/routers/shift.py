@@ -14,7 +14,7 @@ from src.api.request_models.shift import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.shift import (
-    ShiftDtoRespone,
+    ShiftDtoResponse,
     ShiftMembersResponse,
     ShiftResponse,
     ShiftWithTotalUsersResponse,
@@ -138,7 +138,7 @@ class ShiftCBV:
 
     @router.get(
         '/{shift_id}/requests',
-        response_model=list[ShiftDtoRespone],
+        response_model=list[ShiftDtoResponse],
         response_model_exclude_none=True,
         summary="Получить информацию обо всех заявках смены с возможностью фильтрации",
         response_description="Полная информация обо заявках смены.",
