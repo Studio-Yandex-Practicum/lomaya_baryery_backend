@@ -121,6 +121,3 @@ settings = get_settings()
 
 NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
-PLURAL = 'ломбарьерчиков'
-SINGULAR = 'ломбарьерчик'
-GENITIVE = 'ломбарьерчика'
