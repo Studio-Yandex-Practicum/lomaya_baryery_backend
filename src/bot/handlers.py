@@ -181,13 +181,13 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     user_service = UserService(UserRepository(session), RequestRepository(session))
     report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
     shift_service = ShiftService(ShiftRepository(session))
-    user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
-    report = await report_service.get_current_report(user.id)
-    shift_dir = await shift_service.get_shift_dir(report.shift_id)
-    file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
-    photo_url = urljoin(settings.user_reports_url, file_path)
 
     try:
+        user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+        report = await report_service.get_current_report(user.id)
+        shift_dir = await shift_service.get_shift_dir(report.shift_id)
+        file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
+        photo_url = urljoin(settings.user_reports_url, file_path)
         await report_service.send_report(report, photo_url)
         await update.message.reply_text("Твой отчет отправлен на модерацию, после проверки тебе придет уведомление.")
     except CurrentTaskNotFoundError:

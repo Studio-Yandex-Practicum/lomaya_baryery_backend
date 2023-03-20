@@ -90,8 +90,9 @@ jobs:
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
+            echo TZ=${{ secrets.TZ }} >> .env
 
-      - name: Start appication
+      - name: Start application
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
