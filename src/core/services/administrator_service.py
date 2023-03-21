@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import Depends
 
 from src.api.request_models.administrator import AdministratorRegistrationRequest
+from src.core import exceptions
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.services.administrator_invitation import AdministratorInvitationService
@@ -40,3 +41,24 @@ class AdministratorService:
     ) -> list[Administrator]:
         """Получает список администраторов, опционально отфильтрованых по роли и/или статусу."""
         return await self.__administrator_repository.get_administrators_filter_by_role_and_status(status, role)
+
+    async def get_administrator(self, _id: UUID) -> Administrator:
+        return await self.__administrator_repository.get(_id)
+
+    async def switch_administrator_role(self, changed_by: Administrator, administrator: Administrator) -> Administrator:
+        """Переключает роль администратора."""
+        if changed_by.role is not Administrator.Role.ADMINISTRATOR:
+            raise exceptions.AdministratorChangeError
+
+        # не надо менять роль самому себе
+        if administrator.id == changed_by.id:
+            raise exceptions.AdministratorSelfChangeRoleError
+
+        if administrator.role is Administrator.Role.ADMINISTRATOR:
+            administrator.role = Administrator.Role.PSYCHOLOGIST
+        else:
+            administrator.role = Administrator.Role.ADMINISTRATOR
+
+        await self.__administrator_repository.update(administrator.id, administrator)
+
+        return administrator

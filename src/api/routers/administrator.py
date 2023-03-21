@@ -129,3 +129,20 @@ class AdministratorCBV:
         """
         await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
+
+    @router.patch(
+        "/{administrator_id}/change_role",
+        response_model=AdministratorResponse,
+        status_code=HTTPStatus.OK,
+        summary="Изменить роль администратора.",
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
+    async def administrator_change_role(
+        self,
+        administrator_id: UUID,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        """Изменить роль администратора."""
+        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
+        admin_to_change = await self.administrator_service.get_administrator(administrator_id)
+        return await self.administrator_service.switch_administrator_role(current_admin, admin_to_change)

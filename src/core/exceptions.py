@@ -265,3 +265,15 @@ class InvitationAlreadyActivated(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Приглашение активно"
+
+
+class AdministratorChangeError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "У вас нет прав на изменение других администраторов."
+
+
+class AdministratorSelfChangeRoleError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Вы не можете изменить роль самому себе."
