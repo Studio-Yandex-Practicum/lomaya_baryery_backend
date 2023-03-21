@@ -9,8 +9,8 @@ from src.bot.api_services import (
     get_report_service_callback,
     get_shift_service_callback,
 )
-from src.bot.services import BotService, start_shift_service
-from src.bot.ui import buttons
+from src.bot.services import BotService
+from src.bot.ui import CURRENT_SHIFT_BUTTONS
 from src.core.db.db import get_session
 from src.core.settings import settings
 
@@ -52,7 +52,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     report_service = await get_report_service_callback(report_session)
     member_service = await get_member_service_callback(member_session)
 
-    await start_shift_service(shift_service)
+    await shift_service.start_shift_service()
 
     bot_service = BotService(context)
     await member_service.exclude_lagging_members(context.application)
@@ -68,7 +68,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
                 f"Сегодня твоим заданием будет {task.description_for_message}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
-            buttons,
+            CURRENT_SHIFT_BUTTONS,
         )
         for member in members
     ]

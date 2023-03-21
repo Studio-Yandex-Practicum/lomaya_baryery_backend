@@ -7,8 +7,6 @@ from telegram.ext import Application
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
-from src.core.db.models import Shift
-from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
@@ -124,12 +122,3 @@ class BotService:
         """Уведомляет пользователей об отмене смены."""
         send_message_tasks = [self.send_message(user, final_message) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
-
-
-async def start_shift_service(shift_service: ShiftService) -> None:
-    """Запускает смену в дату, указанную в started_at."""
-    shifts = await shift_service.list_all_shifts(status=[Shift.Status.PREPARING])
-    if shifts:
-        shift = shifts[0]
-        if shift.started_at == date.today():
-            await shift_service.start_shift(_id=shift.id)

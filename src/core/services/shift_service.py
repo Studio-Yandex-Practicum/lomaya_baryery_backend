@@ -285,3 +285,12 @@ class ShiftService:
         await self.__user_repository.update_all(users_to_update)
         await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
         return shift
+
+    async def start_shift_service(self) -> None:
+        """Запускает смену в дату, указанную в started_at."""
+        shifts = await self.list_all_shifts(status=[Shift.Status.PREPARING])
+        if shifts:
+            shift = shifts[0]
+            if shift.started_at == date.today():
+                shift.status = Shift.Status.STARTED.value
+                await self.__shift_repository.update(shift.id, shift)
