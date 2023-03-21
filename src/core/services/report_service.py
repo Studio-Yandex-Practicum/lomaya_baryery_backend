@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urljoin
 
 from fastapi import Depends
@@ -163,10 +163,37 @@ class ReportService:
             Report(
                 shift_id=member.shift_id,
                 task_id=task.id,
-                status=Report.Status.WAITING,
+                status=(
+                    Report.Status.WAITING if member.status == Member.Status.ACTIVE else Report.Status.NOT_PARTICIPATE
+                ),
                 task_date=current_date,
                 member_id=member.id,
             )
             for member in members
+        ]
+        await self.__report_repository.create_all(reports)
+
+    async def __get_waiting_reports(self) -> list[Report]:
+        """Получаем список отчетов участников со статусом waiting."""
+        return await self.__report_repository.get_waiting_reports()
+
+    async def set_status_to_waiting_reports(self, status: Report.Status):
+        """Устанавливаем статус всем отчетам со статусом waiting."""
+        reports_list = await self.__get_waiting_reports()
+        return await self.__report_repository.set_status_to_reports(reports_list, status)
+
+    async def create_not_participated_reports(self, member_id: UUID, shift: Shift) -> None:
+        """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
+        tasks = shift.tasks
+        today = date.today()
+        reports = [
+            Report(
+                shift_id=shift.id,
+                task_id=tasks[str(day)],
+                status=Report.Status.NOT_PARTICIPATE,
+                task_date=today - timedelta(days=day),
+                member_id=member_id,
+            )
+            for day in range((today - shift.started_at).days, 0, -1)
         ]
         await self.__report_repository.create_all(reports)
