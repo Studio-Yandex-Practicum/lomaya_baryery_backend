@@ -180,7 +180,7 @@ class AlreadyRegisteredException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.OK
         self.detail = (
-            "Вы уже зарегестрированы в проекте, ожидайте свое первое задание "
+            "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
             "в день старта смены. Актуальную дату начала смены вы можете "
             "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
         )

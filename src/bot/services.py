@@ -8,6 +8,7 @@ from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
 from src.core.settings import settings
+from src.core.utils import get_lombaryers_for_quantity
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -48,7 +49,7 @@ class BotService:
         await self.send_message(user, text)
 
     async def notify_declined_request(
-        self, user: models.User, decline_request_data: RequestDeclineRequest | None
+            self, user: models.User, decline_request_data: RequestDeclineRequest | None
     ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
@@ -88,6 +89,7 @@ class BotService:
         )
         if date.today() < shift.finished_at:
             text += "Предлагаем продолжить, ведь впереди много интересных заданий.Следующее задание придет в 8.00 мск."
+        
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
@@ -108,7 +110,10 @@ class BotService:
             self.send_message(
                 member.user,
                 shift.final_message.format(
-                    name=member.user.name, surname=member.user.surname, numbers_lombaryers=member.numbers_lombaryers
+                    name=member.user.name,
+                    surname=member.user.surname,
+                    numbers_lombaryers=member.numbers_lombaryers,
+                    lombaryers_case=get_lombaryers_for_quantity(member.numbers_lombaryers),
                 ),
             )
             for member in shift.members
