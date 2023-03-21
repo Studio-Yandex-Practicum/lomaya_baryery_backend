@@ -87,10 +87,7 @@ class BotService:
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at:
-            text = (
-                text
-                + "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в 8.00 мск."
-            )
+            text += "Предлагаем продолжить, ведь впереди много интересных заданий.Следующее задание придет в 8.00 мск."
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
