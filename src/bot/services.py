@@ -49,7 +49,7 @@ class BotService:
         await self.send_message(user, text)
 
     async def notify_declined_request(
-            self, user: models.User, decline_request_data: RequestDeclineRequest | None
+        self, user: models.User, decline_request_data: RequestDeclineRequest | None
     ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
@@ -89,7 +89,7 @@ class BotService:
         )
         if date.today() < shift.finished_at:
             text += "Предлагаем продолжить, ведь впереди много интересных заданий.Следующее задание придет в 8.00 мск."
-        
+
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
