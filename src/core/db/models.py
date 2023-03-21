@@ -253,7 +253,7 @@ class Administrator(Base):
     """Модель администратора смены."""
 
     class Status(str, enum.Enum):
-        """Cтатус администратора."""
+        """Статус администратора."""
 
         ACTIVE = "active"
         BLOCKED = "blocked"
