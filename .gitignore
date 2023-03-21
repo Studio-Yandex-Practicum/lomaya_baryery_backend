@@ -17,6 +17,7 @@ __pypackages__/
 # Environments
 .venv
 .env
+.log
 
 # Vscode project settings
 .vscode
@@ -24,3 +25,4 @@ __pypackages__/
 # Telegram Bot data
 data/
 bot_persistence_file
+fill_db.log

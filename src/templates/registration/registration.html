@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,19 +111,25 @@
       cursor: pointer;
       box-shadow: none !important;
     }
+    .form-title {
+      text-align: center;
+      color: var(--tg-theme-text-color) !important;
+    }
   </style>
 </head>
-
 <body>
   <main>
-    <form class="form row">
+    <form class="form row" name="registration">
+      <div class="form-title">
+        <p id="formtitle"></p>
+      </div>
       <div class="input-field col s12">
-        <input id="name" name="name" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="name" name="name" type="text" class="validate" minlength="2" maximumlength="100" required>
         <label for="name">Имя</label>
         <span class="helper-text name"></span>
       </div>
       <div class="input-field col s12">
-        <input id="surname" name="surname" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="surname" name="surname" type="text" class="validate" minlength="2" maximumlength="100" required>
         <label for="surname">Фамилия</label>
         <span class="helper-text surname"></span>
       </div>
@@ -135,13 +140,12 @@
         <span class="helper-text date_of_birth"></span>
       </div>
       <div class="input-field col s12">
-        <input id="city" name="city" type="text" class="validate" minlength="2" maxlength="50" required>
+        <input id="city" name="city" type="text" class="validate" minlength="2" maximumlength="50" required>
         <label for="city">Город</label>
         <span class="helper-text city"></span>
       </div>
       <div class="input-field col s12">
-        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maxlength="11"
-          required>
+        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maximumlength="11" required>
         <label for="phone_number">Телефон</label>
         <span class="helper-text phone_number"></span>
       </div>
@@ -201,11 +205,11 @@
     // validation settings and check actions
     const validationConfig = {
       name: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^ЁА-Яёа-я-]/g,
         isCapitalize: true,
       },
       surname: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^ЁА-Яёа-я-]/g,
         isCapitalize: true,
       },
       date_of_birth: {
@@ -213,7 +217,7 @@
         isCapitalize: false,
       },
       city: {
-        pattern: /[^A-Za-zА-Яа-я\s-]/g,
+        pattern: /[^ЁА-Яёа-я- ]/g,
         isCapitalize: true,
       },
       phone_number: {
@@ -226,10 +230,18 @@
       name: {
         required: "Пожалуйста, укажите имя",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 100 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        nameSurnamePattern: "Доступно использование только кириллицы и \"-\"",
       },
       surname: {
         required: "Пожалуйста, укажите фамилию",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 100 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        nameSurnamePattern: "Доступно использование только кириллицы и \"-\"",
       },
       date_of_birth: {
         required: "Пожалуйста, укажите дату рождения",
@@ -238,10 +250,17 @@
       city: {
         required: "Пожалуйста, укажите название города",
         min: "Введите не менее 2 символов",
+        max: "Допускается ввод не более 50 символов",
+        capsPattern: "Убедитесь, что у Вас выключен CAPS LOCK",
+        dashPattern: "Убедитесь, что дефис находится в нужном месте",
+        cityPattern: "Доступно использование только кириллицы, пробела и \"-\"",
       },
       phone_number: {
         required: "Пожалуйста, укажите номер телефона",
         min: "Введите номер телефона без разделителей (включая 8)",
+        max: "Номер телефона не должен содержать более 11 цифр",
+        phonePattern: `Допускаются номера только мобильных
+          операторов РФ - \"89.........\" или \"79.........\"`,
       },
     };
 
@@ -267,6 +286,12 @@
     ) => {
       let newValue = element.value;
       const minlength = element.getAttribute("minlength");
+      const maximumlength = element.getAttribute("maximumlength");
+      const capsPattern = /[А-ЯЁ]{2,}/g;
+      const dashPattern = /( -)|(- )|(^-)|(-$)/g;
+      const phonePattern = /^[7|8][9][\d]{9}$/g;
+      const nameSurnamePattern = /^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$/g;
+      const cityPattern = /^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$/g;
 
       if (pattern) {
         newValue = newValue.trimStart().replace(pattern, "");
@@ -274,6 +299,13 @@
 
       if (isCapitalize && newValue) {
         newValue = newValue
+          .split("-")
+          .map((word) => (
+            word ? word.replace(
+              /^(?!на)[а-яё]{2}/, letter => letter[0].toUpperCase() + letter.slice(1)
+            ) : "")
+          )
+          .join("-")
           .split(" ")
           .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : ""))
           .join(" ");
@@ -288,6 +320,25 @@
         setInvalid(element, errElement, "invalidDate");
       } else if (minlength && newValue.length < minlength) {
         setInvalid(element, errElement, "min");
+      } else if (maximumlength && newValue.length > maximumlength) {
+        setInvalid(element, errElement, "max");
+      } else if (newValue.match(capsPattern)) {
+        setInvalid(element, errElement, "capsPattern");
+      } else if (newValue.match(dashPattern)) {
+        setInvalid(element, errElement, "dashPattern");
+      } else if (
+        element.name === "phone_number" && !(newValue.match(phonePattern))
+      ) {
+        setInvalid(element, errElement, "phonePattern");
+      } else if (
+        (element.name === "name" || element.name === "surname") &&
+        !(newValue.match(nameSurnamePattern))
+      ) {
+        setInvalid(element, errElement, "nameSurnamePattern");
+      } else if (
+        element.name === "city" && !(newValue.match(cityPattern))
+      ) {
+        setInvalid(element, errElement, "cityPattern");
       } else {
         setValid(element, errElement);
       }
@@ -358,12 +409,35 @@
       });
     };
 
-    // send data to server
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    if (params.surname) {
+      document.getElementById("name").value = params.name;
+      document.getElementById("surname").value = params.surname;
+      document.getElementById("date_of_birth").value = params.date_of_birth;
+      document.getElementById("city").value = params.city;
+      document.getElementById("phone_number").value = params.phone_number;
+    }
+
+    if (params.update) {
+      var formText = `Рады снова видеть Вас в нашем проекте.<br>
+        Пожалуйста, проверьте свои данные.`;
+      var buttonText = "Подать заявку на участие в смене";
+    } else {
+      var formText = "Пожалуйста, заполните данную форму.";
+      var buttonText = "Зарегистрироваться в проекте";
+    }
+
+    document.getElementById("formtitle").innerHTML = formText
+
     const showTgButton = (tgMainButton) => {
-      tgMainButton.setText("Зарегистрироваться в проекте");
+      tgMainButton.setText(buttonText);
       tgMainButton.show();
     };
 
+    // send data to server
     const handleSubmit = (inputs, tg) => {
       tg.MainButton.disable();
 
@@ -423,5 +497,4 @@
     });
   </script>
 </body>
-
 </html>

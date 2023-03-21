@@ -7,8 +7,10 @@ import factory
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from src.bot import services  # noqa: prevent circular imports error
 from src.core.db import models
 from src.core.db.models import Report, Shift, Task
+from src.core.services.authentication_service import AuthenticationService
 from src.core.services.shift_service import FINAL_MESSAGE
 from src.core.settings import settings
 
@@ -37,6 +39,7 @@ class UserFactory(BaseFactory):
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
     status = factory.Iterator([status for status in models.User.Status])
+    telegram_blocked = False
 
 
 class ShiftFactory(BaseFactory):
@@ -54,6 +57,10 @@ class ShiftFactory(BaseFactory):
         if self.status == Shift.Status.STARTED:
             # устанавливается дата старта активной смены с учетом временной дельты от текущего дня
             return datetime.date.today() - timedelta(days=30)
+        if self.status == Shift.Status.PREPARING:
+            last_started_shift = session.execute(select(Shift).order_by(Shift.finished_at))
+            last_started_shift = last_started_shift.scalars().first()
+            return last_started_shift.finished_at + timedelta(days=random.randrange(4, 7))
         if self.status == Shift.Status.FINISHED:  # noqa R503
             # из всех существующих смен берется самая ранняя смена, дата старта которой является точкой
             # отсчета для формирования даты старта создаваемой смены (учитывается рандомный интервал между сменами и
@@ -144,3 +151,16 @@ class MemberFactory(BaseFactory):
             add_several_reports=1,
             **kwargs,
         )
+
+
+class AdministratorFactory(BaseFactory):
+    class Meta:
+        model = models.Administrator
+
+    id = factory.Faker("uuid4")
+    name = factory.Faker("first_name")
+    surname = factory.Faker("last_name")
+    email = "user@example.com"
+    hashed_password = AuthenticationService.get_hashed_password("string")
+    role = models.Administrator.Role.ADMINISTRATOR
+    status = models.Administrator.Status.ACTIVE

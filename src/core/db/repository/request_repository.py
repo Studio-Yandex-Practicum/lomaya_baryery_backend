@@ -19,10 +19,10 @@ class RequestRepository(AbstractRepository):
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         super().__init__(session, Request)
 
-    async def get(self, id: UUID) -> Request:
+    async def get(self, request_id: UUID) -> Request:
         request = await self._session.execute(
             select(Request)
-            .where(Request.id == id)
+            .where(Request.id == request_id)
             .options(
                 selectinload(Request.user),
                 selectinload(Request.shift),
@@ -32,7 +32,7 @@ class RequestRepository(AbstractRepository):
         if request is None:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail=f"Объект Request c id={id} не найден.",
+                detail=f"Объект Request c id={request_id} не найден.",
             )
         return request
 
@@ -70,4 +70,4 @@ class RequestRepository(AbstractRepository):
             Request.user_id == User.id,
         )
         requests = await self._session.execute(statement)
-        return [RequestDTO(**request) for request in requests.all()]
+        return [RequestDTO.parse_from_db(request) for request in requests.all()]

@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 
-from src.api.error_templates import ERROR_TEMPLATE_FOR_404
-from src.api.request_models.task import TaskCreateRequest
+from src.api.request_models.task import TaskCreateRequest, TaskUpdateRequest
+from src.api.response_models.error import generate_error_responses
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
@@ -32,7 +32,8 @@ class TaskCBV:
         Создать новое задание.
 
         - **url**: изображение задания
-        - **description**: описание задания
+        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.create_task(task)
 
@@ -50,7 +51,8 @@ class TaskCBV:
 
         - **id**: id задания
         - **url**: url задания
-        - **description**: описание задания
+        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.get_all_tasks()
 
@@ -61,9 +63,7 @@ class TaskCBV:
         status_code=HTTPStatus.OK,
         summary="Получить задание",
         response_description="Информация о задании",
-        responses={
-            404: ERROR_TEMPLATE_FOR_404,
-        },
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def get_task(
         self,
@@ -74,6 +74,30 @@ class TaskCBV:
 
         - **id**: id задания
         - **url**: url задания
-        - **description**: описание задания
+        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.get_task(task_id)
+
+    @router.patch(
+        "/{task_id}",
+        response_model=TaskResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Обновить задание",
+        response_description="Обновить информацию о задании",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
+    )
+    async def update_task(
+        self,
+        task_id: UUID,
+        update_task_data: TaskUpdateRequest,
+    ) -> TaskResponse:
+        """
+        Обновить информацию о задании с указанным ID.
+
+        - **url**: url задания
+        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
+        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
+        """
+        return await self.task_service.update_task(task_id, update_task_data)

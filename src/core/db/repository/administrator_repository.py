@@ -26,6 +26,17 @@ class AdministratorRepository(AbstractRepository):
             raise AdministratorNotFoundException()
         return administrator
 
+    async def check_administrator_existence(self, email: str) -> bool:
+        """Проверяет существование администратора по email.
+
+        Аргументы:
+            email (str) - email администратора.
+        """
+        administrator_exists = await self._session.execute(
+            select(select(Administrator).where(Administrator.email == email).exists())
+        )
+        return administrator_exists.scalar()
+
     async def get_administrators_filter_by_role_and_status(
         self, status: Administrator.Status | None, role: Administrator.Role | None
     ) -> list[Administrator]:

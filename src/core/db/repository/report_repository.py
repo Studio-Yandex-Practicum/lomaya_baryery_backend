@@ -58,10 +58,12 @@ class ReportRepository(AbstractRepository):
             Report.id,
             Report.status,
             Report.created_at,
+            Report.uploaded_at,
             User.name,
             User.surname,
             Report.task_id,
             Task.description,
+            Task.description_for_message,
             Task.url,
             Report.report_url.label("photo_url"),
         )
@@ -74,7 +76,7 @@ class ReportRepository(AbstractRepository):
             Report.shift_id == Shift.id,
             Report.member_id == Member.id,
             Report.task_id == Task.id,
-            Member.user_id == User.id
+            Member.user_id == User.id,
         )
         reports = await self._session.execute(stmt)
         return [DTO_models.FullReportDto(*report) for report in reports.all()]
@@ -91,3 +93,13 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
+
+    async def get_waiting_reports(self) -> list[Report]:
+        reports = await self._session.execute(select(Report).where(Report.status == Report.Status.WAITING))
+        return reports.all()
+
+    async def set_status_to_reports(self, reports_list: list[Report], status: Report.Status) -> None:
+        for report in reports_list:
+            report.status = status
+        self._session.add_all(reports_list)
+        await self._session.commit()

@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from fastapi import Depends, UploadFile
 from pydantic.schema import UUID
 
-from src.api.request_models.task import TaskCreateRequest
+from src.api.request_models.task import TaskCreateRequest, TaskUpdateRequest
 from src.core.db.models import Shift, Task
 from src.core.db.repository.task_repository import TaskRepository
 from src.core.exceptions import TodayTaskNotFoundError
@@ -32,12 +32,22 @@ class TaskService:
         return task
 
     async def create_task(self, new_task: TaskCreateRequest) -> Task:
-        task = Task(description=new_task.description)
+        task = Task(
+            description=new_task.description,
+            description_for_message=new_task.description_for_message,
+        )
         task.url = await self.__download_file(new_task.image)
         return await self.__task_repository.create(instance=task)
 
-    async def get_task(self, id: UUID) -> Task:
-        return await self.__task_repository.get(id)
+    async def get_task(self, task_id: UUID) -> Task:
+        return await self.__task_repository.get(task_id)
 
     async def get_all_tasks(self) -> list[Task]:
-        return await self.__task_repository.get_tasks()
+        return await self.__task_repository.get_all()
+
+    async def update_task(self, task_id: UUID, update_task_data: TaskUpdateRequest) -> Task:
+        task = await self.__task_repository.get(task_id)
+        task.description = update_task_data.description
+        task.description_for_message = update_task_data.description_for_message
+        task.url = update_task_data.url
+        return await self.__task_repository.update(task_id, task)

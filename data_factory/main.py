@@ -4,11 +4,13 @@ from uuid import UUID
 
 import click
 import factory
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data_factory.factories import (
+    AdministratorFactory,
     MemberFactory,
     RequestFactory,
     ShiftFactory,
@@ -32,30 +34,36 @@ logger = get_logger('fill_db.log')
 
 
 def get_random_user_ids(count: int, status: User.Status) -> list:
-    user_ids = session.execute(
-        select(User.id).where(User.status == status).order_by(func.random()).limit(count))
+    user_ids = session.execute(select(User.id).where(User.status == status).order_by(func.random()).limit(count))
     return user_ids.scalars().all()
 
 
 def truncate_tables(session: Session) -> None:
     """Очистить таблицы БД."""
     logger.info("Удаление данных из таблиц...")
-    session.execute("""TRUNCATE TABLE requests, shifts, reports, users, members""")
+    session.execute(sqlalchemy.text("""TRUNCATE TABLE requests, shifts, reports, users, members, administrators"""))
     session.commit()
 
 
 def create_approved_requests_and_members_with_user_tasks(user_ids: list[UUID], shift: Shift):
     for user_id in user_ids:
-        RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id,
-                                    status=Request.Status.APPROVED)
+        RequestFactory.create_batch(1, user_id=user_id, shift_id=shift.id, status=Request.Status.APPROVED)
 
-        MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id,
-                                     status=Member.Status.ACTIVE)
+        MemberFactory.complex_create(1, user_id=user_id, shift_id=shift.id, status=Member.Status.ACTIVE)
 
 
 def create_declined_requests(user_ids: list[UUID], shift: Shift):
     for user_id in user_ids:
         RequestFactory.create(user_id=user_id, shift_id=shift.id, status=Request.Status.DECLINED)
+
+
+def create_pending_requests(user_ids: list[UUID], shift: Shift):
+    for user_id in user_ids:
+        RequestFactory.create(user_id=user_id, shift_id=shift.id, status=Request.Status.PENDING)
+
+
+def create_administrator():
+    AdministratorFactory.create()
 
 
 def generate_fake_data() -> None:
@@ -75,8 +83,17 @@ def generate_fake_data() -> None:
         )
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED),
-                                 started_shift)
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), started_shift)
+
+        logger.info("Создание новой смены...")
+        preparing_shift = ShiftFactory.create(status=Shift.Status.PREPARING)
+
+        logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'PENDING'...")
+        create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.PENDING), preparing_shift)
+        logger.info("Создание отклоненных заявок для пользователей новой смены со статусом 'VERIFIED'...")
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
+        logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'VERIFIED'...")
+        create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)
@@ -87,8 +104,9 @@ def generate_fake_data() -> None:
             )
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            create_declined_requests(
-                get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
+            create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
+        logger.info("Создание администратора")
+        create_administrator()
 
     logger.info("Создание тестовых данных завершено!")
 

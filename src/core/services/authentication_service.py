@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from src.api.request_models.administrator import AdministratorAuthenticateRequest
-from src.api.response_models.administrator import TokenResponse
+from src.core.db.DTO_models import AdministratorAndTokensDTO
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
@@ -19,7 +19,7 @@ from src.core.settings import settings
 PASSWORD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="/administrators/login", scheme_name="JWT")
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 10
 ALGORITHM = "HS256"
 
@@ -28,7 +28,8 @@ class AuthenticationService:
     def __init__(self, administrator_repository: AdministratorRepository = Depends()):
         self.__administrator_repository = administrator_repository
 
-    def __get_hashed_password(self, password: str) -> str:
+    @staticmethod
+    def get_hashed_password(password: str) -> str:
         """Получить хэш пароля."""
         return PASSWORD_CONTEXT.hash(password)
 
@@ -57,14 +58,15 @@ class AuthenticationService:
             raise InvalidAuthenticationDataException()
         return administrator
 
-    async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Получить access и refresh токены."""
+    async def login(self, auth_data: AdministratorAuthenticateRequest) -> AdministratorAndTokensDTO:
+        """Получить refresh- и access- токены и информацию об администраторе."""
         administrator = await self.__authenticate_administrator(auth_data)
         administrator.last_login_at = dt.datetime.now()
         await self.__administrator_repository.update(administrator.id, administrator)
-        return TokenResponse(
+        return AdministratorAndTokensDTO(
             access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+            administrator=administrator,
         )
 
     async def get_current_active_administrator(self, token: str) -> Administrator:
@@ -80,3 +82,12 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
         return administrator
+
+    async def refresh(self, token: str) -> AdministratorAndTokensDTO:
+        """Получить новую пару refresh- и access- токенов и информацию об администраторе."""
+        administrator = await self.get_current_active_administrator(token)
+        return AdministratorAndTokensDTO(
+            access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
+            refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
+            administrator=administrator,
+        )

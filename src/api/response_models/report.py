@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -20,27 +20,17 @@ class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
 class ReportResponse(BaseModel):
     """Pydantic-схема, для описания объекта, полученного из БД."""
 
-    user_id: UUID
-    id: UUID
+    shift_id: UUID
     task_id: UUID
+    member_id: UUID
     task_date: date
     status: Report.Status
-    photo_url: Optional[str]
+    report_url: Optional[str]
+    uploaded_at: datetime
+    number_attempt: int
 
     class Config:
         orm_mode = True
-
-    @classmethod
-    def parse_from(cls, obj: Report) -> ReportResponse:
-        """Конвертация данных из модели Report."""
-        return cls(
-            user_id=obj.member.user_id,
-            id=obj.id,
-            task_id=obj.task_id,
-            task_date=obj.task_date,
-            status=obj.status,
-            photo_url=obj.report_url,
-        )
 
 
 class ReportSummaryResponse(BaseModel):
@@ -50,10 +40,12 @@ class ReportSummaryResponse(BaseModel):
     report_id: UUID
     report_status: Report.Status
     report_created_at: date
+    report_uploaded_at: datetime | None
     user_name: str
     user_surname: str
     task_id: UUID
     task_description: str
+    task_description_for_message: str
     task_url: str
     photo_url: Optional[str]
 

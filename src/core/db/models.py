@@ -26,6 +26,7 @@ from src.core.exceptions import (
     CannotAcceptReportError,
     EmptyReportError,
     ExceededAttemptsReportError,
+    ShiftCancelForbiddenException,
     ShiftFinishForbiddenException,
     ShiftStartForbiddenException,
 )
@@ -54,6 +55,7 @@ class Shift(Base):
 
         STARTED = "started"
         FINISHED = "finished"
+        READY_FOR_COMPLETE = "ready_for_complete"
         PREPARING = "preparing"
         CANCELLED = "cancelled"
 
@@ -88,6 +90,13 @@ class Shift(Base):
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
+    async def cancel(self, final_message: str):
+        if self.status != Shift.Status.PREPARING.value:
+            raise ShiftCancelForbiddenException(shift_name=self.title, shift_id=self.id)
+        self.final_message = final_message
+        self.status = Shift.Status.CANCELLED.value
+        self.finished_at = datetime.now().date()
+
 
 class Task(Base):
     """Модель для описания задания."""
@@ -96,6 +105,7 @@ class Task(Base):
 
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
+    description_for_message = Column(String(length=150), unique=True, nullable=False)
     reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
@@ -199,6 +209,8 @@ class Report(Base):
         APPROVED = "approved"
         DECLINED = "declined"
         WAITING = "waiting"
+        SKIPPED = "skipped"
+        NOT_PARTICIPATE = "not_participate"
 
     __tablename__ = "reports"
 
@@ -223,7 +235,7 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUMBIT_REPORT:
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
             raise ExceededAttemptsReportError
         if not photo_url:
             raise EmptyReportError()
@@ -280,7 +292,7 @@ class AdministratorInvitation(Base):
     surname = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     token = Column(UUID(as_uuid=True), nullable=False, default=uuid.uuid4)
-    expired_date = Column(TIMESTAMP, nullable=False)
+    expired_datetime = Column(TIMESTAMP, nullable=False)
 
     def __repr__(self) -> str:
         return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"

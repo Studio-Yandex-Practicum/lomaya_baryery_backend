@@ -10,9 +10,9 @@ from src.core.utils import get_current_task_date
 
 class MemberService:
     def __init__(
-            self,
-            member_repository: MemberRepository = Depends(),
-            shift_repository: ShiftRepository = Depends()
+        self,
+        member_repository: MemberRepository = Depends(),
+        shift_repository: ShiftRepository = Depends(),
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
@@ -37,6 +37,8 @@ class MemberService:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
         shift_id = await self.__shift_repository.get_started_shift_id()
         current_task_date = get_current_task_date()
-        return await self.__member_repository.get_members_for_reminding(
-            shift_id, current_task_date
-        )
+        return await self.__member_repository.get_members_for_reminding(shift_id, current_task_date)
+
+    async def get_number_of_lombariers_by_telegram_id(self, telegram_id) -> int:
+        """Получение баланса ломбарьеров в текущей смене по telegram_id."""
+        return await self.__member_repository.get_number_of_lombariers_by_telegram_id(telegram_id)

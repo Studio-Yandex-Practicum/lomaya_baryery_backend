@@ -2,12 +2,12 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report
+from src.core.db.models import Member, Report, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.exceptions import NotFoundException
 
@@ -24,11 +24,16 @@ class MemberRepository(AbstractRepository):
         )
         return member.scalars().first()
 
-    async def get_with_user(self, id: UUID) -> Member:
-        member = await self._session.execute(select(Member).where(Member.id == id).options(selectinload(Member.user)))
+    async def get_with_user_and_shift(self, member_id: UUID) -> Member:
+        member = await self._session.execute(
+            select(Member)
+            .where(Member.id == member_id)
+            .options(selectinload(Member.user))
+            .options(selectinload(Member.shift))
+        )
         member = member.scalars().first()
         if not member:
-            raise NotFoundException(object_name=Member.__name__, object_id=id)
+            raise NotFoundException(object_name=Member.__name__, object_id=member_id)
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:
@@ -37,12 +42,13 @@ class MemberRepository(AbstractRepository):
             .where(
                 Member.shift_id == shift_id,
                 Member.status == Member.Status.ACTIVE,
-                Report.status == Report.Status.WAITING,
+                Report.status == Report.Status.SKIPPED,
                 Report.task_date >= func.current_date() - task_amount,
             )
             .join(Report)
+            .join(User)
             .group_by(Member)
-            .having(func.count() == task_amount)
+            .having(func.count() >= task_amount)
         )
         return members.all()
 
@@ -59,3 +65,27 @@ class MemberRepository(AbstractRepository):
             )
         )
         return members.scalars().all()
+
+    async def is_unreviewed_report_exists(self, member_id: UUID) -> bool:
+        """Проверка, есть ли у пользователя непроверенные задания в смене."""
+        stmt = select(Report).where(
+            Report.status == Report.Status.REVIEWING,
+            Report.member_id == member_id,
+        )
+        report_under_review = await self._session.execute(select(stmt.exists()))
+        return report_under_review.scalar()
+
+    async def get_number_of_lombariers_by_telegram_id(self, telegram_id: int) -> int:
+        amount = await self._session.execute(
+            select(Member.numbers_lombaryers)
+            .join(User)
+            .where(User.telegram_id == telegram_id)
+            .join(Shift)
+            .where(
+                or_(
+                    Shift.status == Shift.Status.READY_FOR_COMPLETE,
+                    Shift.status == Shift.Status.STARTED,
+                )
+            )
+        )
+        return amount.scalars().one_or_none()

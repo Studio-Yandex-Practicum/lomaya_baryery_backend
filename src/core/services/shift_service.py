@@ -1,6 +1,7 @@
 import random
 from datetime import date, timedelta
 from itertools import cycle
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
@@ -8,18 +9,24 @@ from fastapi import Depends
 from telegram.ext import Application
 
 from src.api.request_models.shift import (
+    ShiftCancelRequest,
     ShiftCreateRequest,
     ShiftSortRequest,
     ShiftUpdateRequest,
 )
 from src.api.response_models.shift import (
-    ShiftDtoRespone,
+    ShiftDtoResponse,
     ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
 from src.bot import services
-from src.core.db.models import Member, Request, Shift
-from src.core.db.repository import ShiftRepository
+from src.core.db.models import Member, Report, Request, Shift, User
+from src.core.db.repository import (
+    ReportRepository,
+    RequestRepository,
+    ShiftRepository,
+    UserRepository,
+)
 from src.core.exceptions import (
     CreateShiftForbiddenException,
     NotFoundException,
@@ -33,7 +40,7 @@ from src.core.settings import settings
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
     "Незаметно пролетели 3 месяца проекта. Мы рады, что ты принял участие и, надеемся, многому научился! "
-    "В этой смене ты заработал {numbers_lombaryers} ломбарьерчиков. "
+    "В этой смене ты заработал {numbers_lombaryers} {lombaryers_case}. "
     "Ты можешь снова принять участие в проекте - регистрация на новый поток проекта будет доступна уже завтра!"
 )
 
@@ -43,14 +50,20 @@ class ShiftService:
         self,
         shift_repository: ShiftRepository = Depends(),
         task_service: TaskService = Depends(),
+        report_repository: ReportRepository = Depends(),
+        user_repository: UserRepository = Depends(),
+        request_repository: RequestRepository = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__task_service = task_service
+        self.__report_repository = report_repository
+        self.__user_repository = user_repository
+        self.__request_repository = request_repository
         self.__telegram_bot = services.BotService
 
-    def __check_date_not_today_or_in_past(self, date: date) -> None:
+    def __check_date_not_today_or_in_past(self, _date: date) -> None:
         """Проверка, что дата не является сегодняшним или прошедшим числом."""
-        if date <= date.today():
+        if _date <= _date.today():
             raise ShiftUpdateException(
                 detail="Нельзя установить дату начала/окончания смены сегодняшним или прошедшим числом"
             )
@@ -148,6 +161,15 @@ class ShiftService:
         if shift.status == Shift.Status.PREPARING:
             await self.__check_preparing_shift_dates(update_shift_data.started_at, update_shift_data.finished_at)
 
+    async def __create_shift_dir(self, shift: Shift) -> None:
+        shift_dir = await self.get_shift_dir(shift)
+        path = Path(settings.user_reports_dir / shift_dir)
+        path.mkdir(parents=True, exist_ok=True)
+
+    async def get_shift_dir(self, shift_id: UUID) -> str:
+        shift = await self.__shift_repository.get(shift_id)
+        return f"shift_{shift.sequence_number}"
+
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         await self.__validate_shift_on_create(shift)
@@ -161,47 +183,105 @@ class ShiftService:
             if day == 31:
                 break
         shift.tasks = month_tasks
-        return await self.__shift_repository.create(instance=shift)
+        shift = await self.__shift_repository.create(instance=shift)
+        await self.__create_shift_dir(shift.id)
+        return shift
 
-    async def get_shift(self, id: UUID) -> Shift:
-        return await self.__shift_repository.get(id)
+    async def get_shift(self, _id: UUID) -> Shift:
+        return await self.__shift_repository.get(_id)
 
-    async def update_shift(self, id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        shift: Shift = await self.__shift_repository.get(id)
+    async def update_shift(self, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
+        shift: Shift = await self.__shift_repository.get(_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
         shift.started_at = update_shift_data.started_at
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
         shift.final_message = update_shift_data.final_message
-        return await self.__shift_repository.update(id, shift)
+        return await self.__shift_repository.update(_id, shift)
 
-    async def start_shift(self, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get(id)
+    async def start_shift(self, _id: UUID) -> Shift:
+        shift = await self.__shift_repository.get(_id)
         await shift.start()
-        await self.__shift_repository.update(id, shift)
+        await self.__shift_repository.update(_id, shift)
         return shift
 
-    async def finish_shift(self, bot: Application, id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_members(id, Member.Status.ACTIVE)
+    async def finish_shift(self, bot: Application, _id: UUID) -> Shift:
+        shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
         await shift.finish()
-        await self.__shift_repository.update(id, shift)
+        await self.__shift_repository.update(_id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
         return shift
 
-    async def get_shift_with_members(self, id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
-        shift = await self.__shift_repository.get_with_members(id, member_status)
-        return ShiftMembersResponse(shift=shift, members=shift.members)
+    async def get_shift_with_members(self, _id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
+        shift = await self.__shift_repository.get_with_members(_id, member_status)
+        return ShiftMembersResponse(members=shift.members)
 
-    async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoRespone]:
-        shift_exists = await self.__shift_repository.check_shift_existence(id)
+    async def list_all_requests(self, _id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
+        shift_exists = await self.__shift_repository.check_shift_existence(_id)
         if not shift_exists:
-            raise NotFoundException(object_name=Shift.__name__, object_id=id)
-        return await self.__shift_repository.list_all_requests(id=id, status=status)
+            raise NotFoundException(object_name=Shift.__name__, object_id=_id)
+        return await self.__shift_repository.list_all_requests(id=_id, status=status)
 
     async def list_all_shifts(
-        self, status: Optional[Shift.Status] = None, sort: Optional[ShiftSortRequest] = None
+        self, status: Optional[list[Shift.Status]] = None, sort: Optional[ShiftSortRequest] = None
     ) -> list[ShiftWithTotalUsersResponse]:
         return await self.__shift_repository.get_shifts_with_total_users(status, sort)
 
     async def get_open_for_registration_shift_id(self) -> UUID:
         return await self.__shift_repository.get_open_for_registration_shift_id()
+
+    async def finish_shift_automatically(self, bot: Application) -> None:
+        shift = await self.__shift_repository.get_active_or_complete_shift()
+        if not shift:
+            return
+        if shift.status is Shift.Status.READY_FOR_COMPLETE:
+            await self.__decline_reports_and_notify_users(shift.id, bot)
+            shift.status = Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
+        if shift.finished_at + timedelta(days=1) == date.today():
+            await self.__notify_users_with_reviewed_reports(shift.id, bot)
+            unreviewed_report_exists = await self.__shift_repository.is_unreviewed_report_exists(shift.id)
+            shift.status = Shift.Status.READY_FOR_COMPLETE if unreviewed_report_exists else Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
+
+    async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:
+        """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
+        shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift_id)
+        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+
+    async def __decline_reports_and_notify_users(self, shift_id: UUID, bot: Application) -> None:
+        """Отклоняет непроверенные задания, уведомляет пользователей об окончании смены."""
+        shift = await self.__shift_repository.get_with_members_and_unreviewed_reports(shift_id)
+        reports_for_update = []
+        for member in shift.members:
+            for report in member.reports:
+                report.status = Report.Status.DECLINED
+                reports_for_update.append(report)
+        await self.__report_repository.update_all(reports_for_update)
+        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+
+    async def cancel_shift(
+        self, bot: Application, _id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
+    ) -> Shift:
+        shift = await self.__shift_repository.get_shift_with_request(_id)
+        final_message = "Смена отменена"
+        if cancel_shift_data:
+            final_message = cancel_shift_data.final_message
+        await shift.cancel(final_message)
+        await self.__shift_repository.update(_id, shift)
+        requests_to_update = []
+        for request in shift.requests:
+            if request.status == Request.Status.PENDING:
+                request.status = Request.Status.DECLINED.value
+                requests_to_update.append(request)
+        await self.__request_repository.update_all(requests_to_update)
+
+        users = await self.__user_repository.get_users_by_shift_id(shift.id)
+        users_to_update = []
+        for user in users:
+            if user.status == User.Status.PENDING:
+                user.status = User.Status.DECLINED.value
+                users_to_update.append(user)
+        await self.__user_repository.update_all(users_to_update)
+        await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
+        return shift

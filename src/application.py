@@ -1,4 +1,4 @@
-from pathlib import Path
+from http import HTTPStatus
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,21 +6,17 @@ from fastapi.staticfiles import StaticFiles
 
 from src.api import routers
 from src.bot.main import start_bot
+from src.core.exception_handlers import internal_exception_handler
 from src.core.settings import settings
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(debug=settings.DEBUG)
+    app = FastAPI(debug=settings.DEBUG, root_path=settings.ROOT_PATH)
 
     origins = ["*"]
 
     # для локального тестирования монтируем статику
-    app.mount("/static", StaticFiles(directory="src/static"), name="static")
-
-    reports_path = Path("data")
-    reports_path.mkdir(exist_ok=True)
-
-    app.mount("/data", StaticFiles(directory="data"), name="data")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     app.add_middleware(
         CORSMiddleware,
@@ -38,10 +34,10 @@ def create_app() -> FastAPI:
     app.include_router(routers.administrator_router)
     app.include_router(routers.task_router)
     app.include_router(routers.administrator_invitation_router)
+    app.include_router(routers.telegram)
     app.include_router(routers.analytics_router)
-    if settings.BOT_WEBHOOK_MODE:
-        app.include_router(routers.webhook_router)
 
+    app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
     @app.on_event("startup")
     async def on_startup():
         """Действия при запуске сервера."""

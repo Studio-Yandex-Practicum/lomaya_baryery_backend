@@ -25,11 +25,15 @@ class ShiftCreateRequest(RequestBase):
     @validator("started_at", "finished_at", pre=True)
     def validate_date_format(cls, value):
         try:
-            datetime.strptime(value, DATE_FORMAT)
+            datetime.strptime(str(value), DATE_FORMAT)
         except ValueError:
             raise InvalidDateFormatException()
         return value
 
 
 class ShiftUpdateRequest(ShiftCreateRequest):
+    final_message: str = Field(..., min_length=10, max_length=400)
+
+
+class ShiftCancelRequest(RequestBase):
     final_message: str = Field(..., min_length=10, max_length=400)

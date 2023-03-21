@@ -1,8 +1,27 @@
+from __future__ import annotations
+
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
 from starlette.exceptions import HTTPException
+
+if TYPE_CHECKING:
+    from src.core.db.models import Base as DatabaseModel
+
+
+class ApplicationError(Exception):
+    """Собственное исключение для бизнес-логики приложения."""
+
+    pass
+
+
+class NotValidValueError(ApplicationError):
+    """Исключение для невалидных данных."""
+
+    def __init__(self, detail: str | None) -> None:
+        self.detail = detail
+        super().__init__()
 
 
 class ApplicationException(HTTPException):
@@ -18,6 +37,12 @@ class NotFoundException(ApplicationException):
     def __init__(self, object_name: str, object_id: UUID):
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+
+
+class AlreadyExistsException(ApplicationException):
+    def __init__(self, obj: DatabaseModel):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Объект {obj} уже существует"
 
 
 class CurrentTaskNotFoundError(Exception):
@@ -56,6 +81,12 @@ class EmptyReportError(Exception):
     pass
 
 
+class ReportSkippedError(Exception):
+    """Отчет пропущен."""
+
+    pass
+
+
 class ShiftStartForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
@@ -66,6 +97,12 @@ class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+
+
+class ShiftCancelForbiddenException(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = f"Невозможно отменить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
 class SendTelegramNotifyException(ApplicationException):
@@ -121,7 +158,7 @@ class GetStartedShiftException(ApplicationException):
         self.detail = detail
 
 
-class RegistrationException(HTTPException):
+class RegistrationException(ApplicationError):  # noqa N818
     status_code: int = None
     detail: str = None
 
@@ -129,7 +166,7 @@ class RegistrationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail)
 
 
-class RegistrationForbidenException(RegistrationException):
+class RegistrationForbidenException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -139,11 +176,11 @@ class RegistrationForbidenException(RegistrationException):
         )
 
 
-class AlreadyRegisteredException(RegistrationException):
+class AlreadyRegisteredException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.OK
         self.detail = (
-            "Вы уже зарегестрированы в проекте, ожидайте свое первое задание "
+            "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
             "в день старта смены. Актуальную дату начала смены вы можете "
             "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
         )
@@ -155,7 +192,7 @@ class RequestAlreadyReviewedException(ApplicationException):
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
-class RequestForbiddenException(RegistrationException):
+class RequestForbiddenException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = (
@@ -193,7 +230,14 @@ class AdministratorNotFoundException(ApplicationException):
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorInvitationInvalid(RegistrationException):
+class AdministratorAlreadyExistsException(ApplicationException):
+    """Пользователь с таким email уже существует."""
+
+    status_code = HTTPStatus.BAD_REQUEST
+    detail = "Администратор с указанным email уже существует."
+
+
+class AdministratorInvitationInvalid(ApplicationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Указанный код регистрации неверен или устарел."
@@ -209,3 +253,15 @@ class InvalidDateFormatException(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
+
+
+class InvitationAlreadyDeactivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение уже деактивировано"
+
+
+class InvitationAlreadyActivated(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение активно"

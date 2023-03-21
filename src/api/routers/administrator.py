@@ -1,21 +1,24 @@
 from http import HTTPStatus
+from typing import Any
+from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
-from src.api.error_templates import (
-    ERROR_TEMPLATE_FOR_400,
-    ERROR_TEMPLATE_FOR_401,
-    ERROR_TEMPLATE_FOR_403,
+from src.api.request_models.administrator import (
+    AdministratorAuthenticateRequest,
+    AdministratorRegistrationRequest,
 )
-from src.api.request_models.administrator import AdministratorAuthenticateRequest
-from src.api.response_models.administrator import AdministratorResponse, TokenResponse
+from src.api.response_models.administrator import (
+    AdministratorAndAccessTokenResponse,
+    AdministratorResponse,
+)
+from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
+from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
-from src.core.services.authentication_service import (
-    OAUTH2_SCHEME,
-    AuthenticationService,
-)
+from src.core.services.authentication_service import AuthenticationService
 
 router = APIRouter(prefix="/administrators", tags=["Administrator"])
 
@@ -27,23 +30,51 @@ class AdministratorCBV:
 
     @router.post(
         "/login",
-        response_model=TokenResponse,
+        response_model=AdministratorAndAccessTokenResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
-        response_description="Access и refresh токены.",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            403: ERROR_TEMPLATE_FOR_403,
-        },
+        response_description="Access-токен и информация о пользователе.",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
     )
-    async def login(self, auth_data: AdministratorAuthenticateRequest) -> TokenResponse:
-        """Аутентифицировать администратора по email и паролю.
+    async def login(
+        self, response: Response, auth_data: AdministratorAuthenticateRequest
+    ) -> AdministratorAndAccessTokenResponse:
+        """Аутентифицировать администратора по email и паролю. Вернуть access-токен и информацию об администраторе.
 
         - **email**: электронная почта
         - **password**: пароль
         """
-        return await self.authentication_service.login(auth_data)
+        admin_and_token = await self.authentication_service.login(auth_data)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
+
+    @router.get(
+        "/refresh",
+        response_model=AdministratorAndAccessTokenResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Обновление аутентификационного токена.",
+        response_description="Access-токен и информация о пользователе.",
+    )
+    async def refresh(
+        self,
+        response: Response,
+        refresh_token: str | None = Cookie(default=None),
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorAndAccessTokenResponse:
+        """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
+
+        Вернуть access-токен и информацию об администраторе.
+        """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
+        if not refresh_token:
+            raise UnauthorizedException()
+        admin_and_token = await self.authentication_service.refresh(refresh_token)
+        response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
+        admin_and_token.administrator.access_token = admin_and_token.access_token
+        return admin_and_token.administrator
 
     @router.get(
         "/me",
@@ -51,16 +82,30 @@ class AdministratorCBV:
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Информация об администраторе",
-        response_description="Информация о теущем активном администраторе",
-        responses={
-            400: ERROR_TEMPLATE_FOR_400,
-            401: ERROR_TEMPLATE_FOR_401,
-            403: ERROR_TEMPLATE_FOR_403,
-        },
+        response_description="Информация о текущем активном администраторе",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
     )
-    async def get_me(self, token: str = Depends(OAUTH2_SCHEME)):
-        """Получить информацию о текущем  активном администраторе."""
-        return await self.authentication_service.get_current_active_administrator(token)
+    async def get_me(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
+        """Получить информацию о текущем активном администраторе."""
+        return await self.authentication_service.get_current_active_administrator(token.credentials)
+
+    @router.post(
+        '/register/{token}',
+        response_model=AdministratorResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.CREATED,
+        summary="Регистрация администратора",
+        response_description="Регистрация нового администратора по токену приглашения.",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
+    )
+    async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
+        """Зарегистрировать нового администратора по токену из приглашения.
+
+        - **name**: Имя
+        - **surname**: Фамилия
+        - **password**: Пароль администратора
+        """
+        return await self.administrator_service.register_new_administrator(token, schema)
 
     @router.get(
         "/",
@@ -72,13 +117,15 @@ class AdministratorCBV:
     )
     async def get_administrators(
         self,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
         status: Administrator.Status = None,
         role: Administrator.Role = None,
-    ) -> list[AdministratorResponse]:
+    ) -> Any:
         """Получить список администраторов с опциональной фильтрацией по статусу и роли.
 
         Аргументы:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)

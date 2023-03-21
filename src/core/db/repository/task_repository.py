@@ -21,10 +21,6 @@ class TaskRepository(AbstractRepository):
         task_ids = await self._session.execute(select(Task.id))
         return task_ids.scalars().all()
 
-    async def get_tasks(self) -> list[Task]:
-        tasks = await self._session.execute(select(Task))
-        return tasks.scalars().all()
-
     async def get_tasks_statistics_report(self) -> tuple[TasksAnalyticReportDto]:
         """Отчёт по задачам со всех смен.
 

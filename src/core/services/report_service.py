@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urljoin
 
 from fastapi import Depends
@@ -14,10 +14,12 @@ from src.core.exceptions import (
     DuplicateReportError,
     NotFoundException,
     ReportAlreadyReviewedException,
+    ReportSkippedError,
     ReportWaitingPhotoException,
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
+from src.core.utils import get_lombaryers_for_quantity
 
 
 class ReportService:
@@ -45,13 +47,16 @@ class ReportService:
         return await self.__report_repository.get(id)
 
     async def get_report_with_report_url(self, id: UUID) -> ReportResponse:
-        report = await self.__report_repository.get_report_with_report_url(id)
-        return ReportResponse.parse_from(report)
+        return await self.__report_repository.get_report_with_report_url(id)
 
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
         if report:
             raise DuplicateReportError()
+
+    async def check_report_skipped(self, report: Report) -> None:
+        if report.status == Report.Status.SKIPPED:
+            raise ReportSkippedError()
 
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
@@ -60,27 +65,56 @@ class ReportService:
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
-    async def approve_report(self, report_id: UUID, bot: Application) -> None:
+    async def approve_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.APPROVED
-        await self.__report_repository.update(report_id, report)
-        member = await self.__member_repository.get_with_user(report.member_id)
+        report = await self.__report_repository.update(report_id, report)
+        member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_approved_task(member.user, report)
-        return
+        await self.__telegram_bot(bot).notify_approved_task(member.user, report, member.shift)
+        await self.__notify_member_about_finished_shift(member, bot)
+        return report
 
-    async def decline_report(self, report_id: UUID, bot: Application) -> None:
+    async def decline_report(self, report_id: UUID, bot: Application) -> ReportResponse:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.DECLINED
-        await self.__report_repository.update(report_id, report)
-        member = await self.__member_repository.get_with_user(report.member_id)
-        await self.__telegram_bot(bot).notify_declined_task(member.user)
-        return
+        report = await self.__report_repository.update(report_id, report)
+        member = await self.__member_repository.get_with_user_and_shift(report.member_id)
+        await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
+        await self.__notify_member_about_finished_shift(member, bot)
+        return report
+
+    async def skip_current_report(self, user_id: UUID) -> Report:
+        """Задание пропущено: изменение статуса."""
+        report = await self.__report_repository.get_current_report(user_id)
+        if report.status is Report.Status.SKIPPED:
+            raise ReportSkippedError()
+        if report.status is not Report.Status.WAITING:
+            raise ReportAlreadyReviewedException(status=report.status)
+        report.status = Report.Status.SKIPPED
+        return await self.__report_repository.update(report.id, report)
+
+    async def __notify_member_about_finished_shift(self, member: Member, bot: Application) -> None:
+        """Уведомляет пользователя об окончании смены, если у него не осталось непроверенных заданий."""
+        if (
+            member.shift.status is Shift.Status.READY_FOR_COMPLETE
+            and not await self.__member_repository.is_unreviewed_report_exists(member.id)
+        ):
+            await self.__finish_shift_with_all_reports_reviewed(member.shift)
+            await self.__telegram_bot(bot).send_message(
+                member.user,
+                member.shift.final_message.format(
+                    name=member.user.name,
+                    surname=member.user.surname,
+                    numbers_lombaryers=member.numbers_lombaryers,
+                    lombaryers_case=get_lombaryers_for_quantity(member.numbers_lombaryers),
+                ),
+            )
 
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
@@ -88,6 +122,12 @@ class ReportService:
             raise ReportAlreadyReviewedException(status=status)
         if status is Report.Status.WAITING:
             raise ReportWaitingPhotoException
+
+    async def __finish_shift_with_all_reports_reviewed(self, shift: Shift) -> None:
+        """Закрывает смену, если не осталось непроверенных заданий."""
+        if not await self.__shift_repository.is_unreviewed_report_exists(shift.id):
+            shift.status = Shift.Status.FINISHED
+            await self.__shift_repository.update(shift.id, shift)
 
     async def get_summaries_of_reports(
         self,
@@ -108,8 +148,11 @@ class ReportService:
                 report.photo_url = urljoin(settings.APPLICATION_URL, report.photo_url)
         return reports
 
-    async def send_report(self, user_id: UUID, photo_url: str) -> Report:
-        report = await self.__report_repository.get_current_report(user_id)
+    async def get_current_report(self, user_id: UUID) -> Report:
+        return await self.__report_repository.get_current_report(user_id)
+
+    async def send_report(self, report: Report, photo_url: str) -> Report:
+        await self.check_report_skipped(report)
         await self.check_duplicate_report(photo_url)
         report.send_report(photo_url)
         return await self.__report_repository.update(report.id, report)
@@ -120,10 +163,37 @@ class ReportService:
             Report(
                 shift_id=member.shift_id,
                 task_id=task.id,
-                status=Report.Status.WAITING,
+                status=(
+                    Report.Status.WAITING if member.status == Member.Status.ACTIVE else Report.Status.NOT_PARTICIPATE
+                ),
                 task_date=current_date,
                 member_id=member.id,
             )
             for member in members
+        ]
+        await self.__report_repository.create_all(reports)
+
+    async def __get_waiting_reports(self) -> list[Report]:
+        """Получаем список отчетов участников со статусом waiting."""
+        return await self.__report_repository.get_waiting_reports()
+
+    async def set_status_to_waiting_reports(self, status: Report.Status):
+        """Устанавливаем статус всем отчетам со статусом waiting."""
+        reports_list = await self.__get_waiting_reports()
+        return await self.__report_repository.set_status_to_reports(reports_list, status)
+
+    async def create_not_participated_reports(self, member_id: UUID, shift: Shift) -> None:
+        """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
+        tasks = shift.tasks
+        today = date.today()
+        reports = [
+            Report(
+                shift_id=shift.id,
+                task_id=tasks[str(day)],
+                status=Report.Status.NOT_PARTICIPATE,
+                task_date=today - timedelta(days=day),
+                member_id=member_id,
+            )
+            for day in range((today - shift.started_at).days, 0, -1)
         ]
         await self.__report_repository.create_all(reports)
