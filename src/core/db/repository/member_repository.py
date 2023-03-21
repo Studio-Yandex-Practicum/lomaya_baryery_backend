@@ -5,6 +5,7 @@ from fastapi import Depends
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm.exc import NoResultFound
 
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, User
@@ -87,4 +88,7 @@ class MemberRepository(AbstractRepository):
                 )
             )
         )
-        return amount.scalars().one_or_none()
+        try:
+            return amount.scalars().one()
+        except NoResultFound:
+            return 0
