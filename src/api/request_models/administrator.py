@@ -19,6 +19,13 @@ class AdministratorPasswordResetRequest(RequestBase):
     email: EmailStr
 
 
+class AdministratorPasswordSaveRequest(RequestBase):
+    """Схема для сохранения нового пароля в БД."""
+
+    password: str
+    token: str
+
+
 class AdministratorRegistrationRequest(RequestBase):
     """Схема для регистрации администратора."""
 
