@@ -50,7 +50,7 @@ class UserCreateRequest(BaseModel):
         return datetime.strptime(value, DATE_FORMAT).date()
 
     @validator("date_of_birth")
-    def validate_date_of_birth(cls, value: date):
+    def validate_birthday(cls, value: date):
         if value <= date(year=date.today().year - 3, month=date.today().month, day=date.today().day):
             raise ValueError(INVALID_DATE_OF_BIRTH)
         return value
