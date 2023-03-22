@@ -1,17 +1,17 @@
-"""Добавлена модель объекта обновления токена.
+"""Administrator password reset object added.
 
 Revision ID: 445910545e5f
-Revises: ef4034f91b1c
-Create Date: 2023-03-02 23:10:00.157460
+Revises: 3e856b1ea0c1
+Create Date: 2023-03-24 23:10:00.157460
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '445910545e5f'
-down_revision = 'ef4034f91b1c'
+down_revision = '3e856b1ea0c1'
 branch_labels = None
 depends_on = None
 
