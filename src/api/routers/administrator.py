@@ -144,5 +144,4 @@ class AdministratorCBV:
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        admin_to_change = await self.administrator_service.get_administrator(administrator_id)
-        return await self.administrator_service.switch_administrator_role(current_admin, admin_to_change)
+        return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)

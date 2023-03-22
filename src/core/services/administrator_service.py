@@ -42,23 +42,20 @@ class AdministratorService:
         """Получает список администраторов, опционально отфильтрованых по роли и/или статусу."""
         return await self.__administrator_repository.get_administrators_filter_by_role_and_status(status, role)
 
-    async def get_administrator(self, _id: UUID) -> Administrator:
-        return await self.__administrator_repository.get(_id)
-
-    async def switch_administrator_role(self, changed_by: Administrator, administrator: Administrator) -> Administrator:
+    async def switch_administrator_role(self, changed_by: Administrator, administrator_id: UUID) -> Administrator:
         """Переключает роль администратора."""
         if changed_by.role is not Administrator.Role.ADMINISTRATOR:
             raise exceptions.AdministratorChangeError
 
         # не надо менять роль самому себе
-        if administrator.id == changed_by.id:
+        if administrator_id == changed_by.id:
             raise exceptions.AdministratorSelfChangeRoleError
+
+        administrator = await self.__administrator_repository.get(administrator_id)
 
         if administrator.role is Administrator.Role.ADMINISTRATOR:
             administrator.role = Administrator.Role.PSYCHOLOGIST
         else:
             administrator.role = Administrator.Role.ADMINISTRATOR
 
-        await self.__administrator_repository.update(administrator.id, administrator)
-
-        return administrator
+        return await self.__administrator_repository.update(administrator.id, administrator)
