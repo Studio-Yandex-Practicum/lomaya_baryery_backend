@@ -1,7 +1,7 @@
 from typing import Any
 
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from fastapi.responses import JSONResponse
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 
 from src.core.exceptions import EmailSendException
@@ -41,7 +41,17 @@ class EmailProvider:
             MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
             USE_CREDENTIALS=settings.USE_CREDENTIALS,
             VALIDATE_CERTS=settings.VALIDATE_CERTS,
-            TEMPLATE_FOLDER=settings.email_template_directory,
+            # TEMPLATE_FOLDER=settings.email_template_directory,
+            # MAIL_USERNAME="emaildebugerVlad",
+            # MAIL_PASSWORD="tautokdubfokinjj",
+            # MAIL_FROM="emaildebugerVlad@yandex.ru",
+            # MAIL_PORT=465,
+            # MAIL_SERVER="smtp.yandex.ru",
+            # MAIL_FROM_NAME="emaildebugerVlad",
+            # MAIL_STARTTLS=False,
+            # MAIL_SSL_TLS=True,
+            # USE_CREDENTIALS=True,
+            # VALIDATE_CERTS=True,
         )
         message = MessageSchema(
             subject=subject,
@@ -75,7 +85,7 @@ class EmailProvider:
 
     async def send_reset_password_message(self, email: str, token: str) -> None:
         """Отправляет на указанный адрес ссылку для восстановления пароля."""
-        template_body = {"url": f"http://127.0.0.1:8080/administrators/password_reset/{token}"}
+        template_body = {"url": f"http://127.0.0.1:8080/administrators/password_reset/{token}", "email": email}
         recipients = [email]
         email_obj = EmailSchema(recipients=recipients, template_body=template_body)
         await self.__send_mail(

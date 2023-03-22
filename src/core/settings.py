@@ -40,8 +40,7 @@ class Settings(BaseSettings):
     MAIL_SERVER = "smtp.yandex.ru"
     MAIL_PORT: int = 465
     MAIL_LOGIN = "emaildebugerVlad"
-    # MAIL_PASSWORD = "buwshjafxfppbjrb"
-    MAIL_PASSWORD = "wcuvadslftsjhzmp"  # пароль приложения Ломая барьеры
+    MAIL_PASSWORD = "tautokdubfokinjj"  # 16.03.2023
     MAIL_STARTTLS: bool = False
     MAIL_SSL_TLS: bool = True
     USE_CREDENTIALS: bool = True
