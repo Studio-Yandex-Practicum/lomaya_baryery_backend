@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import Sequence
 from urllib.parse import urljoin
 
 from fastapi import Depends
@@ -173,7 +174,7 @@ class ReportService:
         ]
         await self.__report_repository.create_all(reports)
 
-    async def __get_waiting_reports(self) -> list[Report]:
+    async def __get_waiting_reports(self) -> Sequence[Report]:
         """Получаем список отчетов участников со статусом waiting."""
         return await self.__report_repository.get_waiting_reports()
 
