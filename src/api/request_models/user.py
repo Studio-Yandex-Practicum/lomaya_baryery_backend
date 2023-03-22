@@ -14,6 +14,7 @@ from src.core.db.models import Request, User
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} может быть использована только кириллица и \"-\"."
 DATE_FORMAT = "%d.%m.%Y"
+INVALID_DATE_OF_BIRTH = "Возраст не может быть менее 3 лет."
 
 
 class UserCreateRequest(BaseModel):
@@ -47,6 +48,12 @@ class UserCreateRequest(BaseModel):
     @validator("date_of_birth", pre=True)
     def validate_date_of_birth(cls, value: str):
         return datetime.strptime(value, DATE_FORMAT).date()
+
+    @validator("date_of_birth")
+    def validate_date_of_birth(cls, value: date):
+        if value <= date(year=date.today().year - 3, month=date.today().month, day=date.today().day):
+            raise ValueError(INVALID_DATE_OF_BIRTH)
+        return value
 
     def create_db_model(self) -> User:
         user = User()
