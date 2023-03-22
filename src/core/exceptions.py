@@ -10,10 +10,15 @@ if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
 
 
-class ApplicationError(Exception):
+class ApplicationError(HTTPException):
     """Собственное исключение для бизнес-логики приложения."""
 
-    pass
+    status_code: int = None
+    detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
+    headers: Dict[str, Any] = None
+
+    def __init__(self):
+        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
 class NotValidValueError(ApplicationError):
@@ -45,10 +50,10 @@ class AlreadyExistsException(ApplicationException):
         self.detail = f"Объект {obj} уже существует"
 
 
-class CurrentTaskNotFoundError(Exception):
+class CurrentTaskNotFoundError(ApplicationError):
     """Не найдено текущей задачи для пользователя."""
 
-    pass
+    detail = "Сейчас заданий нет."
 
 
 class TodayTaskNotFoundError(Exception):
@@ -57,22 +62,26 @@ class TodayTaskNotFoundError(Exception):
     pass
 
 
-class CannotAcceptReportError(Exception):
+class CannotAcceptReportError(ApplicationError):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
-    pass
+    detail = "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
 
 
-class DuplicateReportError(Exception):
+class DuplicateReportError(ApplicationError):
     """Отчет с таким фото уже отправлялся ранее."""
 
-    pass
+    detail = "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
 
 
-class ExceededAttemptsReportError(Exception):
+class ExceededAttemptsReportError(ApplicationError):
     """Превышено количество попыток сдать отчет."""
 
-    pass
+    detail = (
+        "Превышено количество попыток сдать отчет."
+        "Предлагаем продолжить, ведь впереди много интересных заданий. "
+        "Следующее задание придет в 8.00 мск."
+    )
 
 
 class EmptyReportError(Exception):
@@ -81,10 +90,10 @@ class EmptyReportError(Exception):
     pass
 
 
-class ReportSkippedError(Exception):
+class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    pass
+    detail = "Задание было пропущено, следующее задание придет в 8.00 мск."
 
 
 class ShiftStartForbiddenException(ApplicationException):
