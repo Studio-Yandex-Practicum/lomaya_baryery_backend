@@ -201,8 +201,15 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
 async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
         amount = await get_balance(update.effective_chat.id)
+        def lombarier_word(amount):
+            if amount == 1:
+                return "'ломбарьерчик'"
+            if 2<=amount<5:
+                return "'ломбарьерчика'"
+            else:
+                return "'ломбарьерчиков'"
         await update.message.reply_text(
-            f"Общее количество {amount}  'ломбарьерчиков'! "
+            f"Общее количество {amount}  {lombarier_word(amount)}! "
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
     if update.message.text == SKIP_A_TASK:
