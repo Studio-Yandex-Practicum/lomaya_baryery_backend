@@ -122,3 +122,8 @@ class BotService:
         """Уведомляет пользователей об отмене смены."""
         send_message_tasks = [self.send_message(user, final_message) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
+
+    async def notify_that_shift_started_at_date_changed(self, members: list[models.Member], message: str) -> None:
+        """Уведомляет пользователей об отмене смены."""
+        send_message_tasks = [self.send_message(member, message) for member in members]
+        self.__bot_application.create_task(asyncio.gather(*send_message_tasks))

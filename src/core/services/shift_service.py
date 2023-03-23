@@ -107,6 +107,9 @@ class ShiftService:
     def __check_shift_started_at_date_changed(self, started_at: date, update_started_at: date) -> None:
         """Проверка, что дата начала изменилась."""
         if started_at != update_started_at:
+            new_start_day = update_started_at.strftime('%d.%m.%Y')
+            message = f'Дата старта смены изменилась. Число {new_start_day} в 08 часов утра тебе поступит первое задание.'
+            services.notify_that_shift_started_at_date_changed(message)
             raise UpdateShiftForbiddenException(detail="Нельзя изменить дату начала текущей смены")
 
     async def __check_preparing_shift_already_exists(self) -> None:
