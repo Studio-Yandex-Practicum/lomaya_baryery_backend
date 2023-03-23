@@ -203,7 +203,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         amount = await get_balance(update.effective_chat.id)
         await update.message.reply_text(
             f"Общее количество {amount}  'ломбарьерчиков'! "
-            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
+            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
     if update.message.text == SKIP_A_TASK:
         try:
