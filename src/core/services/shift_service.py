@@ -199,8 +199,8 @@ class ShiftService:
         shift.final_message = update_shift_data.final_message
         if shift.started_at != update_shift_data.started_at:
             new_start_day = update_shift_data.started_at.strftime('%d.%m.%Y')
-            message = f'Дата старта смены изменилась. Число {new_start_day} в 08 часов утра тебе поступит первое задание.'
-            services.notify_that_shift_started_at_date_changed(message)
+            text = f'Дата старта смены изменилась. Число {new_start_day} в 08 часов утра тебе поступит первое задание.'
+            services.notify_that_shift_started_at_date_changed(text)
         return await self.__shift_repository.update(_id, shift)
 
     async def start_shift(self, _id: UUID) -> Shift:
