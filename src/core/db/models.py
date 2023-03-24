@@ -210,6 +210,7 @@ class Report(Base):
         DECLINED = "declined"
         WAITING = "waiting"
         SKIPPED = "skipped"
+        NOT_PARTICIPATE = "not_participate"
 
     __tablename__ = "reports"
 
