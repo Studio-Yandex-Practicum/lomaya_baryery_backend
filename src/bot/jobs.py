@@ -12,7 +12,7 @@ from src.bot.api_services import (
 from src.bot.services import BotService
 from src.bot.ui import CURRENT_SHIFT_BUTTONS
 from src.core.db.db import get_session
-from src.core.db.models import Report, Shift
+from src.core.db.models import Report
 from src.core.settings import settings
 
 
