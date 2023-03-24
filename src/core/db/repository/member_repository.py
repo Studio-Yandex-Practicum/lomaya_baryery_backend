@@ -87,7 +87,4 @@ class MemberRepository(AbstractRepository):
                 )
             )
         )
-        amount = amount.scalars().one_or_none()
-        if amount:
-            return amount
-        return 0
+        return amount.scalars().one_or_none() or 0
