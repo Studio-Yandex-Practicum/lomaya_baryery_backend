@@ -16,7 +16,7 @@ class AdministratorResponse(BaseModel):
     role: Administrator.Role
     status: Administrator.Status
     last_login_at: datetime | None
-    root: bool
+    superadmin: bool
 
     class Config:
         orm_mode = True
