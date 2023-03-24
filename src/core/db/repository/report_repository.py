@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 from uuid import UUID
 
 from fastapi import Depends
@@ -93,3 +93,13 @@ class ReportRepository(AbstractRepository):
         if not report:
             raise CurrentTaskNotFoundError()
         return report
+
+    async def get_waiting_reports(self) -> Sequence[Report]:
+        reports = await self._session.execute(select(Report).where(Report.status == Report.Status.WAITING))
+        return reports.scalars().all()
+
+    async def set_status_to_reports(self, reports_list: Sequence[Report], status: Report.Status) -> None:
+        for report in reports_list:
+            report.status = status
+        self._session.add_all(reports_list)
+        await self._session.commit()
