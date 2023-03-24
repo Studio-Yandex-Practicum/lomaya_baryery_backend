@@ -24,8 +24,7 @@ class AdministratorService:
     def __create_new_password(self) -> str:
         """Создать новый пароль."""
         alphabet = string.ascii_letters + string.digits
-        password = ''.join(secrets.choice(alphabet) for _ in range(8))
-        return password
+        return ''.join(secrets.choice(alphabet) for _ in range(8))
 
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
         """Регистрация нового администратора."""
