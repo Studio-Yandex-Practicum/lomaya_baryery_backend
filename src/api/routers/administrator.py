@@ -3,11 +3,13 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
+    AdministratorPasswordResetRequest,
     AdministratorRegistrationRequest,
 )
 from src.api.response_models.administrator import (
@@ -16,6 +18,7 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
+from src.core.email import EmailProvider
 from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
@@ -27,6 +30,7 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 class AdministratorCBV:
     authentication_service: AuthenticationService = Depends()
     administrator_service: AdministratorService = Depends()
+    email: EmailProvider = Depends()
 
     @router.post(
         "/login",
@@ -145,6 +149,17 @@ class AdministratorCBV:
         """Изменить роль администратора."""
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)
+
+    @router.patch(
+        "/reset_password",
+        status_code=HTTPStatus.OK,
+        summary="Сброс пароля администратора.",
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        response_class=HTMLResponse,
+    )
+    async def administrator_reset_password(self, data: AdministratorPasswordResetRequest) -> None:
+        password = await self.administrator_service.administrator_reset_password(data.email)
+        return await self.email.send_restored_password(password, data.email)
 
     @router.patch(
         "/{administrator_id}/block",

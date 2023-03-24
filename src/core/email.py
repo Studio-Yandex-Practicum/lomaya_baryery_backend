@@ -71,3 +71,14 @@ class EmailProvider:
             "Приглашение в проект \"Ломая Барьеры\"",
             "send_invitation_link.html",
         )
+
+    async def send_restored_password(self, password: str, email: str) -> None:
+        """Отправляет email на почтовый ящик администратора/психолога с новым паролем."""
+        template_body = {"password": password}
+        recipients = [email]
+        email_obj = EmailSchema(recipients=recipients, template_body=template_body)
+        await self.__send_mail(
+            email_obj,
+            "Восстановленный пароль от учетной записи в проекте \"Ломая Барьеры\"",
+            "send_password_restore_email.html",
+        )

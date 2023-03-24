@@ -1,3 +1,5 @@
+import secrets
+import string
 from uuid import UUID
 
 from fastapi import Depends
@@ -18,6 +20,12 @@ class AdministratorService:
     ):
         self.__administrator_repository = administrator_repository
         self.__administrator_invitation_service = administrator_invitation_service
+
+    def __create_new_password(self) -> str:
+        """Создать новый пароль."""
+        alphabet = string.ascii_letters + string.digits
+        password = ''.join(secrets.choice(alphabet) for _ in range(8))
+        return password
 
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
         """Регистрация нового администратора."""
@@ -59,6 +67,21 @@ class AdministratorService:
             administrator.role = Administrator.Role.ADMINISTRATOR
 
         return await self.__administrator_repository.update(administrator.id, administrator)
+
+    async def administrator_reset_password(self, email: str) -> str:
+        """
+        Восстановление пароля администратора.
+
+        -Генерация нового пароля.
+        -Сохранеине нового пароля в БД.
+        -Отпарвка нового пароля администратору/психологу.
+        """
+        password = self.__create_new_password()
+        hashed_password = AuthenticationService.get_hashed_password(password)
+        administrator = await self.__administrator_repository.get_by_email(email)
+        instance = Administrator(hashed_password=hashed_password)
+        await self.__administrator_repository.update(id=administrator.id, instance=instance)
+        return password
 
     async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
         """Блокирует администратора."""
