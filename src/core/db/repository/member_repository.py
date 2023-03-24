@@ -88,4 +88,4 @@ class MemberRepository(AbstractRepository):
                 )
             )
         )
-        return amount.scalars().one_or_none()
+        return amount.scalars().one_or_none() or 0
