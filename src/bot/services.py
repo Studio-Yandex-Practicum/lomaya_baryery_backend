@@ -49,7 +49,7 @@ class BotService:
         await self.send_message(user, text)
 
     async def notify_declined_request(
-            self, user: models.User, decline_request_data: RequestDeclineRequest | None
+        self, user: models.User, decline_request_data: RequestDeclineRequest | None
     ) -> None:
         """Уведомление участника о решении по заявке в telegram.
 
@@ -88,9 +88,8 @@ class BotService:
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at:
-            text = (
-                text + "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в "
-                       "8.00 мск. "
+            text = text + (
+                "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в " "8.00 мск. "
             )
         await self.send_message(user, text)
 
