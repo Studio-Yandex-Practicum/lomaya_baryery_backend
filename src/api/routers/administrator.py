@@ -166,6 +166,6 @@ class AdministratorCBV:
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
         if current_admin.role is not Administrator.Role.ADMINISTRATOR:
             raise AdministratorBlockError
-        elif current_admin.id == administrator_id:
+        if current_admin.id == administrator_id:
             raise AdministratorSelfBlockError
         return await self.administrator_service.block_administrator(administrator_id)
