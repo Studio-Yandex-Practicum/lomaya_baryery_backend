@@ -60,7 +60,8 @@ class AdministratorService:
 
         return await self.__administrator_repository.update(administrator.id, administrator)
 
-    async def block_administrator(self, blocks: Administrator, blocked_id: UUID) -> Administrator:
+    async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
+
         """Блокирует администратора."""
         if blocks.role is not Administrator.Role.ADMINISTRATOR:
             raise exceptions.AdministratorBlockError
