@@ -45,10 +45,11 @@ class UserCreateRequest(BaseModel):
         return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)[1:]
 
     @validator("date_of_birth", pre=True)
-    def validate_date_of_birth(cls, value: date):
-        if not value <= date(year=date.today().year - 3, month=date.today().month, day=date.today().day):
+    def validate_date_of_birth(cls, value: str):
+        value = datetime.strptime(value, DATE_FORMAT).date()
+        if value >= date(year=date.today().year - 3, month=date.today().month, day=date.today().day):
             raise ValueError("Возраст не может быть менее 3 лет.")
-        return datetime.strptime(str(value), DATE_FORMAT).date()
+        return value
 
     def create_db_model(self) -> User:
         user = User()
