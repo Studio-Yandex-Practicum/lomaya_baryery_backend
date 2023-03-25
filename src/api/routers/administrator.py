@@ -16,11 +16,7 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import (
-    AdministratorBlockError,
-    AdministratorSelfBlockError,
-    UnauthorizedException,
-)
+from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -164,8 +160,4 @@ class AdministratorCBV:
     ) -> AdministratorResponse:
         """Заблокировать администратора."""
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        if current_admin.role is not Administrator.Role.ADMINISTRATOR:
-            raise AdministratorBlockError
-        if current_admin.id == administrator_id:
-            raise AdministratorSelfBlockError
-        return await self.administrator_service.block_administrator(administrator_id)
+        return await self.administrator_service.block_administrator(current_admin, administrator_id)
