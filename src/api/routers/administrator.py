@@ -16,7 +16,11 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedException
+from src.core.exceptions import (
+    AdministratorBlockError,
+    AdministratorSelfBlockError,
+    UnauthorizedException,
+)
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -145,3 +149,23 @@ class AdministratorCBV:
         """Изменить роль администратора."""
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)
+
+    @router.patch(
+        "/{administrator_id}/block",
+        response_model=AdministratorResponse,
+        status_code=HTTPStatus.OK,
+        summary="Заблокировать администратора.",
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
+    async def administrator_blocking(
+        self,
+        administrator_id: UUID,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        """Заблокировать администратора."""
+        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
+        if current_admin.role is not Administrator.Role.ADMINISTRATOR:
+            raise AdministratorBlockError
+        elif current_admin.id == administrator_id:
+            raise AdministratorSelfBlockError
+        return await self.administrator_service.block_administrator(administrator_id)
