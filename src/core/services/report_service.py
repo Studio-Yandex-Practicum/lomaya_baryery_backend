@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Sequence
 from urllib.parse import urljoin
 
@@ -9,7 +9,7 @@ from telegram.ext import Application
 from src.api.response_models.report import ReportResponse
 from src.bot import services
 from src.core.db import DTO_models
-from src.core.db.models import Member, Report, Shift, Task
+from src.core.db.models import Administrator, Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.exceptions import (
     DuplicateReportError,
@@ -66,11 +66,12 @@ class ReportService:
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
         return task, shift.members
 
-    async def approve_report(self, report_id: UUID, bot: Application) -> ReportResponse:
+    async def approve_report(self, report_id: UUID, administrator: Administrator, bot: Application) -> ReportResponse:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.APPROVED
+        report = self.__set_administrator_to_report(report, administrator.id)
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
@@ -79,11 +80,12 @@ class ReportService:
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
-    async def decline_report(self, report_id: UUID, bot: Application) -> ReportResponse:
+    async def decline_report(self, report_id: UUID, administrator: Administrator, bot: Application) -> ReportResponse:
         """Задание отклонено: изменение статуса, уведомление участника в телеграм."""
         report = await self.__report_repository.get(report_id)
         self.__can_change_status(report.status)
         report.status = Report.Status.DECLINED
+        report = self.__set_administrator_to_report(report, administrator.id)
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
@@ -129,6 +131,12 @@ class ReportService:
         if not await self.__shift_repository.is_unreviewed_report_exists(shift.id):
             shift.status = Shift.Status.FINISHED
             await self.__shift_repository.update(shift.id, shift)
+
+    def __set_administrator_to_report(self, report: Report, administrator_id: UUID) -> Report:
+        """Устанавливает администратора и дату проверки для отчета."""
+        report.administrator_id = administrator_id
+        report.reviewed_at = datetime.now()
+        return report
 
     async def get_summaries_of_reports(
         self,

@@ -23,6 +23,8 @@ class ReportResponse(BaseModel):
     shift_id: UUID
     task_id: UUID
     member_id: UUID
+    administrator_id: Optional[UUID]
+    reviewed_at: Optional[datetime]
     task_date: date
     status: Report.Status
     report_url: Optional[str]
@@ -41,6 +43,8 @@ class ReportSummaryResponse(BaseModel):
     report_status: Report.Status
     report_created_at: date
     report_uploaded_at: datetime | None
+    administrator_id: Optional[UUID]
+    reviewed_at: Optional[datetime]
     user_name: str
     user_surname: str
     task_id: UUID
