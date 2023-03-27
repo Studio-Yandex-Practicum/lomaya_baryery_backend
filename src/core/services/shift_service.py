@@ -190,17 +190,25 @@ class ShiftService:
     async def get_shift(self, _id: UUID) -> Shift:
         return await self.__shift_repository.get(_id)
 
+    async def shift_date_started_at_changed(
+        self, 
+        bot: Application, 
+        _id: UUID, 
+        update_shift_data: ShiftUpdateRequest
+    ) -> Shift:
+        shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
+        if shift.started_at != update_shift_data.started_at:
+            await self.__telegram_bot(bot).notify_that_shift_started_at_date_changed(shift)
+        return shift
+
     async def update_shift(self, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
         shift: Shift = await self.__shift_repository.get(_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
+        await self.shift_date_started_at_changed()
         shift.started_at = update_shift_data.started_at
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
         shift.final_message = update_shift_data.final_message
-        if shift.started_at != update_shift_data.started_at:
-            new_start_day = update_shift_data.started_at.strftime('%d.%m.%Y')
-            text = f'Дата старта смены изменилась. Число {new_start_day} в 08 часов утра тебе поступит первое задание.'
-            services.notify_that_shift_started_at_date_changed(text)
         return await self.__shift_repository.update(_id, shift)
 
     async def start_shift(self, _id: UUID) -> Shift:
