@@ -1,15 +1,15 @@
-"""admin superamin -> is_superadmin
+"""superadmin -> is_superadmin
 
-Revision ID: 2b97b51cf163
+Revision ID: 7e2638eb39b5
 Revises: 78f2160b69cf
-Create Date: 2023-03-27 13:53:51.061302
+Create Date: 2023-03-27 15:41:23.327826
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '2b97b51cf163'
+revision = '7e2638eb39b5'
 down_revision = '78f2160b69cf'
 branch_labels = None
 depends_on = None
