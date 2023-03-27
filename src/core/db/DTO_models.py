@@ -23,7 +23,7 @@ class FullReportDto:
     report_status: Report.Status
     report_created_at: date
     report_uploaded_at: datetime | None
-    administrator_id: UUID | None
+    changed_by: UUID | None
     report_reviewed_at: datetime | None
     user_name: str
     user_surname: str

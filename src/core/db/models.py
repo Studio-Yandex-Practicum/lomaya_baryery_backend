@@ -227,7 +227,7 @@ class Administrator(Base):
     status = Column(
         Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
-    reports = relationship("Report", back_populates="administrator")
+    reports = relationship("Report", back_populates="reviewer")
 
     def __repr__(self) -> str:
         return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
@@ -254,8 +254,8 @@ class Report(Base):
     task = relationship("Task", back_populates="reports")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
     member = relationship("Member", back_populates="reports")
-    administrator_id = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
-    administrator = relationship("Administrator", back_populates="reports")
+    changed_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
+    reviewer = relationship("Administrator", back_populates="reports")
     reviewed_at = Column(TIMESTAMP, nullable=True)
     task_date = Column(DATE, nullable=False)
     status = Column(
@@ -285,6 +285,11 @@ class Report(Base):
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
         self.number_attempt += 1
+
+    def set_reviewer(self, administrator_id: UUID):
+        """Установить администратора, который проверил отчет и дату проверки."""
+        self.changed_by = administrator_id
+        self.reviewed_at = datetime.now()
 
 
 class AdministratorInvitation(Base):

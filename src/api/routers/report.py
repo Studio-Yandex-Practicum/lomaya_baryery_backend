@@ -62,7 +62,7 @@ class ReportsCBV:
     ) -> ReportResponse:
         """Отчет участника проверен и принят."""
         administrator = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.report_service.approve_report(report_id, administrator, request.app.state.bot_instance)
+        return await self.report_service.approve_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.patch(
         "/{report_id}/decline",
@@ -79,7 +79,7 @@ class ReportsCBV:
     ) -> ReportResponse:
         """Отчет участника проверен и отклонен."""
         administrator = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.report_service.decline_report(report_id, administrator, request.app.state.bot_instance)
+        return await self.report_service.decline_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.get(
         "/",
