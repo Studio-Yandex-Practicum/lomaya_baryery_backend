@@ -254,7 +254,7 @@ class Report(Base):
     task = relationship("Task", back_populates="reports")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
     member = relationship("Member", back_populates="reports")
-    changed_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
+    updated_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
     reviewer = relationship("Administrator", back_populates="reports")
     reviewed_at = Column(TIMESTAMP, nullable=True)
     task_date = Column(DATE, nullable=False)
@@ -288,7 +288,7 @@ class Report(Base):
 
     def set_reviewer(self, administrator_id: UUID):
         """Установить администратора, который проверил отчет и дату проверки."""
-        self.changed_by = administrator_id
+        self.updated_by = administrator_id
         self.reviewed_at = datetime.now()
 
 
