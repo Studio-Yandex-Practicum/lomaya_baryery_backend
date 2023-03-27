@@ -46,7 +46,10 @@ class UserCreateRequest(BaseModel):
 
     @validator("date_of_birth", pre=True)
     def validate_date_of_birth(cls, value: str):
-        return datetime.strptime(value, DATE_FORMAT).date()
+        value = datetime.strptime(value, DATE_FORMAT).date()
+        if value >= date(year=date.today().year - 3, month=date.today().month, day=date.today().day):
+            raise ValueError("Возраст не может быть менее 3 лет.")
+        return value
 
     def create_db_model(self) -> User:
         user = User()
