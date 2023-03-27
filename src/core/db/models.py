@@ -228,6 +228,7 @@ class Administrator(Base):
         Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
     reports = relationship("Report", back_populates="reviewer")
+    is_superadmin = Column(Boolean, default=False, nullable=False)
 
     def __repr__(self) -> str:
         return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
@@ -285,40 +286,6 @@ class Report(Base):
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
         self.number_attempt += 1
-
-
-class Administrator(Base):
-    """Модель администратора смены."""
-
-    class Status(str, enum.Enum):
-        """Cтатус администратора."""
-
-        ACTIVE = "active"
-        BLOCKED = "blocked"
-
-    class Role(str, enum.Enum):
-        """Роль администратора."""
-
-        ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
-
-    __tablename__ = "administrators"
-
-    name = Column(String(100), nullable=False)
-    surname = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(70), nullable=False)
-    role = Column(
-        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    last_login_at = Column(TIMESTAMP)
-    status = Column(
-        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    is_superadmin = Column(Boolean, default=False, nullable=False)
-
-    def __repr__(self) -> str:
-        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
 
     def set_reviewer(self, administrator_id: UUID):
         """Установить администратора, который проверил отчет и дату проверки."""
