@@ -191,9 +191,9 @@ class ShiftService:
         return await self.__shift_repository.get(_id)
 
     async def shift_date_started_at_changed(
-        self, 
-        bot: Application, 
-        _id: UUID, 
+        self,
+        bot: Application,
+        _id: UUID,
         update_shift_data: ShiftUpdateRequest
     ) -> Shift:
         shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
