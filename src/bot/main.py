@@ -6,6 +6,7 @@ from telegram.ext import (
     AIORateLimiter,
     Application,
     ApplicationBuilder,
+    CallbackQueryHandler,
     CommandHandler,
     MessageHandler,
     PicklePersistence,
@@ -17,6 +18,7 @@ from src.bot.handlers import (
     button_handler,
     incorrect_report_type_handler,
     photo_handler,
+    registration_button,
     start,
     web_app_data,
 )
@@ -45,6 +47,12 @@ def create_bot() -> Application:
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))
+    bot_instance.add_handler(
+        CallbackQueryHandler(
+            callback=registration_button,
+            pattern="registration_button",
+        )
+    )
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
     bot_instance.add_handler(MessageHandler(~HANDLED_MESSAGE_TYPES, incorrect_report_type_handler))
     bot_instance.job_queue.run_daily(

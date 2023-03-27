@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
     KeyboardButton,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -76,6 +78,18 @@ async def register_user(
             )
         ),
     )
+    context.chat_data["text"] = text
+    context.chat_data["query"] = query
+    inline_message = await update.message.reply_text(
+        "\N{white down pointing backhand index}" * 3,
+        reply_markup=InlineKeyboardMarkup.from_button(
+            InlineKeyboardButton(
+                text=text,
+                callback_data="registration_button",
+            )
+        ),
+    )
+    context.chat_data["inline_message_id"] = inline_message
 
 
 async def update_user_data(
@@ -90,16 +104,47 @@ async def update_user_data(
         text = "Подать заявку на участие в смене"
         user = context.user_data.get("user")
         web_hook = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_hook.dict())
+        query = urllib.parse.urlencode({"update": "true"} | web_hook.dict())
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text=text,
-                web_app=WebAppInfo(url=f"{settings.registration_template_url}?update=true&{query}"),
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
+    context.chat_data["text"] = text
+    context.chat_data["query"] = query
+    inline_message = await update.message.reply_text(
+        "\N{white down pointing backhand index}" * 3,
+        reply_markup=InlineKeyboardMarkup.from_button(
+            InlineKeyboardButton(
+                text=text,
+                callback_data="registration_button",
+            )
+        ),
+    )
+    context.chat_data["inline_message_id"] = inline_message
+
+
+async def registration_button(update: Update, context: CallbackContext) -> None:
+    """Активирует кнопку на клавиатуре при нажатии Inline-кнопки.
+
+    Это необходимо так, как Inline-кнопки не отправляют данные через метод `sendData()`
+    шаблона регистрации.
+    """
+    query = context.chat_data["query"]
+    await update.callback_query.message.reply_text(
+        "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
+        reply_markup=ReplyKeyboardMarkup.from_button(
+            KeyboardButton(
+                text=context.chat_data["text"],
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+            )
+        ),
+    )
+    await update.callback_query.answer()
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
@@ -134,6 +179,10 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
                 "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
             )
         reply_markup = ReplyKeyboardRemove()
+        await context.bot.edit_message_reply_markup(
+            chat_id=context.chat_data["inline_message_id"].chat_id,
+            message_id=context.chat_data["inline_message_id"].message_id,
+        )
     finally:
         await update.message.reply_text(
             text=text,
