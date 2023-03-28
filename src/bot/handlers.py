@@ -3,7 +3,6 @@ import urllib
 from pathlib import Path
 from urllib.parse import urljoin
 
-
 from pydantic import ValidationError
 from telegram import (
     KeyboardButton,
@@ -17,6 +16,7 @@ from telegram.ext import CallbackContext
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.models import Request
 from src.core.db.repository import (
@@ -43,6 +43,7 @@ from src.core.services.shift_service import ShiftService
 from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
+from src.core.utils import get_lombaryers_for_quantity
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -62,17 +63,16 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await check_handle_user_status(user, update, context)
+        await update_user_data(update, context)
     else:
         await register_user(update, context)
 
 
 async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
     """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    status = Request.status
-    if status.PENDING:
+    if Request.status.PENDING:
         await update.message.reply_text("Ваша заявка еще на рассмотрении.")
-    elif status.APPROVED:
+    elif Request.status.APPROVED:
         await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
     else:
         await update_user_data(update, context)
@@ -139,12 +139,13 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
+    reply_markup, validation_error = None, False
     try:
         await registration_service.register_user(user_scheme)
-    except NotValidValueError as e:
+    except exceptions.NotValidValueError as e:
         text = e.detail
         validation_error = True
-    except ApplicationError as e:
+    except exceptions.ApplicationError as e:
         text = e.detail
     else:
         text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
@@ -182,6 +183,8 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
     shift_service = ShiftService(ShiftRepository(session))
 
+    text = "Твой отчет отправлен на модерацию, после проверки тебе придет уведомление."
+
     try:
         user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
         report = await report_service.get_current_report(user.id)
@@ -189,46 +192,34 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
         photo_url = urljoin(settings.user_reports_url, file_path)
         await report_service.send_report(report, photo_url)
-        await update.message.reply_text("Твой отчет отправлен на модерацию, после проверки тебе придет уведомление.")
-    except CurrentTaskNotFoundError:
-        await update.message.reply_text("Сейчас заданий нет.")
-    except CannotAcceptReportError:
-        await update.message.reply_text(
-            "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
-        )
-    except DuplicateReportError:
-        await update.message.reply_text(
-            "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
-        )
-    except ExceededAttemptsReportError:
-        await update.message.reply_text(
-            "Превышено количество попыток сдать отчет."
-            "Предлагаем продолжить, ведь впереди много интересных заданий. "
-            "Следующее задание придет в 8.00 мск."
-        )
-    except ReportSkippedError:
-        await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
+    except exceptions.ApplicationError as e:
+        text = e.detail
+
+    await update.message.reply_text(text)
 
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
         amount = await get_balance(update.effective_chat.id)
         await update.message.reply_text(
-            f"Общее количество {amount}  'ломбарьерчиков'! "
-            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
+            f"Общее количество {amount} {get_lombaryers_for_quantity(amount)}! "
+            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
+
+    text = "Задание пропущено, следующее задание придет в 8.00 мск."
+
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
-            await update.message.reply_text("Задание пропущено, следующее задание придет в 8.00 мск.")
-        except CurrentTaskNotFoundError:
-            await update.message.reply_text("Сейчас заданий нет.")
-        except ReportAlreadyReviewedException:
+
+        except exceptions.ReportAlreadyReviewedException:
             await update.message.reply_text(
                 "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
             )
-        except ReportSkippedError:
-            await update.message.reply_text("Задание было пропущено, следующее задание придет в 8.00 мск.")
+        except exceptions.ApplicationError as e:
+            text = e.detail
+
+        await update.message.reply_text(text)
 
 
 async def get_balance(telegram_id: int) -> int:
