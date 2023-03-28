@@ -128,7 +128,7 @@ class User(Base):
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
-    phone_number = Column(String(11), unique=True, nullable=False)
+    phone_number = Column(String(16), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     status = Column(
         Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),

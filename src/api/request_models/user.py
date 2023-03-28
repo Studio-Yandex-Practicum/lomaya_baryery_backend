@@ -37,12 +37,12 @@ class UserCreateRequest(BaseModel):
     def validate_phone_number(cls, value: str):
         invalid_phone_number = 'Некорректный номер телефона'
         try:
-            parsed_number = phonenumbers.parse(value.replace('+', ''), "RU")
+            parsed_number = phonenumbers.parse(value, "RU")
         except NumberParseException:
             raise ValueError(invalid_phone_number)
         if not phonenumbers.is_valid_number(parsed_number):
             raise ValueError(invalid_phone_number)
-        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)[1:]
+        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
 
     @validator("date_of_birth", pre=True)
     def validate_date_of_birth(cls, value: str):
@@ -114,7 +114,7 @@ class UserWebhookTelegram(BaseModel):
     surname: StrictStr
     date_of_birth: date
     city: StrictStr
-    phone_number: int
+    phone_number: StrictStr
 
     @validator("date_of_birth")
     def fix_date_of_birth(cls, value: date) -> str:
