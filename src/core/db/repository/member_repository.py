@@ -46,7 +46,7 @@ class MemberRepository(AbstractRepository):
                 Report.task_date >= func.current_date() - task_amount,
             )
             .join(Report)
-            .join(User)
+            .join(Member.user)
             .group_by(Member)
             .having(func.count() >= task_amount)
         )
@@ -88,4 +88,4 @@ class MemberRepository(AbstractRepository):
                 )
             )
         )
-        return amount.scalars().one_or_none()
+        return amount.scalars().one_or_none() or 0

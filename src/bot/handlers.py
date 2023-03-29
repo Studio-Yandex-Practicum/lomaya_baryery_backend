@@ -181,8 +181,8 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == LOMBARIERS_BALANCE:
         amount = await get_balance(update.effective_chat.id)
         await update.message.reply_text(
-            f"Общее количество: {amount}  {get_lombaryers_for_quantity(amount)}! "
-            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты большой молодец!"
+            f"Общее количество {amount} {get_lombaryers_for_quantity(amount)}! "
+            f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
 
     text = "Задание пропущено, следующее задание придет в 8.00 мск."
