@@ -5,7 +5,6 @@ from telegram import ReplyKeyboardMarkup
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.api.request_models.shift import ShiftUpdateRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
 from src.core.settings import settings
@@ -130,7 +129,7 @@ class BotService:
 
     async def notify_that_shift_started_at_date_changed(self, shift: models.Shift) -> None:
         """Уведомляет участников об изменении даты начала смены."""
-        new_start_day = ShiftUpdateRequest.started_at.strftime('%d.%m.%Y')
+        new_start_day = shift.started_at.strftime('%d.%m.%Y')
         text = f'Дата старта смены изменилась.{new_start_day} тебе поступит первое задание.'
         send_message_tasks = [self.send_message(member.user, text) for member in shift.members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
