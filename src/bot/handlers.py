@@ -27,16 +27,6 @@ from src.core.db.repository import (
     TaskRepository,
     UserRepository,
 )
-from src.core.exceptions import (
-    ApplicationError,
-    CannotAcceptReportError,
-    CurrentTaskNotFoundError,
-    DuplicateReportError,
-    ExceededAttemptsReportError,
-    NotValidValueError,
-    ReportAlreadyReviewedException,
-    ReportSkippedError,
-)
 from src.core.services.member_service import MemberService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
@@ -63,19 +53,9 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await update_user_data(update, context)
+        await check_handle_user_status(update, context)
     else:
         await register_user(update, context)
-
-
-async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
-    """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    if Request.status.PENDING:
-        await update.message.reply_text("Ваша заявка еще на рассмотрении.")
-    elif Request.status.APPROVED:
-        await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
-    else:
-        await update_user_data(update, context)
 
 
 async def register_user(
@@ -97,6 +77,16 @@ async def register_user(
             )
         ),
     )
+
+
+async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
+    """Проверка статуса пользователя и отправка соответствующего сообщения."""
+    if Request.status.PENDING:
+        await update.message.reply_text("Ваша заявка еще на рассмотрении.")
+    elif Request.status.APPROVED:
+        await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
+    else:
+        await update_user_data(update, context)
 
 
 async def update_user_data(
