@@ -1,17 +1,40 @@
-version: '3.3'
-
-volumes:
-  postgres_data_local:
+version: "3.3"
 
 services:
-  lomaya_baryery_db-local:
+  postgres:
     image: postgres:13.2
+    container_name: lomaya_baryery_dev_postgres
     restart: always
-    container_name: lomaya_baryery_db-local
-    volumes:
-      - postgres_data_local:/var/lib/postgresql/data/
+    command: -p 6100
     ports:
       - "6100:6100"
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env
-    command: -p 6100
+      - .env
+
+  frontend:
+    image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
+    container_name: lomaya_baryery_dev_frontend_build
+    volumes:
+      - ./frontend/:/app/result_build/
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:1.23
+    container_name: lomaya_baryery_dev_nginx
+    restart: always
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf
+      - ./static:/var/www/static/
+      - ./frontend/:/var/www/frontend/
+    env_file:
+      - .env
+
+volumes:
+  dev_postgres_data:
