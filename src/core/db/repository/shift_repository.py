@@ -205,7 +205,7 @@ class ShiftRepository(AbstractRepository):
             ),
         )
         return (await self._session.scalars(statement)).first()
-    
+
     async def get_preparing_shift_with_started_at_today(self) -> Optional[Shift]:
         """Возвращает смену, если смена имеет статус preparing
         и дата старта совпадает с текущим днём.
