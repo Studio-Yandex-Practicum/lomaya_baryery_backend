@@ -58,6 +58,16 @@ async def start(update: Update, context: CallbackContext) -> None:
         await register_user(update, context)
 
 
+async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
+    """Проверка статуса пользователя и отправка соответствующего сообщения."""
+    if Request.status.PENDING:
+        await update.message.reply_text("Ваша заявка еще на рассмотрении.")
+    elif Request.status.APPROVED:
+        await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
+    else:
+        await update_user_data(update, context)
+
+
 async def register_user(
     update: Update,
     context: CallbackContext,
@@ -77,16 +87,6 @@ async def register_user(
             )
         ),
     )
-
-
-async def check_handle_user_status(update: Update, context: CallbackContext) -> None:
-    """Проверка статуса пользователя и отправка соответствующего сообщения."""
-    if Request.status.PENDING:
-        await update.message.reply_text("Ваша заявка еще на рассмотрении.")
-    elif Request.status.APPROVED:
-        await update.message.reply_text("Ваша заявка уже одобрена и не может быть изменена.")
-    else:
-        await update_user_data(update, context)
 
 
 async def update_user_data(
