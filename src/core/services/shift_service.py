@@ -288,9 +288,7 @@ class ShiftService:
 
     async def start_shift_service(self) -> None:
         """Запускает смену в дату, указанную в started_at."""
-        shifts = await self.list_all_shifts(status=[Shift.Status.PREPARING])
-        if shifts:
-            shift = shifts[0]
-            if shift.started_at == date.today():
-                shift.status = Shift.Status.STARTED.value
-                await self.__shift_repository.update(shift.id, shift)
+        shift = await self.__shift_repository.get_preparing_shift_with_started_at_today()
+        if shift:
+            shift.status = Shift.Status.STARTED.value
+            await self.__shift_repository.update(shift.id, shift)

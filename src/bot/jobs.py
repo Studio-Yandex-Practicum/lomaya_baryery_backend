@@ -10,7 +10,7 @@ from src.bot.api_services import (
     get_shift_service_callback,
 )
 from src.bot.services import BotService
-from src.bot.ui import CURRENT_SHIFT_BUTTONS
+from src.bot.ui import JOB_CONTROL_BUTTONS
 from src.core.db.db import get_session
 from src.core.db.models import Report
 from src.core.settings import settings
@@ -35,13 +35,6 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
         for member in members
     ]
     context.application.create_task(asyncio.gather(*send_message_tasks))
-
-
-async def finish_shift_automatically_job(context: CallbackContext) -> None:
-    """Автоматически закрывает смену в дату, указанную в finished_at."""
-    session = get_session()
-    shift_service = await get_shift_service_callback(session)
-    await shift_service.finish_shift_automatically(context.application)
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
@@ -70,8 +63,15 @@ async def send_daily_task_job(context: CallbackContext) -> None:
                 f"Сегодня твоим заданием будет {task.description_for_message}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
-            CURRENT_SHIFT_BUTTONS,
+            JOB_CONTROL_BUTTONS,
         )
         for member in members
     ]
     context.application.create_task(asyncio.gather(*send_message_tasks))
+
+
+async def finish_shift_automatically_job(context: CallbackContext) -> None:
+    """Автоматически закрывает смену в дату, указанную в finished_at."""
+    session = get_session()
+    shift_service = await get_shift_service_callback(session)
+    await shift_service.finish_shift_automatically(context.application)
