@@ -254,7 +254,7 @@ class Administrator(Base):
     """Модель администратора смены."""
 
     class Status(str, enum.Enum):
-        """Cтатус администратора."""
+        """Статус администратора."""
 
         ACTIVE = "active"
         BLOCKED = "blocked"
@@ -278,6 +278,7 @@ class Administrator(Base):
     status = Column(
         Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
+    is_superadmin = Column(Boolean, default=False, nullable=False)
 
     def __repr__(self) -> str:
         return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
