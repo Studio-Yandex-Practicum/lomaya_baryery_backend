@@ -1,6 +1,6 @@
 """add is_superuser field to admin
 
-Revision ID: 7eb9d5dccf40
+Revision ID: 21b7c35b3419
 Revises: 3e856b1ea0c1
 Create Date: 2023-03-28 23:22:29.143481
 
@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '7eb9d5dccf40'
+revision = '21b7c35b3419'
 down_revision = '3e856b1ea0c1'
 branch_labels = None
 depends_on = None
