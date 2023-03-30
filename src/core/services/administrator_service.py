@@ -28,7 +28,7 @@ class AdministratorService:
             email=invitation.email,
             hashed_password=AuthenticationService.get_hashed_password(schema.password.get_secret_value()),
             status=Administrator.Status.ACTIVE,
-            role=Administrator.Role.PSYCHOLOGIST,
+            role=Administrator.Role.EXPERT,
         )
         administrator = await self.__administrator_repository.create(administrator)
         await self.__administrator_invitation_service.close_invitation(token)
@@ -54,7 +54,7 @@ class AdministratorService:
         administrator = await self.__administrator_repository.get(administrator_id)
 
         if administrator.role is Administrator.Role.ADMINISTRATOR:
-            administrator.role = Administrator.Role.PSYCHOLOGIST
+            administrator.role = Administrator.Role.EXPERT
         else:
             administrator.role = Administrator.Role.ADMINISTRATOR
 
