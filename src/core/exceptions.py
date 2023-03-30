@@ -93,7 +93,7 @@ class EmptyReportError(Exception):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = "Задание было пропущено, следующее задание придет в 8.00 мск."
+    detail = "Задание было пропущено, следующее задание придет в 08 часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):
