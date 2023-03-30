@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from fastapi import Request as FastAPIRequest
+from fastapi.security import HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.shift import (
@@ -22,7 +23,7 @@ from src.api.response_models.shift import (
 from src.core.db.models import Member, Request, Shift
 from src.core.services.shift_service import ShiftService
 
-router = APIRouter(prefix="/shifts", tags=["Shift"])
+router = APIRouter(prefix="/shifts", tags=["Shift"], dependencies=[Depends(HTTPBearer())])
 
 
 @cbv(router)

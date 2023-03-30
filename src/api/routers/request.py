@@ -2,6 +2,7 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Request
+from fastapi.security import HTTPBearer
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
@@ -11,7 +12,7 @@ from src.api.response_models.request import RequestResponse
 from src.core.db import DTO_models, models
 from src.core.services.request_service import RequestService
 
-router = APIRouter(prefix="/requests", tags=["Request"])
+router = APIRouter(prefix="/requests", tags=["Request"], dependencies=[Depends(HTTPBearer())])
 
 
 @cbv(router)

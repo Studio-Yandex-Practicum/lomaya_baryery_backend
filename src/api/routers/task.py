@@ -2,6 +2,7 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.task import TaskCreateRequest, TaskUpdateRequest
@@ -9,7 +10,7 @@ from src.api.response_models.error import generate_error_responses
 from src.api.response_models.task import TaskResponse
 from src.core.services.task_service import TaskService
 
-router = APIRouter(prefix="/tasks", tags=["Task"])
+router = APIRouter(prefix="/tasks", tags=["Task"], dependencies=[Depends(HTTPBearer())])
 
 
 @cbv(router)

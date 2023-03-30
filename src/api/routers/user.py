@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
@@ -11,7 +12,7 @@ from src.api.response_models.user import UserDetailResponse, UserWithStatusRespo
 from src.core.db.models import User
 from src.core.services.user_service import UserService
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(HTTPBearer())])
 
 
 @cbv(router)
