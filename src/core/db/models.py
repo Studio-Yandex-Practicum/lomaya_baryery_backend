@@ -15,10 +15,11 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    select,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
 from src.core import settings
@@ -73,7 +74,7 @@ class Shift(Base):
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     reports = relationship("Report", back_populates="shift")
-    members = relationship("Member", back_populates="shift")
+    members = relationship("Member", back_populates="shift", order_by="Member.member_user_name")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -192,6 +193,7 @@ class Member(Base):
     shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
     reports = relationship("Report", back_populates="member", order_by='desc(Report.task_date)')
+    member_user_name = deferred(select(User.name).where(User.id == user_id))
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
 
