@@ -3,27 +3,25 @@ version: "3.3"
 services:
   postgres:
     image: postgres:13.2
-    container_name: lomaya_baryery_dev_postgres
+    container_name: lomaya_baryery_local_postgres
     restart: always
     command: -p 6100
     ports:
       - "6100:6100"
     volumes:
-      - dev_postgres_data:/var/lib/postgresql/data/
+      - local_postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
 
   frontend:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
-    container_name: lomaya_baryery_dev_frontend_build
+    container_name: lomaya_baryery_local_frontend_build
     volumes:
       - ./frontend/:/app/result_build/
-    env_file:
-      - .env
 
   nginx:
     image: nginx:1.23
-    container_name: lomaya_baryery_dev_nginx
+    container_name: lomaya_baryery_local_nginx
     restart: always
     ports:
       - "80:80"
@@ -37,4 +35,4 @@ services:
       - .env
 
 volumes:
-  dev_postgres_data:
+  local_postgres_data:
