@@ -190,21 +190,12 @@ class ShiftService:
     async def get_shift(self, _id: UUID) -> Shift:
         return await self.__shift_repository.get(_id)
 
-    async def shift_date_started_at_changed(
-        self,
-        bot: Application,
-        _id: UUID,
-        update_shift_data: ShiftUpdateRequest
-    ) -> Shift:
-        shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
-        if shift.started_at != update_shift_data.started_at:
-            await self.__telegram_bot(bot).notify_that_shift_started_at_date_changed(shift)
-        return shift
-
     async def update_shift(self, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
         shift: Shift = await self.__shift_repository.get(_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
-        await self.shift_date_started_at_changed()
+        if shift.started_at != update_shift_data.started_at:
+            bot: Application
+            await self.__telegram_bot(bot).notify_that_shift_started_at_date_changed(shift)
         shift.started_at = update_shift_data.started_at
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
