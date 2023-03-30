@@ -17,7 +17,6 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.email import EmailProvider
 from src.core.exceptions import UnauthorizedException
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
@@ -29,7 +28,6 @@ router = APIRouter(prefix="/administrators", tags=["Administrator"])
 class AdministratorCBV:
     authentication_service: AuthenticationService = Depends()
     administrator_service: AdministratorService = Depends()
-    email: EmailProvider = Depends()
 
     @router.post(
         "/login",
@@ -156,10 +154,13 @@ class AdministratorCBV:
         summary="Сброс пароля администратора.",
         responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
-    async def administrator_reset_password(self, payload: AdministratorPasswordResetRequest) -> AdministratorResponse:
-        password_reset_data = await self.administrator_service.administrator_reset_password(payload.email)
-        await self.email.send_restored_password(password_reset_data["password"], payload.email)
-        return password_reset_data["administrator"]
+    async def administrator_reset_password(
+        self,
+        payload: AdministratorPasswordResetRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.administrator_reset_password(payload.email)
 
     @router.patch(
         "/{administrator_id}/block",
