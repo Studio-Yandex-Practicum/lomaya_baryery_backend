@@ -1,8 +1,8 @@
 """change User.phone_number format
 
 Revision ID: 861c749e429b
-Revises: 7e2638eb39b5
-Create Date: 2023-03-28 12:18:54.783920
+Revises: 21b7c35b3419
+Create Date: 2023-03-30 11:50:54.783920
 
 """
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '861c749e429b'
-down_revision = '7e2638eb39b5'
+down_revision = '21b7c35b3419'
 branch_labels = None
 depends_on = None
 
