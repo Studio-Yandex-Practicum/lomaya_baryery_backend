@@ -73,7 +73,7 @@ class EmailProvider:
         )
 
     async def send_restored_password(self, password: str, email: str) -> None:
-        """Отправляет email на почтовый ящик администратора/психолога с новым паролем."""
+        """Отправляет email на почтовый ящик администратора/эксперта с новым паролем."""
         template_body = {"password": password}
         recipients = [email]
         email_obj = EmailSchema(recipients=recipients, template_body=template_body)

@@ -23,7 +23,7 @@ class AdministratorService:
 
     def __create_new_password(self) -> str:
         """Создать новый пароль."""
-        alphabet = string.ascii_letters + string.digits
+        alphabet = string.ascii_lowercase + string.digits + string.punctuation
         return ''.join(secrets.choice(alphabet) for _ in range(8))
 
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
@@ -67,20 +67,20 @@ class AdministratorService:
 
         return await self.__administrator_repository.update(administrator.id, administrator)
 
-    async def administrator_reset_password(self, email: str) -> str:
+    async def administrator_reset_password(self, email: str) -> dict:
         """
         Восстановление пароля администратора.
 
         -Генерация нового пароля.
         -Сохранеине нового пароля в БД.
-        -Отпарвка нового пароля администратору/психологу.
+        -Отпарвка нового пароля администратору/эксперту.
         """
         password = self.__create_new_password()
         hashed_password = AuthenticationService.get_hashed_password(password)
         administrator = await self.__administrator_repository.get_by_email(email)
         instance = Administrator(hashed_password=hashed_password)
         await self.__administrator_repository.update(id=administrator.id, instance=instance)
-        return password
+        return {"password": password, "administrator": administrator}
 
     async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
         """Блокирует администратора."""

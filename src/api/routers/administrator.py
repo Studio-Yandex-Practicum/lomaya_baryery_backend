@@ -3,7 +3,6 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Cookie, Depends, Response
-from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
@@ -152,14 +151,15 @@ class AdministratorCBV:
 
     @router.patch(
         "/reset_password",
+        response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Сброс пароля администратора.",
         responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
-    async def administrator_reset_password(self, data: AdministratorPasswordResetRequest) -> None:
-        password = await self.administrator_service.administrator_reset_password(data.email)
-        await self.email.send_restored_password(password, data.email)
-        return JSONResponse(content={"status_code": 200, "text": "Пароль успешно изменен!"})
+    async def administrator_reset_password(self, payload: AdministratorPasswordResetRequest) -> AdministratorResponse:
+        password_reset_data = await self.administrator_service.administrator_reset_password(payload.email)
+        await self.email.send_restored_password(password_reset_data["password"], payload.email)
+        return password_reset_data["administrator"]
 
     @router.patch(
         "/{administrator_id}/block",
