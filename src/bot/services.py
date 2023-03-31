@@ -1,7 +1,9 @@
 import asyncio
+import logging
+import time
 from datetime import date, datetime
 
-from telegram import ReplyKeyboardMarkup
+from telegram.error import NetworkError, RetryAfter, TimedOut
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
@@ -18,23 +20,32 @@ class BotService:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
-    async def send_message(self, user: models.User, text: str) -> None:
+    async def send_message(self, user: models.User, *args) -> None:
         if user.telegram_blocked:
             return
+        tries = 0
+        max_tries = 5
+        retry_delay = 10
         chat_id = user.telegram_id
-        try:
-            await self.__bot.send_message(chat_id=chat_id, text=text)
-        except Exception as exc:
-            await error_handler(chat_id, exc)
-
-    async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
-        if user.telegram_blocked:
-            return
-        chat_id = user.telegram_id
-        try:
-            await self.__bot.send_photo(chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup)
-        except Exception as exc:
-            await error_handler(chat_id, exc)
+        while tries < max_tries:
+            try:
+                if len(args) == 3:
+                    photo, caption, reply_markup = args
+                    await self.__bot.send_photo(
+                        chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup
+                    )
+                else:
+                    text = args[0]
+                    await self.__bot.send_message(chat_id, text)
+            except (RetryAfter, TimedOut, NetworkError) as e:
+                logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {e}")
+                time.sleep(retry_delay)
+                retry_delay *= 2
+                tries += 1
+            except Exception as exc:
+                await error_handler(chat_id, exc)
+            else:
+                break
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -90,7 +101,7 @@ class BotService:
         if date.today() < shift.finished_at:
             text = (
                 text + "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в "
-                       "8.00 мск. "
+                "8.00 мск. "
             )
         await self.send_message(user, text)
 
