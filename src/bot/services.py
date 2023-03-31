@@ -131,7 +131,7 @@ class BotService:
         """Уведомляет участников об изменении даты начала смены."""
         new_start_day = shift.started_at.strftime('%d.%m.%Y')
         text = (
-            f"Дата старта смены изменилась.“{new_start_day} в {settings.SEND_NEW_TASK_HOUR} часов" 
+            f"Дата старта смены изменилась.“{new_start_day} в {settings.SEND_NEW_TASK_HOUR} часов"
             "утра тебе поступит первое задание”."
         )
         send_message_tasks = [self.send_message(member.user, text) for member in shift.members]
