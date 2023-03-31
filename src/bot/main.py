@@ -52,7 +52,7 @@ def create_bot() -> Application:
     )
     bot_instance.job_queue.run_daily(
         send_daily_task_job,
-        time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone("Europe/Moscow")),
+        time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone(settings.TIME_ZONE)),
     )
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,

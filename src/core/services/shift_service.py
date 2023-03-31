@@ -286,8 +286,10 @@ class ShiftService:
         await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
         return shift
 
-    async def start_shift_service(self) -> None:
-        """Запускает смену в дату, указанную в started_at."""
+    async def start_prepared_shift(self) -> None:
+        """Запускает смену, если смена имеет статус preparing
+        и дата старта совпадает с текущим днём.
+        """
         shift = await self.__shift_repository.get_preparing_shift_with_started_at_today()
         if shift:
             shift.status = Shift.Status.STARTED.value
