@@ -185,7 +185,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
 
-    text = "Задание пропущено, следующее задание придет в 08 часов утра."
+    text = f"Задание пропущено, следующее задание придет в {settings.SEND_NEW_TASK_HOUR} часов утра."
 
     if update.message.text == SKIP_A_TASK:
         try:

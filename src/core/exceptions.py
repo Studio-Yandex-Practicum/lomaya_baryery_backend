@@ -4,6 +4,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
+from src.core.settings import settings
 from starlette.exceptions import HTTPException
 
 if TYPE_CHECKING:
@@ -80,7 +81,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        "Следующее задание придет в 8 часов утра."
+        f"Следующее задание придет в {settings.SEND_NEW_TASK_HOUR} часов утра."
     )
 
 
@@ -93,7 +94,7 @@ class EmptyReportError(Exception):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = "Задание было пропущено, следующее задание придет в 08 часов утра."
+    detail = f"Задание было пропущено, следующее задание придет в {settings.SEND_NEW_TASK_HOUR} часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):
