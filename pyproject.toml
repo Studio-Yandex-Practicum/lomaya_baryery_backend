@@ -13,7 +13,6 @@ uvicorn = "~0.18.3"
 fastapi = "~0.89.0"
 alembic = "~1.7.1"
 python = "^3.10"
-phonenumbers = "~8.12.55"
 fastapi-restful = "^0.4.3"
 aiohttp = ">=3.8.3"
 aiolimiter = "1.0.0"
@@ -27,6 +26,7 @@ fastapi-mail = "^1.2.4"
 sqlalchemy = "2.0.4"
 alembic-autogen-check = "^1.1.1"
 loguru = "^0.6.0"
+phonenumberslite = "^8.13.7"
 
 [tool.black]
 skip-string-normalization = true
