@@ -55,7 +55,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
-        bot_service.send_photo(
+        bot_service.send_message(
             member.user,
             task_photo,
             (
