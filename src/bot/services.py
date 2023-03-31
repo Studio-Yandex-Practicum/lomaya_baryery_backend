@@ -130,6 +130,9 @@ class BotService:
     async def notify_that_shift_started_at_date_changed(self, shift: models.Shift) -> None:
         """Уведомляет участников об изменении даты начала смены."""
         new_start_day = shift.started_at.strftime('%d.%m.%Y')
-        text = f"Дата старта смены изменилась.“Число {new_start_day} в 08 часов утра тебе поступит первое задание”."
+        text = (
+            f"Дата старта смены изменилась.“{new_start_day} в {settings.SEND_NEW_TASK_HOUR} часов" 
+            "утра тебе поступит первое задание”."
+        )
         send_message_tasks = [self.send_message(member.user, text) for member in shift.members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
