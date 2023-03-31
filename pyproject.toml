@@ -26,6 +26,7 @@ pydantic = {extras = ["email"], version = "^1.10.4"}
 fastapi-mail = "^1.2.4"
 sqlalchemy = "2.0.4"
 alembic-autogen-check = "^1.1.1"
+loguru = "^0.6.0"
 
 [tool.black]
 skip-string-normalization = true
