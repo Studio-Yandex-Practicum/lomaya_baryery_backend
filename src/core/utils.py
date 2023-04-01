@@ -79,7 +79,7 @@ def setup_logging():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
 
-    today = datetime.now().strftime("%Y-%m-%d %h-%m-%s")
+    today = datetime.now().strftime("%Y-%m-%d")
     logger.level("WARNING")
     logger.configure(
         handlers=[
