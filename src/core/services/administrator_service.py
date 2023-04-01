@@ -82,7 +82,7 @@ class AdministratorService:
         password = self.__create_new_password()
         administrator = await self.save_new_password_in_db(password, email)
         await self.__email.send_restored_password(password, email)
-        return administrator
+        return administrator  # noqa R: 504
 
     async def save_new_password_in_db(self, password: str, email: str) -> Administrator:
         """Хэширует пароль, сохраняет его в БД, возвращает объект Administrator с обновленными данными."""
