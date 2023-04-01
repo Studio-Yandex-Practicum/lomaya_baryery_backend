@@ -26,7 +26,7 @@ class AdministratorService:
 
     def __create_new_password(self) -> str:
         """Создать новый пароль."""
-        alphabet = string.ascii_lowercase + string.digits + string.punctuation
+        alphabet = string.ascii_lowercase + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(8))
 
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
@@ -70,25 +70,26 @@ class AdministratorService:
 
         return await self.__administrator_repository.update(administrator.id, administrator)
 
-    async def administrator_reset_password(self, email: str) -> Administrator:
+    async def restore_administrator_password(self, email: str) -> Administrator:
         """
         Восстановление пароля администратора.
 
         -Генерация нового пароля.
         -Хэширование нового пароля.
         -Сохранеине нового пароля в БД.
+        -Отправка нового пароля на почту Администратору/Эксперту.
         """
         password = self.__create_new_password()
+        administrator = await self.save_new_password_in_db(password, email)
+        await self.__email.send_restored_password(password, email)
+        return administrator
+
+    async def save_new_password_in_db(self, password: str, email: str) -> Administrator:
+        """Хэширует пароль, сохраняет его в БД, возвращает объект Administrator с обновленными данными."""
         hashed_password = AuthenticationService.get_hashed_password(password)
         administrator = await self.__administrator_repository.get_by_email(email)
         instance = Administrator(hashed_password=hashed_password)
-        await self.__administrator_repository.update(id=administrator.id, instance=instance)
-        return await self.administrator_send_new_password(email, password)
-
-    async def administrator_send_new_password(self, email: str, password: str) -> Administrator:
-        """Отправка письма с новым паролем администратору/эксперту."""
-        await self.__email.send_restored_password(password, email)
-        return await self.__administrator_repository.get_by_email(email)
+        return await self.__administrator_repository.update(id=administrator.id, instance=instance)
 
     async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
         """Блокирует администратора."""

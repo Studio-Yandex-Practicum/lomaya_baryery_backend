@@ -160,7 +160,7 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.administrator_reset_password(payload.email)
+        return await self.administrator_service.restore_administrator_password(payload.email)
 
     @router.patch(
         "/{administrator_id}/block",
