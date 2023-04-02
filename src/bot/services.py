@@ -75,7 +75,7 @@ class BotService:
         photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
-            text = text + "Следующее задание придет в 8.00 мск."
+            text = text + "Следующее задание придет в 08 часов утра."
         await self.send_message(user, text)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
@@ -88,10 +88,7 @@ class BotService:
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at:
-            text = (
-                text + "Предлагаем продолжить, ведь впереди много интересных заданий. Следующее задание придет в "
-                       "8.00 мск. "
-            )
+            text = text + "Ты можешь отправить отчет повторно до 08 часов утра"
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
@@ -131,8 +128,8 @@ class BotService:
         """Уведомляет участников об изменении даты начала смены."""
         new_start_day = shift.started_at.strftime('%d.%m.%Y')
         text = (
-            f"Дата старта смены изменилась.“{new_start_day} в {settings.SEND_NEW_TASK_HOUR} часов"
-            "утра тебе поступит первое задание”."
+            f"Дата старта смены изменилась.“{new_start_day} в {settings.formatted_send_new_task_hour} часов "
+            "тебе поступит первое задание”."
         )
         send_message_tasks = [self.send_message(member.user, text) for member in shift.members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
