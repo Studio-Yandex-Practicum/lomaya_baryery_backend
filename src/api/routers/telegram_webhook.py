@@ -54,7 +54,7 @@ if settings.BOT_WEBHOOK_MODE:
     async def get_telegram_bot_updates(request: Request) -> dict:
         """Получение обновлений telegram в режиме работы бота webhook."""
         secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
-        if secret_token != settings.BOT_TOKEN.replace(':', ''):
+        if secret_token != settings.SECRET_KEY:
             raise UnauthorizedException
         bot_instance = request.app.state.bot_instance
         request_json_data = await request.json()
