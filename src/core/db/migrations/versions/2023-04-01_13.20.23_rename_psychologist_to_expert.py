@@ -18,14 +18,12 @@ depends_on = None
 name = 'administrator_role'
 tmp_name = f'tmp_{name}'
 
-NEW_ROLES = ('administrator', 'expert', )
-OLD_ROLES = ('administrator', 'psychologist', )
+ROLES = ('administrator', 'psychologist', 'expert', )
 
-NEW_ENUM = sa.Enum(*NEW_ROLES, name=name)
-OLD_ENUM = sa.Enum(*OLD_ROLES, name=name)
+NEW_ENUM = sa.Enum(*ROLES, name=name)
 
 target_table = sa.sql.table('administrators',
-                            sa.Column('administrator_role',
+                            sa.Column('role',
                                       NEW_ENUM,
                                       nullable=False)
                             )
@@ -33,19 +31,23 @@ target_table = sa.sql.table('administrators',
 
 def upgrade():
     op.execute(f"ALTER TYPE {name} RENAME TO {tmp_name}")
-
     NEW_ENUM.create(op.get_bind())
     op.execute(f'ALTER TABLE administrators ALTER COLUMN role TYPE {name} USING role::text::{name}')
+    op.execute(
+        target_table.update().where(
+            target_table.c.role == op.inline_literal('psychologist')).values(
+            {'role': op.inline_literal('expert')}))
+    op.execute(target_table.delete().where(target_table.c.role == 'psychologist'))
     op.execute(f'DROP TYPE {tmp_name}')
 
 
 def downgrade():
+    op.execute(f'ALTER TYPE {name} RENAME TO {tmp_name}')
+    NEW_ENUM.create(op.get_bind())
+    op.execute(f'ALTER TABLE administrators ALTER COLUMN role TYPE {name} USING role::text::{name}')
     op.execute(
         target_table.update().where(
-            target_table.c.administrator_role == 'expert').values(
-            {"administrator_role": "psychologist"}))
-    op.execute(f'ALTER TYPE {name} RENAME TO {tmp_name}')
-
-    OLD_ENUM.create(op.get_bind())
-    op.execute(f'ALTER TABLE administrators ALTER COLUMN role TYPE {name} USING role::text::{name}')
+            target_table.c.role == op.inline_literal('expert')).values(
+            {'role': op.inline_literal('psychologist')}))
+    op.execute(target_table.delete().where(target_table.c.role == 'expert'))
     op.execute(f'DROP TYPE {tmp_name}')
