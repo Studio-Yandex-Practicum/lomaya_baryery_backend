@@ -199,6 +199,41 @@ class Member(Base):
         return f"<Member: {self.id}, status: {self.status}>"
 
 
+class Administrator(Base):
+    """Модель администратора смены."""
+
+    class Status(str, enum.Enum):
+        """Cтатус администратора."""
+
+        ACTIVE = "active"
+        BLOCKED = "blocked"
+
+    class Role(str, enum.Enum):
+        """Роль администратора."""
+
+        ADMINISTRATOR = "administrator"
+        PSYCHOLOGIST = "psychologist"
+
+    __tablename__ = "administrators"
+
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(70), nullable=False)
+    role = Column(
+        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    last_login_at = Column(TIMESTAMP)
+    status = Column(
+        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    reports = relationship("Report", back_populates="reviewer")
+    is_superadmin = Column(Boolean, default=False, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+
+
 class Report(Base):
     """Ежедневные задания."""
 
@@ -220,6 +255,9 @@ class Report(Base):
     task = relationship("Task", back_populates="reports")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
     member = relationship("Member", back_populates="reports")
+    updated_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
+    reviewer = relationship("Administrator", back_populates="reports")
+    reviewed_at = Column(TIMESTAMP, nullable=True)
     task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
@@ -249,39 +287,10 @@ class Report(Base):
         self.uploaded_at = datetime.now()
         self.number_attempt += 1
 
-
-class Administrator(Base):
-    """Модель администратора смены."""
-
-    class Status(str, enum.Enum):
-        """Статус администратора."""
-
-        ACTIVE = "active"
-        BLOCKED = "blocked"
-
-    class Role(str, enum.Enum):
-        """Роль администратора."""
-
-        ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
-
-    __tablename__ = "administrators"
-
-    name = Column(String(100), nullable=False)
-    surname = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(70), nullable=False)
-    role = Column(
-        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    last_login_at = Column(TIMESTAMP)
-    status = Column(
-        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    is_superadmin = Column(Boolean, default=False, nullable=False)
-
-    def __repr__(self) -> str:
-        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+    def set_reviewer(self, administrator_id: UUID):
+        """Установить администратора, который проверил отчет и дату проверки."""
+        self.updated_by = administrator_id
+        self.reviewed_at = datetime.now()
 
 
 class AdministratorInvitation(Base):
