@@ -286,3 +286,15 @@ class AdministratorSelfChangeRoleError(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Вы не можете изменить роль самому себе."
+
+
+class AdministratorBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "У Вас нет прав на блокировку других администраторов."
+
+
+class AdministratorSelfBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Вы не можете заблокировать себя."
