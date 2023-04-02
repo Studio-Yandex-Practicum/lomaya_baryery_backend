@@ -1,8 +1,8 @@
-"""add report reviewer info
+"""add_report_reviewer_info
 
-Revision ID: a0d25a5827fd
-Revises: 7e2638eb39b5
-Create Date: 2023-03-28 00:06:50.452547
+Revision ID: bcda11280d4d
+Revises: 861c749e429b
+Create Date: 2023-04-02 19:17:14.224771
 
 """
 import sqlalchemy as sa
@@ -10,8 +10,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'a0d25a5827fd'
-down_revision = '7e2638eb39b5'
+revision = 'bcda11280d4d'
+down_revision = '861c749e429b'
 branch_labels = None
 depends_on = None
 
