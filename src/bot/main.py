@@ -78,7 +78,7 @@ async def start_bot(webhook_mode: bool = settings.BOT_WEBHOOK_MODE) -> Applicati
         bot_instance.updater = None
         await bot_instance.bot.set_webhook(
             url=settings.telegram_webhook_url,
-            secret_token=settings.BOT_TOKEN.replace(':', ''),  # colon is not allowed here
+            secret_token=settings.SECRET_KEY,
         )
     else:
         await bot_instance.updater.start_polling()
