@@ -3,6 +3,7 @@ import logging
 import time
 from datetime import date, datetime
 
+from telegram import ReplyKeyboardMarkup
 from telegram.error import NetworkError, RetryAfter, TimedOut
 from telegram.ext import Application
 
@@ -15,12 +16,8 @@ from src.core.utils import get_lombaryers_for_quantity
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
-class BotService:
-    def __init__(self, telegram_bot: Application) -> None:
-        self.__bot = telegram_bot.bot
-        self.__bot_application = telegram_bot
-
-    async def send_message(self, user: models.User, *args) -> None:
+def retry_on_errors(func):
+    async def wrapper(self, user: models.User, *kwargs):
         if user.telegram_blocked:
             return
         tries = 0
@@ -29,14 +26,7 @@ class BotService:
         chat_id = user.telegram_id
         while tries < max_tries:
             try:
-                if len(args) == 3:
-                    photo, caption, reply_markup = args
-                    await self.__bot.send_photo(
-                        chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup
-                    )
-                else:
-                    text = args[0]
-                    await self.__bot.send_message(chat_id, text)
+                await func(self, chat_id, *kwargs)
             except (RetryAfter, TimedOut, NetworkError) as e:
                 logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {e}")
                 time.sleep(retry_delay)
@@ -45,7 +35,23 @@ class BotService:
             except Exception as exc:
                 await error_handler(chat_id, exc)
             else:
-                break
+                return
+
+    return wrapper
+
+
+class BotService:
+    def __init__(self, telegram_bot: Application) -> None:
+        self.__bot = telegram_bot.bot
+        self.__bot_application = telegram_bot
+
+    @retry_on_errors
+    async def send_message(self, chat_id: int, text: str) -> None:
+        await self.__bot.send_message(chat_id, text)
+
+    @retry_on_errors
+    async def send_photo(self, chat_id: int, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
+        await self.__bot.send_photo(chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
