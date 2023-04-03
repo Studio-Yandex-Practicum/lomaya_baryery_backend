@@ -80,11 +80,11 @@ class AdministratorService:
         -Отправка нового пароля на почту Администратору/Эксперту.
         """
         password = self.__create_new_password()
-        administrator = await self.save_new_password_in_db(password, email)
+        administrator = await self.__set_new_password(password, email)
         await self.__email.send_restored_password(password, email)
         return administrator  # noqa R: 504
 
-    async def save_new_password_in_db(self, password: str, email: str) -> Administrator:
+    async def __set_new_password(self, password: str, email: str) -> Administrator:
         """Хэширует пароль, сохраняет его в БД, возвращает объект Administrator с обновленными данными."""
         hashed_password = AuthenticationService.get_hashed_password(password)
         administrator = await self.__administrator_repository.get_by_email(email)

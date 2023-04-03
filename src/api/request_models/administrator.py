@@ -55,6 +55,6 @@ class RefreshToken(RequestBase):
 
 
 class AdministratorPasswordResetRequest(RequestBase):
-    """Схема для запроса восстановления пароля администратора или психолога."""
+    """Схема для запроса восстановления пароля администратора или эксперта."""
 
     email: EmailStr
