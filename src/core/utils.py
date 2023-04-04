@@ -1,7 +1,8 @@
 import logging
-import os
-import threading
-import zipfile
+
+# import os
+# import threading
+# import zipfile
 from datetime import datetime, timedelta
 
 from loguru import logger
@@ -50,41 +51,13 @@ class InterceptHandler(logging.Handler):
             logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
-def rotate_logs():
-    """Сжатие и удаление старых логов."""
-    for root, dirs, files in os.walk(r"./logs"):
-        for file in files:
-            if file.endswith(".log"):
-                with zipfile.ZipFile(
-                    f'logs/{file.rstrip(".log")}.zip', mode='w', compression=zipfile.ZIP_DEFLATED
-                ) as zf:
-                    zf.write(f'logs/{file}')
-                    os.remove(f'logs/{file}')
-
-
 def setup_logging():
-    """Установка и настройка логера loguru."""
-    x = datetime.today()
-    #  Новый лог создается в 12 часов следующего дня
-    y = x.replace(day=x.day, hour=12, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    delta_t = y - x
-    secs = delta_t.total_seconds()
-    threading.Timer(secs, setup_logging).start()
-    rotate_logs()
-
     logging.root.handlers = [InterceptHandler()]
     logging.root.setLevel("WARNING")
 
     for name in logging.root.manager.loggerDict.keys():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
-
-    today = datetime.now().strftime("%Y-%m-%d")
-    logger.level("WARNING")
-    logger.configure(
-        handlers=[
-            {
-                "sink": f"logs/{today}.log",
-            }
-        ]
+    logger.add(
+        f"logs/{datetime.now().strftime('%Y-%m-%d')}.log", rotation="12:00", compression="tar.gz", level="WARNING"
     )
