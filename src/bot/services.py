@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 from datetime import date, datetime
 
 from telegram import ReplyKeyboardMarkup
@@ -20,18 +19,18 @@ def retry_on_errors(func):
     async def wrapper(self, user: models.User, *kwargs):
         if user.telegram_blocked:
             return
-        tries = 0
+        current_try = 0
         max_tries = 5
         retry_delay = 10
         chat_id = user.telegram_id
-        while tries < max_tries:
+        while current_try < max_tries:
             try:
                 await func(self, chat_id, *kwargs)
             except (RetryAfter, TimedOut, NetworkError) as e:
                 logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {e}")
-                time.sleep(retry_delay)
+                await asyncio.sleep(retry_delay)
                 retry_delay *= 2
-                tries += 1
+                current_try += 1
             except Exception as exc:
                 await error_handler(chat_id, exc)
             else:
