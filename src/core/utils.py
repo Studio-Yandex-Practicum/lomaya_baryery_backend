@@ -58,6 +58,4 @@ def setup_logging():
     for name in logging.root.manager.loggerDict.keys():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
-    logger.add(
-        f"logs/{datetime.now().strftime('%Y-%m-%d')}.log", rotation="12:00", compression="tar.gz", level="WARNING"
-    )
+    logger.add("logs/warning.log", rotation="12:00", compression="tar.gz", level="WARNING")
