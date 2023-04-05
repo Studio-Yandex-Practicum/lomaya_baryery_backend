@@ -26,15 +26,16 @@ def retry_on_errors(func):
         while current_try < max_tries:
             try:
                 await func(self, chat_id, *kwargs)
-            except (RetryAfter, TimedOut, NetworkError) as e:
-                logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {e}")
+            except (RetryAfter, TimedOut, NetworkError) as exc:
+                sending_error = exc
+                logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
                 await asyncio.sleep(retry_delay)
                 retry_delay *= 2
                 current_try += 1
-            except Exception as exc:
-                await error_handler(chat_id, exc)
             else:
                 return
+        else:
+            await error_handler(chat_id, sending_error)
 
     return wrapper
 
