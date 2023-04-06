@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import logging
 from datetime import date, datetime
 
@@ -15,17 +16,19 @@ from src.core.utils import get_lombaryers_for_quantity
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
-def retry_on_errors(func):
+def retry_on_errors(function, max_tries: int = 5):
+    """Функция-декоратор для повторной отправки сообщений при ошибках."""
+    functools.wraps(function)
+
     async def wrapper(self, user: models.User, *kwargs):
         if user.telegram_blocked:
             return
         current_try = 0
-        max_tries = 5
         retry_delay = 10
         chat_id = user.telegram_id
         while current_try < max_tries:
             try:
-                await func(self, chat_id, *kwargs)
+                await function(self, chat_id, *kwargs)
             except (RetryAfter, TimedOut, NetworkError) as exc:
                 sending_error = exc
                 logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
