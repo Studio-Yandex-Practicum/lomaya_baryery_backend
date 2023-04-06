@@ -188,13 +188,13 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
-            await update.message.reply_text("Задание пропущено, следующее задание придет в 8.00 мск.")
         except exceptions.ReportAlreadyReviewedException:
-            await update.message.reply_text(
-                "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
-            )
+            text = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
         except exceptions.ApplicationError as e:
-            await update.message.reply_text(e.detail)
+            text = e.detail
+        else:
+            text = "Задание пропущено, следующее задание придет в 8.00 мск."
+        await update.message.reply_text(text)
 
 
 async def get_balance(telegram_id: int) -> int:
