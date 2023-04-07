@@ -140,3 +140,7 @@ settings = get_settings()
 
 NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
 INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
+WORKBOOK_FULL_DIR = (
+    BASE_DIR / 'src' / 'excel_generator' / 'results_reports'
+)  # директория для хранения файла-контейнера excel
+FILE_NAME = 'report.xlsx'  # название файла-контейнера excel

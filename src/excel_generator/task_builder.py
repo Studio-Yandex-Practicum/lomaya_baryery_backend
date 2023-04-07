@@ -1,28 +1,33 @@
-from typing import Optional
-
-from openpyxl.worksheet.worksheet import Worksheet
-
-from src.excel_generator.builder import AnalyticReportBuilder
+import weakref
+from src.core.db.DTO_models import AnalyticTaskReportSheetDTO
 
 
-class AnalyticTaskReportBuilder(AnalyticReportBuilder):
-    """Строитель отчёта для заданий."""
+class classproperty(object):
+    def __init__(self, fget):
+        self.fget = fget
 
-    def __init__(self) -> None:
-        self._sheet_name: str = "Задачи"
-        self._header_data: tuple[tuple[str]] = (
-            ("Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во не предоставленных отчётов"),
-        )
-        self._footer_data: Optional[tuple[str]] = None
-        self._worksheet: Optional[Worksheet] = None
-        self._row_count: int = 0
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
 
-    def add_footer(self) -> None:
-        footer_data = [
+
+class AnalyticTaskReportFull(AnalyticTaskReportSheetDTO):
+    """Строитель отчёта для заданий"""
+    def __init__(self):
+        self.footer_data.append(weakref.ref(self))
+
+    sheet_name: str = "Задачи"
+    header_data: tuple[tuple[str]] = (
+        ("Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во не предоставленных отчётов"),
+    )
+    row_count: int = 0
+
+    @classproperty
+    def footer_data(self):
+        result = [
             "ИТОГО:",
-            f"=SUM(B2:B{self._row_count})",
-            f"=SUM(C2:C{self._row_count})",
-            f"=SUM(D2:D{self._row_count})",
+            f"=SUM(B2:B{self.row_count})",
+            f"=SUM(C2:C{self.row_count})",
+            f"=SUM(D2:D{self.row_count})",
         ]
-        self._footer_data = tuple(footer_data)
-        return super().add_footer()
+        result = tuple(result)
+        return result

@@ -2,9 +2,11 @@ from typing import Optional
 
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 
 from src.core.db.DTO_models import TasksAnalyticReportDto
 from src.excel_generator.builder import AnalyticReportBuilder
+from src.excel_generator.task_builder import AnalyticTaskReportFull
 
 
 class AnalyticReportDirector:
@@ -14,15 +16,19 @@ class AnalyticReportDirector:
         self.__builder = builder
 
     async def generate_report(
-        self, data: tuple[TasksAnalyticReportDto], last_sheet: bool, workbook: Optional[Workbook] = None
+        self, data: tuple[TasksAnalyticReportDto],
+        workbook: Optional[Workbook] = None,
+        worksheet: Optional[Worksheet] = None,
+        analytic_task_report_full: Optional[AnalyticTaskReportFull] = None
     ) -> Workbook | StreamingResponse:
         """Генерация листа с данными."""
-        workbook = await self.__builder.create_workbook() if not workbook else workbook
-        self.__builder.create_sheet(workbook)
-        self.__builder.add_header()
-        self.__builder.add_data(data)
-        self.__builder.add_footer()
-        self.__builder.apply_styles()
-        if last_sheet:
-            return await self.__builder.get_report_response(workbook)
+        worksheet = self.__builder.create_sheet(
+            workbook,
+            sheet_name=analytic_task_report_full.sheet_name
+        )
+        analytic_task_report_full.row_count = 0
+        self.__builder.add_header(analytic_task_report=analytic_task_report_full, worksheet=worksheet)
+        self.__builder.add_data(data, analytic_task_report=analytic_task_report_full, worksheet=worksheet)
+        self.__builder.add_footer(analytic_task_report=analytic_task_report_full, worksheet=worksheet)
+        self.__builder.apply_styles(worksheet=worksheet)
         return workbook
