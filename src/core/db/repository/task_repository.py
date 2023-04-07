@@ -39,4 +39,4 @@ class TaskRepository(AbstractRepository):
             .group_by(Task.id)
         )
         tasks = await self._session.execute(stmt)
-        return tuple(TasksAnalyticReportDto(**task) for task in tasks.all())
+        return tuple(TasksAnalyticReportDto(*task) for task in tasks.all())

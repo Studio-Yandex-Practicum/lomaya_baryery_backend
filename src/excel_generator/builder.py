@@ -1,23 +1,28 @@
 import abc
 import enum
+
+from typing import Optional
+
 from dataclasses import astuple
 from datetime import datetime
 from io import BytesIO
 
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.styles import Alignment, Border, Font, Side
 
 from src.core.db.DTO_models import TasksAnalyticReportDto
+from src.excel_generator.task_builder import AnalyticTaskReportFull
 
 
 class AnalyticReportBuilder(abc.ABC):
-    """Интерфейс строителя."""
-
-    def __add_row(self, data: tuple[str | int]) -> None:
-        self._row_count += 1
+    """Интерфейс строителя."""     
+    def __add_row(self, analytic_task_report: Optional[AnalyticTaskReportFull],
+                  data: tuple[str | int], worksheet: Optional[Worksheet]) -> None:
+        analytic_task_report.row_count += 1
         for index, value in enumerate(data, start=1):
-            self._worksheet.cell(row=self._row_count, column=index, value=value)
+            worksheet.cell(row=analytic_task_report.row_count, column=index, value=value)
 
     async def __save_report(self, workbook: Workbook) -> BytesIO:
         """Сохранение отчёта."""
@@ -39,28 +44,38 @@ class AnalyticReportBuilder(abc.ABC):
         workbook.remove_sheet(workbook.active)
         return workbook
 
-    def create_sheet(self, workbook: Workbook) -> None:
+    def create_sheet(self, workbook: Workbook, sheet_name: str) -> Workbook:
         """Создаёт лист внутри отчёта."""
-        self._worksheet = workbook.create_sheet(self._sheet_name)
+        return workbook.create_sheet(sheet_name)
 
-    def add_header(self) -> None:
+    def add_header(self, analytic_task_report: AnalyticTaskReportFull, worksheet: Worksheet) -> None:
         """Заполняет первые строки в листе."""
-        for data in self._header_data:
-            self.__add_row(data)
+        for data in analytic_task_report.header_data:
+            self.__add_row(
+                analytic_task_report=analytic_task_report,
+                data=data,
+                worksheet=worksheet)
 
-    def add_data(self, data: tuple[TasksAnalyticReportDto]) -> None:
+    def add_data(self, data: tuple[TasksAnalyticReportDto],
+                 analytic_task_report: AnalyticTaskReportFull,
+                 worksheet: Worksheet) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
-            self.__add_row(astuple(task))
+            self.__add_row(
+                data=astuple(task),
+                analytic_task_report=analytic_task_report,
+                worksheet=worksheet)
 
-    def add_footer(self) -> None:
+    def add_footer(self, analytic_task_report: AnalyticTaskReportFull, worksheet: Worksheet) -> None:
         """Заполняет последнюю строку в листе."""
-        self.__add_row(self._footer_data)
+        self.__add_row(analytic_task_report=analytic_task_report,
+                       data=analytic_task_report.footer_data,
+                       worksheet=worksheet)
 
-    def apply_styles(self):
+    def apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""
         # задаём стиль для хэдера
-        rows = list(self._worksheet.iter_rows())
+        rows = list(worksheet.iter_rows())
         header_cells = rows[0]
         for cell in header_cells:
             cell.font = self.Styles.FONT_BOLD.value
@@ -80,7 +95,7 @@ class AnalyticReportBuilder(abc.ABC):
         for row in rows:
             for cell in row:
                 cell.border = self.Styles.BORDER.value
-        self._worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
+        worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
