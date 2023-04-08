@@ -222,3 +222,15 @@ async def skip_report(chat_id: int) -> None:
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
     """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
     await update.message.reply_text("Отчёт по заданию должен быть отправлен в виде фотографии.")
+
+
+async def chat_member_handler(update: Update, context: CallbackContext) -> None:
+    """Меняет значение поля telegram_blocked при блокировке/разблокировке бота."""
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    user_service = UserService(UserRepository(session))
+    user = await user_service.get_user_by_telegram_id(update.effective_user.id)
+    telegram_block_status = await user_service.get_telegram_block_by_id(user.id)
+    if update.my_chat_member.old_chat_member.MEMBER and not telegram_block_status[0]:
+        return await user_service.set_telegram_blocked(user)
+    return await user_service.unset_telegram_blocked(user)
