@@ -122,3 +122,6 @@ class UserService:
     async def unset_telegram_blocked(self, user: User) -> None:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
+
+    async def get_telegram_block_by_id(self, user_id: str) -> bool:
+        return await self.__user_repository.get_telegram_block_by_id(user_id)
