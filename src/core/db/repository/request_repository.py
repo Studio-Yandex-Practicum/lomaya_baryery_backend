@@ -71,3 +71,9 @@ class RequestRepository(AbstractRepository):
         )
         requests = await self._session.execute(statement)
         return [RequestDTO.parse_from_db(request) for request in requests.all()]
+
+    async def get_pending_requests_current_user(self, user_id: UUID) -> list[Request]:
+        pending_requests = await self._session.execute(
+            select(Request).where(Request.user_id == user_id, Request.status == Request.Status.PENDING.value)
+        )
+        return pending_requests.scalars().all()

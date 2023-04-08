@@ -14,6 +14,7 @@ from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
+    AlreadyPendingRegisterationException,
     AlreadyRegisteredException,
     NotValidValueError,
     RequestForbiddenException,
@@ -122,3 +123,8 @@ class UserService:
     async def unset_telegram_blocked(self, user: User) -> None:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
+
+    async def check_user_have_pending_requests(self, user: User) -> None:
+        pending_requests = await self.__request_repository.get_pending_requests_current_user(user.id)
+        if pending_requests:
+            raise AlreadyPendingRegisterationException

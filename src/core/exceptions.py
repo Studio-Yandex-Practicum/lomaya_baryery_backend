@@ -185,6 +185,16 @@ class RegistrationForbidenException(RegistrationException):  # noqa N818
         )
 
 
+class AlreadyPendingRegisterationException(RegistrationException):  # noqa N818
+    def __init__(self):
+        self.status_code = HTTPStatus.OK
+        self.detail = (
+            "Ваша заявка на участие уже в процессе рассмотрения. "
+            "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
+            "в нашу группу ВКонтакте https://vk.com/socialrb02"
+        )
+
+
 class AlreadyRegisteredException(RegistrationException):  # noqa N818
     def __init__(self):
         self.status_code = HTTPStatus.OK
