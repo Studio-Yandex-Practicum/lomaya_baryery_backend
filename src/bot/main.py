@@ -44,7 +44,7 @@ def create_bot() -> Application:
         .persistence(persistence=bot_persistence)
         .build()
     )
-    bot_instance.add_handler(ChatMemberHandler(chat_member_handler, ChatMemberHandler.block))
+    bot_instance.add_handler(ChatMemberHandler(chat_member_handler, ChatMemberHandler.MY_CHAT_MEMBER))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))

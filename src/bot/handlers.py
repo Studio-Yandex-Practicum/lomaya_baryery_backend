@@ -234,7 +234,10 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> None:
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_user.id)
-    telegram_block_status = await user_service.get_telegram_block_by_id(user.id)
-    if update.my_chat_member.old_chat_member.MEMBER and not telegram_block_status[0]:
+    # import pdb; pdb.set_trace()
+    if (
+        update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.MEMBER
+        and not user.telegram_blocked
+    ):
         return await user_service.set_telegram_blocked(user)
     return await user_service.unset_telegram_blocked(user)
