@@ -1,5 +1,4 @@
-import weakref
-from src.core.db.DTO_models import AnalyticTaskReportSheetDTO
+from typing import Optional
 
 
 class classproperty(object):
@@ -10,10 +9,20 @@ class classproperty(object):
         return self.fget(owner_cls)
 
 
-class AnalyticTaskReportFull(AnalyticTaskReportSheetDTO):
+class BaseAnalyticReportSettings:
+    def __init__(self,
+                 sheet_name: str,
+                 header_data: tuple[tuple[str]],
+                 footer_data: Optional[tuple[str]] = None,
+                 row_count: Optional[int] = None):
+        self.sheet_name = sheet_name
+        self.header_data = header_data
+        self.footer_data = footer_data
+        self.row_coun = row_count
+
+
+class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
     """Строитель отчёта для заданий"""
-    def __init__(self):
-        self.footer_data.append(weakref.ref(self))
 
     sheet_name: str = "Задачи"
     header_data: tuple[tuple[str]] = (
@@ -23,11 +32,10 @@ class AnalyticTaskReportFull(AnalyticTaskReportSheetDTO):
 
     @classproperty
     def footer_data(self):
-        result = [
+        result = (
             "ИТОГО:",
             f"=SUM(B2:B{self.row_count})",
             f"=SUM(C2:C{self.row_count})",
             f"=SUM(D2:D{self.row_count})",
-        ]
-        result = tuple(result)
+        )
         return result

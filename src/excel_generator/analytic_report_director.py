@@ -1,12 +1,10 @@
 from typing import Optional
 
-from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
-from openpyxl.worksheet.worksheet import Worksheet
 
 from src.core.db.DTO_models import TasksAnalyticReportDto
 from src.excel_generator.builder import AnalyticReportBuilder
-from src.excel_generator.task_builder import AnalyticTaskReportFull
+from src.excel_generator.task_builder import BaseAnalyticReportSettings
 
 
 class AnalyticReportDirector:
@@ -16,11 +14,11 @@ class AnalyticReportDirector:
         self.__builder = builder
 
     async def generate_report(
-        self, data: tuple[TasksAnalyticReportDto],
+        self,
+        data: tuple[TasksAnalyticReportDto],
         workbook: Optional[Workbook] = None,
-        worksheet: Optional[Worksheet] = None,
-        analytic_task_report_full: Optional[AnalyticTaskReportFull] = None
-    ) -> Workbook | StreamingResponse:
+        analytic_task_report_full: Optional[BaseAnalyticReportSettings] = None
+    ) -> Workbook:
         """Генерация листа с данными."""
         worksheet = self.__builder.create_sheet(
             workbook,

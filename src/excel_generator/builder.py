@@ -1,8 +1,6 @@
 import abc
 import enum
 
-from typing import Optional
-
 from dataclasses import astuple
 from datetime import datetime
 from io import BytesIO
@@ -13,13 +11,13 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.styles import Alignment, Border, Font, Side
 
 from src.core.db.DTO_models import TasksAnalyticReportDto
-from src.excel_generator.task_builder import AnalyticTaskReportFull
+from src.excel_generator.task_builder import BaseAnalyticReportSettings
 
 
 class AnalyticReportBuilder(abc.ABC):
-    """Интерфейс строителя."""     
-    def __add_row(self, analytic_task_report: Optional[AnalyticTaskReportFull],
-                  data: tuple[str | int], worksheet: Optional[Worksheet]) -> None:
+    """Интерфейс строителя."""
+    def __add_row(self, analytic_task_report: BaseAnalyticReportSettings,
+                  data: tuple[str | int], worksheet: Worksheet) -> None:
         analytic_task_report.row_count += 1
         for index, value in enumerate(data, start=1):
             worksheet.cell(row=analytic_task_report.row_count, column=index, value=value)
@@ -48,7 +46,7 @@ class AnalyticReportBuilder(abc.ABC):
         """Создаёт лист внутри отчёта."""
         return workbook.create_sheet(sheet_name)
 
-    def add_header(self, analytic_task_report: AnalyticTaskReportFull, worksheet: Worksheet) -> None:
+    def add_header(self, analytic_task_report: BaseAnalyticReportSettings, worksheet: Worksheet) -> None:
         """Заполняет первые строки в листе."""
         for data in analytic_task_report.header_data:
             self.__add_row(
@@ -57,7 +55,7 @@ class AnalyticReportBuilder(abc.ABC):
                 worksheet=worksheet)
 
     def add_data(self, data: tuple[TasksAnalyticReportDto],
-                 analytic_task_report: AnalyticTaskReportFull,
+                 analytic_task_report: BaseAnalyticReportSettings,
                  worksheet: Worksheet) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
@@ -66,7 +64,7 @@ class AnalyticReportBuilder(abc.ABC):
                 analytic_task_report=analytic_task_report,
                 worksheet=worksheet)
 
-    def add_footer(self, analytic_task_report: AnalyticTaskReportFull, worksheet: Worksheet) -> None:
+    def add_footer(self, analytic_task_report: BaseAnalyticReportSettings, worksheet: Worksheet) -> None:
         """Заполняет последнюю строку в листе."""
         self.__add_row(analytic_task_report=analytic_task_report,
                        data=analytic_task_report.footer_data,
