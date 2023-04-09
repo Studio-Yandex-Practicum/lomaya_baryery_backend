@@ -71,3 +71,4 @@ class ShiftByUserWithReportSummaryDto:
     total_approved: int
     total_declined: int
     total_skipped: int
+    is_excluded: bool
