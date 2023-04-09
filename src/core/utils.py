@@ -1,4 +1,5 @@
 import logging
+import sys
 from datetime import datetime, timedelta
 
 from loguru import logger
@@ -47,10 +48,16 @@ class InterceptHandler(logging.Handler):
 
 
 def setup_logging():
-    logging.root.handlers = [InterceptHandler()]
-    logging.root.setLevel("WARNING")
+    logging.basicConfig(handlers=[InterceptHandler()], level=settings.LOG_LEVEL)
 
     for name in logging.root.manager.loggerDict.keys():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
-    logger.add("logs/warning.log", rotation="12:00", compression="tar.gz", level="WARNING")
+    logger.remove()
+    logger.add(sys.stdout, level='INFO')
+    logger.add(
+        settings.LOG_LOCATION,
+        rotation=settings.LOG_ROTATION,
+        compression=settings.LOG_COMPRESSION,
+        level=settings.LOG_LEVEL,
+    )
