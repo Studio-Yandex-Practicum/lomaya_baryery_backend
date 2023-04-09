@@ -1,4 +1,3 @@
-from typing import Optional
 
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -39,7 +38,7 @@ class TasksAnalyticReportDto:
     description: str
     approved: int
     declined: int
-    waiting: int
+    skipped: int
 
 
 @dataclass
@@ -79,11 +78,3 @@ class ShiftByUserWithReportSummaryDto:
     total_approved: int
     total_declined: int
     total_skipped: int
-
-
-@dataclass
-class AnalyticTaskReportSheetDTO:
-    sheet_name: str
-    header_data: tuple[tuple[str]]
-    footer_data: Optional[tuple[str]] = None
-    row_count: Optional[int] = None
