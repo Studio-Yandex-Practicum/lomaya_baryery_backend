@@ -214,9 +214,10 @@ class Administrator(Base):
         """Роль администратора."""
 
         ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
+        EXPERT = "expert"
 
     __tablename__ = "administrators"
+    __table_args__ = {"extend_existing": True}
 
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
@@ -303,9 +304,10 @@ class Administrator(Base):
         """Роль администратора."""
 
         ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
+        EXPERT = "expert"
 
     __tablename__ = "administrators"
+    __table_args__ = {'extend_existing': True}
 
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
