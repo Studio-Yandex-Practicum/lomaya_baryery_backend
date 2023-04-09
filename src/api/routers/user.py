@@ -3,12 +3,14 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
 from src.core.db.models import User
+from src.core.services.authentication_service import AuthenticationService
 from src.core.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -17,6 +19,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @cbv(router)
 class UserCBV:
     user_service: UserService = Depends()
+    authentication_service: AuthenticationService = Depends()
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 
     @router.get(
         "/",
@@ -43,6 +47,7 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.user_service.list_all_users(status, field_sort, direction_sort)
 
     @router.get(
@@ -66,4 +71,5 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **shifts**: список смен пользователя
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.user_service.get_user_by_id_with_shifts_detail(user_id)
