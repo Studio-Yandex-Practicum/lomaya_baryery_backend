@@ -109,8 +109,3 @@ class UserRepository(AbstractRepository):
             select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
         )
         return users.scalars().all()
-
-    async def get_telegram_block_by_id(self, user_id: str) -> bool:
-        """Возвращает значение поля telegram_blocked."""
-        status = await self._session.execute(select(User.telegram_blocked).where(User.id == user_id))
-        return status.one()
