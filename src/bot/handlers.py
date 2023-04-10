@@ -235,7 +235,7 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> None:
     user_service = UserService(UserRepository(session))
     user = await user_service.get_user_by_telegram_id(update.effective_user.id)
     if (
-        update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.MEMBER
+        update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.BANNED
         and not user.telegram_blocked
     ):
         return await user_service.set_telegram_blocked(user)
