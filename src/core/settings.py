@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import time, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -113,7 +113,7 @@ class Settings(BaseSettings):
     @property
     def formatted_task_time(self) -> str:
         """Получить время отправки новых заданий."""
-        dt = datetime.time(hour=8)
+        dt = time(hour=8)
         return dt.strftime('%H')
 
     class Config:
