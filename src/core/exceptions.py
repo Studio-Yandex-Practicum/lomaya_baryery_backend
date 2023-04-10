@@ -81,7 +81,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        f"Следующее задание придет в {settings.formatted_send_new_task_hour} часов."
+        f"Следующее задание придет в {settings.formatted_task_time} часов утра."
     )
 
 
@@ -94,7 +94,7 @@ class EmptyReportError(Exception):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_send_new_task_hour} часов."
+    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):

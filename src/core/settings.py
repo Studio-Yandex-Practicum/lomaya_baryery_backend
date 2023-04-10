@@ -111,10 +111,10 @@ class Settings(BaseSettings):
         return BASE_DIR / "src" / "templates" / "email"
 
     @property
-    def formatted_send_new_task_hour(self) -> str:
+    def formatted_task_time(self) -> str:
         """Получить время отправки новых заданий."""
-        dt = datetime.strptime(str(self.SEND_NEW_TASK_HOUR), '%H')
-        return dt.strftime('%H:%M')
+        dt = datetime.time(hour=8)
+        return dt.strftime('%H')
 
     class Config:
         env_file = ENV_FILE
