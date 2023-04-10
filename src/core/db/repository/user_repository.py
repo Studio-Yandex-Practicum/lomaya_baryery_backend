@@ -26,7 +26,8 @@ class UserRepository(AbstractRepository):
         numbers_lombaryers -- количество "ломбарьерчиков",
         total_approved -- количество одобренных заданий,
         total_declined -- количество отмененных заданий,
-        total_skipped -- количество пропущенных заданий.
+        total_skipped -- количество пропущенных заданий,
+        is_excluded -- был ли участник исключен из смены (bool).
         """
         stmt = (
             select(
@@ -38,11 +39,12 @@ class UserRepository(AbstractRepository):
                 func.count(case(((Report.status == "approved"), Report.id))).label("total_approved"),
                 func.count(case(((Report.status == "declined"), Report.id))).label("total_declined"),
                 func.count(case(((Report.status == "waiting"), Report.id))).label("total_skipped"),
+                case(((Member.status == "excluded"), True), else_=False).label("is_excluded"),
             )
             .join(User.members, isouter=True)
             .join(Member.shift, isouter=True)
             .join(Member.reports, isouter=True)
-            .group_by(Member.numbers_lombaryers, Shift.id)
+            .group_by(Member.numbers_lombaryers, Member.status, Shift.id)
             .where(User.id == user_id)
         )
         list_user_shifts = await self._session.execute(stmt)
