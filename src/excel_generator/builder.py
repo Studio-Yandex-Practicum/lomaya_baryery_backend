@@ -2,7 +2,6 @@ import abc
 import enum
 
 from dataclasses import astuple
-from datetime import datetime
 from io import BytesIO
 
 from fastapi.responses import StreamingResponse
@@ -32,9 +31,7 @@ class AnalyticReportBuilder(abc.ABC):
     async def get_report_response(self, workbook: Workbook) -> StreamingResponse:
         """Создание ответа."""
         stream = await self.__save_report(workbook)
-        filename = f"report_{datetime.now()}.xlsx"
-        headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        return StreamingResponse(stream, headers=headers)
+        return stream
 
     def create_workbook(self) -> Workbook:
         """Генерация excel файла."""

@@ -1,6 +1,9 @@
 from http import HTTPStatus
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.responses import StreamingResponse
 from fastapi_restful.cbv import cbv
 
@@ -12,6 +15,7 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 @cbv(router)
 class AnalyticsCBV:
     analytics_service: AnalyticsService = Depends()
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 
     @router.get(
         "/total",
@@ -23,7 +27,10 @@ class AnalyticsCBV:
         self,
     ) -> StreamingResponse:
         """Формирует excel файл со всеми отчётами."""
-        return await self.analytics_service.generate_full_report()
+        filename = f"report_{datetime.now()}.xlsx"
+        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        workbook = await self.analytics_service.generate_full_report()
+        return StreamingResponse(workbook, headers=headers)
 
     @router.get(
         "/tasks",
@@ -39,4 +46,7 @@ class AnalyticsCBV:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        return await self.analytics_service.generate_task_report()
+        filename = f"report_{datetime.now()}.xlsx"
+        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        workbook = await self.analytics_service.generate_task_report()
+        return StreamingResponse(workbook, headers=headers)
