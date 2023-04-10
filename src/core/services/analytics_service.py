@@ -32,10 +32,7 @@ class AnalyticsService:
         """Генерация полного отчёта."""
         workbook = self.__task_report_builder.create_workbook()
         tasks_statistic = await self.__task_repository.get_tasks_statistics_report()
-        # data = await добавляем какие-то другие данные из базы 
         workbook = await self.__generate_task_report(tasks_statistic=tasks_statistic, workbook=workbook)
-        # await self.__generate_task_report(tasks_statistic=data, workbook=workbook)
-        # Создаёт новый лист в отчёте
         workbook = await self._analytic_report_builder.get_report_response(workbook=workbook)
         return workbook
 
