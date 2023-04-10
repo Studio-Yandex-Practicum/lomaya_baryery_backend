@@ -57,6 +57,12 @@ class Settings(BaseSettings):
 
     TIME_ZONE: str = "Asia/Yekaterinburg"
 
+    # Logging settings
+    LOG_LOCATION: str = "logs/warning.log"
+    LOG_ROTATION: str = "12:00"
+    LOG_COMPRESSION: str = "tar.gz"
+    LOG_LEVEL: str = "WARNING"
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
