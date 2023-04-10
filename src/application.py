@@ -8,6 +8,7 @@ from src.api import routers
 from src.bot.main import start_bot
 from src.core.exception_handlers import internal_exception_handler
 from src.core.settings import settings
+from src.core.utils import setup_logging
 
 
 def create_app() -> FastAPI:
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def on_startup():
         """Действия при запуске сервера."""
+        setup_logging()
         bot_instance = await start_bot()
         # storing bot_instance to extra state of FastAPI app instance
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance

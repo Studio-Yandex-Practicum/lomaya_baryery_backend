@@ -15,10 +15,11 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    select,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
 from src.core import settings
@@ -73,7 +74,7 @@ class Shift(Base):
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     reports = relationship("Report", back_populates="shift")
-    members = relationship("Member", back_populates="shift")
+    members = relationship("Member", back_populates="shift", order_by="Member.member_user_name")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -191,12 +192,48 @@ class Member(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
-    reports = relationship("Report", back_populates="member")
+    reports = relationship("Report", back_populates="member", order_by='Report.task_date')
+    member_user_name = deferred((select(User.name).where(User.id == user_id)).scalar_subquery())
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
 
     def __repr__(self):
         return f"<Member: {self.id}, status: {self.status}>"
+
+
+class Administrator(Base):
+    """Модель администратора смены."""
+
+    class Status(str, enum.Enum):
+        """Cтатус администратора."""
+
+        ACTIVE = "active"
+        BLOCKED = "blocked"
+
+    class Role(str, enum.Enum):
+        """Роль администратора."""
+
+        ADMINISTRATOR = "administrator"
+        PSYCHOLOGIST = "psychologist"
+
+    __tablename__ = "administrators"
+
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(70), nullable=False)
+    role = Column(
+        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    last_login_at = Column(TIMESTAMP)
+    status = Column(
+        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
+    reports = relationship("Report", back_populates="reviewer")
+    is_superadmin = Column(Boolean, default=False, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
 
 
 class Report(Base):
@@ -220,6 +257,9 @@ class Report(Base):
     task = relationship("Task", back_populates="reports")
     member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
     member = relationship("Member", back_populates="reports")
+    updated_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
+    reviewer = relationship("Administrator", back_populates="reports")
+    reviewed_at = Column(TIMESTAMP, nullable=True)
     task_date = Column(DATE, nullable=False)
     status = Column(
         Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
@@ -249,39 +289,10 @@ class Report(Base):
         self.uploaded_at = datetime.now()
         self.number_attempt += 1
 
-
-class Administrator(Base):
-    """Модель администратора смены."""
-
-    class Status(str, enum.Enum):
-        """Статус администратора."""
-
-        ACTIVE = "active"
-        BLOCKED = "blocked"
-
-    class Role(str, enum.Enum):
-        """Роль администратора."""
-
-        ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
-
-    __tablename__ = "administrators"
-
-    name = Column(String(100), nullable=False)
-    surname = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(70), nullable=False)
-    role = Column(
-        Enum(Role, name="administrator_role", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    last_login_at = Column(TIMESTAMP)
-    status = Column(
-        Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
-    )
-    is_superadmin = Column(Boolean, default=False, nullable=False)
-
-    def __repr__(self) -> str:
-        return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+    def set_reviewer(self, administrator_id: UUID):
+        """Установить администратора, который проверил отчет и дату проверки."""
+        self.updated_by = administrator_id
+        self.reviewed_at = datetime.now()
 
 
 class AdministratorInvitation(Base):

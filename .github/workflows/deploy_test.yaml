@@ -21,6 +21,7 @@ defaults:
 jobs:
   build_and_push_docker_image:
     name: Push Docker image to GitHub Packages
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment:
       name: test_deploy
@@ -49,6 +50,7 @@ jobs:
 
   start_application:
     name: Start application
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     needs: build_and_push_docker_image
     environment:
