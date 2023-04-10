@@ -185,8 +185,6 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
 
-    text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
-
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
@@ -195,7 +193,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         except exceptions.ApplicationError as e:
             text = e.detail
         else:
-            text = "Задание пропущено, следующее задание придет в 8.00 мск."
+            text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
         await update.message.reply_text(text)
 
 
