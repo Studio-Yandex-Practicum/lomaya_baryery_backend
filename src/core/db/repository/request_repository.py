@@ -54,6 +54,20 @@ class RequestRepository(AbstractRepository):
         )
         return approved_requests.scalars().all()
 
+    async def get_last_not_declined_requests_by_user(self, user_id: UUID) -> Request:
+        approved_requests = await self._session.execute(
+            select(Request)
+            .where(
+                Request.user_id == user_id,
+                or_(
+                    Request.status == Request.Status.APPROVED.value,
+                    Request.status == Request.Status.PENDING.value,
+                ),
+            )
+            .order_by(Request.created_at.desc())
+        )
+        return approved_requests.scalars().first()
+
     async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:
         statement = select(
             Request.user_id,
@@ -71,9 +85,3 @@ class RequestRepository(AbstractRepository):
         )
         requests = await self._session.execute(statement)
         return [RequestDTO.parse_from_db(request) for request in requests.all()]
-
-    async def get_pending_requests_current_user(self, user_id: UUID) -> list[Request]:
-        pending_requests = await self._session.execute(
-            select(Request).where(Request.user_id == user_id, Request.status == Request.Status.PENDING.value)
-        )
-        return pending_requests.scalars().all()

@@ -10,14 +10,15 @@ from src.api.request_models.user import (
     UserFieldSortRequest,
 )
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
-from src.core.db.models import Request, User
+from src.core.db.models import Request, Shift, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
-    AlreadyPendingRegisterationException,
     AlreadyRegisteredException,
+    AlreadyShiftInProgressException,
     NotValidValueError,
     RequestForbiddenException,
+    RequestIsPendingException,
 )
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
@@ -69,8 +70,7 @@ class UserService:
 
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""
-        if request.status is Request.Status.APPROVED:
-            raise AlreadyRegisteredException
+        await self.check_user_can_change_data(request.user_id)
         if request.status is Request.Status.DECLINED:
             if request.is_repeated < settings.MAX_REQUESTS:
                 request.is_repeated += 1
@@ -124,7 +124,13 @@ class UserService:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
 
-    async def check_user_have_pending_requests(self, user: User) -> None:
-        pending_requests = await self.__request_repository.get_pending_requests_current_user(user.id)
-        if pending_requests:
-            raise AlreadyPendingRegisterationException
+    async def check_user_has_right_change_data(self, user: User) -> None:
+        request = await self.__request_repository.get_last_not_declined_requests_by_user(user.id)
+        if request.status == Request.Status.PENDING.value:
+            raise RequestIsPendingException
+        if request.status == Request.Status.APPROVED.value:
+            shift = await self.__shift_service.get_shift(request.shift_id)
+            if shift.status == Shift.Status.PREPARING.value:
+                raise AlreadyRegisteredException
+            if shift.status == Shift.Status.STARTED.value:
+                raise AlreadyShiftInProgressException
