@@ -19,117 +19,118 @@ defaults:
     working-directory: .
 
 jobs:
-  if_merged:
+  build_and_push_docker_image:
+    name: Push Docker image to GitHub Packages
     if: github.event.pull_request.merged == true
-    build_and_push_docker_image:
-      name: Push Docker image to GitHub Packages
-      runs-on: ubuntu-latest
-      environment:
-        name: Stage
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
 
-      steps:
-        - name: Check out the repo
-          uses: actions/checkout@v2
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
 
-        - name: Docker login
-          uses: docker/login-action@v1
-          with:
-            registry: ${{ env.REGISTRY }}
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Build and push
-          uses: docker/build-push-action@v2
-          with:
-            context: .
-            file: Dockerfile
-            labels: runnumber=${GITHUB_RUN_ID}
-            push: true
-            tags: |
-              ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
-              ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
-              ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: runnumber=${GITHUB_RUN_ID}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
 
-    deploy:
-      name: Deploy
-      runs-on: ubuntu-latest
-      needs: build_and_push_docker_image
-      environment:
-        name: Stage
-      steps:
-        - name: Check out repository
-          uses: actions/checkout@v2
+  deploy:
+    name: Deploy
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    needs: build_and_push_docker_image
+    environment:
+      name: Stage
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
 
-        - name: Copy docker-compose and nginx files
-          uses: appleboy/scp-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            password: ${{ secrets.SSH_PASSWORD }}
-            source: "docker-compose.stage.yaml,nginx/default.conf"
-            target: ${{ env.DEPLOY_PATH }}
+      - name: Copy docker-compose and nginx files
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "docker-compose.stage.yaml,nginx/default.conf"
+          target: ${{ env.DEPLOY_PATH }}
 
-        - name: Create .env file
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            password: ${{ secrets.SSH_PASSWORD }}
-            script: |
-              cd ${{ env.DEPLOY_PATH }}
-              mv docker-compose.stage.yaml docker-compose.yaml
-              rm -f .env
-              touch .env
-              echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
-              echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-              echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-              echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-              echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-              echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
-              echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
-              echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
-              echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
-              echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
-              echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
-              echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-              echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
-              echo TZ=${{ secrets.TZ }} >> .env
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            mv docker-compose.stage.yaml docker-compose.yaml
+            rm -f .env
+            touch .env
+            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
+            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
+            echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
+            echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
+            echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
+            echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
+            echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
+            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+            echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
+            echo TZ=${{ secrets.TZ }} >> .env
 
-    start_application:
-      name: Start application
-      runs-on: ubuntu-latest
-      environment:
-        name: Stage
-      needs: deploy
-      steps:
-        - name: Start application
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            password: ${{ secrets.SSH_PASSWORD }}
-            script: |
-              cd ${{ env.DEPLOY_PATH }}
-              docker image prune -f
-              docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
-              docker-compose --file docker-compose.yaml stop
-              docker-compose --file docker-compose.yaml rm backend
-              docker-compose --file docker-compose.yaml up -d
-        - name: Making migrations
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            password: ${{ secrets.SSH_PASSWORD }}
-            script: |
-              cd ${{ env.DEPLOY_PATH }}
-              docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
-        - name: Sleep for 30 seconds
-          run: sleep 30s
-          shell: bash
-        - name: Get the status of healthcheck
-          uses: im-open/url-status-check@v1.1.0
-          with:
-            url: ${{ env.HEALTHCHECK_URL }}
-            fail-on-bad-status: true
+  start_application:
+    name: Start application
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    environment:
+      name: Stage
+    needs: deploy
+    steps:
+      - name: Start application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            docker image prune -f
+            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker-compose --file docker-compose.yaml stop
+            docker-compose --file docker-compose.yaml rm backend
+            docker-compose --file docker-compose.yaml up -d
+      - name: Making migrations
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+      - name: Get the status of healthcheck
+        uses: im-open/url-status-check@v1.1.0
+        with:
+          url: ${{ env.HEALTHCHECK_URL }}
+          fail-on-bad-status: true
