@@ -242,5 +242,5 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> None:
     elif (
         update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.MEMBER
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.BANNED
-    ):  # noqa R505
-        return await user_service.unset_telegram_blocked(user)
+    ):
+        return await user_service.unset_telegram_blocked(user)  # noqa: R505
