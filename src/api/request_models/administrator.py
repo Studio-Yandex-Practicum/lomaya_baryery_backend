@@ -52,3 +52,9 @@ class RefreshToken(RequestBase):
     """Схема для передачи refresh токена."""
 
     refresh_token: str
+
+
+class AdministratorPasswordResetRequest(RequestBase):
+    """Схема для запроса восстановления пароля администратора или эксперта."""
+
+    email: EmailStr

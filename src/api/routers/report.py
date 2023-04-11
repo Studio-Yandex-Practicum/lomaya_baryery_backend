@@ -2,12 +2,14 @@ from http import HTTPStatus
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 from pydantic.schema import UUID
 
 from src.api.response_models.error import generate_error_responses
 from src.api.response_models.report import ReportResponse, ReportSummaryResponse
 from src.core.db.models import Report
+from src.core.services.authentication_service import AuthenticationService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 
@@ -16,6 +18,8 @@ router = APIRouter(prefix="/reports", tags=["Report"])
 
 @cbv(router)
 class ReportsCBV:
+    authentication_service: AuthenticationService = Depends()
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     shift_service: ShiftService = Depends()
     report_service: ReportService = Depends()
 
@@ -42,6 +46,7 @@ class ReportsCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.get_report_with_report_url(report_id)
 
     @router.patch(
@@ -57,7 +62,8 @@ class ReportsCBV:
         request: Request,
     ) -> ReportResponse:
         """Отчет участника проверен и принят."""
-        return await self.report_service.approve_report(report_id, request.app.state.bot_instance)
+        administrator = await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        return await self.report_service.approve_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.patch(
         "/{report_id}/decline",
@@ -72,7 +78,8 @@ class ReportsCBV:
         request: Request,
     ) -> ReportResponse:
         """Отчет участника проверен и отклонен."""
-        return await self.report_service.decline_report(report_id, request.app.state.bot_instance)
+        administrator = await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        return await self.report_service.decline_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.get(
         "/",
@@ -95,4 +102,5 @@ class ReportsCBV:
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.get_summaries_of_reports(shift_id, status)
