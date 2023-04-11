@@ -101,3 +101,20 @@ class TaskCBV:
         - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         return await self.task_service.update_task(task_id, update_task_data)
+
+    @router.patch(
+        "/archive/{task_id}",
+        response_model=TaskResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Архивировать/разархивировать задание",
+        response_description="Задание архивированно/разархивированно",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
+    )
+    async def archive_task(
+        self,
+        task_id: UUID,
+    ) -> TaskResponse:
+        """Архивировать/разархивировать задании с указанным ID."""
+        # TODO Дописать сервис для архивации.
+        return await self.task_service.get_task(task_id)
