@@ -53,3 +53,11 @@ class TaskService:
         task.description_for_message = update_task_data.description_for_message
         task.url = update_task_data.url
         return await self.__task_repository.update(task_id, task)
+
+    async def archive_task(self, task_id: UUID) -> Task:
+        task = await self.__task_repository.get(task_id)
+        if task.is_archived is False:
+            task.is_archived = True
+            return await self.__task_repository.update(task_id, task)
+        task.is_archived = False
+        return await self.__task_repository.update(task_id, task)

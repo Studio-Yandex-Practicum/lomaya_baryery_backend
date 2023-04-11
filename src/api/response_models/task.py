@@ -18,6 +18,7 @@ class TaskResponse(BaseModel):
     url: str
     description: str
     description_for_message: str
+    is_archived: bool
 
     class Config:
         orm_mode = True

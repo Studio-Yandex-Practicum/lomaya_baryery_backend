@@ -116,5 +116,4 @@ class TaskCBV:
         task_id: UUID,
     ) -> TaskResponse:
         """Архивировать/разархивировать задании с указанным ID."""
-        # TODO Дописать сервис для архивации.
-        return await self.task_service.get_task(task_id)
+        return await self.task_service.archive_task(task_id)
