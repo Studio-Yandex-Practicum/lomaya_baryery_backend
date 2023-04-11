@@ -16,31 +16,30 @@ from src.core.utils import get_lombaryers_for_quantity
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
-def retry_on_errors(function, max_tries: int = 5):
-    """Функция-декоратор для повторной отправки сообщений при ошибках."""
-    functools.wraps(function)
+def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
+    """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
 
-    async def wrapper(self, user: models.User, *kwargs):
-        if user.telegram_blocked:
-            return
-        current_try = 0
-        retry_delay = 10
-        chat_id = user.telegram_id
-        while current_try < max_tries:
-            try:
-                await function(self, chat_id, *kwargs)
-            except (RetryAfter, TimedOut, NetworkError) as exc:
-                sending_error = exc
-                logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
-                await asyncio.sleep(retry_delay)
-                retry_delay *= 2
-                current_try += 1
-            else:
+    def func_wrapper(func):
+        @functools.wraps(func)
+        async def inner(*args, **kwargs):
+            user = kwargs['user'] if 'user' in kwargs else args[1]
+            if user.telegram_blocked:
                 return
-        else:
-            await error_handler(chat_id, sending_error)
+            for n in range(max_attempt_number):
+                try:
+                    return await func(*args, **kwargs)
+                except (RetryAfter, TimedOut, NetworkError) as exc:
+                    current_error = exc
+                    logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
+                    retry_delay = start_sleep_time * 3**n
+                    await asyncio.sleep(retry_delay)
+                    continue
+            else:
+                await error_handler(user, current_error)
 
-    return wrapper
+        return inner
+
+    return func_wrapper
 
 
 class BotService:
@@ -48,13 +47,13 @@ class BotService:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
-    @retry_on_errors
-    async def send_message(self, chat_id: int, text: str) -> None:
-        await self.__bot.send_message(chat_id, text)
+    @backoff()
+    async def send_message(self, user: models.User, text: str) -> None:
+        await self.__bot.send_message(user.telegram_id, text)
 
-    @retry_on_errors
-    async def send_photo(self, chat_id: int, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
-        await self.__bot.send_photo(chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup)
+    @backoff()
+    async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
+        await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
