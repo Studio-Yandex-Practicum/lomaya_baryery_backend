@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import timedelta
+from datetime import time, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -115,6 +115,12 @@ class Settings(BaseSettings):
     def email_template_directory(self) -> Path:
         """Получить директорию шаблонов электронной почты."""
         return BASE_DIR / "src" / "templates" / "email"
+
+    @property
+    def formatted_task_time(self) -> str:
+        """Получить время отправки новых заданий."""
+        dt = time(hour=8)
+        return dt.strftime('%H')
 
     class Config:
         env_file = ENV_FILE
