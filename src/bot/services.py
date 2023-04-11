@@ -19,9 +19,9 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
     """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
 
-    def func_wrapper(func):
+    def _func_wrapper(func):
         @functools.wraps(func)
-        async def inner(*args, **kwargs):
+        async def _inner(*args, **kwargs):
             user = kwargs['user'] if 'user' in kwargs else args[1]
             if user.telegram_blocked:
                 return
@@ -37,9 +37,9 @@ def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
             else:
                 await error_handler(user, current_error)
 
-        return inner
+        return _inner
 
-    return func_wrapper
+    return _func_wrapper
 
 
 class BotService:
