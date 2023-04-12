@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi import Request as FastAPIRequest
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
+from telegram.ext import Application
 
 from src.api.request_models.shift import (
     ShiftCancelRequest,
@@ -90,6 +91,7 @@ class ShiftCBV:
     )
     async def update_shift(
         self,
+        bot: Application,
         shift_id: UUID,
         update_shift_data: ShiftUpdateRequest,
     ) -> Any:
