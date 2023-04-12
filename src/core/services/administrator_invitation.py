@@ -29,7 +29,7 @@ class AdministratorInvitationService:
         self.__administrator_repository = administrator_repository
 
     async def create_mail_request(self, invitation_data: AdministratorInvitationRequest) -> AdministratorInvitation:
-        """Создает в БД приглашение для регистрации нового администратора/психолога.
+        """Создает в БД приглашение для регистрации нового администратора/эксперта.
 
         Аргументы:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные

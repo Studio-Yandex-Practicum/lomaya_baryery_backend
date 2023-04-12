@@ -214,7 +214,7 @@ class Administrator(Base):
         """Роль администратора."""
 
         ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
+        EXPERT = "expert"
 
     __tablename__ = "administrators"
 
@@ -296,7 +296,7 @@ class Report(Base):
 
 
 class AdministratorInvitation(Base):
-    """Модель приглашения администратора/психолога."""
+    """Модель приглашения администратора/эксперта."""
 
     __tablename__ = "administrator_invitations"
 
