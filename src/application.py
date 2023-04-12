@@ -6,7 +6,11 @@ from fastapi.staticfiles import StaticFiles
 
 from src.api import routers
 from src.bot.main import start_bot
-from src.core.exception_handlers import internal_exception_handler
+from src.core import exceptions
+from src.core.exception_handlers import (
+    application_error_handler,
+    internal_exception_handler,
+)
 from src.core.settings import settings
 from src.core.utils import setup_logging
 
@@ -38,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(routers.telegram)
 
     app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
+    app.add_exception_handler(exceptions.ApplicationError, application_error_handler)
 
     @app.on_event("startup")
     async def on_startup():

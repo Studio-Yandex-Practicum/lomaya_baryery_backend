@@ -23,6 +23,23 @@ class ApplicationError(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
+
+class NotFoundError(ApplicationError):
+    status_code: HTTPStatus = HTTPStatus.NOT_FOUND
+
+
+class BadRequestError(ApplicationError):
+    status_code = HTTPStatus.BAD_REQUEST
+
+
+class ForbiddenError(ApplicationError):
+    status_code = HTTPStatus.FORBIDDEN
+
+
+class UnauthorizedError(ApplicationError):
+    status_code = HTTPStatus.UNAUTHORIZED
+
+
 class NotValidValueError(ApplicationError):
     """Исключение для невалидных данных."""
 
@@ -40,15 +57,13 @@ class ApplicationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
-class NotFoundException(ApplicationException):
+class NotFoundException(NotFoundError):
     def __init__(self, object_name: str, object_id: UUID):
-        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
 
 
-class AlreadyExistsException(ApplicationException):
+class AlreadyExistsException(BadRequestError):
     def __init__(self, obj: DatabaseModel):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Объект {obj} уже существует"
 
 
@@ -58,10 +73,10 @@ class CurrentTaskNotFoundError(ApplicationError):
     detail = "Сейчас заданий нет."
 
 
-class TodayTaskNotFoundError(Exception):
+class TodayTaskNotFoundError(ApplicationError):
     """Не найдено ежедневной задачи на текущий день."""
 
-    pass
+    detail = "На сегодня заданий больше нет."
 
 
 class CannotAcceptReportError(ApplicationError):
@@ -86,10 +101,10 @@ class ExceededAttemptsReportError(ApplicationError):
     )
 
 
-class EmptyReportError(Exception):
+class EmptyReportError(ApplicationError):
     """Отчет должен содержать фото."""
 
-    pass
+    detail = "Отчет должен содержать фото."
 
 
 class ReportSkippedError(ApplicationError):
@@ -98,213 +113,153 @@ class ReportSkippedError(ApplicationError):
     detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
-class ShiftStartForbiddenException(ApplicationException):
+class ShiftStartForbiddenException(BadRequestError):
     def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
-class ShiftReadyForCompleteForbiddenException(ApplicationException):
+class ShiftReadyForCompleteForbiddenException(BadRequestError):
     def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = (
             f"Невозможно перевести в статус 'завершающаяся' смену {shift_name} с id: {shift_id}. Проверьте статус смены"
         )
 
 
-class ShiftFinishForbiddenException(ApplicationException):
+class ShiftFinishForbiddenException(BadRequestError):
     def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
-class ShiftCancelForbiddenException(ApplicationException):
+class ShiftCancelForbiddenException(BadRequestError):
     def __init__(self, shift_name: str, shift_id: UUID):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Невозможно отменить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
-
-
-class SendTelegramNotifyException(ApplicationException):
-    """Невозможно отправить сообщение в telegram."""
-
-    def __init__(self, user_id: UUID, user_name: str, surname: str, telegram_id: int, exc: Exception):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = (
-            f"Возникла ошибка '{exc}' при отправке сообщения пользователю -"
-            f" id: {user_id}, Имя: {user_name}, Фамилия: {surname}, Телеграм id: {telegram_id}"
-        )
 
 
 class ReportAlreadyReviewedException(ApplicationException):
     def __init__(self, status: UUID):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Задание уже проверено, статус задания: {}.".format(status)
 
 
-class ReportWaitingPhotoException(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.NOT_FOUND
-        self.detail = "К заданию нет отчета участника."
+class ReportWaitingPhotoException(NotFoundError):
+    detail = "К заданию нет отчета участника."
 
 
-class CreateShiftForbiddenException(ApplicationException):
+class CreateShiftForbiddenException(ForbiddenError):
     def __init__(self, detail: str):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = detail
 
 
-class ShiftUpdateException(ApplicationException):
+class ShiftUpdateException(BadRequestError):
     def __init__(self, detail: str):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = detail
 
 
-class UpdateShiftForbiddenException(ShiftUpdateException):
+class UpdateShiftForbiddenException(ForbiddenError):
     def __init__(self, detail: str):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = detail
 
 
-class ShiftsDatesIntersectionException(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
+class ShiftsDatesIntersectionException(BadRequestError):
+    detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
 
 
-class GetStartedShiftException(ApplicationException):
+class GetStartedShiftException(NotFoundError):
     def __init__(self, detail: str):
-        self.status_code = HTTPStatus.NOT_FOUND
         self.detail = detail
 
 
-class RegistrationException(ApplicationError):  # noqa N818
-    status_code: int = None
-    detail: str = None
-
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail)
-
-
-class RegistrationForbidenException(RegistrationException):  # noqa N818
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
-            "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
-            "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
-        )
+class RegistrationForbidenException(ForbiddenError):  # noqa N818
+    detail = (
+        "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
+        "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
+        "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
+    )
 
 
-class AlreadyRegisteredException(RegistrationException):  # noqa N818
-    def __init__(self):
-        self.status_code = HTTPStatus.OK
-        self.detail = (
-            "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
-            "в день старта смены. Актуальную дату начала смены вы можете "
-            "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
-        )
+class AlreadyRegisteredException(ForbiddenError):  # noqa N818
+    detail = (
+        "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
+        "в день старта смены. Актуальную дату начала смены вы можете "
+        "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
+    )
 
 
-class RequestAlreadyReviewedException(ApplicationException):
+class RequestAlreadyReviewedException(ForbiddenError):
     def __init__(self, status):
-        self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
-class RequestForbiddenException(RegistrationException):  # noqa N818
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = (
-            "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
-            "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
-            "в нашу группу ВКонтакте https://vk.com/socialrb02"
-        )
+class RequestForbiddenException(ForbiddenError):  # noqa N818
+    detail = (
+        "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
+        "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
+        "в нашу группу ВКонтакте https://vk.com/socialrb02"
+    )
 
 
-class InvalidAuthenticationDataException(ApplicationException):
+class InvalidAuthenticationDataException(BadRequestError):
     """Введены неверные данные для аутентификации."""
 
-    status_code = HTTPStatus.BAD_REQUEST
     detail = "Неверный email или пароль."
 
 
-class AdministratorBlockedException(ApplicationException):
+class AdministratorBlockedException(ForbiddenError):
     """Попытка аутентификации заблокированного пользователя."""
 
-    status_code = HTTPStatus.FORBIDDEN
     detail = "Пользователь заблокирован."
 
 
-class UnauthorizedException(ApplicationException):
+class UnauthorizedException(UnauthorizedError):
     """Пользователь не авторизован."""
 
-    status_code = HTTPStatus.UNAUTHORIZED
     detail = "У Вас нет прав для просмотра запрошенной страницы."
 
 
-class AdministratorNotFoundException(ApplicationException):
+class AdministratorNotFoundException(BadRequestError):
     """Пользователь не найден."""
 
     status_code = HTTPStatus.NOT_FOUND
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorAlreadyExistsException(ApplicationException):
+class AdministratorAlreadyExistsException(BadRequestError):
     """Пользователь с таким email уже существует."""
 
-    status_code = HTTPStatus.BAD_REQUEST
     detail = "Администратор с указанным email уже существует."
 
 
-class AdministratorInvitationInvalid(ApplicationException):  # noqa N818
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Указанный код регистрации неверен или устарел."
+class AdministratorInvitationInvalid(BadRequestError):  # noqa N818
+    detail = "Указанный код регистрации неверен или устарел."
 
 
-class EmailSendException(ApplicationException):
+class EmailSendException(BadRequestError):
     def __init__(self, recipients: list[str], exc: Exception):
-        self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."
 
 
-class InvalidDateFormatException(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
+class InvalidDateFormatException(BadRequestError):
+    detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
 
 
-class InvitationAlreadyDeactivated(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Приглашение уже деактивировано"
+class InvitationAlreadyDeactivated(ForbiddenError):
+    detail = "Приглашение уже деактивировано"
 
 
-class InvitationAlreadyActivated(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Приглашение активно"
+class InvitationAlreadyActivated(ForbiddenError):
+    detail = "Приглашение активно"
 
 
-class AdministratorChangeError(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "У вас нет прав на изменение других администраторов."
+class AdministratorChangeError(ForbiddenError):
+    detail = "У вас нет прав на изменение других администраторов."
 
 
-class AdministratorSelfChangeRoleError(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Вы не можете изменить роль самому себе."
+class AdministratorSelfChangeRoleError(ForbiddenError):
+    detail = "Вы не можете изменить роль самому себе."
 
 
-class AdministratorBlockError(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "У Вас нет прав на блокировку других администраторов."
+class AdministratorBlockError(ForbiddenError):
+    detail = "У Вас нет прав на блокировку других администраторов."
 
 
-class AdministratorSelfBlockError(ApplicationException):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Вы не можете заблокировать себя."
+class AdministratorSelfBlockError(ForbiddenError):
+    detail = "Вы не можете заблокировать себя."
