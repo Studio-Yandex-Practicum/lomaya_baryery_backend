@@ -112,7 +112,7 @@ class AdministratorInvitationCBV:
     async def reactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        await self.authentication_service.get_current_active_administrator(token.credentials)
+        await self.authentication_service.check_administrator_not_expert(token.credentials)
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)

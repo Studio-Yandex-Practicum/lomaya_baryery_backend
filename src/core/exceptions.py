@@ -4,8 +4,9 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
-from src.core.settings import settings
 from starlette.exceptions import HTTPException
+
+from src.core.settings import settings
 
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
@@ -299,3 +300,9 @@ class AdministratorSelfBlockError(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Вы не можете заблокировать себя."
+
+
+class AdministratorCheckError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Ваших прав не достаточно для выполнения данного действия."
