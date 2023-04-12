@@ -10,7 +10,7 @@ from src.core.db import models
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 
-FORMAT_PHOTO_DATE = "%d.%m.%Y"
+FORMAT_DATE = "%d.%m.%Y"
 
 
 class BotService:
@@ -72,7 +72,7 @@ class BotService:
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
+        photo_date = datetime.strftime(report.uploaded_at, FORMAT_DATE)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
             text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
@@ -126,7 +126,7 @@ class BotService:
 
     async def notify_that_shift_started_at_date_changed(self, shift: models.Shift) -> None:
         """Уведомляет участников об изменении даты начала смены."""
-        new_start_day = shift.started_at.strftime("%d.%m.%Y")
+        new_start_day = shift.started_at.strftime(FORMAT_DATE)
         text = (
             f"Дата старта смены изменилась.\"{new_start_day} в {settings.formatted_task_time} часов утра "
             "тебе поступит первое задание\"."
