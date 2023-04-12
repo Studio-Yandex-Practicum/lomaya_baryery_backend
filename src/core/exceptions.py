@@ -34,6 +34,7 @@ class UnauthorizedError(ApplicationError):
     status_code = HTTPStatus.UNAUTHORIZED
 
 
+# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
 class NotValidValueError(ApplicationError):
     """Исключение для невалидных данных."""
 
@@ -42,7 +43,9 @@ class NotValidValueError(ApplicationError):
         super().__init__()
 
 
-class ApplicationException(HTTPException):
+# TODO: удалить после переименования детей
+# TODO: Удалить # noqa N818
+class ApplicationException(HTTPException):  # noqa N818
     status_code: int = None
     detail: str = None
     headers: Dict[str, Any] = None
@@ -51,12 +54,16 @@ class ApplicationException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
-class NotFoundException(NotFoundError):
+# TODO: Переименовать в ObjectNotFoundError
+# TODO: Удалить # noqa N818
+class NotFoundException(NotFoundError):  # noqa N818
     def __init__(self, object_name: str, object_id: UUID):
         self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
 
 
-class AlreadyExistsException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class AlreadyExistsException(BadRequestError):  # noqa N818
     def __init__(self, obj: DatabaseModel):
         self.detail = f"Объект {obj} уже существует"
 
@@ -107,54 +114,80 @@ class ReportSkippedError(ApplicationError):
     detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
-class ShiftStartForbiddenException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class ShiftStartForbiddenException(BadRequestError):  # noqa N818
     def __init__(self, shift_name: str, shift_id: UUID):
         self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
-class ShiftFinishForbiddenException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class ShiftFinishForbiddenException(BadRequestError):  # noqa N818
     def __init__(self, shift_name: str, shift_id: UUID):
         self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
-class ShiftCancelForbiddenException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class ShiftCancelForbiddenException(BadRequestError):  # noqa N818
     def __init__(self, shift_name: str, shift_id: UUID):
         self.detail = f"Невозможно отменить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
-class ReportAlreadyReviewedException(ApplicationException):
+# TODO: Переименовать
+# TODO: изменить тип для `status` — это не UUID, а str
+# TODO: Удалить # noqa N818
+class ReportAlreadyReviewedException(ApplicationException):  # noqa N818
     def __init__(self, status: UUID):
         self.detail = "Задание уже проверено, статус задания: {}.".format(status)
 
 
+# TODO: Переименовать
 class ReportWaitingPhotoException(NotFoundError):
     detail = "К заданию нет отчета участника."
 
 
-class CreateShiftForbiddenException(ForbiddenError):
+# TODO: Переименовать
+# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
+# TODO: Удалить # noqa N818
+class CreateShiftForbiddenException(ForbiddenError):  # noqa N818
     def __init__(self, detail: str):
         self.detail = detail
 
 
-class ShiftUpdateException(BadRequestError):
+# TODO: Переименовать
+# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
+# TODO: Удалить # noqa N818
+class ShiftUpdateException(BadRequestError):  # noqa N818
     def __init__(self, detail: str):
         self.detail = detail
 
 
-class UpdateShiftForbiddenException(ForbiddenError):
+# TODO: Переименовать
+# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
+# TODO: Удалить # noqa N818
+class UpdateShiftForbiddenException(ForbiddenError):  # noqa N818
     def __init__(self, detail: str):
         self.detail = detail
 
 
-class ShiftsDatesIntersectionException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class ShiftsDatesIntersectionException(BadRequestError):  # noqa N818
     detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
 
 
+# TODO: Переименовать
+# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
 class GetStartedShiftException(NotFoundError):
     def __init__(self, detail: str):
         self.detail = detail
 
 
+# Todo: вынести адрес группы ВКонтакте в настройки
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
 class RegistrationForbidenException(ForbiddenError):  # noqa N818
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
@@ -163,6 +196,9 @@ class RegistrationForbidenException(ForbiddenError):  # noqa N818
     )
 
 
+# Todo: вынести адрес группы ВКонтакте в настройки
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
 class AlreadyRegisteredException(ForbiddenError):  # noqa N818
     detail = (
         "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
@@ -171,11 +207,15 @@ class AlreadyRegisteredException(ForbiddenError):  # noqa N818
     )
 
 
-class RequestAlreadyReviewedException(ForbiddenError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class RequestAlreadyReviewedException(ForbiddenError):  # noqa N818
     def __init__(self, status):
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
 class RequestForbiddenException(ForbiddenError):  # noqa N818
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
@@ -184,54 +224,73 @@ class RequestForbiddenException(ForbiddenError):  # noqa N818
     )
 
 
-class InvalidAuthenticationDataException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class InvalidAuthenticationDataException(BadRequestError):  # noqa N818
     """Введены неверные данные для аутентификации."""
 
     detail = "Неверный email или пароль."
 
 
-class AdministratorBlockedException(ForbiddenError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class AdministratorBlockedException(ForbiddenError):  # noqa N818
     """Попытка аутентификации заблокированного пользователя."""
 
     detail = "Пользователь заблокирован."
 
 
-class UnauthorizedException(UnauthorizedError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class UnauthorizedException(UnauthorizedError):  # noqa N818
     """Пользователь не авторизован."""
 
     detail = "У Вас нет прав для просмотра запрошенной страницы."
 
 
-class AdministratorNotFoundException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class AdministratorNotFoundException(BadRequestError):  # noqa N818
     """Пользователь не найден."""
 
     detail = "Пользователь с указанными реквизитами не найден."
 
 
-class AdministratorAlreadyExistsException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class AdministratorAlreadyExistsException(BadRequestError):  # noqa N818
     """Пользователь с таким email уже существует."""
 
     detail = "Администратор с указанным email уже существует."
 
 
+# TODO: Удалить # noqa N818
 class AdministratorInvitationInvalid(BadRequestError):  # noqa N818
     detail = "Указанный код регистрации неверен или устарел."
 
 
-class EmailSendException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class EmailSendException(BadRequestError):  # noqa N818
     def __init__(self, recipients: list[str], exc: Exception):
         self.detail = f"Возникла ошибка {exc} при отправке email на адрес {recipients}."
 
 
-class InvalidDateFormatException(BadRequestError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class InvalidDateFormatException(BadRequestError):  # noqa N818
     detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
 
 
-class InvitationAlreadyDeactivated(ForbiddenError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class InvitationAlreadyDeactivated(ForbiddenError):  # noqa N818
     detail = "Приглашение уже деактивировано"
 
 
-class InvitationAlreadyActivated(ForbiddenError):
+# TODO: Переименовать
+# TODO: Удалить # noqa N818
+class InvitationAlreadyActivated(ForbiddenError):  # noqa N818
     detail = "Приглашение активно"
 
 
