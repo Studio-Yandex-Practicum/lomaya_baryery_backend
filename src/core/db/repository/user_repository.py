@@ -6,6 +6,7 @@ from sqlalchemy import asc, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
+from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Request, Shift, User
@@ -65,10 +66,23 @@ class UserRepository(AbstractRepository):
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
         direction_sort: Optional[UserDescAscSortRequest] = None,
-    ) -> list[User]:
+    ) -> list[UserWithStatusResponse]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
-            select(User)
+            select(
+                User.id,
+                User.name,
+                User.surname,
+                User.date_of_birth,
+                User.city,
+                User.phone_number,
+                User.status,
+                func.count(Member.shift).label('shifts_count'),
+                case(((func.count(Shift.status == 'started') != 0), True), else_=False).label("is_in_active_shift"),
+            )
+            .join(User.members, isouter=True)
+            .join(Member.shift, isouter=True)
+            .group_by(User.id)
             .where(
                 or_(status is None, User.status == status),
             )
