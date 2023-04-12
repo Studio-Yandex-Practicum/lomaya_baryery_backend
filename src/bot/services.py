@@ -10,7 +10,7 @@ from src.core.db import models
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 
-FORMAT_DATE = "%d.%m.%Y"
+FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService:
@@ -72,10 +72,12 @@ class BotService:
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = datetime.strftime(report.uploaded_at, FORMAT_DATE)
+        photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
+
             text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
+
         await self.send_message(user, text)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
@@ -88,7 +90,9 @@ class BotService:
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at:
+
             text = text + f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра."
+
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
@@ -126,10 +130,10 @@ class BotService:
 
     async def notify_that_shift_started_at_date_changed(self, shift: models.Shift) -> None:
         """Уведомляет участников об изменении даты начала смены."""
-        new_start_day = shift.started_at.strftime(FORMAT_DATE)
+        new_start_day = shift.started_at.strftime('%d.%m.%Y')
         text = (
-            f"Дата старта смены изменилась.\"{new_start_day} в {settings.formatted_task_time} часов утра "
-            "тебе поступит первое задание\"."
+            f"Дата старта смены изменилась.“{new_start_day} в {settings.formatted_task_time} часов утра "
+            "тебе поступит первое задание”."
         )
         send_message_tasks = [self.send_message(member.user, text) for member in shift.members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
