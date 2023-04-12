@@ -19,6 +19,7 @@ router = APIRouter(prefix="/reports", tags=["Report"])
 @cbv(router)
 class ReportsCBV:
     authentication_service: AuthenticationService = Depends()
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     shift_service: ShiftService = Depends()
     report_service: ReportService = Depends()
 
@@ -45,6 +46,7 @@ class ReportsCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.get_report_with_report_url(report_id)
 
     @router.patch(
@@ -58,10 +60,9 @@ class ReportsCBV:
         self,
         report_id: UUID,
         request: Request,
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> ReportResponse:
         """Отчет участника проверен и принят."""
-        administrator = await self.authentication_service.get_current_active_administrator(token.credentials)
+        administrator = await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.approve_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.patch(
@@ -75,10 +76,9 @@ class ReportsCBV:
         self,
         report_id: UUID,
         request: Request,
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> ReportResponse:
         """Отчет участника проверен и отклонен."""
-        administrator = await self.authentication_service.get_current_active_administrator(token.credentials)
+        administrator = await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.decline_report(report_id, administrator.id, request.app.state.bot_instance)
 
     @router.get(
@@ -102,4 +102,5 @@ class ReportsCBV:
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.report_service.get_summaries_of_reports(shift_id, status)
