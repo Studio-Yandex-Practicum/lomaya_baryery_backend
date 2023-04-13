@@ -196,18 +196,6 @@ lint = ["fourmat (==0.2.0)", "pre-commit (==1.16.1)"]
 tests = ["pytest"]
 
 [[package]]
-name = "alembic-enums"
-version = "0.2.0"
-description = "Support for migrating PostgreSQL enums with Alembic"
-category = "main"
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "alembic_enums-0.2.0-py3-none-any.whl", hash = "sha256:dbd539191c196d156f4dc123a7de17ae48c0203618e0538f3ee40a93d20cd332"},
-    {file = "alembic_enums-0.2.0.tar.gz", hash = "sha256:f0a7a79a261900d51eb349e59f104fc4804ffbaf66d84e9026986760f481da01"},
-]
-
-[[package]]
 name = "anyio"
 version = "3.6.2"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -2161,4 +2149,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "6dca05abdd0b026230c3c408aa2b640e864399c0770e955accce93aa006caccf"
+content-hash = "b6ebdc515a887b2db7642d5857d171910c0a6bf411f7717a44dd4c20af49d2db"
