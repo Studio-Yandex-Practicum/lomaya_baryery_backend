@@ -6,6 +6,8 @@ from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
+from src.core.settings import settings
+
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
 
@@ -80,7 +82,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        "Следующее задание придет в 8.00 мск."
+        f"Следующее задание придет в {settings.formatted_task_time} часов утра."
     )
 
 
@@ -93,7 +95,7 @@ class EmptyReportError(Exception):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = "Задание было пропущено, следующее задание придет в 8.00 мск."
+    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):

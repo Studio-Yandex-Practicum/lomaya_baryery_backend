@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import timedelta
+from datetime import time, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -57,6 +57,12 @@ class Settings(BaseSettings):
 
     TIME_ZONE: str = "Asia/Yekaterinburg"
 
+    # Logging settings
+    LOG_LOCATION: str = "logs/warning.log"
+    LOG_ROTATION: str = "12:00"
+    LOG_COMPRESSION: str = "tar.gz"
+    LOG_LEVEL: str = "WARNING"
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
@@ -109,6 +115,12 @@ class Settings(BaseSettings):
     def email_template_directory(self) -> Path:
         """Получить директорию шаблонов электронной почты."""
         return BASE_DIR / "src" / "templates" / "email"
+
+    @property
+    def formatted_task_time(self) -> str:
+        """Получить время отправки новых заданий."""
+        dt = time(hour=8)
+        return dt.strftime('%H')
 
     class Config:
         env_file = ENV_FILE
