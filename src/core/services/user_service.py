@@ -10,12 +10,11 @@ from src.api.request_models.user import (
     UserFieldSortRequest,
 )
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
-from src.core.db.models import Request, Shift, User
+from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
 from src.core.exceptions import (
     AlreadyRegisteredException,
-    AlreadyShiftInProgressException,
     NotValidValueError,
     RequestForbiddenException,
     RequestIsPendingException,
@@ -63,6 +62,7 @@ class UserService:
         user = await self.__update_or_create_user(new_user_data)
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
         if request:
+            request.user_id = user.id
             await self.__update_request_data(request)
         else:
             request = Request(user_id=user.id, shift_id=shift_id)
@@ -70,7 +70,7 @@ class UserService:
 
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""
-        await self.check_user_can_change_data(request.user_id)
+        await self.check_user_has_right_change_data(request.user_id)
         if request.status is Request.Status.DECLINED:
             if request.is_repeated < settings.MAX_REQUESTS:
                 request.is_repeated += 1
@@ -124,13 +124,10 @@ class UserService:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
 
-    async def check_user_has_right_change_data(self, user: User) -> None:
-        request = await self.__request_repository.get_last_not_declined_requests_by_user(user.id)
-        if request.status == Request.Status.PENDING.value:
+    async def check_user_has_right_change_data(self, user_id: User) -> None:
+        available_shift = await self.__shift_service.get_open_for_registration_shift_id()
+        current_request = await self.__request_repository.get_by_user_and_shift(user_id, available_shift)
+        if current_request.status == Request.Status.PENDING.value:
             raise RequestIsPendingException
-        if request.status == Request.Status.APPROVED.value:
-            shift = await self.__shift_service.get_shift(request.shift_id)
-            if shift.status == Shift.Status.PREPARING.value:
-                raise AlreadyRegisteredException
-            if shift.status == Shift.Status.STARTED.value:
-                raise AlreadyShiftInProgressException
+        if current_request.status == Request.Status.APPROVED.value:
+            raise AlreadyRegisteredException
