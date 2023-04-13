@@ -67,7 +67,7 @@ class AdministratorInvitationService:
     async def reactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)
         if await self.__administrator_repository.check_administrator_existence(invitation.email):
-            raise AdministratorAlreadyExistsException
+            raise AdministratorAlreadyExistsException()
         if invitation.expired_datetime > datetime.now():
             raise InvitationAlreadyActivated()
         invitation.expired_datetime = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME

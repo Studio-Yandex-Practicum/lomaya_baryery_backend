@@ -302,7 +302,7 @@ class AdministratorSelfBlockError(ApplicationException):
         self.detail = "Вы не можете заблокировать себя."
 
 
-class AdministratorCheckError(ApplicationException):
+class AdministratorCheckRightsError(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Ваших прав не достаточно для выполнения данного действия."

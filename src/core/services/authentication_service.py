@@ -11,7 +11,7 @@ from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
     AdministratorBlockedException,
-    AdministratorCheckError,
+    AdministratorCheckRightsError,
     InvalidAuthenticationDataException,
     UnauthorizedException,
 )
@@ -93,8 +93,8 @@ class AuthenticationService:
             administrator=administrator,
         )
 
-    async def check_administrator_not_expert(self, token: str) -> None:
-        """Проверяет, что администратор не эксперт."""
+    async def check_administrator_have_rights(self, token: str) -> None:
+        """Проверяет права доступа администратора."""
         administrator = await self.get_current_active_administrator(token.credentials)
         if administrator is not Administrator.Role.ADMINISTRATOR:
-            raise AdministratorCheckError()
+            raise AdministratorCheckRightsError()
