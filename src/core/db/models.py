@@ -27,9 +27,9 @@ from src.core.exceptions import (
     CannotAcceptReportError,
     EmptyReportError,
     ExceededAttemptsReportError,
-    ShiftCancelForbiddenException,
-    ShiftFinishForbiddenException,
-    ShiftStartForbiddenException,
+    ShiftCancelError,
+    ShiftFinishError,
+    ShiftStartError,
 )
 
 
@@ -81,19 +81,19 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise ShiftStartError(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
     async def finish(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise ShiftFinishError(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
     async def cancel(self, final_message: str):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftCancelForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise ShiftCancelError(shift_name=self.title, shift_id=self.id)
         self.final_message = final_message
         self.status = Shift.Status.CANCELLED.value
         self.finished_at = datetime.now().date()

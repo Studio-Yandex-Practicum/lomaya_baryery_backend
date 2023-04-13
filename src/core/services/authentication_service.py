@@ -10,9 +10,9 @@ from src.core.db.DTO_models import AdministratorAndTokensDTO
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
-    AdministratorBlockedException,
-    InvalidAuthenticationDataException,
-    UnauthorizedException,
+    AdministratorBlockedError,
+    InvalidAuthenticationDataError,
+    UnauthorizedError,
 )
 from src.core.settings import settings
 
@@ -52,10 +52,10 @@ class AuthenticationService:
         """Аутентификация администратора по email и паролю."""
         administrator = await self.__administrator_repository.get_by_email(auth_data.email)
         if administrator.status == Administrator.Status.BLOCKED:
-            raise AdministratorBlockedException()
+            raise AdministratorBlockedError
         password = auth_data.password.get_secret_value()
         if not self.__verify_hashed_password(password, administrator.hashed_password):
-            raise InvalidAuthenticationDataException()
+            raise InvalidAuthenticationDataError
         return administrator
 
     async def login(self, auth_data: AdministratorAuthenticateRequest) -> AdministratorAndTokensDTO:
@@ -74,13 +74,13 @@ class AuthenticationService:
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         except JWTError:
-            raise UnauthorizedException()
+            raise UnauthorizedError
         email = payload.get("email")
         if not email:
-            raise UnauthorizedException()
+            raise UnauthorizedError
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
-            raise AdministratorBlockedException()
+            raise AdministratorBlockedError
         return administrator
 
     async def refresh(self, token: str) -> AdministratorAndTokensDTO:

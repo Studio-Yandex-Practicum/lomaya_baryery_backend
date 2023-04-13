@@ -17,7 +17,7 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedException
+from src.core.exceptions import UnauthorizedError
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -71,7 +71,7 @@ class AdministratorCBV:
         """
         await self.authentication_service.get_current_active_administrator(token.credentials)
         if not refresh_token:
-            raise UnauthorizedException()
+            raise UnauthorizedError
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token

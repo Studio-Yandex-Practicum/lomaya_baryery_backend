@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.db.db import get_session
 from src.core.db.models import Administrator
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import AdministratorNotFoundException
+from src.core.exceptions import AdministratorNotFoundError
 
 
 class AdministratorRepository(AbstractRepository):
@@ -23,7 +23,7 @@ class AdministratorRepository(AbstractRepository):
         administrator = await self._session.execute(select(Administrator).where(Administrator.email == email))
         administrator = administrator.scalars().first()
         if not administrator:
-            raise AdministratorNotFoundException()
+            raise AdministratorNotFoundError
         return administrator
 
     async def check_administrator_existence(self, email: str) -> bool:

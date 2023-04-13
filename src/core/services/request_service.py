@@ -12,7 +12,7 @@ from src.bot import services
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
-from src.core.exceptions import RequestAlreadyReviewedException
+from src.core.exceptions import RequestAlreadyReviewedError
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
@@ -87,4 +87,4 @@ class RequestService:
     def __exception_if_request_is_processed(status: Request.Status) -> None:
         """Если заявка была обработана ранее, выбрасываем исключение."""
         if status not in (Request.Status.PENDING,):
-            raise RequestAlreadyReviewedException(status)
+            raise RequestAlreadyReviewedError(status)
