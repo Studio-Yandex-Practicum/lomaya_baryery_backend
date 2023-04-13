@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.exceptions import AlreadyExistsException, NotFoundException
+from src.core.exceptions import ObjectAlreadyExistsError, ObjectNotFoundError
 
 DatabaseModel = TypeVar("DatabaseModel")
 
@@ -27,7 +27,7 @@ class AbstractRepository(abc.ABC):
         """Получает объект модели по ID. В случае отсутствия объекта бросает ошибку."""
         db_obj = await self.get_or_none(id)
         if db_obj is None:
-            raise NotFoundException(object_name=self._model.__name__, object_id=id)
+            raise ObjectNotFoundError(object_name=self._model.__name__, object_id=id)
         return db_obj
 
     async def create(self, instance: DatabaseModel) -> DatabaseModel:
@@ -36,7 +36,7 @@ class AbstractRepository(abc.ABC):
         try:
             await self._session.commit()
         except IntegrityError:
-            raise AlreadyExistsException(instance)
+            raise ObjectAlreadyExistsError(instance)
 
         await self._session.refresh(instance)
         return instance

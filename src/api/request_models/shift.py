@@ -4,7 +4,7 @@ from datetime import date, datetime
 from pydantic import Field, validator
 
 from src.api.request_models.request_base import RequestBase
-from src.core.exceptions import InvalidDateFormatException
+from src.core.exceptions import InvalidDateFormatError
 
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -27,7 +27,7 @@ class ShiftCreateRequest(RequestBase):
         try:
             datetime.strptime(str(value), DATE_FORMAT)
         except ValueError:
-            raise InvalidDateFormatException()
+            raise InvalidDateFormatError
         return value
 
 

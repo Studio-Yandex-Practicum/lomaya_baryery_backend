@@ -13,9 +13,9 @@ from src.core.db.repository import (
     AdministratorRepository,
 )
 from src.core.exceptions import (
-    AdministratorAlreadyExistsException,
-    InvitationAlreadyActivated,
-    InvitationAlreadyDeactivated,
+    AdministratorAlreadyExistsError,
+    InvitationAlreadyActivatedError,
+    InvitationAlreadyDeactivatedError,
 )
 
 
@@ -35,7 +35,7 @@ class AdministratorInvitationService:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные
         """
         if await self.__administrator_repository.check_administrator_existence(invitation_data.email):
-            raise AdministratorAlreadyExistsException
+            raise AdministratorAlreadyExistsError
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(
             AdministratorInvitation(**invitation_data.dict(), expired_datetime=expiration_date)
@@ -59,7 +59,7 @@ class AdministratorInvitationService:
     async def deactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)
         if invitation.expired_datetime < datetime.now():
-            raise InvitationAlreadyDeactivated()
+            raise InvitationAlreadyDeactivatedError
         invitation.expired_datetime = datetime.now() - timedelta(days=1)
         await self.__administrator_mail_request_repository.update(invitation_id, invitation)
         return invitation
@@ -67,7 +67,7 @@ class AdministratorInvitationService:
     async def reactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)
         if invitation.expired_datetime > datetime.now():
-            raise InvitationAlreadyActivated()
+            raise InvitationAlreadyActivatedError
         invitation.expired_datetime = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         await self.__administrator_mail_request_repository.update(invitation_id, invitation)
         return invitation

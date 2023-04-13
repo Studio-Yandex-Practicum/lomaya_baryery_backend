@@ -188,7 +188,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
-        except exceptions.ReportAlreadyReviewedException:
+        except exceptions.ReportAlreadyReviewedError:
             text = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
         except exceptions.ApplicationError as e:
             text = e.detail
