@@ -124,7 +124,7 @@ class UserService:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
 
-    async def check_user_has_right_change_data(self, user_id: User) -> None:
+    async def check_user_has_right_change_data(self, user_id: UUID) -> None:
         available_shift = await self.__shift_service.get_open_for_registration_shift_id()
         current_request = await self.__request_repository.get_by_user_and_shift(user_id, available_shift)
         if current_request.status == Request.Status.PENDING.value:
