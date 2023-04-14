@@ -4,7 +4,7 @@ import logging
 from datetime import date, datetime
 
 from telegram import ReplyKeyboardMarkup
-from telegram.error import NetworkError, RetryAfter, TimedOut
+from telegram.error import NetworkError, RetryAfter, TelegramError, TimedOut
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
@@ -29,13 +29,12 @@ def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
                 try:
                     return await func(*args, **kwargs)
                 except (RetryAfter, TimedOut, NetworkError) as exc:
-                    current_error = exc
                     logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
                     retry_delay = start_sleep_time * 3**n
                     await asyncio.sleep(retry_delay)
                     continue
-            else:
-                return await error_handler(user, current_error)
+                except TelegramError as exc:
+                    return await error_handler(user, exc)
 
         return _inner
 
