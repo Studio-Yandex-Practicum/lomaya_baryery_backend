@@ -11,7 +11,7 @@ from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
     AdministratorBlockedException,
-    AdministratorCheckRightsError,
+    AdministratorInviteError,
     InvalidAuthenticationDataException,
     UnauthorizedException,
 )
@@ -70,7 +70,7 @@ class AuthenticationService:
             administrator=administrator,
         )
 
-    async def get_current_active_administrator(self, token: str) -> Administrator:
+    async def get_current_active_administrator(self, token: str, is_admin: bool = False) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
@@ -82,6 +82,8 @@ class AuthenticationService:
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
+        if is_admin and administrator is not Administrator.Role.ADMINISTRATOR:
+            raise AdministratorInviteError()
         return administrator
 
     async def refresh(self, token: str) -> AdministratorAndTokensDTO:
@@ -92,9 +94,3 @@ class AuthenticationService:
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
             administrator=administrator,
         )
-
-    async def check_administrator_have_rights(self, token: str) -> None:
-        """Проверяет права доступа администратора."""
-        administrator = await self.get_current_active_administrator(token.credentials)
-        if administrator is not Administrator.Role.ADMINISTRATOR:
-            raise AdministratorCheckRightsError()
