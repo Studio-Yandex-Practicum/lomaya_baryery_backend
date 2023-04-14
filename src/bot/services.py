@@ -24,7 +24,7 @@ def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
         async def _inner(*args, **kwargs):
             user = kwargs['user'] if 'user' in kwargs else args[1]
             if user.telegram_blocked:
-                return
+                return None
             for n in range(max_attempt_number):
                 try:
                     return await func(*args, **kwargs)
@@ -35,7 +35,7 @@ def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
                     await asyncio.sleep(retry_delay)
                     continue
             else:
-                await error_handler(user, current_error)
+                return await error_handler(user, current_error)
 
         return _inner
 
