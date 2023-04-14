@@ -20,12 +20,6 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-class UserWithStatusResponse(UserResponse):
-    status: User.Status
-    shifts_count: int
-    is_in_active_shift: bool
-
-
 class UserInfoResponse(BaseModel):
     """Схема для отображения краткой информации о пользователе."""
 
@@ -33,11 +27,26 @@ class UserInfoResponse(BaseModel):
     surname: str
 
 
+class UserWithStatusResponse(UserResponse):
+    """Схема для отображения расширенной информации о пользователе.
+
+    Дополнительная информация включает в себя:
+    - cтатус пользователя,
+    - количество пройденных смен,
+    - флаг участия в активной смене.
+    """
+
+    status: User.Status
+    shifts_count: int
+    is_in_active_shift: bool
+
+
 class UsersShiftDetailResponse(BaseModel):
     """Схема для отображения информации о смене пользователя.
 
     Дополнительно отображается информации о количестве: заработанных за смену
-    "ломбарьерчиков", одобренных, отмененных и пропущенных заданиях.
+    "ломбарьерчиков", одобренных, отмененных и пропущенных заданиях,
+    был ли участник исключен из смены.
     """
 
     id: UUID
@@ -48,6 +57,7 @@ class UsersShiftDetailResponse(BaseModel):
     total_approved: int
     total_declined: int
     total_skipped: int
+    is_excluded: bool
 
     class Config:
         orm_mode = True

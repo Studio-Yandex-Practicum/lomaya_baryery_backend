@@ -6,7 +6,6 @@ from sqlalchemy import asc, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
-from src.api.response_models.user import UserWithStatusResponse
 from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Request, Shift, User
@@ -57,7 +56,16 @@ class UserRepository(AbstractRepository):
 
     async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
         user_exists = await self._session.execute(
-            select(select(User).where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id)).exists())
+            select(
+                select(User)
+                .where(
+                    or_(
+                        User.phone_number == phone_number,
+                        User.telegram_id == telegram_id,
+                    )
+                )
+                .exists()
+            )
         )
         return user_exists.scalar()
 
@@ -66,7 +74,7 @@ class UserRepository(AbstractRepository):
         status: Optional[User.Status] = None,
         field_sort: Optional[UserFieldSortRequest] = None,
         direction_sort: Optional[UserDescAscSortRequest] = None,
-    ) -> list[UserWithStatusResponse]:
+    ) -> list[User]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
             select(
@@ -78,7 +86,13 @@ class UserRepository(AbstractRepository):
                 User.phone_number,
                 User.status,
                 func.count(Member.shift).label('shifts_count'),
-                case(((func.count(Shift.status == 'started') != 0), True), else_=False).label("is_in_active_shift"),
+                case(
+                    (
+                        ((func.count(Shift.status).filter(Shift.status == Shift.Status.STARTED)) == 1),
+                        True,
+                    ),
+                    else_=False,
+                ).label("is_in_active_shift"),
             )
             .join(User.members, isouter=True)
             .join(Member.shift, isouter=True)
@@ -88,7 +102,7 @@ class UserRepository(AbstractRepository):
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
-        return users.scalars().all()
+        return users.all()
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
