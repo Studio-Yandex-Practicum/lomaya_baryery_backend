@@ -108,7 +108,7 @@ class TaskCBV:
         response_model_exclude_none=True,
         status_code=HTTPStatus.OK,
         summary="Архивировать/разархивировать задание",
-        response_description="Задание архивированно/разархивированно",
+        response_description="Информация о задании",
         responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def change_status(
