@@ -15,8 +15,9 @@ from src.excel_generator.task_builder import BaseAnalyticReportSettings
 
 class AnalyticReportBuilder(abc.ABC):
     """Интерфейс строителя."""
-    def __add_row(self, analytic_task_report: BaseAnalyticReportSettings,
-                  data: tuple[str | int], worksheet: Worksheet) -> None:
+    def __add_row(self, worksheet: Worksheet,
+                  analytic_task_report: BaseAnalyticReportSettings,
+                  data: tuple[str | int], ) -> None:
         analytic_task_report.row_count += 1
         for index, value in enumerate(data, start=1):
             worksheet.cell(row=analytic_task_report.row_count, column=index, value=value)
@@ -28,22 +29,22 @@ class AnalyticReportBuilder(abc.ABC):
         stream.seek(0)
         return stream
 
-    async def get_report_response(self, workbook: Workbook) -> StreamingResponse:
+    async def _get_report_response(self, workbook: Workbook) -> StreamingResponse:
         """Создание ответа."""
         stream = await self.__save_report(workbook)
         return stream
 
-    def create_workbook(self) -> Workbook:
+    def _create_workbook(self) -> Workbook:
         """Генерация excel файла."""
         workbook = Workbook()
         workbook.remove_sheet(workbook.active)
         return workbook
 
-    def create_sheet(self, workbook: Workbook, sheet_name: str) -> Workbook:
+    def _create_sheet(self, workbook: Workbook, sheet_name: str) -> Workbook:
         """Создаёт лист внутри отчёта."""
         return workbook.create_sheet(sheet_name)
 
-    def add_header(self, analytic_task_report: BaseAnalyticReportSettings, worksheet: Worksheet) -> None:
+    def _add_header(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
         """Заполняет первые строки в листе."""
         for data in analytic_task_report.header_data:
             self.__add_row(
@@ -51,9 +52,11 @@ class AnalyticReportBuilder(abc.ABC):
                 data=data,
                 worksheet=worksheet)
 
-    def add_data(self, data: tuple[TasksAnalyticReportDto],
-                 analytic_task_report: BaseAnalyticReportSettings,
-                 worksheet: Worksheet) -> None:
+    def _add_data(self,
+                  worksheet: Worksheet,
+                  data: tuple[TasksAnalyticReportDto],
+                  analytic_task_report: BaseAnalyticReportSettings,
+                  ) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
             self.__add_row(
@@ -61,13 +64,13 @@ class AnalyticReportBuilder(abc.ABC):
                 analytic_task_report=analytic_task_report,
                 worksheet=worksheet)
 
-    def add_footer(self, analytic_task_report: BaseAnalyticReportSettings, worksheet: Worksheet) -> None:
+    def _add_footer(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
         """Заполняет последнюю строку в листе."""
         self.__add_row(analytic_task_report=analytic_task_report,
                        data=analytic_task_report.footer_data,
                        worksheet=worksheet)
 
-    def apply_styles(self, worksheet: Worksheet):
+    def _apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""
         # задаём стиль для хэдера
         rows = list(worksheet.iter_rows())
@@ -91,6 +94,24 @@ class AnalyticReportBuilder(abc.ABC):
             for cell in row:
                 cell.border = self.Styles.BORDER.value
         worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
+
+    async def generate_report(
+        self,
+        data: tuple[TasksAnalyticReportDto],
+        workbook: Workbook,
+        analytic_task_report_full: BaseAnalyticReportSettings
+    ) -> Workbook:
+        """Генерация листа с данными."""
+        worksheet = self._create_sheet(
+            workbook,
+            sheet_name=analytic_task_report_full.sheet_name
+        )
+        analytic_task_report_full.row_count = 0
+        self._add_header(analytic_task_report=analytic_task_report_full, worksheet=worksheet)
+        self._add_data(worksheet=worksheet, data=data, analytic_task_report=analytic_task_report_full)
+        self._add_footer(analytic_task_report=analytic_task_report_full, worksheet=worksheet)
+        self._apply_styles(worksheet=worksheet)
+        return workbook
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)

@@ -1,5 +1,3 @@
-from typing import Optional
-
 
 class classproperty(object):
     def __init__(self, fget):
@@ -13,8 +11,8 @@ class BaseAnalyticReportSettings:
     def __init__(self,
                  sheet_name: str,
                  header_data: tuple[tuple[str]],
-                 footer_data: Optional[tuple[str]] = None,
-                 row_count: Optional[int] = None):
+                 footer_data: tuple[str],
+                 row_count: int):
         self.sheet_name = sheet_name
         self.header_data = header_data
         self.footer_data = footer_data
@@ -22,10 +20,10 @@ class BaseAnalyticReportSettings:
 
 
 class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
-    """Строитель отчёта для заданий"""
+    """Конфигурация отчёта для заданий"""
 
     sheet_name: str = "Задачи"
-    header_data: tuple[tuple[str]] = (
+    header_data: tuple[str] = (
         ("Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во не предоставленных отчётов"),
     )
     row_count: int = 0
