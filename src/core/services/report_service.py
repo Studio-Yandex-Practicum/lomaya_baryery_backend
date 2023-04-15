@@ -47,9 +47,6 @@ class ReportService:
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
 
-    async def get_report_with_report_url(self, id: UUID) -> ReportResponse:
-        return await self.__report_repository.get_report_with_report_url(id)
-
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
         if report:

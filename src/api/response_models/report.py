@@ -28,7 +28,7 @@ class ReportResponse(BaseModel):
     task_date: date
     status: Report.Status
     report_url: Optional[str]
-    uploaded_at: datetime
+    uploaded_at: Optional[datetime]
     number_attempt: int
 
     class Config:
