@@ -82,7 +82,7 @@ class AuthenticationService:
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise AdministratorBlockedException()
-        if is_admin and administrator is not Administrator.Role.ADMINISTRATOR:
+        if is_admin and administrator.role is not Administrator.Role.ADMINISTRATOR:
             raise AdministratorInviteError()
         return administrator
 

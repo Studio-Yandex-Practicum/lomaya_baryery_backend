@@ -305,4 +305,4 @@ class AdministratorSelfBlockError(ApplicationException):
 class AdministratorInviteError(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "У Вас нет прав на отправку приглашений другим администраторам."
+        self.detail = "У Вас нет прав для работы с приглашениями."
