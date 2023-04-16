@@ -20,7 +20,7 @@ from src.core.exceptions import (
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
-from src.core.utils import get_lombaryers_for_quantity
+from src.core.utils import get_current_task_date, get_lombaryers_for_quantity
 
 
 class ReportService:
@@ -185,15 +185,16 @@ class ReportService:
     async def create_not_participated_reports(self, member_id: UUID, shift: Shift) -> None:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
         tasks = shift.tasks
-        today = date.today()
+        day_of_registration = get_current_task_date()
+        shift_index_tasks_starting_with_one = 1
         reports = [
             Report(
                 shift_id=shift.id,
-                task_id=tasks[str(day)],
+                task_id=tasks[str(day + shift_index_tasks_starting_with_one)],
                 status=Report.Status.NOT_PARTICIPATE,
-                task_date=today - timedelta(days=day),
+                task_date=day_of_registration - timedelta(days=day),
                 member_id=member_id,
             )
-            for day in range((today - shift.started_at).days, 0, -1)
+            for day in range((day_of_registration - shift.started_at).days, -1, -1)
         ]
         await self.__report_repository.create_all(reports)
