@@ -16,7 +16,6 @@ from telegram.ext.filters import PHOTO, TEXT, Regex, StatusUpdate
 
 from src.bot.handlers import (
     button_handler,
-    get_answer_web_app,
     get_web_app_query_data,
     incorrect_report_type_handler,
     photo_handler,
@@ -32,7 +31,7 @@ from src.core.settings import settings
 
 HANDLED_MESSAGE_TYPES = filters.PHOTO | filters.TEXT | filters.StatusUpdate.WEB_APP_DATA
 
-RE_PATTERN: str = r"Ошибка при заполнении данных|Процесс регистрации занимает некоторое время - вам придет уведомление"
+RE_PATTERN: str = "Данные успешно отправлены боту"
 
 
 def create_bot() -> Application:
@@ -52,7 +51,7 @@ def create_bot() -> Application:
             get_web_app_query_data,
         )
     )
-    bot_instance.add_handler(MessageHandler(Regex(RE_PATTERN), get_answer_web_app))
+    bot_instance.add_handler(MessageHandler(Regex(RE_PATTERN), web_app_data))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))

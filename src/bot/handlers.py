@@ -143,7 +143,10 @@ async def update_user_data(
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
-    user_data = json.loads(update.effective_message.web_app_data.data)
+    if not update.effective_message.web_app_data:
+        user_data = context.bot_data[update.effective_user.id]
+    else:
+        user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
     except ValidationError as e:
@@ -157,7 +160,7 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
-    reply_markup, validation_error = None, False
+    reply_markup, text, validation_error = None, "Что-то пошло не так", False
     try:
         await registration_service.register_user(user_scheme)
     except exceptions.NotValidValueError as e:
@@ -193,48 +196,19 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
 
 
 async def get_web_app_query_data(update: dict, context: CallbackContext) -> None:
-    """Получение данных из формы регистрации, запущенной с inline-, menu- кнопки.
-
-    Создание (обновление) объекта User и Request.
-    """
+    """Получение данных из формы регистрации, запущенной с inline-, menu- кнопки."""
     web_app_query_id = update.get("query_id")
-    user_telegram_id = update.get("user_id")
-    registration_data = update.get("data")
-    try:
-        user_scheme = UserCreateRequest(**registration_data)
-    except ValidationError as e:
-        e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
-        await context.bot.answer_web_app_query(
-            web_app_query_id=web_app_query_id,
-            result=InlineQueryResultArticle(
-                id=web_app_query_id,
-                title="Данные отправлены",
-                input_message_content=InputTextMessageContent(
-                    e,
-                ),
+    context.bot_data[update.get("user_id")] = update.get("data")
+    await context.bot.answer_web_app_query(
+        web_app_query_id=web_app_query_id,
+        result=InlineQueryResultArticle(
+            id=web_app_query_id,
+            title="Данные отправлены",
+            input_message_content=InputTextMessageContent(
+                "Данные успешно отправлены боту",
             ),
-        )
-        return
-    user_scheme.telegram_id = user_telegram_id
-    session = get_session()
-    registration_service = await get_user_service_callback(session)
-    try:
-        await registration_service.register_user(user_scheme)
-    except (exceptions.NotValidValueError, exceptions.ApplicationError) as e:
-        text = e.detail
-    else:
-        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-    finally:
-        await context.bot.answer_web_app_query(
-            web_app_query_id=web_app_query_id,
-            result=InlineQueryResultArticle(
-                id=web_app_query_id,
-                title="Данные отправлены",
-                input_message_content=InputTextMessageContent(
-                    text,
-                ),
-            ),
-        )
+        ),
+    )
 
 
 async def get_answer_web_app(update: Update, context: CallbackContext) -> None:
