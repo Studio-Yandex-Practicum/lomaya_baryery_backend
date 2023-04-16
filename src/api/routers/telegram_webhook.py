@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import StreamingResponse
 from telegram import Update
 
+from src.core.exceptions import UnauthorizedException
 from src.core.settings import settings
 
 router = APIRouter(prefix="/telegram", tags=["Telegram template forms and webhook"])
@@ -52,6 +53,9 @@ if settings.BOT_WEBHOOK_MODE:
     )
     async def get_telegram_bot_updates(request: Request) -> None:
         """Получение обновлений telegram в режиме работы бота webhook."""
+        secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
+        if secret_token != settings.SECRET_KEY:
+            raise UnauthorizedException
         bot_instance = request.app.state.bot_instance
         request_data = await request.json()
         if not request_data.get("query_id"):

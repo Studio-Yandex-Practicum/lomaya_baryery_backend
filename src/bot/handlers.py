@@ -20,7 +20,7 @@ from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
-from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
+from src.bot.ui import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -302,19 +302,15 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
 
-    text = "Задание пропущено, следующее задание придет в 8.00 мск."
-
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
-
         except exceptions.ReportAlreadyReviewedException:
-            await update.message.reply_text(
-                "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
-            )
+            text = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
         except exceptions.ApplicationError as e:
             text = e.detail
-
+        else:
+            text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
         await update.message.reply_text(text)
 
 

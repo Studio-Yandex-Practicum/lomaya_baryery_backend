@@ -15,10 +15,11 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    select,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
 from src.core import settings
@@ -73,7 +74,7 @@ class Shift(Base):
     tasks = Column(JSON, nullable=False)
     requests = relationship("Request", back_populates="shift")
     reports = relationship("Report", back_populates="shift")
-    members = relationship("Member", back_populates="shift")
+    members = relationship("Member", back_populates="shift", order_by="Member.member_user_name")
 
     def __repr__(self):
         return f"<Shift: {self.id}, status: {self.status}>"
@@ -128,7 +129,7 @@ class User(Base):
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
-    phone_number = Column(String(11), unique=True, nullable=False)
+    phone_number = Column(String(16), unique=True, nullable=False)
     telegram_id = Column(BigInteger, unique=True, nullable=False)
     status = Column(
         Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),
@@ -191,63 +192,13 @@ class Member(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
-    reports = relationship("Report", back_populates="member")
+    reports = relationship("Report", back_populates="member", order_by='Report.task_date')
+    member_user_name = deferred((select(User.name).where(User.id == user_id)).scalar_subquery())
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
 
     def __repr__(self):
         return f"<Member: {self.id}, status: {self.status}>"
-
-
-class Report(Base):
-    """Ежедневные задания."""
-
-    class Status(str, enum.Enum):
-        """Статус задачи у пользователя."""
-
-        REVIEWING = "reviewing"
-        APPROVED = "approved"
-        DECLINED = "declined"
-        WAITING = "waiting"
-        SKIPPED = "skipped"
-        NOT_PARTICIPATE = "not_participate"
-
-    __tablename__ = "reports"
-
-    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
-    shift = relationship("Shift", back_populates="reports")
-    task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
-    task = relationship("Task", back_populates="reports")
-    member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
-    member = relationship("Member", back_populates="reports")
-    task_date = Column(DATE, nullable=False)
-    status = Column(
-        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
-        nullable=False,
-    )
-    report_url = Column(String(length=4096), unique=True, nullable=True)
-    uploaded_at = Column(TIMESTAMP, nullable=True)
-    number_attempt = Column(Integer, nullable=False, server_default='0')
-
-    __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
-
-    def __repr__(self):
-        return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
-
-    def send_report(self, photo_url: str):
-        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
-            raise ExceededAttemptsReportError
-        if not photo_url:
-            raise EmptyReportError()
-        if self.status not in (
-            Report.Status.WAITING.value,
-            Report.Status.DECLINED.value,
-        ):
-            raise CannotAcceptReportError()
-        self.status = Report.Status.REVIEWING.value
-        self.report_url = photo_url
-        self.uploaded_at = datetime.now()
-        self.number_attempt += 1
 
 
 class Administrator(Base):
@@ -278,9 +229,70 @@ class Administrator(Base):
     status = Column(
         Enum(Status, name="administrator_status", values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
+    reports = relationship("Report", back_populates="reviewer")
+    is_superadmin = Column(Boolean, default=False, nullable=False)
 
     def __repr__(self) -> str:
         return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+
+
+class Report(Base):
+    """Ежедневные задания."""
+
+    class Status(str, enum.Enum):
+        """Статус задачи у пользователя."""
+
+        REVIEWING = "reviewing"
+        APPROVED = "approved"
+        DECLINED = "declined"
+        WAITING = "waiting"
+        SKIPPED = "skipped"
+        NOT_PARTICIPATE = "not_participate"
+
+    __tablename__ = "reports"
+
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift = relationship("Shift", back_populates="reports")
+    task_id = Column(UUID(as_uuid=True), ForeignKey(Task.id), nullable=False)
+    task = relationship("Task", back_populates="reports")
+    member_id = Column(UUID(as_uuid=True), ForeignKey(Member.id), nullable=False)
+    member = relationship("Member", back_populates="reports")
+    updated_by = Column(UUID(as_uuid=True), ForeignKey(Administrator.id), nullable=True)
+    reviewer = relationship("Administrator", back_populates="reports")
+    reviewed_at = Column(TIMESTAMP, nullable=True)
+    task_date = Column(DATE, nullable=False)
+    status = Column(
+        Enum(Status, name="report_status", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+    )
+    report_url = Column(String(length=4096), unique=True, nullable=True)
+    uploaded_at = Column(TIMESTAMP, nullable=True)
+    number_attempt = Column(Integer, nullable=False, server_default='0')
+
+    __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
+
+    def __repr__(self):
+        return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+
+    def send_report(self, photo_url: str):
+        if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
+            raise ExceededAttemptsReportError
+        if not photo_url:
+            raise EmptyReportError()
+        if self.status not in (
+            Report.Status.WAITING.value,
+            Report.Status.DECLINED.value,
+        ):
+            raise CannotAcceptReportError()
+        self.status = Report.Status.REVIEWING.value
+        self.report_url = photo_url
+        self.uploaded_at = datetime.now()
+        self.number_attempt += 1
+
+    def set_reviewer(self, administrator_id: UUID):
+        """Установить администратора, который проверил отчет и дату проверки."""
+        self.updated_by = administrator_id
+        self.reviewed_at = datetime.now()
 
 
 class AdministratorInvitation(Base):

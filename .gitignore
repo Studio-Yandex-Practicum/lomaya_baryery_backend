@@ -18,7 +18,7 @@ __pypackages__/
 .venv
 .env
 .log
-
+logs/
 # Vscode project settings
 .vscode
 
@@ -26,3 +26,6 @@ __pypackages__/
 data/
 bot_persistence_file
 fill_db.log
+
+# Frontend build
+frontend/

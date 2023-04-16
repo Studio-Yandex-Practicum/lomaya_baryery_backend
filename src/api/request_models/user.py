@@ -2,14 +2,13 @@ import enum
 import re
 from datetime import date, datetime
 from typing import Optional
-from uuid import UUID
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
 from src.api.request_models.validators import name_surname_validator
-from src.core.db.models import Request, User
+from src.core.db.models import User
 
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} может быть использована только кириллица и \"-\"."
@@ -37,12 +36,12 @@ class UserCreateRequest(BaseModel):
     def validate_phone_number(cls, value: str):
         invalid_phone_number = 'Некорректный номер телефона'
         try:
-            parsed_number = phonenumbers.parse(value.replace('+', ''), "RU")
+            parsed_number = phonenumbers.parse(value, "RU")
         except NumberParseException:
             raise ValueError(invalid_phone_number)
         if not phonenumbers.is_valid_number(parsed_number):
             raise ValueError(invalid_phone_number)
-        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)[1:]
+        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
 
     @validator("date_of_birth", pre=True)
     def validate_date_of_birth(cls, value: str):
@@ -77,12 +76,6 @@ class UserCreateRequest(BaseModel):
         )
 
 
-class RequestCreateRequest(BaseModel):
-    user_id: UUID
-    shift_id: Optional[UUID] = None
-    status: Request.Status
-
-
 class UserFieldSortRequest(str, enum.Enum):
     """Поля модели User для сортировки по полю."""
 
@@ -114,7 +107,7 @@ class UserWebhookTelegram(BaseModel):
     surname: StrictStr
     date_of_birth: date
     city: StrictStr
-    phone_number: int
+    phone_number: StrictStr
 
     @validator("date_of_birth")
     def fix_date_of_birth(cls, value: date) -> str:

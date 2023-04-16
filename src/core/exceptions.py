@@ -4,6 +4,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
+from src.core.settings import settings
 from starlette.exceptions import HTTPException
 
 if TYPE_CHECKING:
@@ -80,7 +81,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        "Следующее задание придет в 8.00 мск."
+        f"Следующее задание придет в {settings.formatted_task_time} часов утра."
     )
 
 
@@ -93,7 +94,7 @@ class EmptyReportError(Exception):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = "Задание было пропущено, следующее задание придет в 8.00 мск."
+    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):
@@ -286,3 +287,15 @@ class AdministratorSelfChangeRoleError(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Вы не можете изменить роль самому себе."
+
+
+class AdministratorBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "У Вас нет прав на блокировку других администраторов."
+
+
+class AdministratorSelfBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Вы не можете заблокировать себя."

@@ -20,13 +20,6 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-class UserInfoResponse(BaseModel):
-    """Схема для отображения краткой информации о пользователе."""
-
-    name: str
-    surname: str
-
-
 class UserWithStatusResponse(UserResponse):
     status: User.Status
 
@@ -35,7 +28,8 @@ class UsersShiftDetailResponse(BaseModel):
     """Схема для отображения информации о смене пользователя.
 
     Дополнительно отображается информации о количестве: заработанных за смену
-    "ломбарьерчиков", одобренных, отмененных и пропущенных заданиях.
+    "ломбарьерчиков", одобренных, отмененных и пропущенных заданиях,
+    был ли участник исключен из смены.
     """
 
     id: UUID
@@ -46,6 +40,7 @@ class UsersShiftDetailResponse(BaseModel):
     total_approved: int
     total_declined: int
     total_skipped: int
+    is_excluded: bool
 
     class Config:
         orm_mode = True

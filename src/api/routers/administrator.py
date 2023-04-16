@@ -8,6 +8,7 @@ from fastapi_restful.cbv import cbv
 
 from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
+    AdministratorPasswordResetRequest,
     AdministratorRegistrationRequest,
 )
 from src.api.response_models.administrator import (
@@ -145,3 +146,34 @@ class AdministratorCBV:
         """Изменить роль администратора."""
         current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)
+
+    @router.patch(
+        "/reset_password",
+        response_model=AdministratorResponse,
+        status_code=HTTPStatus.OK,
+        summary="Сброс пароля администратора.",
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
+    async def administrator_reset_password(
+        self,
+        payload: AdministratorPasswordResetRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.restore_administrator_password(payload.email)
+
+    @router.patch(
+        "/{administrator_id}/block",
+        response_model=AdministratorResponse,
+        status_code=HTTPStatus.OK,
+        summary="Заблокировать администратора.",
+        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
+    async def administrator_blocking(
+        self,
+        administrator_id: UUID,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        """Заблокировать администратора."""
+        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.block_administrator(current_admin, administrator_id)

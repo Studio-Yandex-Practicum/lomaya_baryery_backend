@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from fastapi import Request as FastAPIRequest
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.api.request_models.shift import (
@@ -20,6 +21,7 @@ from src.api.response_models.shift import (
     ShiftWithTotalUsersResponse,
 )
 from src.core.db.models import Member, Request, Shift
+from src.core.services.authentication_service import AuthenticationService
 from src.core.services.shift_service import ShiftService
 
 router = APIRouter(prefix="/shifts", tags=["Shift"])
@@ -28,6 +30,8 @@ router = APIRouter(prefix="/shifts", tags=["Shift"])
 @cbv(router)
 class ShiftCBV:
     shift_service: ShiftService = Depends()
+    authentication_service: AuthenticationService = Depends()
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 
     @router.post(
         "/",
@@ -47,6 +51,7 @@ class ShiftCBV:
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.create_new_shift(shift)
 
     @router.get(
@@ -71,6 +76,7 @@ class ShiftCBV:
         - **started_at**: дата начала смены
         - **finished_at**: дата окончания смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.get_shift(shift_id)
 
     @router.patch(
@@ -95,6 +101,7 @@ class ShiftCBV:
         - **title**: название смены
         - **final_message**: шаблон сообщения о завершении смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.update_shift(shift_id, update_shift_data)
 
     @router.patch(
@@ -114,6 +121,7 @@ class ShiftCBV:
 
         - **shift_id**: уникальный идентификатор смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.start_shift(shift_id)
 
     @router.get(
@@ -134,6 +142,7 @@ class ShiftCBV:
         - **shift**: Информация о смене
         - **members**: Список всех одобренных пользователей смены.
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
     @router.get(
@@ -164,6 +173,7 @@ class ShiftCBV:
         - **request_id**: Номер заявки
         - **status**: Статус заявки
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.list_all_requests(_id=shift_id, status=status)
 
     @router.get(
@@ -189,6 +199,7 @@ class ShiftCBV:
         - **finished_at**: дата окончания смены
         - **total_users**: количество участников смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.list_all_shifts(status, sort)
 
     @router.patch(
@@ -205,6 +216,7 @@ class ShiftCBV:
 
         - **shift_id**: уникальный идентификатор смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.finish_shift(request.app.state.bot_instance, shift_id)
 
     @router.patch(
@@ -224,4 +236,5 @@ class ShiftCBV:
         - **shift_id**: уникальный идентификатор смены
         - **final_message**: сообщение об отмене смены
         """
+        await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.shift_service.cancel_shift(request.app.state.bot_instance, shift_id, cancel_shift_data)

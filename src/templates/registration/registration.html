@@ -145,7 +145,7 @@
         <span class="helper-text city"></span>
       </div>
       <div class="input-field col s12">
-        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="11" maximumlength="11" required>
+        <input id="phone_number" name="phone_number" type="text" class="validate" minlength="16" maximumlength="16" required>
         <label for="phone_number">Телефон</label>
         <span class="helper-text phone_number"></span>
       </div>
@@ -257,10 +257,10 @@
       },
       phone_number: {
         required: "Пожалуйста, укажите номер телефона",
-        min: "Введите номер телефона без разделителей (включая 8)",
+        min: "Введите номер телефона",
         max: "Номер телефона не должен содержать более 11 цифр",
         phonePattern: `Допускаются номера только мобильных
-          операторов РФ - \"89.........\" или \"79.........\"`,
+          операторов РФ: \"+7\u00A03.........\" или \"+7\u00A04.........\" или \"+7\u00A09.........\"`,
       },
     };
 
@@ -289,12 +289,19 @@
       const maximumlength = element.getAttribute("maximumlength");
       const capsPattern = /[А-ЯЁ]{2,}/g;
       const dashPattern = /( -)|(- )|(^-)|(-$)/g;
-      const phonePattern = /^[7|8][9][\d]{9}$/g;
+      const phonePattern = /^\+7 [3489]\d{2} \d{3}-\d{2}-\d{2}$/;
       const nameSurnamePattern = /^[А-ЯЁ][а-яё]*([-][А-ЯЁ][а-яё]+)*$/g;
       const cityPattern = /^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$/g;
 
       if (pattern) {
         newValue = newValue.trimStart().replace(pattern, "");
+      }
+
+      // convert phone number to international format: +7 DEF XXX-XX-XX
+      if (newValue && element.name === "phone_number") {
+        newValue = newValue
+          .replace(/^(?:7|8)?(\d{0,3})?(\d{0,3})(\d{0,2})(\d*)$/, "+7 $1 $2-$3-$4")
+          .replace(/\D(?!\d)/g, ""); // remove trailing hyphens (non-digit not followed by a digit)
       }
 
       if (isCapitalize && newValue) {

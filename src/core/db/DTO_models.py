@@ -23,6 +23,8 @@ class FullReportDto:
     report_status: Report.Status
     report_created_at: date
     report_uploaded_at: datetime | None
+    updated_by: UUID | None
+    report_reviewed_at: datetime | None
     user_name: str
     user_surname: str
     task_id: UUID
@@ -69,3 +71,4 @@ class ShiftByUserWithReportSummaryDto:
     total_approved: int
     total_declined: int
     total_skipped: int
+    is_excluded: bool
