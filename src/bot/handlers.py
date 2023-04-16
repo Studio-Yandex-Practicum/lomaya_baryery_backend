@@ -5,7 +5,12 @@ from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
     KeyboardButton,
+    MenuButtonWebApp,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
@@ -76,6 +81,23 @@ async def register_user(
             )
         ),
     )
+    await context.bot.set_chat_menu_button(
+        chat_id=update.message.chat.id,
+        menu_button=MenuButtonWebApp(
+            text="Форма регистрации",
+            web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+        ),
+    )
+    inline_message = await update.effective_message.reply_text(
+        "\N{white down pointing backhand index}" * 4,
+        reply_markup=InlineKeyboardMarkup.from_button(
+            InlineKeyboardButton(
+                text=text,
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+            )
+        ),
+    )
+    context.chat_data["inline_message"] = inline_message
 
 
 async def update_user_data(
@@ -90,16 +112,33 @@ async def update_user_data(
         text = "Подать заявку на участие в смене"
         user = context.user_data.get("user")
         web_hook = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_hook.dict())
+        query = urllib.parse.urlencode({"update": "true"} | web_hook.dict())
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
                 text=text,
-                web_app=WebAppInfo(url=f"{settings.registration_template_url}?update=true&{query}"),
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
+    await context.bot.set_chat_menu_button(
+        chat_id=update.message.chat.id,
+        menu_button=MenuButtonWebApp(
+            text="Форма регистрации",
+            web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+        ),
+    )
+    inline_message = await update.effective_message.reply_text(
+        "\N{white down pointing backhand index}" * 4,
+        reply_markup=InlineKeyboardMarkup.from_button(
+            InlineKeyboardButton(
+                text=text,
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+            )
+        ),
+    )
+    context.chat_data["inline_message"] = inline_message
 
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
@@ -134,6 +173,14 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
                 "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
             )
         reply_markup = ReplyKeyboardRemove()
+        await context.bot.set_chat_menu_button(
+            chat_id=update.message.chat.id,
+            menu_button=None,
+        )
+        await context.bot.edit_message_reply_markup(
+            chat_id=update.effective_chat.id,
+            message_id=context.chat_data["inline_message"].message_id,
+        )
     finally:
         await update.message.reply_text(
             text=text,
@@ -143,6 +190,76 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
             await update_user_data(update, context)
         elif validation_error:
             await register_user(update, context)
+
+
+async def get_web_app_query_data(update: dict, context: CallbackContext) -> None:
+    """Получение данных из формы регистрации, запущенной с inline-, menu- кнопки.
+
+    Создание (обновление) объекта User и Request.
+    """
+    web_app_query_id = update.get("query_id")
+    user_telegram_id = update.get("user_id")
+    registration_data = update.get("data")
+    try:
+        user_scheme = UserCreateRequest(**registration_data)
+    except ValidationError as e:
+        e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
+        await context.bot.answer_web_app_query(
+            web_app_query_id=web_app_query_id,
+            result=InlineQueryResultArticle(
+                id=web_app_query_id,
+                title="Данные отправлены",
+                input_message_content=InputTextMessageContent(
+                    e,
+                ),
+            ),
+        )
+        return
+    user_scheme.telegram_id = user_telegram_id
+    session = get_session()
+    registration_service = await get_user_service_callback(session)
+    try:
+        await registration_service.register_user(user_scheme)
+    except (exceptions.NotValidValueError, exceptions.ApplicationError) as e:
+        text = e.detail
+    else:
+        text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+    finally:
+        await context.bot.answer_web_app_query(
+            web_app_query_id=web_app_query_id,
+            result=InlineQueryResultArticle(
+                id=web_app_query_id,
+                title="Данные отправлены",
+                input_message_content=InputTextMessageContent(
+                    text,
+                ),
+            ),
+        )
+
+
+async def get_answer_web_app(update: Update, context: CallbackContext) -> None:
+    """Обработка ответа бота после отправки данных пользователя с ипользованием inline-, menu- кнопки."""
+    if "Ошибка при заполнении данных" in update.effective_message.text:
+        if context.user_data.get("user"):
+            await update_user_data(update, context)
+        else:
+            await register_user(update, context)
+        return
+    if "Процесс регистрации занимает некоторое время - вам придет уведомление" in update.effective_message.text:
+
+        await context.bot.set_chat_menu_button(
+            chat_id=update.message.chat.id,
+            menu_button=None,
+        )
+        await context.bot.edit_message_reply_markup(
+            chat_id=update.effective_chat.id,
+            message_id=context.chat_data["inline_message"].message_id,
+        )
+        crutch = await update.message.reply_text(
+            text=".",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await crutch.delete()
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:

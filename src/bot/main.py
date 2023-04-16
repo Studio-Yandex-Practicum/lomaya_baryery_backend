@@ -9,12 +9,15 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     PicklePersistence,
+    TypeHandler,
     filters,
 )
-from telegram.ext.filters import PHOTO, TEXT, StatusUpdate
+from telegram.ext.filters import PHOTO, TEXT, Regex, StatusUpdate
 
 from src.bot.handlers import (
     button_handler,
+    get_answer_web_app,
+    get_web_app_query_data,
     incorrect_report_type_handler,
     photo_handler,
     start,
@@ -30,6 +33,8 @@ from src.core.settings import settings
 
 HANDLED_MESSAGE_TYPES = filters.PHOTO | filters.TEXT | filters.StatusUpdate.WEB_APP_DATA
 
+RE_PATTERN: str = r"Ошибка при заполнении данных|Процесс регистрации занимает некоторое время - вам придет уведомление"
+
 
 def create_bot() -> Application:
     """Создать бота."""
@@ -42,6 +47,13 @@ def create_bot() -> Application:
         .persistence(persistence=bot_persistence)
         .build()
     )
+    bot_instance.add_handler(
+        TypeHandler(
+            dict,
+            get_web_app_query_data,
+        )
+    )
+    bot_instance.add_handler(MessageHandler(Regex(RE_PATTERN), get_answer_web_app))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))
