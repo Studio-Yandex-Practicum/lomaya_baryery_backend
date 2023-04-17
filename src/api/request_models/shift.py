@@ -30,6 +30,12 @@ class ShiftCreateRequest(RequestBase):
             raise exceptions.InvalidDateFormatError
         return value
 
+    @validator("title", pre=True)
+    def validate_title(cls, value):
+        if value.isspace():
+            raise exceptions.EmptyTitleException()
+        return value
+
 
 class ShiftUpdateRequest(ShiftCreateRequest):
     final_message: str = Field(..., min_length=10, max_length=400)

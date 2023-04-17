@@ -6,6 +6,7 @@ from uuid import UUID
 
 from src.core.settings import settings
 
+
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
     from src.core.db.models import Request, Shift
@@ -232,6 +233,18 @@ class InvalidDateFormatError(BadRequestError):
 
 class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
+
+
+class EmptyTitleException(BadRequestError):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Нельзя создавать/изменять название смены из пробелов."
+
+
+class InvitationAlreadyDeactivated(BadRequestError):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Приглашение уже деактивировано"
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
