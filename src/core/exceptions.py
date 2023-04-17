@@ -185,7 +185,7 @@ class AdministratorBlockedError(BadRequestError):
     detail = "Пользователь заблокирован."
 
 
-class AdministratorNotFoundError(BadRequestError):
+class AdministratorNotFoundError(NotFoundError):
     """Пользователь не найден."""
 
     status_code = HTTPStatus.NOT_FOUND

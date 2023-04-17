@@ -82,7 +82,7 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartError(self)
+            raise exceptions.ShiftStartError(self)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
@@ -283,14 +283,14 @@ class Report(Base):
 
     def send_report(self, photo_url: str):
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
-            raise ExceededAttemptsReportError
+            raise exceptions.ExceededAttemptsReportError
         if not photo_url:
-            raise EmptyReportError()
+            raise exceptions.EmptyReportError
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
         ):
-            raise CannotAcceptReportError()
+            raise exceptions.CannotAcceptReportError
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
