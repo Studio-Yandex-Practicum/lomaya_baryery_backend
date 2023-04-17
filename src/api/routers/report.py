@@ -47,7 +47,7 @@ class ReportsCBV:
         - **photo_url**: url фото выполненной задачи
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
-        return await self.report_service.get_report_with_report_url(report_id)
+        return await self.report_service.get_report(report_id)
 
     @router.patch(
         "/{report_id}/approve",

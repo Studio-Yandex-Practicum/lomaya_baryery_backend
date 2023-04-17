@@ -16,6 +16,6 @@ class TaskRepository(AbstractRepository):
         super().__init__(session, Task)
 
     async def get_task_ids_list(self) -> list[UUID]:
-        """Список всех task_id."""
-        task_ids = await self._session.execute(select(Task.id))
+        """Список task_id неархивированных заданий."""
+        task_ids = await self._session.execute(select(Task.id).where(Task.is_archived.is_(False)))
         return task_ids.scalars().all()
