@@ -34,7 +34,7 @@ class ReportRepository(AbstractRepository):
         )
         report = report.scalars().first()
         if not report:
-            raise ObjectNotFoundError(Report.__name__, id)
+            raise ObjectNotFoundError(Report, id)
         return report
 
     async def get_all_tasks_id_under_review(self) -> Optional[list[UUID]]:
