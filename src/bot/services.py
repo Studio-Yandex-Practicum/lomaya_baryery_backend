@@ -23,7 +23,7 @@ def check_user_blocked(func):
     async def _func_wrapper(*args, **kwargs):
         user = kwargs['user'] if 'user' in kwargs else args[1]
         if user.telegram_blocked:
-            return None
+            return
         await func(*args, **kwargs)
 
     return _func_wrapper
