@@ -140,7 +140,7 @@ class ReportService:
         """
         shift_exists = await self.__shift_repository.check_shift_existence(shift_id)
         if not shift_exists:
-            raise ObjectNotFoundError(object_name=Shift.__name__, object_id=shift_id)
+            raise ObjectNotFoundError(Shift, shift_id)
         reports = await self.__report_repository.get_summaries_of_reports(shift_id, status)
         for report in reports:
             report.task_url = urljoin(settings.APPLICATION_URL, report.task_url)

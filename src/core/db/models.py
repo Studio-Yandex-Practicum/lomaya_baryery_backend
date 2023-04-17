@@ -82,7 +82,7 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartError(shift_name=self.title, shift_id=self.id)
+            raise ShiftStartError(self)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
@@ -99,7 +99,7 @@ class Shift(Base):
 
     async def cancel(self, final_message: str):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftCancelError(shift_name=self.title, shift_id=self.id)
+            raise ShiftCancelError(self)
         self.final_message = final_message
         self.status = Shift.Status.CANCELLED.value
         self.finished_at = datetime.now().date()

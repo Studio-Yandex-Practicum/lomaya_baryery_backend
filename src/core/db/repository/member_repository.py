@@ -33,7 +33,7 @@ class MemberRepository(AbstractRepository):
         )
         member = member.scalars().first()
         if not member:
-            raise ObjectNotFoundError(object_name=Member.__name__, object_id=member_id)
+            raise ObjectNotFoundError(Member, member_id)
         return member
 
     async def get_members_for_excluding(self, shift_id: UUID, task_amount: int) -> list[Member]:

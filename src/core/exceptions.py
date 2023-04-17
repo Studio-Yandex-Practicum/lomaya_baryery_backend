@@ -1,26 +1,20 @@
 from __future__ import annotations
 
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING
 from uuid import UUID
-
-from starlette.exceptions import HTTPException
 
 from src.core.settings import settings
 
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
+    from src.core.db.models import Request, Shift
 
 
-class ApplicationError(HTTPException):
+class ApplicationError(Exception):
     """Собственное исключение для бизнес-логики приложения."""
 
-    status_code: int = None
     detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
-    headers: Dict[str, Any] = None
-
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
 
@@ -32,34 +26,25 @@ class BadRequestError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.BAD_REQUEST
 
 
-class ForbiddenError(ApplicationError):
-    status_code: HTTPStatus = HTTPStatus.FORBIDDEN
-
-
 class UnauthorizedError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.UNAUTHORIZED
 
 
-# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс
 class NotValidValueError(ApplicationError):
     """Исключение для невалидных данных."""
 
-    def __init__(self, detail: str | None) -> None:
+    def __int__(self, detail: str) -> None:
         self.detail = detail
-        super().__init__()
 
 
-# TODO: в коде, для получения `object_name` используется: `self._model.__name__`, `Shift.__doc__`
-#       `Shift.__name__`, `Report.__name__` — **необходимо привести к единому формату**
-# TODO: Заменить `object_name` на сам объект, посмотреть, можно ли брать `object_id` из объекта
 class ObjectNotFoundError(NotFoundError):
-    def __init__(self, object_name: str, object_id: UUID):
-        self.detail = "Объект {} с id: {} не найден".format(object_name, object_id)
+    def __init__(self, model: DatabaseModel, object_id: UUID):
+        self.detail = "Объект '{}' с id '{}' не найден".format(model.__name__, object_id)
 
 
 class ObjectAlreadyExistsError(BadRequestError):
-    def __init__(self, obj: DatabaseModel):
-        self.detail = f"Объект {obj} уже существует"
+    def __init__(self, model: DatabaseModel):
+        self.detail = "Объект {} уже существует".format(model)
 
 
 class CurrentTaskNotFoundError(ApplicationError):
@@ -92,7 +77,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        f"Следующее задание придет в {settings.formatted_task_time} часов утра."
+        "Следующее задание придет в {} часов утра.".format(settings.formatted_task_time)
     )
 
 
@@ -105,13 +90,12 @@ class EmptyReportError(ApplicationError):
 class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
+    detail = "Задание было пропущено, следующее задание придет в {} часов утра.".format(settings.formatted_task_time)
 
 
-# TODO: Заменить `shift_name` и `shift_id` на сам объект, `Shift`
 class ShiftStartError(BadRequestError):
-    def __init__(self, shift_name: str, shift_id: UUID):
-        self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+    def __init__(self, shift: Shift):
+        self.detail = "Невозможно начать смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
 
 
 class ShiftReadyForCompleteForbiddenException(BadRequestError):
@@ -121,34 +105,25 @@ class ShiftReadyForCompleteForbiddenException(BadRequestError):
         )
 
 
-# TODO: Заменить `shift_name` и `shift_id` на сам объект, `Shift`
+class ShiftReadyForCompleteForbiddenException(BadRequestError):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.detail = (
+            f"Невозможно перевести в статус 'завершающаяся' смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+        )
+
+
 class ShiftFinishError(BadRequestError):
-    def __init__(self, shift_name: str, shift_id: UUID):
-        self.detail = f"Невозможно завершить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+    def __init__(self, shift: Shift):
+        self.detail = "Невозможно завершить смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
 
 
-# TODO: Заменить `shift_name` и `shift_id` на сам объект, `Shift`
-# TODO: вынести инициализацию `detail` в родительский класс — ???
 class ShiftCancelError(BadRequestError):
-    def __init__(self, shift_name: str, shift_id: UUID):
-        self.detail = f"Невозможно отменить смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+    def __init__(self, shift: Shift):
+        self.detail = "Невозможно отменить смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
 
 
-# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс — ???
-class CreateShiftForbiddenError(ForbiddenError):
-    def __init__(self, detail: str):
-        self.detail = detail
-
-
-# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс — ???
-class ShiftUpdateError(BadRequestError):
-    def __init__(self, detail: str):
-        self.detail = detail
-
-
-# TODO: вынести инициализацию `detail` в родительский класс, использовать родительский класс — ???
-class UpdateShiftForbiddenError(ForbiddenError):
-    def __init__(self, detail: str):
+class ShiftError(BadRequestError):
+    def __int__(self, detail: str) -> None:
         self.detail = detail
 
 
@@ -169,45 +144,42 @@ class ReportWaitingPhotoError(NotFoundError):
     detail = "К заданию нет отчета участника."
 
 
-# Todo: вынести адрес группы ВКонтакте в настройки
-class RegistrationForbiddenError(ForbiddenError):
+class RegistrationForbiddenError(BadRequestError):
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
         "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
-        "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте https://vk.com/socialrb02"
+        "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте {}".format(settings.ORGANIZATIONS_GROUP)
     )
 
 
-# Todo: вынести адрес группы ВКонтакте в настройки
-class AlreadyRegisteredError(ForbiddenError):
+class AlreadyRegisteredError(BadRequestError):
     detail = (
         "Вы уже зарегистрированы в проекте, ожидайте свое первое задание "
         "в день старта смены. Актуальную дату начала смены вы можете "
-        "посмотреть в нашей группе ВКонтакте https://vk.com/socialrb02"
+        "посмотреть в нашей группе ВКонтакте {}".format(settings.ORGANIZATIONS_GROUP)
     )
 
 
-class RequestAlreadyReviewedError(ForbiddenError):
+class RequestAlreadyReviewedError(BadRequestError):
     def __init__(self, status: Request.Status):
         self.detail = "Заявка на участие уже проверена, статус заявки: {}.".format(status)
 
 
-# Todo: вынести адрес группы ВКонтакте в настройки
-class RequestForbiddenError(ForbiddenError):
+class RequestForbiddenError(BadRequestError):
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
         "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
-        "в нашу группу ВКонтакте https://vk.com/socialrb02"
+        "в нашу группу ВКонтакте {}".format(settings.ORGANIZATIONS_GROUP)
     )
 
 
-class InvalidAuthenticationDataError(ForbiddenError):
+class InvalidAuthenticationDataError(BadRequestError):
     """Введены неверные данные для аутентификации."""
 
     detail = "Неверный email или пароль."
 
 
-class AdministratorBlockedError(ForbiddenError):
+class AdministratorBlockedError(BadRequestError):
     """Попытка аутентификации заблокированного пользователя."""
 
     detail = "Пользователь заблокирован."
@@ -239,25 +211,25 @@ class InvalidDateFormatError(BadRequestError):
     detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
 
 
-class InvitationAlreadyDeactivatedError(ForbiddenError):
+class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Приглашение уже деактивировано"
 
 
-class InvitationAlreadyActivatedError(ForbiddenError):
+class InvitationAlreadyActivatedError(BadRequestError):
     detail = "Приглашение активно"
 
 
-class AdministratorChangeError(ForbiddenError):
+class AdministratorChangeError(BadRequestError):
     detail = "У вас нет прав на изменение других администраторов."
 
 
-class AdministratorSelfChangeRoleError(ForbiddenError):
+class AdministratorSelfChangeRoleError(BadRequestError):
     detail = "Вы не можете изменить роль самому себе."
 
 
-class AdministratorBlockError(ForbiddenError):
+class AdministratorBlockError(BadRequestError):
     detail = "У Вас нет прав на блокировку других администраторов."
 
 
-class AdministratorSelfBlockError(ForbiddenError):
+class AdministratorSelfBlockError(BadRequestError):
     detail = "Вы не можете заблокировать себя."
