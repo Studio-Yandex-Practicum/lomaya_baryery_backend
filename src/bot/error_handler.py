@@ -1,3 +1,5 @@
+import logging
+
 from telegram.error import BadRequest, Forbidden, TelegramError
 
 from src.core.db.db import get_session
@@ -18,5 +20,6 @@ async def error_handler(user: User, error: TelegramError) -> None:
         session = await session_gen.asend(None)
         user_service = UserService(UserRepository(session), RequestRepository(session))
         await user_service.set_telegram_blocked(user)
+        logging.warning(f"Произведена блокировка пользователя: {user}. Причина блокировки: {error.message} ")
     else:
         raise error
