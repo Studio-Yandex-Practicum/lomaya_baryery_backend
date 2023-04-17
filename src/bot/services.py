@@ -16,15 +16,26 @@ from src.core.utils import get_lombaryers_for_quantity
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
-def backoff(start_sleep_time: int = 3, max_attempt_number: int = 5):
+def check_user_blocked(func):
+    """Проверка блокировки пользователя перед отправкой сообщения."""
+
+    @functools.wraps(func)
+    async def _func_wrapper(*args, **kwargs):
+        user = kwargs['user'] if 'user' in kwargs else args[1]
+        if user.telegram_blocked:
+            return None
+        await func(*args, **kwargs)
+
+    return _func_wrapper
+
+
+def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
     """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
 
     def _func_wrapper(func):
         @functools.wraps(func)
         async def _inner(*args, **kwargs):
             user = kwargs['user'] if 'user' in kwargs else args[1]
-            if user.telegram_blocked:
-                return None
             for n in range(max_attempt_number):
                 try:
                     return await func(*args, **kwargs)
@@ -46,11 +57,13 @@ class BotService:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
-    @backoff()
+    @check_user_blocked
+    @retry()
     async def send_message(self, user: models.User, text: str) -> None:
         await self.__bot.send_message(user.telegram_id, text)
 
-    @backoff()
+    @check_user_blocked
+    @retry()
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
         await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
