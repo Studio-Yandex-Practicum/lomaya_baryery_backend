@@ -20,13 +20,6 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-class UserInfoResponse(BaseModel):
-    """Схема для отображения краткой информации о пользователе."""
-
-    name: str
-    surname: str
-
-
 class UserWithStatusResponse(UserResponse):
     status: User.Status
 
