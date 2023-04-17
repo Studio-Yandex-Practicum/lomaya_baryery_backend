@@ -171,7 +171,7 @@ class AdministratorBlockedError(BadRequestError):
     detail = "Пользователь заблокирован."
 
 
-class AdministratorNotFoundError(BadRequestError):
+class AdministratorNotFoundError(NotFoundError):
     """Пользователь не найден."""
 
     detail = "Пользователь с указанными реквизитами не найден."

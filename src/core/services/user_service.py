@@ -10,14 +10,10 @@ from src.api.request_models.user import (
     UserFieldSortRequest,
 )
 from src.api.response_models.user import UserDetailResponse, UserWithStatusResponse
+from src.core import exceptions
 from src.core.db.models import Request, User
 from src.core.db.repository.request_repository import RequestRepository
 from src.core.db.repository.user_repository import UserRepository
-from src.core.exceptions import (
-    AlreadyRegisteredError,
-    NotValidValueError,
-    RequestForbiddenError,
-)
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
 
@@ -26,7 +22,7 @@ def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
     current_date = date.today()
     if current_date.year - value.year < settings.MIN_AGE:
-        raise NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
+        raise exceptions.NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
 
 
 async def validate_user_not_exists(
@@ -35,7 +31,7 @@ async def validate_user_not_exists(
     """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
     user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
     if user_exists:
-        raise NotValidValueError('Пользователь с таким номером телефона уже существует.')
+        raise exceptions.NotValidValueError('Пользователь с таким номером телефона уже существует.')
 
 
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
@@ -69,14 +65,14 @@ class UserService:
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""
         if request.status is Request.Status.APPROVED:
-            raise AlreadyRegisteredError
+            raise exceptions.AlreadyRegisteredError
         if request.status is Request.Status.DECLINED:
             if request.is_repeated < settings.MAX_REQUESTS:
                 request.is_repeated += 1
                 request.status = Request.Status.PENDING
                 await self.__request_repository.update(request.id, request)
             else:
-                raise RequestForbiddenError
+                raise exceptions.RequestForbiddenError
 
     async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Получение пользователя: обновление или создание."""

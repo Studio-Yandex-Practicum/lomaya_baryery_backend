@@ -6,10 +6,10 @@ from fastapi import Depends
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.models import AdministratorInvitation
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import AdministratorInvitationInvalidError
 
 
 class AdministratorInvitationRepository(AbstractRepository):
@@ -25,5 +25,5 @@ class AdministratorInvitationRepository(AbstractRepository):
         )
         result = (await self._session.scalars(statement)).first()
         if result is None:
-            raise AdministratorInvitationInvalidError
+            raise exceptions.AdministratorInvitationInvalidError
         return result

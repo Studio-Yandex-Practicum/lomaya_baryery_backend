@@ -22,15 +22,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
-from src.core import settings
-from src.core.exceptions import (
-    CannotAcceptReportError,
-    EmptyReportError,
-    ExceededAttemptsReportError,
-    ShiftCancelError,
-    ShiftFinishError,
-    ShiftStartError,
-)
+from src.core import exceptions, settings
 
 
 @as_declarative()
@@ -81,19 +73,19 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartError(self)
+            raise exceptions.ShiftStartError(self)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
     async def finish(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftFinishError(self)
+            raise exceptions.ShiftFinishError(self)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
     async def cancel(self, final_message: str):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftCancelError(self)
+            raise exceptions.ShiftCancelError(self)
         self.final_message = final_message
         self.status = Shift.Status.CANCELLED.value
         self.finished_at = datetime.now().date()
@@ -277,14 +269,14 @@ class Report(Base):
 
     def send_report(self, photo_url: str):
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
-            raise ExceededAttemptsReportError
+            raise exceptions.ExceededAttemptsReportError
         if not photo_url:
-            raise EmptyReportError()
+            raise exceptions.EmptyReportError
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
         ):
-            raise CannotAcceptReportError()
+            raise exceptions.CannotAcceptReportError
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
