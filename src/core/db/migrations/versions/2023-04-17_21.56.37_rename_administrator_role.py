@@ -15,23 +15,18 @@ branch_labels = None
 depends_on = None
 
 
-ENUM_NAME ="administrator_role"
-T_NAME ="administrators"
+ENUM_NAME = "administrator_role"
+T_NAME = "administrators"
 TMP_NAME = f"tmp_{ENUM_NAME}"
-
 OLD_ROLES = ("administrator","psychologist",)
 NEW_ROLES = ("administrator","expert",)
 TEMP_ROLES = sorted({*OLD_ROLES, *NEW_ROLES})
-
 OLD_ENUM = sa.Enum(*OLD_ROLES, name=ENUM_NAME)
 NEW_ENUM = sa.Enum(*NEW_ROLES, name=ENUM_NAME)
 TMP_ENUM = sa.Enum(*TEMP_ROLES, name=TMP_NAME)
 
-administrators_table = sa.sql.table("administrators",
-                            sa.Column("role",
-                                      TMP_ENUM,
-                                      nullable=False)
-                            )
+administrators_table = sa.sql.table(T_NAME,
+                            sa.Column("role", TMP_ENUM, nullable=False))
 
 
 def upgrade():
