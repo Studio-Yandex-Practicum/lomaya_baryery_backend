@@ -247,6 +247,12 @@ class InvitationAlreadyDeactivated(BadRequestError):
         self.detail = "Приглашение уже деактивировано"
 
 
+class LenTitleException(BadRequestError):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Длина названия смены должна быть не более 60 символов."
+
+
 class InvitationAlreadyActivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже активно"
 

@@ -34,6 +34,8 @@ class ShiftCreateRequest(RequestBase):
     def validate_title(cls, value):
         if value.isspace():
             raise exceptions.EmptyTitleException()
+        if len(value) > 60:
+            raise exceptions.LenTitleException()
         return value
 
 
