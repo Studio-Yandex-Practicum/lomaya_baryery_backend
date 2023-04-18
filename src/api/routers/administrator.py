@@ -36,7 +36,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
         response_description="Access-токен и информация о пользователе.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST),
     )
     async def login(
         self, response: Response, auth_data: AdministratorAuthenticateRequest
@@ -84,7 +84,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.OK,
         summary="Информация об администраторе",
         response_description="Информация о текущем активном администраторе",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED),
     )
     async def get_me(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
         """Получить информацию о текущем активном администраторе."""
@@ -136,7 +136,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Изменить роль администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def administrator_change_role(
         self,
@@ -152,7 +152,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Сброс пароля администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def administrator_reset_password(
         self,
@@ -167,7 +167,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Заблокировать администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def administrator_blocking(
         self,

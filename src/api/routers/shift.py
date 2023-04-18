@@ -40,7 +40,7 @@ class ShiftCBV:
         status_code=HTTPStatus.CREATED,
         summary="Создать новую смену",
         response_description="Информация о созданной смене",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST),
     )
     async def create_new_shift(
         self,
@@ -86,7 +86,7 @@ class ShiftCBV:
         status_code=HTTPStatus.OK,
         summary="Обновить информацию о смене",
         response_description="Обновленная информация о смене",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def update_shift(
         self,
