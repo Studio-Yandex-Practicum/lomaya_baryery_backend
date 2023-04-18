@@ -11,36 +11,36 @@ class AnalyticsService:
     """Сервис для получения отчётов."""
 
     def __init__(self,
-                 task_repository: TaskRepository = Depends()) -> None:
-        self.__task_report_builder = AnalyticReportBuilder()
+                 task_repository: TaskRepository = Depends(),
+                 task_report_builder: AnalyticReportBuilder = Depends()) -> None:
+        self.__task_report_builder = task_report_builder
         self.__task_repository = task_repository
 
     async def __generate_task_report(self,
                                      workbook: Workbook) -> Workbook:
         """Генерация отчёта с заданиями."""
         tasks_statistic = await self.__task_repository.get_tasks_statistics_report()
-        return await self.__task_report_builder.generate_report(
-            data=tasks_statistic, workbook=workbook,
+        await self.__task_report_builder.generate_report(
+            tasks_statistic, workbook=workbook,
             analytic_task_report_full=TaskAnalyticReportSettings
         )
 
     async def __generate_full_report(self,
                                      workbook: Workbook) -> Workbook:
         """Генерация полного отчёта."""
-        workbook = await self.__generate_task_report(workbook=workbook)
-        workbook = await self.__generate_task_report(workbook=workbook)
-        return workbook
+        await self.__generate_task_report(workbook)
+        await self.__generate_task_report(workbook)
 
     async def generate_full_report(self) -> StreamingResponse:
         """Генерация полного отчёта."""
-        workbook = self.__task_report_builder._create_workbook()
-        workbook = await self.__generate_full_report(workbook=workbook)
-        stream = await self.__task_report_builder._get_report_response(workbook=workbook)
+        workbook = self.__task_report_builder.create_workbook()
+        await self.__generate_full_report(workbook)
+        stream = await self.__task_report_builder.get_report_response(workbook)
         return stream
 
     async def generate_task_report(self) -> StreamingResponse:
         """Генерация отчёта с заданиями."""
-        workbook = self.__task_report_builder._create_workbook()
-        workbook = await self.__generate_task_report(workbook=workbook)
-        stream = await self.__task_report_builder._get_report_response(workbook=workbook)
+        workbook = self.__task_report_builder.create_workbook()
+        await self.__generate_task_report(workbook)
+        stream = await self.__task_report_builder.get_report_response(workbook)
         return stream
