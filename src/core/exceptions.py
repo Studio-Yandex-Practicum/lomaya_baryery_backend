@@ -4,8 +4,9 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
-from src.core.settings import settings
 from starlette.exceptions import HTTPException
+
+from src.core.settings import settings
 
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
@@ -236,7 +237,7 @@ class UnauthorizedException(ApplicationException):
 class AdministratorNotFoundException(ApplicationException):
     """Пользователь не найден."""
 
-    status_code = HTTPStatus.BAD_REQUEST
+    status_code = HTTPStatus.NOT_FOUND
     detail = "Пользователь с указанными реквизитами не найден."
 
 
