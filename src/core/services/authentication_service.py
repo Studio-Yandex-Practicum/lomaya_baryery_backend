@@ -11,6 +11,7 @@ from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
 from src.core.exceptions import (
     AdministratorBlockedException,
+    AdministratorInvitationError,
     InvalidAuthenticationDataException,
     UnauthorizedException,
 )
@@ -91,3 +92,7 @@ class AuthenticationService:
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
             administrator=administrator,
         )
+
+    async def check_administrator_invitation_rights(self, administrator: Administrator) -> None:
+        if administrator.role is not Administrator.Role.ADMINISTRATOR:
+            raise AdministratorInvitationError()
