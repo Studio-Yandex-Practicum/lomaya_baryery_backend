@@ -48,7 +48,7 @@ class ReportService:
 
     async def check_report_skipped(self, report: Report) -> None:
         if report.status == Report.Status.SKIPPED:
-            raise exceptions.ReportSkippedError
+            raise exceptions.ReportAlreadySkippedError
 
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
@@ -87,9 +87,9 @@ class ReportService:
         """Задание пропущено: изменение статуса."""
         report = await self.__report_repository.get_current_report(user_id)
         if report.status is Report.Status.SKIPPED:
-            raise exceptions.ReportSkippedError
+            raise exceptions.ReportAlreadySkippedError
         if report.status is not Report.Status.WAITING:
-            raise exceptions.ReportAlreadyReviewedError(status=report.status)
+            raise exceptions.ReportCantBeSkippedError
         report.status = Report.Status.SKIPPED
         return await self.__report_repository.update(report.id, report)
 
@@ -113,7 +113,7 @@ class ReportService:
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
         if status in (Report.Status.APPROVED, Report.Status.DECLINED):
-            raise exceptions.ReportAlreadyReviewedError(status=status)
+            raise exceptions.ReportAlreadyReviewedError
         if status is Report.Status.WAITING:
             raise exceptions.ReportWaitingPhotoError
 
