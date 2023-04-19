@@ -17,10 +17,6 @@ class ApplicationError(Exception):
     detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
 
 
-class NotFoundError(ApplicationError):
-    status_code: HTTPStatus = HTTPStatus.NOT_FOUND
-
-
 class BadRequestError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.BAD_REQUEST
 
@@ -28,6 +24,14 @@ class BadRequestError(ApplicationError):
 class UnauthorizedError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.UNAUTHORIZED
     detail = "У Вас нет прав для просмотра запрошенной страницы."
+
+
+class ForbiddenError(ApplicationError):
+    status_code: HTTPStatus = HTTPStatus.FORBIDDEN
+
+
+class NotFoundError(ApplicationError):
+    status_code: HTTPStatus = HTTPStatus.NOT_FOUND
 
 
 class NotValidValueError(ApplicationError):
@@ -44,7 +48,7 @@ class ObjectNotFoundError(NotFoundError):
 
 class ObjectAlreadyExistsError(BadRequestError):
     def __init__(self, model: DatabaseModel):
-        self.detail = "Объект {} уже существует".format(model)
+        self.detail = "Объект {!r} уже существует".format(model)
 
 
 class CurrentTaskNotFoundError(ApplicationError):
@@ -95,17 +99,17 @@ class ReportSkippedError(ApplicationError):
 
 class ShiftStartError(BadRequestError):
     def __init__(self, shift: Shift):
-        self.detail = "Невозможно начать смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
+        self.detail = "Невозможно начать смену {!r}. Проверьте статус смены".format(shift)
 
 
 class ShiftFinishError(BadRequestError):
     def __init__(self, shift: Shift):
-        self.detail = "Невозможно завершить смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
+        self.detail = "Невозможно завершить смену {!r}. Проверьте статус смены".format(shift)
 
 
 class ShiftCancelError(BadRequestError):
     def __init__(self, shift: Shift):
-        self.detail = "Невозможно отменить смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
+        self.detail = "Невозможно отменить смену {!r}. Проверьте статус смены".format(shift)
 
 
 class ShiftError(BadRequestError):
@@ -165,21 +169,17 @@ class InvalidAuthenticationDataError(BadRequestError):
     detail = "Неверный email или пароль."
 
 
-class AdministratorBlockedError(BadRequestError):
+class AdministratorBlockedError(ForbiddenError):
     """Попытка аутентификации заблокированного пользователя."""
 
-    detail = "Пользователь заблокирован."
+    detail = "Администратор заблокирован."
 
 
 class AdministratorNotFoundError(NotFoundError):
-    """Пользователь не найден."""
-
-    detail = "Пользователь с указанными реквизитами не найден."
+    detail = "Администратор с указанными реквизитами не найден."
 
 
 class AdministratorAlreadyExistsError(BadRequestError):
-    """Пользователь с таким email уже существует."""
-
     detail = "Администратор с указанным email уже существует."
 
 
@@ -197,24 +197,24 @@ class InvalidDateFormatError(BadRequestError):
 
 
 class InvitationAlreadyDeactivatedError(BadRequestError):
-    detail = "Приглашение уже деактивировано"
+    detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
-    detail = "Приглашение активно"
+    detail = "Невозможно изменить состояние приглашения. Приглашение уже активно"
 
 
-class AdministratorChangeError(BadRequestError):
+class AdministratorChangeError(ForbiddenError):
     detail = "У вас нет прав на изменение других администраторов."
 
 
-class AdministratorSelfChangeRoleError(BadRequestError):
+class AdministratorSelfChangeRoleError(ForbiddenError):
     detail = "Вы не можете изменить роль самому себе."
 
 
-class AdministratorBlockError(BadRequestError):
+class AdministratorBlockError(ForbiddenError):
     detail = "У Вас нет прав на блокировку других администраторов."
 
 
-class AdministratorSelfBlockError(BadRequestError):
+class AdministratorSelfBlockError(ForbiddenError):
     detail = "Вы не можете заблокировать себя."
