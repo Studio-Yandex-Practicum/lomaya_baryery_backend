@@ -120,6 +120,37 @@ class ShiftError(BadRequestError):
         self.detail = detail
 
 
+class ShiftPastDateError(BadRequestError):
+    detail = "Нельзя установить дату начала/окончания смены сегодняшним или прошедшим числом"
+
+
+class ShiftTooShortError(BadRequestError):
+    detail = "Дата начала смены не может быть позже или равняться дате окончания"
+
+
+class ShiftTooLongError(BadRequestError):
+    detail = "Смена не может длиться больше 4-х месяцев"
+
+
+class ChangeCompletedShiftError(BadRequestError):
+    detail = "Нельзя изменить завершенную или отмененную смену"
+
+
+class ShiftCreatedTooFastError(BadRequestError):
+    detail = (
+        f"Запрещено создавать новую смену, "
+        f"если текущая смена запущена менее {settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN} дней назад"
+    )
+
+
+class CurrentShiftChangeDateError(BadRequestError):
+    detail = "Нельзя изменить дату начала текущей смены"
+
+
+class NewShiftExclusiveError(BadRequestError):
+    detail = "Запрещено создавать более одной новой смены"
+
+
 class ShiftsDatesIntersectionError(BadRequestError):
     detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
 
