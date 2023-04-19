@@ -8,7 +8,7 @@ from src.core.settings import settings
 
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
-    from src.core.db.models import Report, Request, Shift
+    from src.core.db.models import Request, Shift
 
 
 class ApplicationError(Exception):
@@ -91,10 +91,22 @@ class EmptyReportError(ApplicationError):
     detail = "Отчет должен содержать фото."
 
 
-class ReportSkippedError(ApplicationError):
+class ReportCantBeSkippedError(BadRequestError):
+    detail = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
+
+
+class ReportAlreadySkippedError(ApplicationError):
     """Отчет пропущен."""
 
     detail = "Задание было пропущено, следующее задание придет в {} часов утра.".format(settings.formatted_task_time)
+
+
+class ReportAlreadyReviewedError(BadRequestError):
+    detail = "Задание уже проверено."
+
+
+class ReportWaitingPhotoError(NotFoundError):
+    detail = "К заданию нет отчета участника."
 
 
 class ShiftStartError(BadRequestError):
@@ -154,15 +166,6 @@ class ShiftsDatesIntersectionError(BadRequestError):
 
 class ShiftNotFoundError(NotFoundError):
     detail = "Активной смены не найдено."
-
-
-class ReportAlreadyReviewedError(BadRequestError):
-    def __init__(self, status: Report.Status):
-        self.detail = "Задание уже проверено, статус задания: {}.".format(status)
-
-
-class ReportWaitingPhotoError(NotFoundError):
-    detail = "К заданию нет отчета участника."
 
 
 class RegistrationForbiddenError(BadRequestError):
