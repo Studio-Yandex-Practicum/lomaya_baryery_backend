@@ -36,7 +36,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.OK,
         summary="Аутентификация",
         response_description="Access-токен и информация о пользователе.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN),
     )
     async def login(
         self, response: Response, auth_data: AdministratorAuthenticateRequest
@@ -136,7 +136,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Изменить роль администратора.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def administrator_change_role(
         self,
@@ -167,7 +167,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Заблокировать администратора.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def administrator_blocking(
         self,

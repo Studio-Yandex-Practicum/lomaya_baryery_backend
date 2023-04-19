@@ -279,7 +279,7 @@ class Report(Base):
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
     def __repr__(self):
-        return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+        return f"<Report: {self.id}, task_date: {self.task_date}, status: {self.status}>"
 
     def send_report(self, photo_url: str):
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
@@ -314,4 +314,4 @@ class AdministratorInvitation(Base):
     expired_datetime = Column(TIMESTAMP, nullable=False)
 
     def __repr__(self) -> str:
-        return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"
+        return f"<AdministratorInvitation: {self.id}, email: {self.email}, surname: {self.surname}, name: {self.name}>"
