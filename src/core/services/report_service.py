@@ -187,7 +187,7 @@ class ReportService:
         tasks = shift.tasks
         day_of_registration = get_current_task_date()
         count_of_missed_days = (day_of_registration - shift.started_at).days
-        indexes_of_task_by_day = tuple(enumerate(range(count_of_missed_days, -1, -1), start=1))
+        indexes_of_task_by_day = enumerate(range(count_of_missed_days, -1, -1), start=1)
         reports = [
             Report(
                 shift_id=shift.id,
@@ -196,6 +196,6 @@ class ReportService:
                 task_date=day_of_registration - timedelta(days=day),
                 member_id=member_id,
             )
-            for index, day in reversed(indexes_of_task_by_day)
+            for index, day in indexes_of_task_by_day
         ]
         await self.__report_repository.create_all(reports)
