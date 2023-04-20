@@ -109,3 +109,19 @@ class TaskCBV:
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.task_service.update_task(task_id, update_task_data)
+
+    @router.patch(
+        "/{task_id}/change_status",
+        response_model=TaskResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Архивировать/разархивировать задание",
+        response_description="Информация о задании",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
+    )
+    async def change_status(
+        self,
+        task_id: UUID,
+    ) -> TaskResponse:
+        """Архивировать/разархивировать задании с указанным ID."""
+        return await self.task_service.change_status(task_id)

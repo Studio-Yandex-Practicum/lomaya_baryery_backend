@@ -53,3 +53,8 @@ class TaskService:
         task.description_for_message = update_task_data.description_for_message
         task.url = update_task_data.url
         return await self.__task_repository.update(task_id, task)
+
+    async def change_status(self, task_id: UUID) -> Task:
+        task = await self.__task_repository.get(task_id)
+        task.is_archived = not task.is_archived
+        return await self.__task_repository.update(task_id, task)
