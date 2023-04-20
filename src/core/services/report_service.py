@@ -186,15 +186,16 @@ class ReportService:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
         tasks = shift.tasks
         day_of_registration = get_current_task_date()
-        shift_index_tasks_starting_with_one = 1
+        count_of_missed_days = (day_of_registration - shift.started_at).days
+        indexes_of_task_by_day = tuple(enumerate(range(count_of_missed_days, -1, -1), start=1))
         reports = [
             Report(
                 shift_id=shift.id,
-                task_id=tasks[str(day + shift_index_tasks_starting_with_one)],
+                task_id=tasks[str(index)],
                 status=Report.Status.NOT_PARTICIPATE,
                 task_date=day_of_registration - timedelta(days=day),
                 member_id=member_id,
             )
-            for day in range((day_of_registration - shift.started_at).days, -1, -1)
+            for index, day in reversed(indexes_of_task_by_day)
         ]
         await self.__report_repository.create_all(reports)
