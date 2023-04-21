@@ -18,7 +18,6 @@ from src.bot.api_services import get_user_service_callback
 from src.bot.jobs import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core import exceptions
 from src.core.db.db import get_session
-from src.core.db.models import User
 from src.core.db.repository import (
     MemberRepository,
     ReportRepository,
@@ -229,7 +228,7 @@ async def incorrect_report_type_handler(update: Update, context: CallbackContext
     await update.message.reply_text("Отчёт по заданию должен быть отправлен в виде фотографии.")
 
 
-async def chat_member_handler(update: Update, context: CallbackContext) -> User:
+async def chat_member_handler(update: Update, context: CallbackContext) -> None:
     """Меняет значение поля telegram_blocked при блокировке/разблокировке бота."""
     session_gen = get_session()
     session = await session_gen.asend(None)
@@ -245,4 +244,4 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> User:
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.BANNED
     ):
         return await user_service.unset_telegram_blocked(user)
-    return
+    return None
