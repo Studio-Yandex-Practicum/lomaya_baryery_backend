@@ -38,7 +38,7 @@ class AdministratorInvitationCBV:
             HTTPStatus.BAD_REQUEST,
             HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
-        summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
+        summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/эксперта",
     )
     async def create_and_send_invitation(
         self,
@@ -104,7 +104,7 @@ class AdministratorInvitationCBV:
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
         summary=(
             "Активировать приглашение повторно и отправить ссылку"
-            "на почту для регистрации нового администратора/психолога"
+            "на почту для регистрации нового администратора/эксперта"
         ),
         response_description="Информация о приглашении",
     )
