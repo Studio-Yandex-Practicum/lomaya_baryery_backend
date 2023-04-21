@@ -201,7 +201,7 @@ class ShiftService:
             await self.__telegram_bot(bot).notify_that_shift_start_date_is_changed(
                 users,
                 START_DATE_CHANGED_MESSAGE.format(
-                    started_at=shift.started_at,
+                    started_at=shift.started_at.strftime('%d.%m.%Y'),
                 ),
             )
 
