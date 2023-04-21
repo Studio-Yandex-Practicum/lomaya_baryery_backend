@@ -242,4 +242,4 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> User:
     ):
         return await user_service.unset_telegram_blocked(user)
     else:
-        pass
+        return
