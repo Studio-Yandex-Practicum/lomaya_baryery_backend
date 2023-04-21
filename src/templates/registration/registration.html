@@ -453,7 +453,7 @@
         return data;
       }, {});
       if (tg.initDataUnsafe.query_id) {
-        fetch(window.location.origin + "/telegram/webhook", {
+        fetch(window.location.origin + "/telegram/inline_registration_data", {
           method: "POST",
           body: JSON.stringify({
             "data": data,

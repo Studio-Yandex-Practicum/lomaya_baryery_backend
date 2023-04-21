@@ -144,7 +144,7 @@ async def update_user_data(
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
     if not update.effective_message.web_app_data:
-        user_data = context.bot_data[update.effective_user.id]
+        user_data = context.bot_data.pop(update.effective_user.id)
     else:
         user_data = json.loads(update.effective_message.web_app_data.data)
     try:
@@ -209,31 +209,6 @@ async def get_web_app_query_data(update: dict, context: CallbackContext) -> None
             ),
         ),
     )
-
-
-async def get_answer_web_app(update: Update, context: CallbackContext) -> None:
-    """Обработка ответа бота после отправки данных пользователя с ипользованием inline-, menu- кнопки."""
-    if "Ошибка при заполнении данных" in update.effective_message.text:
-        if context.user_data.get("user"):
-            await update_user_data(update, context)
-        else:
-            await register_user(update, context)
-        return
-    if "Процесс регистрации занимает некоторое время - вам придет уведомление" in update.effective_message.text:
-
-        await context.bot.set_chat_menu_button(
-            chat_id=update.message.chat.id,
-            menu_button=None,
-        )
-        await context.bot.edit_message_reply_markup(
-            chat_id=update.effective_chat.id,
-            message_id=context.chat_data["inline_message"].message_id,
-        )
-        crutch = await update.message.reply_text(
-            text=".",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        await crutch.delete()
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:
