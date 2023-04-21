@@ -107,6 +107,7 @@ class Task(Base):
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
     description_for_message = Column(String(length=150), unique=True, nullable=False)
+    is_archived = Column(Boolean, default=False, nullable=False)
     reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
@@ -214,7 +215,7 @@ class Administrator(Base):
         """Роль администратора."""
 
         ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
+        EXPERT = "expert"
 
     __tablename__ = "administrators"
 

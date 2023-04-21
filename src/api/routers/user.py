@@ -46,6 +46,8 @@ class UserCBV:
         - **city**: город пользователя
         - **phone_number**: телефон пользователя
         - **status**: статус пользователя
+        - **shifts_count**: количество пройденных пользователем смен
+        - **is_in_active_shift**: флаг, является ли пользователь участником текущей активной смены
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.user_service.list_all_users(status, field_sort, direction_sort)
