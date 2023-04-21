@@ -207,6 +207,12 @@ class ShiftService:
 
     async def finish_shift(self, bot: Application, _id: UUID) -> Shift:
         shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
+        shift_unreviewed = await self.__shift_repository.is_unreviewed_report_exists(_id)
+        if shift_unreviewed:
+            await shift.ready_for_complete()
+            await self.__shift_repository.update(_id, shift)
+            return shift
+
         await shift.finish()
         await self.__shift_repository.update(_id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
@@ -287,9 +293,7 @@ class ShiftService:
         return shift
 
     async def start_prepared_shift(self) -> None:
-        """Запускает смену, если смена имеет статус preparing
-        и дата старта совпадает с текущим днём.
-        """
+        """Запускает смену, если смена имеет статус preparing и дата старта совпадает с текущим днём."""
         shift = await self.__shift_repository.get_preparing_shift_with_started_at_today()
         if shift:
             shift.status = Shift.Status.STARTED.value

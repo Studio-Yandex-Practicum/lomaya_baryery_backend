@@ -29,6 +29,7 @@ from src.core.exceptions import (
     ExceededAttemptsReportError,
     ShiftCancelForbiddenException,
     ShiftFinishForbiddenException,
+    ShiftReadyForCompleteForbiddenException,
     ShiftStartForbiddenException,
 )
 
@@ -85,8 +86,13 @@ class Shift(Base):
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
-    async def finish(self):
+    async def ready_for_complete(self):
         if self.status != Shift.Status.STARTED.value:
+            raise ShiftReadyForCompleteForbiddenException(shift_name=self.title, shift_id=self.id)
+        self.status = Shift.Status.READY_FOR_COMPLETE.value
+
+    async def finish(self):
+        if self.status not in [Shift.Status.STARTED.value, Shift.Status.READY_FOR_COMPLETE.value]:
             raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()

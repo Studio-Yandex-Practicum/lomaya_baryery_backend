@@ -104,6 +104,14 @@ class ShiftStartForbiddenException(ApplicationException):
         self.detail = f"Невозможно начать смену {shift_name} с id: {shift_id}. Проверьте статус смены"
 
 
+class ShiftReadyForCompleteForbiddenException(ApplicationException):
+    def __init__(self, shift_name: str, shift_id: UUID):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = (
+            f"Невозможно перевести в статус 'завершающаяся' смену {shift_name} с id: {shift_id}. Проверьте статус смены"
+        )
+
+
 class ShiftFinishForbiddenException(ApplicationException):
     def __init__(self, shift_name: str, shift_id: UUID):
         self.status_code = HTTPStatus.BAD_REQUEST
