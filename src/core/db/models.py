@@ -22,16 +22,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
-from src.core import settings
-from src.core.exceptions import (
-    CannotAcceptReportError,
-    EmptyReportError,
-    ExceededAttemptsReportError,
-    ShiftCancelForbiddenException,
-    ShiftFinishForbiddenException,
-    ShiftReadyForCompleteForbiddenException,
-    ShiftStartForbiddenException,
-)
+from src.core import exceptions, settings
 
 
 @as_declarative()
@@ -88,18 +79,18 @@ class Shift(Base):
 
     async def ready_for_complete(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftReadyForCompleteForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise exceptions.ShiftReadyForCompleteError(self)
         self.status = Shift.Status.READY_FOR_COMPLETE.value
 
     async def finish(self):
         if self.status not in [Shift.Status.STARTED.value, Shift.Status.READY_FOR_COMPLETE.value]:
-            raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise exceptions.ShiftFinishError(self)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
     async def cancel(self, final_message: str):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftCancelError(self)
+            raise exceptions.ShiftCancelError(self)
         self.final_message = final_message
         self.status = Shift.Status.CANCELLED.value
         self.finished_at = datetime.now().date()
