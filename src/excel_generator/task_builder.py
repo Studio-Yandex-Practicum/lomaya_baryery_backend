@@ -22,11 +22,10 @@ class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
 
     @classmethod
     @property
-    def footer_data(self):
-        result = (
+    def footer_data(cls):
+        return (
             "ИТОГО:",
-            f"=SUM(B2:B{self.row_count})",
-            f"=SUM(C2:C{self.row_count})",
-            f"=SUM(D2:D{self.row_count})",
+            f"=SUM(B2:B{cls.row_count})",
+            f"=SUM(C2:C{cls.row_count})",
+            f"=SUM(D2:D{cls.row_count})",
         )
-        return result
