@@ -42,18 +42,6 @@ class RequestRepository(AbstractRepository):
         )
         return request.scalars().first()
 
-    async def get_shift_user_ids(self, shift_id: UUID, status: str = Request.Status.APPROVED.value) -> list[UUID]:
-        users_ids = await self._session.execute(
-            select(Request.user_id).where(Request.shift_id == shift_id).where(Request.status == status)
-        )
-        return users_ids.scalars().all()
-
-    async def get_approved_requests_by_shift(self, shift_id: UUID) -> list[Request]:
-        approved_requests = await self._session.execute(
-            select(Request).where(Request.shift_id == shift_id, Request.status == Request.Status.APPROVED.value)
-        )
-        return approved_requests.scalars().all()
-
     async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:
         statement = select(
             Request.user_id,

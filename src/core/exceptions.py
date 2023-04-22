@@ -243,7 +243,7 @@ class UnauthorizedException(ApplicationException):
 class AdministratorNotFoundException(ApplicationException):
     """Пользователь не найден."""
 
-    status_code = HTTPStatus.BAD_REQUEST
+    status_code = HTTPStatus.NOT_FOUND
     detail = "Пользователь с указанными реквизитами не найден."
 
 

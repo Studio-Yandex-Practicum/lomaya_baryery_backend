@@ -21,9 +21,7 @@ class TaskService:
             image.close()
         return urljoin(settings.task_image_url, file_name)
 
-    async def get_task_ids_list(
-        self,
-    ) -> list[UUID]:
+    async def get_task_ids_list(self) -> list[UUID]:
         return await self.__task_repository.get_task_ids_list()
 
     async def get_task_by_day_of_month(self, tasks: Shift.tasks, day_of_month: int) -> Task:
@@ -52,4 +50,9 @@ class TaskService:
         task.description = update_task_data.description
         task.description_for_message = update_task_data.description_for_message
         task.url = update_task_data.url
+        return await self.__task_repository.update(task_id, task)
+
+    async def change_status(self, task_id: UUID) -> Task:
+        task = await self.__task_repository.get(task_id)
+        task.is_archived = not task.is_archived
         return await self.__task_repository.update(task_id, task)

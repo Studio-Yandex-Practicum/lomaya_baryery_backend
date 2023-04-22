@@ -21,7 +21,7 @@ def upgrade():
     op.add_column('tasks', sa.Column('description_for_message', sa.String(length=150)))
 
     # Обновляем таблицу из файла дефолтных задач
-    with open('tasks.json', 'r') as json_file:
+    with open('tasks.json', 'r', encoding='UTF-8') as json_file:
         for task in json.load(json_file):
             try:
                 description: str = task.get('description')

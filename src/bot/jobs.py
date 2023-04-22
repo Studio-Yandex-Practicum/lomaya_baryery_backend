@@ -26,8 +26,8 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
         bot_service.send_message(
             member.user,
             (
-                f"{member.user.name} {member.user.surname}, мы потеряли тебя!"
-                f"Задание все еще ждет тебя."
+                f"{member.user.name} {member.user.surname}, мы потеряли тебя! "
+                f"Задание все еще ждет тебя. "
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
             ),
@@ -38,7 +38,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
-    """Автоматически запускает смену и рассылает задания"""
+    """Автоматически запускает смену и рассылает задания."""
     shift_session = get_session()
     report_session = get_session()
     member_session = get_session()

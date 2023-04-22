@@ -36,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(routers.task_router)
     app.include_router(routers.administrator_invitation_router)
     app.include_router(routers.telegram)
+    app.include_router(routers.analytics_router)
 
     app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
 
