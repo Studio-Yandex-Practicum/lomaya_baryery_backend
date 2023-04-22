@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(routers.analytics_router)
 
     app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
+
     @app.on_event("startup")
     async def on_startup():
         """Действия при запуске сервера."""

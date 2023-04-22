@@ -1,19 +1,22 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class BaseAnalyticReportSettings:
-    def __init__(self,
-                 sheet_name: str,
-                 header_data: tuple[tuple[str]],
-                 row_count: int):
-        self.sheet_name = sheet_name
-        self.header_data = header_data
-        self.row_coun = row_count
+    sheet_name: str
+    header_data: tuple[str]
+    row_coun: int
 
 
 class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
-    """Конфигурация отчёта для заданий"""
+    """Конфигурация отчёта для заданий."""
 
     sheet_name: str = "Задачи"
     header_data: tuple[str] = (
-        "Задача", "Кол-во принятых отчётов", "Кол-во отклонённых отчётов", "Кол-во не предоставленных отчётов"
+        "Задача",
+        "Кол-во принятых отчётов",
+        "Кол-во отклонённых отчётов",
+        "Кол-во не предоставленных отчётов",
     )
     row_count: int = 0
 
