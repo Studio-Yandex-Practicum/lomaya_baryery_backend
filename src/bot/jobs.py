@@ -2,7 +2,6 @@ import asyncio
 from datetime import date
 from urllib.parse import urljoin
 
-from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackContext
 
 from src.bot.api_services import (
@@ -11,12 +10,10 @@ from src.bot.api_services import (
     get_shift_service_callback,
 )
 from src.bot.services import BotService
+from src.bot.ui import DAILY_TASK_BUTTONS
 from src.core.db.db import get_session
-from src.core.db.models import Report, Shift
+from src.core.db.models import Report
 from src.core.settings import settings
-
-LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
-SKIP_A_TASK = 'Пропустить задание'
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
@@ -29,8 +26,8 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
         bot_service.send_message(
             member.user,
             (
-                f"{member.user.name} {member.user.surname}, мы потеряли тебя!"
-                f"Задание все еще ждет тебя."
+                f"{member.user.name} {member.user.surname}, мы потеряли тебя! "
+                f"Задание все еще ждет тебя. "
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
             ),
@@ -41,16 +38,20 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 
 
 async def send_daily_task_job(context: CallbackContext) -> None:
-    buttons = ReplyKeyboardMarkup([[SKIP_A_TASK, LOMBARIERS_BALANCE]], resize_keyboard=True)
-    report_session_generator = get_session()
-    member_session_generator = get_session()
-    report_service = await get_report_service_callback(report_session_generator)
-    member_service = await get_member_service_callback(member_session_generator)
+    """Автоматически запускает смену и рассылает задания."""
+    shift_session = get_session()
+    report_session = get_session()
+    member_session = get_session()
+    shift_service = await get_shift_service_callback(shift_session)
+    report_service = await get_report_service_callback(report_session)
+    member_service = await get_member_service_callback(member_session)
+
+    await shift_service.start_prepared_shift()
+
     bot_service = BotService(context)
     await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
     await member_service.exclude_lagging_members(context.application)
-    current_day_of_month = date.today().day
-    task, members = await report_service.get_today_task_and_active_members(current_day_of_month)
+    task, members = await report_service.get_today_task_and_active_members(date.today().day)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
@@ -62,7 +63,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
                 f"Сегодня твоим заданием будет {task.description_for_message}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
-            buttons,
+            DAILY_TASK_BUTTONS,
         )
         for member in members
     ]
@@ -74,14 +75,3 @@ async def finish_shift_automatically_job(context: CallbackContext) -> None:
     session = get_session()
     shift_service = await get_shift_service_callback(session)
     await shift_service.finish_shift_automatically(context.application)
-
-
-async def start_shift_automatically_job(context: CallbackContext) -> None:
-    """Автоматически запускает смену в дату, указанную в started_at."""
-    session = get_session()
-    shift_service = await get_shift_service_callback(session)
-    shifts = await shift_service.list_all_shifts(status=[Shift.Status.PREPARING])
-    if shifts:
-        shift = shifts[0]
-        if shift.started_at == date.today():
-            await shift_service.start_shift(_id=shift.id)

@@ -6,14 +6,21 @@ from uuid import UUID
 
 from starlette.exceptions import HTTPException
 
+from src.core.settings import settings
+
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
 
 
-class ApplicationError(Exception):
+class ApplicationError(HTTPException):
     """Собственное исключение для бизнес-логики приложения."""
 
-    pass
+    status_code: int = None
+    detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
+    headers: Dict[str, Any] = None
+
+    def __init__(self):
+        super().__init__(status_code=self.status_code, detail=self.detail, headers=self.headers)
 
 
 class NotValidValueError(ApplicationError):
@@ -45,10 +52,10 @@ class AlreadyExistsException(ApplicationException):
         self.detail = f"Объект {obj} уже существует"
 
 
-class CurrentTaskNotFoundError(Exception):
+class CurrentTaskNotFoundError(ApplicationError):
     """Не найдено текущей задачи для пользователя."""
 
-    pass
+    detail = "Сейчас заданий нет."
 
 
 class TodayTaskNotFoundError(Exception):
@@ -57,22 +64,26 @@ class TodayTaskNotFoundError(Exception):
     pass
 
 
-class CannotAcceptReportError(Exception):
+class CannotAcceptReportError(ApplicationError):
     """Статус задания пользователя не позволяет выполнить операцию."""
 
-    pass
+    detail = "Ранее отправленный отчет проверяется или уже принят. Новые отчеты сейчас не принимаются."
 
 
-class DuplicateReportError(Exception):
+class DuplicateReportError(ApplicationError):
     """Отчет с таким фото уже отправлялся ранее."""
 
-    pass
+    detail = "Данная фотография уже использовалась в другом отчёте. Пожалуйста, загрузите другую фотографию."
 
 
-class ExceededAttemptsReportError(Exception):
+class ExceededAttemptsReportError(ApplicationError):
     """Превышено количество попыток сдать отчет."""
 
-    pass
+    detail = (
+        "Превышено количество попыток сдать отчет."
+        "Предлагаем продолжить, ведь впереди много интересных заданий. "
+        f"Следующее задание придет в {settings.formatted_task_time} часов утра."
+    )
 
 
 class EmptyReportError(Exception):
@@ -81,10 +92,10 @@ class EmptyReportError(Exception):
     pass
 
 
-class ReportSkippedError(Exception):
+class ReportSkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    pass
+    detail = f"Задание было пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
 
 
 class ShiftStartForbiddenException(ApplicationException):
@@ -226,7 +237,7 @@ class UnauthorizedException(ApplicationException):
 class AdministratorNotFoundException(ApplicationException):
     """Пользователь не найден."""
 
-    status_code = HTTPStatus.BAD_REQUEST
+    status_code = HTTPStatus.NOT_FOUND
     detail = "Пользователь с указанными реквизитами не найден."
 
 
@@ -265,3 +276,27 @@ class InvitationAlreadyActivated(ApplicationException):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Приглашение активно"
+
+
+class AdministratorChangeError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "У вас нет прав на изменение других администраторов."
+
+
+class AdministratorSelfChangeRoleError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Вы не можете изменить роль самому себе."
+
+
+class AdministratorBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "У Вас нет прав на блокировку других администраторов."
+
+
+class AdministratorSelfBlockError(ApplicationException):
+    def __init__(self):
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = "Вы не можете заблокировать себя."
