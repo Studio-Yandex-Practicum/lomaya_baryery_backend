@@ -1,10 +1,9 @@
+from datetime import datetime
 from http import HTTPStatus
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.responses import StreamingResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
 from src.core.services.analytics_service import AnalyticsService
@@ -22,13 +21,13 @@ class AnalyticsCBV:
         response_model=None,
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
-        summary="Формирование полного отчёта"
+        summary="Формирование полного отчёта",
     )
     async def generate_full_report(
         self,
     ) -> StreamingResponse:
         """Формирует excel файл со всеми отчётами."""
-        filename = f"report_{datetime.now()}.xlsx"
+        filename = f"full_report_{datetime.now()}.xlsx"
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
         workbook = await self._analytics_service.generate_full_report()
         return StreamingResponse(workbook, headers=headers)
@@ -38,7 +37,7 @@ class AnalyticsCBV:
         response_model=None,
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
-        summary="Формирование отчёта c задачами"
+        summary="Формирование отчёта c задачами",
     )
     async def generate_task_report(self) -> StreamingResponse:
         """
@@ -48,7 +47,7 @@ class AnalyticsCBV:
         - cписок всех заданий;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        filename = f"report_{datetime.now()}.xlsx"
+        filename = f"tasks_report_{datetime.now()}.xlsx"
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
         workbook = await self._analytics_service.generate_task_report()
         return StreamingResponse(workbook, headers=headers)
