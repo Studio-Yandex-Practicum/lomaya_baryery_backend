@@ -62,7 +62,6 @@ class UserService:
         user = await self.__update_or_create_user(new_user_data)
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
         if request:
-            request.user_id = user.id
             await self.__update_request_data(request)
         else:
             request = Request(user_id=user.id, shift_id=shift_id)
@@ -70,7 +69,7 @@ class UserService:
 
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""
-        await self.check_user_has_right_change_data(request.user_id)
+        await self.check_before_change_user_data(request.user_id)
         if request.status is Request.Status.DECLINED:
             if request.is_repeated < settings.MAX_REQUESTS:
                 request.is_repeated += 1
@@ -124,7 +123,7 @@ class UserService:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
 
-    async def check_user_has_right_change_data(self, user_id: UUID) -> None:
+    async def check_before_change_user_data(self, user_id: UUID) -> None:
         available_shift = await self.__shift_service.get_open_for_registration_shift_id()
         current_request = await self.__request_repository.get_by_user_and_shift(user_id, available_shift)
         if current_request.status == Request.Status.PENDING.value:

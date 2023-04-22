@@ -53,7 +53,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
         try:
-            await user_service.check_user_has_right_change_data(user.id)
+            await user_service.check_before_change_user_data(user.id)
         except exceptions.ApplicationError as e:
             await update.message.reply_text(
                 text=e.detail,
