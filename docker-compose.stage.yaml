@@ -45,7 +45,7 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - URL=lombaryery.tk
+      - URL=stage.lombaryery.tk
       - VALIDATION=http
       - CERTPROVIDER=zerossl
       - EMAIL=lomayabaryery@yandex.ru
