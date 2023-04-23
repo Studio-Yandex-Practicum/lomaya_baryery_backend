@@ -38,8 +38,10 @@ def user_register_form_webhook() -> StreamingResponse:
 
         Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
         """
-        with open(settings.registration_template, 'rb') as html_form:
-            yield from html_form
+        with open(settings.registration_template, 'r') as template:
+            endpoint_url = settings.registration_data_from_template_url
+            template_edited = (bytes(item.replace("endpoint_url", endpoint_url, 1), "utf-8") for item in template)
+            yield from template_edited
 
     return StreamingResponse(get_register_form(), media_type="text/html", headers=headers)
 
@@ -50,10 +52,7 @@ def user_register_form_webhook() -> StreamingResponse:
     response_description="Данные получены",
 )
 async def get_web_app_query_data(request: Request) -> None:
-    """Получение регистрационных данных от пользователя telegram, переданных с inline/menu кнопки.
-
-    Note: адрес данного эндпоинта указан вручную в html-шаблоне страницы регистрации!
-    """
+    """Получение регистрационных данных от пользователя telegram, переданных с inline/menu кнопки."""
     bot_instance = request.app.state.bot_instance
     request_data = await request.json()
     await bot_instance.update_queue.put(request_data)

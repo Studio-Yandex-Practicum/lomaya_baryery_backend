@@ -97,6 +97,14 @@ class Settings(BaseSettings):
         return urljoin(self.api_url, "telegram/webhook")
 
     @property
+    def registration_data_from_template_url(self) -> str:
+        """Получить url-ссылку на эндпоинт для отправки регистрационных данных напрямую из шаблона.
+
+        Используется только в случае активации формы регистрации с inline/menu кнопок.
+        """
+        return urljoin(self.api_url, "/telegram/inline_registration_data")
+
+    @property
     def registration_template(self) -> Path:
         """Получить HTML-шаблон формы регистрации."""
         return BASE_DIR / "src" / "templates" / "registration" / "registration.html"
