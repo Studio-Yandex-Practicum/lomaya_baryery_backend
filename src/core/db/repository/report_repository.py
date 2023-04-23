@@ -5,11 +5,11 @@ from fastapi import Depends
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core import exceptions
 from src.core.db import DTO_models
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, Task, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import CurrentTaskNotFoundError
 from src.core.utils import get_current_task_date
 
 
@@ -79,7 +79,7 @@ class ReportRepository(AbstractRepository):
         )
         report = reports.scalars().first()
         if not report:
-            raise CurrentTaskNotFoundError()
+            raise exceptions.CurrentTaskNotFoundError()
         return report
 
     async def get_waiting_reports(self) -> Sequence[Report]:

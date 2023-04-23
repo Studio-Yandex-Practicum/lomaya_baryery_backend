@@ -9,14 +9,10 @@ from sqlalchemy.orm import selectinload, subqueryload
 
 from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoResponse
+from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.exceptions import (
-    GetStartedShiftException,
-    NotFoundException,
-    RegistrationForbidenException,
-)
 from src.core.settings import settings
 
 
@@ -47,7 +43,7 @@ class ShiftRepository(AbstractRepository):
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
-            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+            raise exceptions.ObjectNotFoundError(Shift, id)
         return request
 
     async def list_all_requests(self, id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
@@ -101,7 +97,7 @@ class ShiftRepository(AbstractRepository):
         shift_id = await self._session.scalars(select(Shift.id).where(Shift.status == Shift.Status.STARTED))
         shift_id = shift_id.first()
         if not shift_id:
-            raise GetStartedShiftException(detail='Активной смены не найдено.')
+            raise exceptions.ShiftNotFoundError
         return shift_id
 
     async def get_open_for_registration_shift_id(self) -> UUID:
@@ -117,7 +113,7 @@ class ShiftRepository(AbstractRepository):
         shift_id = await self._session.execute(statement)
         shift_id = shift_id.scalars().first()
         if not shift_id:
-            raise RegistrationForbidenException
+            raise exceptions.RegistrationForbiddenError
         return shift_id
 
     async def get_shift_with_status_or_none(self, status: Shift.Status) -> Optional[Shift]:
@@ -137,7 +133,7 @@ class ShiftRepository(AbstractRepository):
         request = await self._session.execute(statement)
         request = request.scalars().first()
         if request is None:
-            raise NotFoundException(object_name=Shift.__doc__, object_id=id)
+            raise exceptions.ObjectNotFoundError(Shift, id)
         return request
 
     async def check_shift_existence(self, shift_id: UUID) -> bool:
@@ -207,9 +203,7 @@ class ShiftRepository(AbstractRepository):
         return (await self._session.scalars(statement)).first()
 
     async def get_preparing_shift_with_started_at_today(self) -> Optional[Shift]:
-        """Возвращает смену, если смена имеет статус preparing
-        и дата старта совпадает с текущим днём.
-        """
+        """Возвращает смену, если смена имеет статус preparing и дата старта совпадает с текущим днём."""
         statement = select(Shift).where(
             and_(
                 Shift.status == Shift.Status.PREPARING,
