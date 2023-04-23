@@ -90,6 +90,7 @@ class ShiftCBV:
     )
     async def update_shift(
         self,
+        request: FastAPIRequest,
         shift_id: UUID,
         update_shift_data: ShiftUpdateRequest,
     ) -> Any:
@@ -102,7 +103,7 @@ class ShiftCBV:
         - **final_message**: шаблон сообщения о завершении смены
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
-        return await self.shift_service.update_shift(shift_id, update_shift_data)
+        return await self.shift_service.update_shift(request.app.state.bot_instance, shift_id, update_shift_data)
 
     @router.patch(
         "/{shift_id}/start",

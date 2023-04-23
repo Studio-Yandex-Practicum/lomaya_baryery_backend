@@ -44,6 +44,8 @@ FINAL_MESSAGE = (
     "Ты можешь снова принять участие в проекте - регистрация на новый поток проекта будет доступна уже завтра!"
 )
 
+START_DATE_CHANGED_MESSAGE = "Дата старта смены изменилась. {started_at} в 08 часов утра тебе поступит первое задание."
+
 
 class ShiftService:
     def __init__(
@@ -190,10 +192,19 @@ class ShiftService:
     async def get_shift(self, _id: UUID) -> Shift:
         return await self.__shift_repository.get(_id)
 
-    async def update_shift(self, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
+    async def update_shift(self, bot: Application, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
         shift: Shift = await self.__shift_repository.get(_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
-        shift.started_at = update_shift_data.started_at
+        if shift.started_at != update_shift_data.started_at:
+            shift.started_at = update_shift_data.started_at
+            users = await self.__user_repository.get_users_by_shift_id(shift.id)
+            await self.__telegram_bot(bot).notify_that_shift_start_date_is_changed(
+                users,
+                START_DATE_CHANGED_MESSAGE.format(
+                    started_at=shift.started_at.strftime('%d.%m.%Y'),
+                ),
+            )
+
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
         shift.final_message = update_shift_data.final_message
@@ -287,9 +298,7 @@ class ShiftService:
         return shift
 
     async def start_prepared_shift(self) -> None:
-        """Запускает смену, если смена имеет статус preparing
-        и дата старта совпадает с текущим днём.
-        """
+        """Запускает смену, если смена имеет статус preparing и дата старта совпадает с текущим днём."""
         shift = await self.__shift_repository.get_preparing_shift_with_started_at_today()
         if shift:
             shift.status = Shift.Status.STARTED.value
