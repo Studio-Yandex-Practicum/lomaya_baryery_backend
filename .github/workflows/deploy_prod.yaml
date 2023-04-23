@@ -65,7 +65,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "docker-compose.prod.yaml,nginx/default.conf"
+          source: "docker-compose.prod.yaml,nginx/default.prod.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
@@ -77,6 +77,7 @@ jobs:
           script: |
             cd ${{ env.DEPLOY_PATH }}
             mv docker-compose.prod.yaml docker-compose.yaml
+            mv nginx/default.prod.conf nginx/default.conf
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
