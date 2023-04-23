@@ -6,6 +6,7 @@ from telegram.ext import (
     AIORateLimiter,
     Application,
     ApplicationBuilder,
+    ChatMemberHandler,
     CommandHandler,
     MessageHandler,
     PicklePersistence,
@@ -16,6 +17,7 @@ from telegram.ext.filters import PHOTO, TEXT, Regex, StatusUpdate
 
 from src.bot.handlers import (
     button_handler,
+    chat_member_handler,
     get_web_app_query_data,
     incorrect_report_type_handler,
     photo_handler,
@@ -52,6 +54,7 @@ def create_bot() -> Application:
         )
     )
     bot_instance.add_handler(MessageHandler(Regex(RE_PATTERN), web_app_data))
+    bot_instance.add_handler(ChatMemberHandler(chat_member_handler, ChatMemberHandler.MY_CHAT_MEMBER))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))
