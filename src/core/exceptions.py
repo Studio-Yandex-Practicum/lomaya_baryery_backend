@@ -6,7 +6,6 @@ from uuid import UUID
 
 from src.core.settings import settings
 
-
 if TYPE_CHECKING:
     from src.core.db.models import Base as DatabaseModel
     from src.core.db.models import Request, Shift
@@ -247,16 +246,10 @@ class InvitationAlreadyDeactivated(BadRequestError):
         self.detail = "Приглашение уже деактивировано"
 
 
-class ShiftTitleLenException(BadRequestError):
+class ShiftTitleLenExceptionError(BadRequestError):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Длина названия смены должна быть от 3 до 60 символов."
-
-
-class LenTitleException(BadRequestError):
-    def __init__(self):
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.detail = "Длина названия смены должна быть не более 60 символов."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):

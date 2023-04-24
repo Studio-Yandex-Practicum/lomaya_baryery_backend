@@ -33,10 +33,10 @@ class ShiftCreateRequest(RequestBase):
     @validator("title", pre=True)
     def validate_title(cls, value):
         if value.isspace():
-            raise exceptions.EmptyTitleException()
+            raise exceptions.ShiftTitleToShortError()
         value = value.strip()
         if not (3 <= len(value) <= 60):
-            raise exceptions.ShiftTitleLenException()
+            raise exceptions.ShiftTitleLenExceptionError()
         return value
 
 
