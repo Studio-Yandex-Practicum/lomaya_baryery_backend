@@ -18,7 +18,7 @@ __pypackages__/
 .venv
 .env
 .log
-
+logs/
 # Vscode project settings
 .vscode
 

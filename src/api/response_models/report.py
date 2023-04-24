@@ -6,15 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 from pydantic.schema import UUID
 
-from src.api.response_models.task import TaskInfoResponse
-from src.api.response_models.user import UserInfoResponse
 from src.core.db.models import Report, Shift
-
-
-class UserAndTaskInfoResponse(UserInfoResponse, TaskInfoResponse):
-    """Модель для ответа с обобщенной информацией о задании и юзере."""
-
-    id: UUID
 
 
 class ReportResponse(BaseModel):
@@ -28,7 +20,7 @@ class ReportResponse(BaseModel):
     task_date: date
     status: Report.Status
     report_url: Optional[str]
-    uploaded_at: datetime
+    uploaded_at: Optional[datetime]
     number_attempt: int
 
     class Config:

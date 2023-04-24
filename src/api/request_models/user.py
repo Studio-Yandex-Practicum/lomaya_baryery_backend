@@ -2,14 +2,13 @@ import enum
 import re
 from datetime import date, datetime
 from typing import Optional
-from uuid import UUID
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 from pydantic import BaseModel, Field, PastDate, StrictInt, StrictStr, validator
 
 from src.api.request_models.validators import name_surname_validator
-from src.core.db.models import Request, User
+from src.core.db.models import User
 
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
 INVALID_TEXT_ERROR = "В поле {} может быть использована только кириллица и \"-\"."
@@ -75,12 +74,6 @@ class UserCreateRequest(BaseModel):
                 self.phone_number == user.phone_number,
             )
         )
-
-
-class RequestCreateRequest(BaseModel):
-    user_id: UUID
-    shift_id: Optional[UUID] = None
-    status: Request.Status
 
 
 class UserFieldSortRequest(str, enum.Enum):

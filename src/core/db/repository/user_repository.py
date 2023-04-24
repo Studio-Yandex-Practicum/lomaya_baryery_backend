@@ -56,7 +56,16 @@ class UserRepository(AbstractRepository):
 
     async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
         user_exists = await self._session.execute(
-            select(select(User).where(or_(User.phone_number == phone_number, User.telegram_id == telegram_id)).exists())
+            select(
+                select(User)
+                .where(
+                    or_(
+                        User.phone_number == phone_number,
+                        User.telegram_id == telegram_id,
+                    )
+                )
+                .exists()
+            )
         )
         return user_exists.scalar()
 
@@ -68,13 +77,32 @@ class UserRepository(AbstractRepository):
     ) -> list[User]:
         sorting = {'desc': desc, 'asc': asc}
         users = await self._session.execute(
-            select(User)
+            select(
+                User.id,
+                User.name,
+                User.surname,
+                User.date_of_birth,
+                User.city,
+                User.phone_number,
+                User.status,
+                func.count(Member.shift).label('shifts_count'),
+                case(
+                    (
+                        ((func.count(Shift.status).filter(Shift.status == Shift.Status.STARTED)) == 1),
+                        True,
+                    ),
+                    else_=False,
+                ).label("is_in_active_shift"),
+            )
+            .join(User.members, isouter=True)
+            .join(Member.shift, isouter=True)
+            .group_by(User.id)
             .where(
                 or_(status is None, User.status == status),
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
-        return users.scalars().all()
+        return users.all()
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(

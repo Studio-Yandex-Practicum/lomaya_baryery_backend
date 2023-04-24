@@ -22,15 +22,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
-from src.core import settings
-from src.core.exceptions import (
-    CannotAcceptReportError,
-    EmptyReportError,
-    ExceededAttemptsReportError,
-    ShiftCancelForbiddenException,
-    ShiftFinishForbiddenException,
-    ShiftStartForbiddenException,
-)
+from src.core import exceptions, settings
 
 
 @as_declarative()
@@ -81,19 +73,19 @@ class Shift(Base):
 
     async def start(self):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftStartForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise exceptions.ShiftStartError(self)
         self.status = Shift.Status.STARTED.value
         self.started_at = datetime.now().date()
 
     async def finish(self):
         if self.status != Shift.Status.STARTED.value:
-            raise ShiftFinishForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise exceptions.ShiftFinishError(self)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()
 
     async def cancel(self, final_message: str):
         if self.status != Shift.Status.PREPARING.value:
-            raise ShiftCancelForbiddenException(shift_name=self.title, shift_id=self.id)
+            raise exceptions.ShiftCancelError(self)
         self.final_message = final_message
         self.status = Shift.Status.CANCELLED.value
         self.finished_at = datetime.now().date()
@@ -107,6 +99,7 @@ class Task(Base):
     url = Column(String(length=150), unique=True, nullable=False)
     description = Column(String(length=150), unique=True, nullable=False)
     description_for_message = Column(String(length=150), unique=True, nullable=False)
+    is_archived = Column(Boolean, default=False, nullable=False)
     reports = relationship("Report", back_populates="task")
 
     def __repr__(self):
@@ -214,7 +207,7 @@ class Administrator(Base):
         """Роль администратора."""
 
         ADMINISTRATOR = "administrator"
-        PSYCHOLOGIST = "psychologist"
+        EXPERT = "expert"
 
     __tablename__ = "administrators"
 
@@ -272,18 +265,18 @@ class Report(Base):
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 
     def __repr__(self):
-        return f"<Report: {self.id}, task_date: {self.task_date}, " f"status: {self.status}>"
+        return f"<Report: {self.id}, task_date: {self.task_date}, status: {self.status}>"
 
     def send_report(self, photo_url: str):
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
-            raise ExceededAttemptsReportError
+            raise exceptions.ExceededAttemptsReportError
         if not photo_url:
-            raise EmptyReportError()
+            raise exceptions.EmptyReportError
         if self.status not in (
             Report.Status.WAITING.value,
             Report.Status.DECLINED.value,
         ):
-            raise CannotAcceptReportError()
+            raise exceptions.CannotAcceptReportError
         self.status = Report.Status.REVIEWING.value
         self.report_url = photo_url
         self.uploaded_at = datetime.now()
@@ -307,4 +300,4 @@ class AdministratorInvitation(Base):
     expired_datetime = Column(TIMESTAMP, nullable=False)
 
     def __repr__(self) -> str:
-        return f"Приглашение: {self.id}, эл.почта: {self.email}, фамилия:" f" {self.surname}, имя: {self.name}"
+        return f"<AdministratorInvitation: {self.id}, email: {self.email}, surname: {self.surname}, name: {self.name}>"

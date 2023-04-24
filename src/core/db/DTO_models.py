@@ -1,3 +1,4 @@
+
 from dataclasses import dataclass
 from datetime import date, datetime
 from uuid import UUID
@@ -32,6 +33,14 @@ class FullReportDto:
     task_description_for_message: str
     task_url: str
     photo_url: str
+
+
+@dataclass
+class TasksAnalyticReportDto:
+    description: str
+    approved: int
+    declined: int
+    skipped: int
 
 
 @dataclass

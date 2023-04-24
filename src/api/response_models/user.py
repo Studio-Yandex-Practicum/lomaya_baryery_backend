@@ -20,15 +20,18 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-class UserInfoResponse(BaseModel):
-    """Схема для отображения краткой информации о пользователе."""
-
-    name: str
-    surname: str
-
-
 class UserWithStatusResponse(UserResponse):
+    """Схема для отображения расширенной информации о пользователе.
+
+    Дополнительная информация включает в себя:
+    - cтатус пользователя,
+    - количество пройденных смен,
+    - флаг участия в активной смене.
+    """
+
     status: User.Status
+    shifts_count: int
+    is_in_active_shift: bool
 
 
 class UsersShiftDetailResponse(BaseModel):

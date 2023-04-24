@@ -17,7 +17,7 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedException
+from src.core.exceptions import UnauthorizedError
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -71,7 +71,7 @@ class AdministratorCBV:
         """
         await self.authentication_service.get_current_active_administrator(token.credentials)
         if not refresh_token:
-            raise UnauthorizedException()
+            raise UnauthorizedError
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token
@@ -84,7 +84,7 @@ class AdministratorCBV:
         status_code=HTTPStatus.OK,
         summary="Информация об администраторе",
         response_description="Информация о текущем активном администраторе",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED),
     )
     async def get_me(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
         """Получить информацию о текущем активном администраторе."""
@@ -136,7 +136,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Изменить роль администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def administrator_change_role(
         self,
@@ -152,7 +152,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Сброс пароля администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def administrator_reset_password(
         self,
@@ -167,7 +167,7 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Заблокировать администратора.",
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def administrator_blocking(
         self,

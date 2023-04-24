@@ -47,14 +47,14 @@ class ReportsCBV:
         - **photo_url**: url фото выполненной задачи
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
-        return await self.report_service.get_report_with_report_url(report_id)
+        return await self.report_service.get_report(report_id)
 
     @router.patch(
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
         summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
         response_model=ReportResponse,
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
     )
     async def approve_task_status(
         self,
@@ -70,7 +70,7 @@ class ReportsCBV:
         status_code=HTTPStatus.OK,
         summary="Отклонить задание.",
         response_model=ReportResponse,
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
     )
     async def decline_task_status(
         self,

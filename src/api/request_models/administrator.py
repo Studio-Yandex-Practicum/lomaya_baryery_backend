@@ -2,7 +2,6 @@ from pydantic import EmailStr, Field, SecretStr, StrictStr, validator
 
 from src.api.request_models.request_base import RequestBase
 from src.api.request_models.validators import name_surname_validator
-from src.core.db.models import Administrator
 from src.core.settings import settings
 
 
@@ -39,19 +38,6 @@ class AdministratorRegistrationRequest(RequestBase):
         ):
             raise ValueError("Пароль должен содержать хотя бы одну заглавную букву, одну строчную и одну цифру.")
         return value
-
-
-class AdministratorListRequest(RequestBase):
-    """Схема для запроса списка администраторов."""
-
-    status: Administrator.Status | None
-    role: Administrator.Role | None
-
-
-class RefreshToken(RequestBase):
-    """Схема для передачи refresh токена."""
-
-    refresh_token: str
 
 
 class AdministratorPasswordResetRequest(RequestBase):
