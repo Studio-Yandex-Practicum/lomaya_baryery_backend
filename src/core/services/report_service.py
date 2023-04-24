@@ -191,3 +191,7 @@ class ReportService:
             for day in range((today - shift.started_at).days, 0, -1)
         ]
         await self.__report_repository.create_all(reports)
+
+    async def check_yesterday_report_status(self, member_id: UUID) -> bool:
+        """Проверяет статус вчерашнего отчета."""
+        return await self.__report_repository.check_yesterday_report_status(member_id)

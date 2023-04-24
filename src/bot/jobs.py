@@ -59,9 +59,18 @@ async def send_daily_task_job(context: CallbackContext) -> None:
             member.user,
             task_photo,
             (
-                f"Привет, {member.user.name}!\n"
-                f"Сегодня твоим заданием будет {task.description_for_message}. "
-                f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
+                (
+                    f"Привет, {member.user.name}!\n"
+                    f"Ты не выполнил вчерашнее задание! Сегодня можешь отправить отчет только по новому заданию. "
+                    f"Сегодня твоим заданием будет {task.description_for_message}. "
+                    f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
+                )
+                if await report_service.check_yesterday_report_status(member.id)
+                else (
+                    f"Привет, {member.user.name}!\n"
+                    f"Сегодня твоим заданием будет {task.description_for_message}. "
+                    f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
+                )
             ),
             DAILY_TASK_BUTTONS,
         )

@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Optional, Sequence
 from uuid import UUID
 
@@ -91,3 +92,17 @@ class ReportRepository(AbstractRepository):
             report.status = status
         self._session.add_all(reports_list)
         await self._session.commit()
+
+    async def check_yesterday_report_status(self, member_id: UUID) -> bool:
+        """Проверяет статус вчерашнего отчета по id участника смены."""
+        yesterday = date.today() - timedelta(days=1)
+        report = await self._session.execute(
+            select(Report).where(
+                Report.member_id == member_id,
+                Report.task_date == yesterday,
+            )
+        )
+        report = report.scalars().first()
+        if not report or report.status != Report.Status.SKIPPED:
+            return False
+        return True
