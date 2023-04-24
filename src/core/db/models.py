@@ -13,6 +13,7 @@ from sqlalchemy import (
     Identity,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     func,
     select,
@@ -301,3 +302,30 @@ class AdministratorInvitation(Base):
 
     def __repr__(self) -> str:
         return f"<AdministratorInvitation: {self.id}, email: {self.email}, surname: {self.surname}, name: {self.name}>"
+
+
+class MessageHistory(Base):
+    """Хрениние истории отправленных сообщений."""
+
+    class Status(str, enum.Enum):
+        """Статус отправленного сообщения."""
+
+        REGISTRATION = "registration"
+        GET_TASK = "get_task"
+        REPORT_MENTION = "report_mention"
+        PARTICIPATION_DECISION = "participation_decision"
+        STATUS_OF_CHECKED_TASK = "status_of_checked_task"
+        EXCLUDE_FROM_SHIFT = "exclude_from_shift"
+        SHIFT_ENDED = "shift_ended"
+        SHIFT_CANCELED = "shift_canceled"
+
+    __tablename__ = 'message_history'
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    message = Column(Text, nullable=False)
+    chat_id = Column(BigInteger, nullable=False)
+    status = Column(
+        Enum(Status, name="message_history_status", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+    )
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
