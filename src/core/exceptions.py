@@ -240,12 +240,6 @@ class ShiftTitleToShortError(BadRequestError):
         self.detail = "Нельзя создавать/изменять название смены из пробелов."
 
 
-class InvitationAlreadyDeactivated(BadRequestError):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Приглашение уже деактивировано"
-
-
 class ShiftTitleLenExceptionError(BadRequestError):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
