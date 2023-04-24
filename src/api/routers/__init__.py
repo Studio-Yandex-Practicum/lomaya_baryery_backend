@@ -2,6 +2,7 @@ from src.api.routers.administrator import router as administrator_router  # noqa
 from src.api.routers.administrator_invitation import (  # noqa
     router as administrator_invitation_router,
 )
+from src.api.routers.analytics import router as analytics_router  # noqa
 from src.api.routers.healthcheck import router as healthcheck_router  # noqa
 from src.api.routers.report import router as report_router  # noqa
 from src.api.routers.request import router as request_router  # noqa

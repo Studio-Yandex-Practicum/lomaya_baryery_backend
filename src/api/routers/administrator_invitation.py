@@ -33,13 +33,12 @@ class AdministratorInvitationCBV:
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.CREATED,
         responses=generate_error_responses(
-            HTTPStatus.FORBIDDEN,
             HTTPStatus.UNAUTHORIZED,
             HTTPStatus.NOT_FOUND,
             HTTPStatus.BAD_REQUEST,
             HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
-        summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/психолога",
+        summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/эксперта",
     )
     async def create_and_send_invitation(
         self,
@@ -57,7 +56,7 @@ class AdministratorInvitationCBV:
         '/invitations',
         response_model=list[AdministratorInvitationResponse],
         status_code=HTTPStatus.OK,
-        responses=generate_error_responses(HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED),
         summary="Получить информацию о приглашениях, отправленных администраторам",
         response_description="Информация о приглашениях",
     )
@@ -88,7 +87,7 @@ class AdministratorInvitationCBV:
         '/invitations/{invitation_id}/deactivate',
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
-        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
         summary="Деактивировать приглашение, отравленное администратору",
         response_description="Информация о приглашении",
     )
@@ -103,10 +102,10 @@ class AdministratorInvitationCBV:
         '/invitations/{invitation_id}/reactivate',
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
-        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
         summary=(
             "Активировать приглашение повторно и отправить ссылку"
-            "на почту для регистрации нового администратора/психолога"
+            "на почту для регистрации нового администратора/эксперта"
         ),
         response_description="Информация о приглашении",
     )

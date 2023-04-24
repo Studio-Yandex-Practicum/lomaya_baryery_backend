@@ -188,8 +188,6 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     if update.message.text == SKIP_A_TASK:
         try:
             await skip_report(update.effective_chat.id)
-        except exceptions.ReportAlreadyReviewedException:
-            text = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
         except exceptions.ApplicationError as e:
             text = e.detail
         else:
@@ -222,3 +220,22 @@ async def skip_report(chat_id: int) -> None:
 async def incorrect_report_type_handler(update: Update, context: CallbackContext) -> None:
     """Отправка пользователю предупреждения о несоответствии типа данных ожидаемому."""
     await update.message.reply_text("Отчёт по заданию должен быть отправлен в виде фотографии.")
+
+
+async def chat_member_handler(update: Update, context: CallbackContext) -> None:
+    """Меняет значение поля telegram_blocked при блокировке/разблокировке бота."""
+    session_gen = get_session()
+    session = await session_gen.asend(None)
+    user_service = UserService(UserRepository(session))
+    user = await user_service.get_user_by_telegram_id(update.effective_user.id)
+    if (
+        update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.BANNED
+        and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.MEMBER
+    ):
+        return await user_service.set_telegram_blocked(user)
+    if (
+        update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.MEMBER
+        and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.BANNED
+    ):
+        return await user_service.unset_telegram_blocked(user)
+    return None

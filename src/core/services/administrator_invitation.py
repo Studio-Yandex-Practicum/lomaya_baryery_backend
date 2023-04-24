@@ -6,16 +6,11 @@ from fastapi import Depends
 from src.api.request_models.administrator_invitation import (
     AdministratorInvitationRequest,
 )
-from src.core import settings
+from src.core import exceptions, settings
 from src.core.db.models import AdministratorInvitation
 from src.core.db.repository import (
     AdministratorInvitationRepository,
     AdministratorRepository,
-)
-from src.core.exceptions import (
-    AdministratorAlreadyExistsException,
-    InvitationAlreadyActivated,
-    InvitationAlreadyDeactivated,
 )
 
 
@@ -29,13 +24,13 @@ class AdministratorInvitationService:
         self.__administrator_repository = administrator_repository
 
     async def create_mail_request(self, invitation_data: AdministratorInvitationRequest) -> AdministratorInvitation:
-        """Создает в БД приглашение для регистрации нового администратора/психолога.
+        """Создает в БД приглашение для регистрации нового администратора/'эксперта'.
 
         Аргументы:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные
         """
         if await self.__administrator_repository.check_administrator_existence(invitation_data.email):
-            raise AdministratorAlreadyExistsException
+            raise exceptions.AdministratorAlreadyExistsError
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(
             AdministratorInvitation(**invitation_data.dict(), expired_datetime=expiration_date)
@@ -59,7 +54,7 @@ class AdministratorInvitationService:
     async def deactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)
         if invitation.expired_datetime < datetime.now():
-            raise InvitationAlreadyDeactivated()
+            raise exceptions.InvitationAlreadyDeactivatedError
         invitation.expired_datetime = datetime.now() - timedelta(days=1)
         await self.__administrator_mail_request_repository.update(invitation_id, invitation)
         return invitation
@@ -67,7 +62,7 @@ class AdministratorInvitationService:
     async def reactivate_invitation(self, invitation_id: UUID) -> AdministratorInvitation:
         invitation = await self.get_invitation_by_id(invitation_id)
         if invitation.expired_datetime > datetime.now():
-            raise InvitationAlreadyActivated()
+            raise exceptions.InvitationAlreadyActivatedError
         invitation.expired_datetime = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         await self.__administrator_mail_request_repository.update(invitation_id, invitation)
         return invitation

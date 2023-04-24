@@ -8,16 +8,10 @@ from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
 from src.bot import services
+from src.core import exceptions
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
-from src.core.exceptions import (
-    DuplicateReportError,
-    NotFoundException,
-    ReportAlreadyReviewedException,
-    ReportSkippedError,
-    ReportWaitingPhotoException,
-)
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
@@ -50,11 +44,11 @@ class ReportService:
     async def check_duplicate_report(self, url: str) -> None:
         report = await self.__report_repository.get_by_report_url(url)
         if report:
-            raise DuplicateReportError()
+            raise exceptions.DuplicateReportError
 
     async def check_report_skipped(self, report: Report) -> None:
         if report.status == Report.Status.SKIPPED:
-            raise ReportSkippedError()
+            raise exceptions.ReportAlreadySkippedError
 
     async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
@@ -93,9 +87,9 @@ class ReportService:
         """Задание пропущено: изменение статуса."""
         report = await self.__report_repository.get_current_report(user_id)
         if report.status is Report.Status.SKIPPED:
-            raise ReportSkippedError()
+            raise exceptions.ReportAlreadySkippedError
         if report.status is not Report.Status.WAITING:
-            raise ReportAlreadyReviewedException(status=report.status)
+            raise exceptions.ReportCantBeSkippedError
         report.status = Report.Status.SKIPPED
         return await self.__report_repository.update(report.id, report)
 
@@ -119,9 +113,9 @@ class ReportService:
     def __can_change_status(self, status: Report.Status) -> None:
         """Проверка статуса задания перед изменением."""
         if status in (Report.Status.APPROVED, Report.Status.DECLINED):
-            raise ReportAlreadyReviewedException(status=status)
+            raise exceptions.ReportAlreadyReviewedError
         if status is Report.Status.WAITING:
-            raise ReportWaitingPhotoException
+            raise exceptions.ReportWaitingPhotoError
 
     async def __finish_shift_with_all_reports_reviewed(self, shift: Shift) -> None:
         """Закрывает смену, если не осталось непроверенных заданий."""
@@ -140,7 +134,7 @@ class ReportService:
         """
         shift_exists = await self.__shift_repository.check_shift_existence(shift_id)
         if not shift_exists:
-            raise NotFoundException(object_name=Shift.__name__, object_id=shift_id)
+            raise exceptions.ObjectNotFoundError(Shift, shift_id)
         reports = await self.__report_repository.get_summaries_of_reports(shift_id, status)
         for report in reports:
             report.task_url = urljoin(settings.APPLICATION_URL, report.task_url)

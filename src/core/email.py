@@ -3,7 +3,7 @@ from typing import Any
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 
-from src.core.exceptions import EmailSendException
+from src.core import exceptions
 from src.core.settings import settings
 
 
@@ -53,7 +53,7 @@ class EmailProvider:
         try:
             await fastmail.send_message(message, template_name)
         except Exception as exc:
-            raise EmailSendException(email_obj.recipients, exc)
+            raise exceptions.EmailSendError(email_obj.recipients, exc)
 
     async def send_invitation_link(self, url: str, name: str, email: str) -> None:
         """Отправляет указанным адресатам ссылку для регистрации в проекте.
