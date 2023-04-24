@@ -251,9 +251,7 @@ class AdministratorBlockError(ForbiddenError):
 
 
 class AdministratorInvitationError(ForbiddenError):
-    def __init__(self):
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.detail = "Для работы с приглашениями необходимы права администратора."
+    detail = "Для работы с приглашениями необходима роль администратора."
 
 
 class AdministratorSelfBlockError(ForbiddenError):
