@@ -78,7 +78,7 @@ class AuthenticationService:
         if administrator.status == Administrator.Status.BLOCKED:
             raise exceptions.AdministratorBlockedError
         if is_admin and administrator.role is not Administrator.Role.ADMINISTRATOR:
-            raise exceptions.AdministratorInviteError()
+            raise exceptions.AdministratorInviteError
         return administrator
 
     async def refresh(self, token: str) -> AdministratorAndTokensDTO:
