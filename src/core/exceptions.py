@@ -235,7 +235,7 @@ class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
 
 
-class EmptyTitleException(BadRequestError):
+class ShiftTitleToShortError(BadRequestError):
     def __init__(self):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = "Нельзя создавать/изменять название смены из пробелов."
@@ -245,6 +245,12 @@ class InvitationAlreadyDeactivated(BadRequestError):
     def __init__(self):
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = "Приглашение уже деактивировано"
+
+
+class ShiftTitleLenException(BadRequestError):
+    def __init__(self):
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = "Длина названия смены должна быть от 3 до 60 символов."
 
 
 class LenTitleException(BadRequestError):
