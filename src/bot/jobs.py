@@ -56,23 +56,23 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
         bot_service.send_photo(
-            member.user,
-            task_photo,
-            (
+            user=member.user,
+            photo=task_photo,
+            caption=(
                 (
                     f"Привет, {member.user.name}!\n"
-                    f"Ты не выполнил вчерашнее задание! Сегодня можешь отправить отчет только по новому заданию. "
+                    f"Ты не выполнил вчерашнее задание! Сегодня можешь отправить отчет только по новому заданию."
                     f"Сегодня твоим заданием будет {task.description_for_message}. "
                     f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
                 )
-                if await report_service.check_yesterday_report_status(member.id)
+                if await report_service.is_previous_report_submitted(member.id)
                 else (
                     f"Привет, {member.user.name}!\n"
                     f"Сегодня твоим заданием будет {task.description_for_message}. "
                     f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
                 )
             ),
-            DAILY_TASK_BUTTONS,
+            reply_markup=DAILY_TASK_BUTTONS,
         )
         for member in members
     ]
