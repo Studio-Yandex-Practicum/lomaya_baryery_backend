@@ -27,7 +27,7 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Одобрить заявку на участие.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def approve_request_status(
         self,
@@ -43,7 +43,7 @@ class RequestCBV:
         response_model=RequestResponse,
         status_code=HTTPStatus.OK,
         summary="Отклонить заявку на участие.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
     )
     async def decline_request_status(
         self,

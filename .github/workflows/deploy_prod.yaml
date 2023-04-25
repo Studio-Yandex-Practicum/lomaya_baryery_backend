@@ -1,4 +1,4 @@
-name: Stage backend build and deploy
+name: Prod backend build and deploy
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: https://stage.lombaryery.tk/api/healthcheck
+  HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
 
 defaults:
   run:
@@ -24,7 +24,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment:
-      name: Stage
+      name: prod_deploy
 
     steps:
       - name: Check out the repo
@@ -45,18 +45,16 @@ jobs:
           labels: runnumber=${GITHUB_RUN_ID}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:stage,
-            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest,
+            ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:prod,
             ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-
-  deploy:
-    name: Deploy
+  start_application:
+    name: Start application
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     needs: build_and_push_docker_image
     environment:
-      name: Stage
+      name: prod_deploy
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -66,8 +64,8 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          source: "docker-compose.stage.yaml,nginx/default.conf"
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yaml,nginx/default.prod.conf"
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Create .env file
@@ -75,10 +73,11 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
-            mv docker-compose.stage.yaml docker-compose.yaml
+            mv docker-compose.prod.yaml docker-compose.yaml
+            mv nginx/default.prod.conf nginx/default.conf
             rm -f .env
             touch .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
@@ -96,39 +95,34 @@ jobs:
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
             echo TZ=${{ secrets.TZ }} >> .env
 
-  start_application:
-    name: Start application
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    environment:
-      name: Stage
-    needs: deploy
-    steps:
       - name: Start application
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
-            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:prod
             docker-compose --file docker-compose.yaml stop
             docker-compose --file docker-compose.yaml rm backend
             docker-compose --file docker-compose.yaml up -d
+
       - name: Making migrations
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
+
       - name: Sleep for 30 seconds
         run: sleep 30s
         shell: bash
+
       - name: Get the status of healthcheck
         uses: im-open/url-status-check@v1.1.0
         with:

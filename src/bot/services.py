@@ -123,3 +123,10 @@ class BotService:
         """Уведомляет пользователей об отмене смены."""
         send_message_tasks = [self.send_message(user, final_message) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
+
+    async def notify_that_shift_start_date_is_changed(
+        self, users: list[models.User], start_date_changed_message: str
+    ) -> None:
+        """Уведомляет пользователей о переносе даты старта смены."""
+        send_message_tasks = [self.send_message(user, start_date_changed_message) for user in users]
+        self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
