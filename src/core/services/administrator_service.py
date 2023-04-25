@@ -70,15 +70,19 @@ class AdministratorService:
 
         return await self.__administrator_repository.update(administrator.id, administrator)
 
-    async def restore_administrator_password(self, email: str) -> Administrator:
-        """
-        Восстановление пароля администратора.
+    async def restore_administrator_password(self, changed_by: Administrator, email: str) -> Administrator:
+        """Сброс пароля администратора.
 
+        Любой пользователь может сбросить пароль самому себе.
+        Сбрасывать пароль другим администратором может только  пользователь с ролью `Administrator.Role.ADMINISTRATOR`
         -Генерация нового пароля.
         -Хэширование нового пароля.
         -Сохранеине нового пароля в БД.
         -Отправка нового пароля на почту Администратору/Эксперту.
         """
+        if changed_by.role is not Administrator.Role.ADMINISTRATOR and changed_by.email != email:
+            raise exceptions.AdministratorRestPasswordError
+
         password = self.__create_new_password()
         administrator = await self.__set_new_password(password, email)
         await self.__email.send_restored_password(password, email)

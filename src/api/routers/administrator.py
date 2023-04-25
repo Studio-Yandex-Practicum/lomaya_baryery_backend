@@ -152,15 +152,15 @@ class AdministratorCBV:
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Сброс пароля администратора.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
     )
     async def administrator_reset_password(
         self,
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.restore_administrator_password(payload.email)
+        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.restore_administrator_password(current_admin, payload.email)
 
     @router.patch(
         "/{administrator_id}/block",

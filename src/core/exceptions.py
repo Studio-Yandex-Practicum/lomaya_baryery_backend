@@ -252,3 +252,7 @@ class AdministratorBlockError(ForbiddenError):
 
 class AdministratorSelfBlockError(ForbiddenError):
     detail = "Вы не можете заблокировать себя."
+
+
+class AdministratorRestPasswordError(ForbiddenError):
+    detail = "Вы не можете сбросить пароль другому пользователю"
