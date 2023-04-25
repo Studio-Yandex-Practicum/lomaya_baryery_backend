@@ -14,8 +14,6 @@ class MessageHistoryService:
         self.__shift_repository = shift_repository
 
     async def create_history_message(self, user_id, chat_id, message, status) -> None:
-        shift = self.__shift_repository.get_started_shift_id()
-        history_message = MessageHistory(
-            user_id=user_id, chat_id=chat_id, message=message, status=status, shift_id=shift
-        )
+        shift = await self.__shift_repository.get_started_shift_id()
+        history_message = MessageHistory(user_id, chat_id, message, status, shift)
         await self.__history_message_repository.create(instance=history_message)

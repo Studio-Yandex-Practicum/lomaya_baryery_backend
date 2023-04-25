@@ -18,12 +18,21 @@ class BotService:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
-    async def send_message(self, user: models.User, text: str) -> None:
+    async def send_message(
+        self,
+        user: models.User,
+        text: str,
+        status: str,
+    ) -> None:
         if user.telegram_blocked:
             return
         chat_id = user.telegram_id
         try:
             await self.__bot.send_message(chat_id=chat_id, text=text)
+            # Тут я хотел написать код который записывал бы в БД после отправки сообщения
+            # session = get_session()
+            # history_service = await history_message()
+            # await history_service.create_history_message(user.id, chat_id, text, status)
         except Exception as exc:
             await error_handler(chat_id, exc)
 
@@ -46,7 +55,8 @@ class BotService:
             f"{first_task_date} в {settings.formatted_task_time} часов утра "
             "тебе поступит первое задание."
         )
-        await self.send_message(user, text)
+        status = models.MessageHistory.Event.PARTICIPATION_DECISION
+        await self.send_message(user, text, status)
 
     async def notify_declined_request(
         self, user: models.User, decline_request_data: RequestDeclineRequest | None

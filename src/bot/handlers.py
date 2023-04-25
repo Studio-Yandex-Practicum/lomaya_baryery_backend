@@ -14,7 +14,7 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
-from src.bot.api_services import get_user_service_callback
+from src.bot.api_services import get_history_service_callback, get_user_service_callback
 from src.bot.ui import LOMBARIERS_BALANCE, SKIP_A_TASK
 from src.core import exceptions
 from src.core.db.db import get_session
@@ -34,6 +34,8 @@ from src.core.services.user_service import UserService
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 
+# from src.core.services.history_message_service import MessageHistoryService
+
 
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
@@ -44,17 +46,23 @@ async def start(update: Update, context: CallbackContext) -> None:
         "Каждый месяц мы будем подводить итоги "
         "и награждать самых активных и старательных ребят!"
     )
-    session = get_session()
-    user_service = await get_user_service_callback(session)
+    user_session = get_session()
+    history_session = get_session()
+    user_service = await get_user_service_callback(user_session)
+    history_service = await get_history_service_callback(history_session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
+        await history_service.create_history_message(
+            user.id, update.effective_chat.id, start_text, status="registration"
+        )
         await update_user_data(update, context)
     else:
         await register_user(update, context)
+        await history_service.create_history_message(user, update.effective_chat.id, start_text, status="registration")
 
 
 async def register_user(

@@ -13,7 +13,6 @@ from sqlalchemy import (
     Identity,
     Integer,
     String,
-    Text,
     UniqueConstraint,
     func,
     select,
@@ -307,7 +306,7 @@ class AdministratorInvitation(Base):
 class MessageHistory(Base):
     """Хрениние истории отправленных сообщений."""
 
-    class Status(str, enum.Enum):
+    class Event(str, enum.Enum):
         """Статус отправленного сообщения."""
 
         REGISTRATION = "registration"
@@ -322,10 +321,13 @@ class MessageHistory(Base):
     __tablename__ = 'message_history'
 
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
-    message = Column(Text, nullable=False)
+    message = Column(String(400), nullable=False)
     chat_id = Column(BigInteger, nullable=False)
     status = Column(
-        Enum(Status, name="message_history_status", values_callable=lambda obj: [e.value for e in obj]),
+        Enum(Event, name="message_history_status", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
     )
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<MessageHistory: {self.user_id} - {self.status}"
