@@ -65,7 +65,7 @@ class AuthenticationService:
             administrator=administrator,
         )
 
-    async def get_current_active_administrator(self, token: str, is_admin: bool = False) -> Administrator:
+    async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
@@ -77,8 +77,6 @@ class AuthenticationService:
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise exceptions.AdministratorBlockedError
-        if is_admin and administrator.role is not Administrator.Role.ADMINISTRATOR:
-            raise exceptions.AdministratorInviteError
         return administrator
 
     async def refresh(self, token: str) -> AdministratorAndTokensDTO:
@@ -89,3 +87,29 @@ class AuthenticationService:
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
             administrator=administrator,
         )
+
+    async def check_is_active_administrator(self, token: str) -> None:
+        """Аутентифицировать активного администратора."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        check_result = await self.__administrator_repository.check_active_administrator_existence(email)
+        if not check_result:
+            raise exceptions.AdministratorBlockedError
+
+    async def check_is_active_superadministrator(self, token: str) -> None:
+        """Аутентифицировать активного администратора с ролью суперпользователя."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        check_result = await self.__administrator_repository.check_active_super_administrator_existence(email)
+        if not check_result:
+            raise exceptions.AdministratorInviteError

@@ -46,7 +46,7 @@ class AdministratorInvitationCBV:
         invitation_data: AdministratorInvitationRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
-        await self.authentication_service.get_current_active_administrator(token.credentials, is_admin=True)
+        await self.authentication_service.check_is_active_superadministrator(token.credentials)
         invite = await self.administrator_invitation_service.create_mail_request(invitation_data)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invite.token}")
         await self.email_provider.send_invitation_link(url, invite.name, invite.email)
@@ -63,7 +63,7 @@ class AdministratorInvitationCBV:
     async def get_all_invitations(
         self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> list[AdministratorInvitationResponse]:
-        await self.authentication_service.get_current_active_administrator(token.credentials, is_admin=True)
+        await self.authentication_service.check_is_active_superadministrator(token.credentials)
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
@@ -94,7 +94,7 @@ class AdministratorInvitationCBV:
     async def deactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        await self.authentication_service.get_current_active_administrator(token.credentials, is_admin=True)
+        await self.authentication_service.check_is_active_superadministrator(token.credentials)
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
@@ -111,7 +111,7 @@ class AdministratorInvitationCBV:
     async def reactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        await self.authentication_service.get_current_active_administrator(token.credentials, is_admin=True)
+        await self.authentication_service.check_is_active_superadministrator(token.credentials)
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
