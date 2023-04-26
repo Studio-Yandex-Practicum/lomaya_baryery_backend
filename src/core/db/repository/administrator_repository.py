@@ -55,7 +55,7 @@ class AdministratorRepository(AbstractRepository):
         )
         return (await self._session.scalars(statement)).all()
 
-    async def check_active_administrator_existence(self, email: str) -> bool:
+    async def check_active_admin_existence(self, email: str) -> bool:
         """Проверяет существование активного администратора по email.
 
         Аргументы:
@@ -70,8 +70,8 @@ class AdministratorRepository(AbstractRepository):
         )
         return active_administrator_exists.scalar()
 
-    async def check_active_super_administrator_existence(self, email: str) -> bool:
-        """Проверяет существование активного администратора с ролью суперпользователя по email.
+    async def check_active_admin_is_administrator_existence(self, email: str) -> bool:
+        """Проверяет существование активного администратора с ролью `АДМИНИСТРАТОР` по email.
 
         Аргументы:
             email (str) - email администратора.

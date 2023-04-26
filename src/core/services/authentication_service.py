@@ -44,6 +44,21 @@ class AuthenticationService:
         to_encode = {"email": email, "exp": expire}
         return jwt.encode(to_encode, settings.SECRET_KEY, ALGORITHM)
 
+    def __decode_jwt_token_and_get_user_email(self, token: str) -> str:
+        """Расшифровать jwt-токен и вернуть e-mail пользователя.
+
+        Аргумент:
+            token (str) - jwt-токен
+        """
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        return email
+
     async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
         """Аутентификация администратора по email и паролю."""
         administrator = await self.__administrator_repository.get_by_email(auth_data.email)
@@ -67,13 +82,7 @@ class AuthenticationService:
 
     async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
+        email = self.__decode_jwt_token_and_get_user_email(token)
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise exceptions.AdministratorBlockedError
@@ -88,28 +97,16 @@ class AuthenticationService:
             administrator=administrator,
         )
 
-    async def check_is_active_administrator(self, token: str) -> None:
-        """Аутентифицировать активного администратора."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
-        check_result = await self.__administrator_repository.check_active_administrator_existence(email)
+    async def check_is_authorized_profile_has_any_role(self, token: str) -> None:
+        """Аутентифицировать активного администратора по токену."""
+        email = self.__decode_jwt_token_and_get_user_email(token)
+        check_result = await self.__administrator_repository.check_active_admin_existence(email)
         if not check_result:
             raise exceptions.AdministratorBlockedError
 
-    async def check_is_active_superadministrator(self, token: str) -> None:
-        """Аутентифицировать активного администратора с ролью суперпользователя."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
-        check_result = await self.__administrator_repository.check_active_super_administrator_existence(email)
+    async def check_is_authorized_profile_has_role_administrator(self, token: str) -> None:
+        """Аутентифицировать активного администратора с ролью `АДМИНИСТРАТОР` по токену."""
+        email = self.__decode_jwt_token_and_get_user_email(token)
+        check_result = await self.__administrator_repository.check_active_admin_is_administrator_existence(email)
         if not check_result:
             raise exceptions.AdministratorInviteError
