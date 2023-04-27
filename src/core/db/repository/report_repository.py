@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Optional, Sequence
 from uuid import UUID
 
@@ -95,7 +95,7 @@ class ReportRepository(AbstractRepository):
 
     async def is_previous_report_submitted(self, member_id: UUID) -> bool:
         """Проверить статус вчерашнего отчета по id участника смены."""
-        yesterday = date.today() - timedelta(days=1)
+        yesterday = get_current_task_date() - timedelta(days=1)
         exists_criteria = select(
             exists(Report).where(
                 Report.member_id == member_id,
