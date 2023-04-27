@@ -12,7 +12,7 @@ DAILY_TASK_BUTTONS = ReplyKeyboardMarkup(
 CONFIRM_SKIP_TASK = 'Пропустить'
 CANCEL_SKIP_TASK = 'Отмена'
 
-CONFIRM_SKIP_TASK_BUTTONS = InlineKeyboardMarkup(
+CONFIRM_SKIP_TASK_KEYBOARD = InlineKeyboardMarkup(
     [
         [
             InlineKeyboardButton(CONFIRM_SKIP_TASK, callback_data=CONFIRM_SKIP_TASK),

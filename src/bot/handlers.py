@@ -18,7 +18,7 @@ from src.bot.api_services import get_user_service_callback
 from src.bot.ui import (
     CANCEL_SKIP_TASK,
     CONFIRM_SKIP_TASK,
-    CONFIRM_SKIP_TASK_BUTTONS,
+    CONFIRM_SKIP_TASK_KEYBOARD,
     LOMBARIERS_BALANCE,
     SKIP_A_TASK,
 )
@@ -194,7 +194,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     elif update.message.text == SKIP_A_TASK:
         await update.message.reply_text(
             "Ты нажал пропустить задание. Если ты пропустишь задание, то не сможешь отправить отчёт сегодня.",
-            reply_markup=CONFIRM_SKIP_TASK_BUTTONS,
+            reply_markup=CONFIRM_SKIP_TASK_KEYBOARD,
         )
 
 
