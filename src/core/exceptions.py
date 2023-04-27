@@ -17,10 +17,6 @@ class ApplicationError(Exception):
     detail: str = "О! Какая-то неопознанная ошибка. Мы её обязательно опознаем и исправим!"
 
 
-class NotFoundError(ApplicationError):
-    status_code: HTTPStatus = HTTPStatus.NOT_FOUND
-
-
 class BadRequestError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.BAD_REQUEST
 
@@ -28,6 +24,14 @@ class BadRequestError(ApplicationError):
 class UnauthorizedError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.UNAUTHORIZED
     detail = "У Вас нет прав для просмотра запрошенной страницы."
+
+
+class ForbiddenError(ApplicationError):
+    status_code: HTTPStatus = HTTPStatus.FORBIDDEN
+
+
+class NotFoundError(ApplicationError):
+    status_code: HTTPStatus = HTTPStatus.NOT_FOUND
 
 
 class NotValidValueError(ApplicationError):
@@ -108,13 +112,6 @@ class ReportWaitingPhotoError(NotFoundError):
 class ShiftStartError(BadRequestError):
     def __init__(self, shift: Shift):
         self.detail = "Невозможно начать смену {} с id: {}. Проверьте статус смены".format(shift.title, shift.id)
-
-
-class ShiftReadyForCompleteError(BadRequestError):
-    def __init__(self, shift: Shift):
-        self.detail = (
-            "Невозможно перевести в статус 'завершающаяся' смену {!r}. Проверьте статус смены".format(shift)
-        )
 
 
 class ShiftReadyForCompleteError(BadRequestError):
