@@ -16,7 +16,6 @@ from telegram.ext import CallbackContext
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
 from src.bot.api_services import get_user_service_callback
 from src.bot.ui import (
-    CANCEL_SKIP_TASK,
     CONFIRM_SKIP_TASK,
     CONFIRM_SKIP_TASK_KEYBOARD,
     LOMBARIERS_BALANCE,
@@ -193,23 +192,24 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
 
     elif update.message.text == SKIP_A_TASK:
         await update.message.reply_text(
-            "Ты нажал пропустить задание. Если ты пропустишь задание, то не сможешь отправить отчёт сегодня.",
+            "Тобой была нажата кнопка \"пропустить задание\". "
+            "Если ты пропустишь задание, то не сможешь отправить отчёт сегодня.",
             reply_markup=CONFIRM_SKIP_TASK_KEYBOARD,
         )
 
 
 async def inline_button_handler(update: Update, context: CallbackContext) -> None:
-    if update.callback_query.data == CANCEL_SKIP_TASK:
-        await update.callback_query.message.edit_text("Действие отменено")
+    text = "Действие отменено"
 
-    elif update.callback_query.data == CONFIRM_SKIP_TASK:
+    if update.callback_query.data == CONFIRM_SKIP_TASK:
         try:
             await skip_report(update.effective_chat.id)
         except exceptions.ApplicationError as e:
             text = e.detail
         else:
             text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
-        await update.callback_query.message.edit_text(text)
+
+    await update.callback_query.message.edit_text(text)
 
 
 async def get_balance(telegram_id: int) -> int:
