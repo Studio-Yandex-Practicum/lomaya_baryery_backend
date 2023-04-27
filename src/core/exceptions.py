@@ -235,11 +235,7 @@ class InvitationAlreadyDeactivatedError(BadRequestError):
 
 
 class ShiftTitleToShortError(BadRequestError):
-    detail = "Нельзя создавать/изменять название смены из пробелов."
-
-
-class ShiftTitleLenExceptionError(BadRequestError):
-    detail = "Длина названия смены должна быть от 3 до 60 символов."
+    detail = "Длина названия смены должна быть от 3 до 60 символов. " "Пробелы в начале и конце удаляются."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
