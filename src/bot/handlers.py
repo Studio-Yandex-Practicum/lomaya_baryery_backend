@@ -52,6 +52,14 @@ async def start(update: Update, context: CallbackContext) -> None:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
+        try:
+            await user_service.check_before_change_user_data(user.id)
+        except exceptions.ApplicationError as e:
+            await update.message.reply_text(
+                text=e.detail,
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return
         await update_user_data(update, context)
     else:
         await register_user(update, context)
