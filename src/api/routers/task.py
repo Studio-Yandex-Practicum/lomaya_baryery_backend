@@ -36,8 +36,7 @@ class TaskCBV:
         Создать новое задание.
 
         - **url**: изображение задания
-        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **title**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.task_service.create_task(task)
@@ -56,8 +55,7 @@ class TaskCBV:
 
         - **id**: id задания
         - **url**: url задания
-        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **title**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.task_service.get_all_tasks()
@@ -80,8 +78,7 @@ class TaskCBV:
 
         - **id**: id задания
         - **url**: url задания
-        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **title**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.task_service.get_task(task_id)
@@ -104,8 +101,7 @@ class TaskCBV:
         Обновить информацию о задании с указанным ID.
 
         - **url**: url задания
-        - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
-        - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
+        - **title**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)
         return await self.task_service.update_task(task_id, update_task_data)

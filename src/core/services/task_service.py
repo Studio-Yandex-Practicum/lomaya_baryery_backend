@@ -33,8 +33,7 @@ class TaskService:
 
     async def create_task(self, new_task: TaskCreateRequest) -> Task:
         task = Task(
-            description=new_task.description,
-            description_for_message=new_task.description_for_message,
+            title=new_task.title,
         )
         task.url = await self.__download_file(new_task.image)
         return await self.__task_repository.create(instance=task)
@@ -47,8 +46,7 @@ class TaskService:
 
     async def update_task(self, task_id: UUID, update_task_data: TaskUpdateRequest) -> Task:
         task = await self.__task_repository.get(task_id)
-        task.description = update_task_data.description
-        task.description_for_message = update_task_data.description_for_message
+        task.title = update_task_data.title
         task.url = update_task_data.url
         return await self.__task_repository.update(task_id, task)
 
