@@ -93,7 +93,7 @@ class ReportRepository(AbstractRepository):
         self._session.add_all(reports_list)
         await self._session.commit()
 
-    async def is_previous_report_submitted(self, member_id: UUID) -> bool:
+    async def is_previous_report_not_submitted(self, member_id: UUID) -> bool:
         """Проверить статус вчерашнего отчета по id участника смены."""
         yesterday = get_current_task_date() - timedelta(days=1)
         exists_criteria = select(

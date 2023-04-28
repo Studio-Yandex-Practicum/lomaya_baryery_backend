@@ -15,6 +15,15 @@ from src.core.db.db import get_session
 from src.core.db.models import Report
 from src.core.settings import settings
 
+HELLO_MESSAGE = "Привет, {}!"
+REPORT_NOT_SUBMITTED = (
+    "Вчерашнее задание не было выполнено! " "Сегодня можешь отправить отчет только по новому заданию. "
+)
+TASK_MESSAGE = (
+    "Сегодня твоим заданием будет {}. "
+    "Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
+)
+
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
@@ -51,28 +60,23 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     bot_service = BotService(context)
     await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
     await member_service.exclude_lagging_members(context.application)
-    task, members = await report_service.get_today_task_and_active_members(date.today().day)
+    task, members = await report_service.get_today_task_and_active_members(
+        date.today().day
+    )
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
         bot_service.send_photo(
-            user=member.user,
-            photo=task_photo,
-            caption=(
-                (
-                    f"Привет, {member.user.name}!\n"
-                    f"Ты не выполнил вчерашнее задание! Сегодня можешь отправить отчет только по новому заданию."
-                    f"Сегодня твоим заданием будет {task.description_for_message}. "
-                    f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
-                )
-                if await report_service.is_previous_report_submitted(member.id)
-                else (
-                    f"Привет, {member.user.name}!\n"
-                    f"Сегодня твоим заданием будет {task.description_for_message}. "
-                    f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
-                )
-            ),
-            reply_markup=DAILY_TASK_BUTTONS,
+            member.user,
+            task_photo,
+            (
+                f"{HELLO_MESSAGE.format(member.user.name)}\n"
+                f"{REPORT_NOT_SUBMITTED}"
+                f"{TASK_MESSAGE.format(task.description_for_message)}"
+            )
+            if await report_service.is_previous_report_not_submitted(member.id)
+            else (f"{HELLO_MESSAGE.format(member.user.name)}\n" f"{TASK_MESSAGE.format(task.description_for_message)}"),
+            DAILY_TASK_BUTTONS,
         )
         for member in members
     ]

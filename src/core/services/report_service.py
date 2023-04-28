@@ -192,6 +192,6 @@ class ReportService:
         ]
         await self.__report_repository.create_all(reports)
 
-    async def is_previous_report_submitted(self, member_id: UUID) -> bool:
+    async def is_previous_report_not_submitted(self, member_id: UUID) -> bool:
         """Проверяет статус вчерашнего отчета."""
-        return await self.__report_repository.is_previous_report_submitted(member_id)
+        return await self.__report_repository.is_previous_report_not_submitted(member_id)
