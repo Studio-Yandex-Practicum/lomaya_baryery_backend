@@ -178,8 +178,7 @@ class ReportService:
 
     async def create_not_participated_reports(self, member_id: UUID, shift: Shift) -> None:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
-        day_of_registration = get_current_task_date()
-        count_of_missed_days = (day_of_registration - shift.started_at).days
+        count_of_missed_days = (get_current_task_date() - shift.started_at).days
         reports = [
             Report(
                 shift_id=shift.id,
