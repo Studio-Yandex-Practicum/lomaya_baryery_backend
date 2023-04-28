@@ -14,7 +14,7 @@ from src.core.db.models import Member, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
-from src.core.utils import get_lombaryers_for_quantity
+from src.core.utils import get_current_task_date, get_lombaryers_for_quantity
 
 
 class ReportService:
@@ -178,16 +178,15 @@ class ReportService:
 
     async def create_not_participated_reports(self, member_id: UUID, shift: Shift) -> None:
         """Создаем пропущенные отчеты со статусом not_participate участнику, который пришел на смену позже."""
-        tasks = shift.tasks
-        today = date.today()
+        count_of_missed_days = (get_current_task_date() - shift.started_at).days
         reports = [
             Report(
                 shift_id=shift.id,
-                task_id=tasks[str(day)],
+                task_id=shift.tasks[str((shift.started_at + timedelta(days=day)).day)],
                 status=Report.Status.NOT_PARTICIPATE,
-                task_date=today - timedelta(days=day),
+                task_date=shift.started_at + timedelta(days=day),
                 member_id=member_id,
             )
-            for day in range((today - shift.started_at).days, 0, -1)
+            for day in range(0, count_of_missed_days + 1)
         ]
         await self.__report_repository.create_all(reports)
