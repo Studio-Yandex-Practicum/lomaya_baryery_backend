@@ -94,8 +94,7 @@ class AdministratorInvitationCBV:
     async def deactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        administrator = await self.authentication_service.get_current_active_administrator(token.credentials)
-        await self.authentication_service.check_administrator_invitation_rights(administrator)
+        await self.authentication_service.check_is_authorized_profile_has_role_administrator(token.credentials)
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
