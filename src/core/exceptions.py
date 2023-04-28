@@ -156,6 +156,10 @@ class CurrentShiftChangeDateError(BadRequestError):
     detail = "Нельзя изменить дату начала текущей смены"
 
 
+class RequestIsPendingError(BadRequestError):
+    detail = "Ваша заявка на участие уже в процессе рассмотрения. "
+
+
 class NewShiftExclusiveError(BadRequestError):
     detail = "Запрещено создавать более одной новой смены"
 
