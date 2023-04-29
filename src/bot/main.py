@@ -6,6 +6,7 @@ from telegram.ext import (
     AIORateLimiter,
     Application,
     ApplicationBuilder,
+    CallbackQueryHandler,
     ChatMemberHandler,
     CommandHandler,
     MessageHandler,
@@ -20,6 +21,7 @@ from src.bot.handlers import (
     chat_member_handler,
     get_web_app_query_data,
     incorrect_report_type_handler,
+    inline_button_handler,
     photo_handler,
     start,
     web_app_data,
@@ -60,6 +62,7 @@ def create_bot() -> Application:
     bot_instance.add_handler(MessageHandler(TEXT, button_handler))
     bot_instance.add_handler(MessageHandler(StatusUpdate.WEB_APP_DATA, web_app_data))
     bot_instance.add_handler(MessageHandler(~HANDLED_MESSAGE_TYPES, incorrect_report_type_handler))
+    bot_instance.add_handler(CallbackQueryHandler(inline_button_handler))
     bot_instance.job_queue.run_daily(
         finish_shift_automatically_job,
         time(hour=settings.SEND_NEW_TASK_HOUR - 1, tzinfo=pytz.timezone(settings.TIME_ZONE)),
