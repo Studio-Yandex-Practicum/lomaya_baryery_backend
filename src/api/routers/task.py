@@ -98,7 +98,7 @@ class TaskCBV:
     async def update_task(
         self,
         task_id: UUID,
-        update_task_data: TaskUpdateRequest,
+        update_task_data: TaskUpdateRequest = Depends(),
     ) -> TaskResponse:
         """
         Обновить информацию о задании с указанным ID.
