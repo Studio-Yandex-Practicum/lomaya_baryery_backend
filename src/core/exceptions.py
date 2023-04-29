@@ -238,8 +238,8 @@ class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
 
 
-class ShiftTitleToShortError(BadRequestError):
-    detail = "Длина названия смены должна быть от 3 до 60 символов. " "Пробелы в начале и конце удаляются."
+class ShiftTitleLengthError(BadRequestError):
+    detail = "Название смены должно содержать от 3 до 60 символов, при этом пробелы в начале и конце удаляются."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
