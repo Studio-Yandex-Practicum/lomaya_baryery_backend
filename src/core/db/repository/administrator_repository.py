@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
@@ -26,15 +26,41 @@ class AdministratorRepository(AbstractRepository):
             raise exceptions.AdministratorNotFoundError
         return administrator
 
-    async def check_administrator_existence(self, email: str) -> bool:
+    async def administrator_exists(self, email: str) -> bool:
         """Проверяет существование администратора по email.
 
-        Аргументы:
+        Args:
             email (str) - email администратора.
+
+        Returns:
+            bool: True — если администратор есть в БД, False — если нет
         """
         administrator_exists = await self._session.execute(
             select(select(Administrator).where(Administrator.email == email).exists())
         )
+        return administrator_exists.scalar()
+
+    async def administrator_is_active_and_is_admin(self, email: str) -> bool:
+        """Проверяет существование активного администратора с ролью admin по email.
+
+        Args:
+            email (str) - email администратора.
+
+        Returns:
+            bool: True — если администратор есть в БД, False — если нет
+        """
+        stmt = select(
+            select(Administrator)
+            .where(
+                and_(
+                    Administrator.email == email,
+                    Administrator.status == Administrator.Status.ACTIVE,
+                    Administrator.role == Administrator.Role.ADMINISTRATOR,
+                )
+            )
+            .exists()
+        )
+        administrator_exists = await self._session.execute(stmt)
         return administrator_exists.scalar()
 
     async def get_administrators_filter_by_role_and_status(

@@ -44,6 +44,18 @@ class AuthenticationService:
         to_encode = {"email": email, "exp": expire}
         return jwt.encode(to_encode, settings.SECRET_KEY, ALGORITHM)
 
+    @staticmethod
+    def get_email_from_token(token: str) -> str:
+        """Возвращает email из JWT токена."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        return email
+
     async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
         """Аутентификация администратора по email и паролю."""
         administrator = await self.__administrator_repository.get_by_email(auth_data.email)
@@ -67,13 +79,7 @@ class AuthenticationService:
 
     async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
+        email = self.get_email_from_token(token)
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise exceptions.AdministratorBlockedError

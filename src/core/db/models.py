@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
+from typing import Type
 
 from sqlalchemy import (
     DATE,
@@ -227,6 +228,27 @@ class Administrator(Base):
 
     def __repr__(self) -> str:
         return f"<Administrator: {self.name} {self.surname}, role: {self.role}>"
+
+    def switch_status(self):
+        if self.status is Administrator.Status.ACTIVE:
+            self.status = Administrator.Status.BLOCKED
+        else:
+            self.status = Administrator.Status.ACTIVE
+
+    def switch_role(self):
+        if self.role is Administrator.Role.ADMINISTRATOR:
+            self.role = Administrator.Role.EXPERT
+        else:
+            self.role = Administrator.Role.ADMINISTRATOR
+
+    def switch_a_field(self, field: Type[Status | Role]):
+        methods = {
+            self.Status: self.switch_status,
+            self.Role: self.switch_role,
+        }
+        method = methods.get(field, None)
+        if method is not None:
+            method()
 
 
 class Report(Base):

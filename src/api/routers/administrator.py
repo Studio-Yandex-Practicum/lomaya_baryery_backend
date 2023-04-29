@@ -144,8 +144,9 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
-        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)
+        return await self.administrator_service.switch_a_field_with_checks(
+            token.credentials, administrator_id, Administrator.Role
+        )
 
     @router.patch(
         "/reset_password",
@@ -159,14 +160,13 @@ class AdministratorCBV:
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.restore_administrator_password(current_admin, payload.email)
+        return await self.administrator_service.restore_administrator_password(token.credentials, payload.email)
 
     @router.patch(
         "/{administrator_id}/block",
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
-        summary="Заблокировать администратора.",
+        summary="Изменить статус администратора.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def administrator_blocking(
@@ -174,6 +174,7 @@ class AdministratorCBV:
         administrator_id: UUID,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        """Заблокировать администратора."""
-        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.block_administrator(current_admin, administrator_id)
+        """Изменить статус администратора."""
+        return await self.administrator_service.switch_a_field_with_checks(
+            token.credentials, administrator_id, Administrator.Status
+        )

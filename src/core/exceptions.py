@@ -28,6 +28,7 @@ class UnauthorizedError(ApplicationError):
 
 class ForbiddenError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.FORBIDDEN
+    detail = "У вас недостаточно прав для выполнения этой операции"
 
 
 class NotFoundError(ApplicationError):
@@ -242,16 +243,12 @@ class AdministratorChangeError(ForbiddenError):
     detail = "У вас нет прав на изменение других администраторов."
 
 
-class AdministratorSelfChangeRoleError(ForbiddenError):
-    detail = "Вы не можете изменить роль самому себе."
+class AdministratorSelfChangeError(ForbiddenError):
+    detail = "Вы не можете изменить самого себя."
 
 
 class AdministratorBlockError(ForbiddenError):
     detail = "У Вас нет прав на блокировку других администраторов."
-
-
-class AdministratorSelfBlockError(ForbiddenError):
-    detail = "Вы не можете заблокировать себя."
 
 
 class AdministratorRestPasswordError(ForbiddenError):
