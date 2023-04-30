@@ -239,7 +239,7 @@ class InvitationAlreadyDeactivatedError(BadRequestError):
 
 
 class ShiftTitleLengthError(BadRequestError):
-    detail = "Название смены должно содержать от 3 до 60 символов, при этом пробелы в начале и конце удаляются."
+    detail = "Название смены должно содержать от 3 до 60 символов."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
