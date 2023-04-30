@@ -13,5 +13,5 @@ class TaskCreateRequest(TaskRequest):
     image: UploadFile = File(...)
 
 
-class TaskUpdateRequest(TaskRequest):
-    url: str
+class TaskUpdateRequest(TaskCreateRequest):
+    pass
