@@ -1,8 +1,9 @@
+from datetime import timedelta
 from typing import Optional, Sequence
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import desc, select
+from sqlalchemy import desc, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
@@ -91,3 +92,16 @@ class ReportRepository(AbstractRepository):
             report.status = status
         self._session.add_all(reports_list)
         await self._session.commit()
+
+    async def is_previous_report_not_submitted(self, member_id: UUID) -> bool:
+        """Проверить статус вчерашнего отчета по id участника смены."""
+        yesterday = get_current_task_date() - timedelta(days=1)
+        exists_criteria = select(
+            exists(Report).where(
+                Report.member_id == member_id,
+                Report.task_date == yesterday,
+                Report.status.in_([Report.Status.DECLINED, Report.Status.SKIPPED]),
+            )
+        )
+        report_exists = await self._session.execute(exists_criteria)
+        return report_exists.scalar()

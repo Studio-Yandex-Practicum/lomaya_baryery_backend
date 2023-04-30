@@ -190,3 +190,7 @@ class ReportService:
             for day in range(0, count_of_missed_days + 1)
         ]
         await self.__report_repository.create_all(reports)
+
+    async def is_previous_report_not_submitted(self, member_id: UUID) -> bool:
+        """Проверяет статус вчерашнего отчета."""
+        return await self.__report_repository.is_previous_report_not_submitted(member_id)
