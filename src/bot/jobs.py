@@ -15,15 +15,6 @@ from src.core.db.db import get_session
 from src.core.db.models import Report
 from src.core.settings import settings
 
-HELLO_MESSAGE = "Привет, {}!"
-REPORT_NOT_SUBMITTED = (
-    "Вчерашнее задание не было выполнено! " "Сегодня можешь отправить отчет только по новому заданию. "
-)
-TASK_MESSAGE = (
-    "Сегодня твоим заданием будет {}. "
-    "Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
-)
-
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
@@ -70,12 +61,17 @@ async def send_daily_task_job(context: CallbackContext) -> None:
             member.user,
             task_photo,
             (
-                f"{HELLO_MESSAGE.format(member.user.name)}\n"
-                f"{REPORT_NOT_SUBMITTED}"
-                f"{TASK_MESSAGE.format(task.description_for_message)}"
+                f"Привет, {member.user.name}!\n"
+                f"Вчерашнее задание не было выполнено! Сегодня можешь отправить отчет только по новому заданию. "
+                f"Сегодня твоим заданием будет {task.description_for_message}. "
+                f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             )
             if await report_service.is_previous_report_not_submitted(member.id)
-            else (f"{HELLO_MESSAGE.format(member.user.name)}\n" f"{TASK_MESSAGE.format(task.description_for_message)}"),
+            else (
+                f"Привет, {member.user.name}!\n"
+                f"Сегодня твоим заданием будет {task.description_for_message}. "
+                f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
+            ),
             DAILY_TASK_BUTTONS,
         )
         for member in members
