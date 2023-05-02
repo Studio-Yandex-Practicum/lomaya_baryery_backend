@@ -49,7 +49,7 @@ class TaskService:
         task = await self.__task_repository.get(task_id)
         task.description = update_task_data.description
         task.description_for_message = update_task_data.description_for_message
-        task.url = update_task_data.url
+        task.url = await self.__download_file(update_task_data.image)
         return await self.__task_repository.update(task_id, task)
 
     async def change_status(self, task_id: UUID) -> Task:

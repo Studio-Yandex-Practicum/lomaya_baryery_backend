@@ -14,8 +14,13 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
-from src.bot.api_services import get_history_service_callback, get_user_service_callback
-from src.bot.ui import LOMBARIERS_BALANCE, SKIP_A_TASK
+from src.bot.api_services import get_user_service_callback
+from src.bot.ui import (
+    CONFIRM_SKIP_TASK,
+    CONFIRM_SKIP_TASK_KEYBOARD,
+    LOMBARIERS_BALANCE,
+    SKIP_A_TASK,
+)
 from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -47,22 +52,29 @@ async def start(update: Update, context: CallbackContext) -> None:
         "и награждать самых активных и старательных ребят!"
     )
     user_session = get_session()
-    history_session = get_session()
+    # history_session = get_session()
     user_service = await get_user_service_callback(user_session)
-    history_service = await get_history_service_callback(history_session)
+    # history_service = await get_history_service(history_session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
-        await history_service.create_history_message(
-            user.id, update.effective_chat.id, start_text, status="registration"
-        )
+        try:
+            await user_service.check_before_change_user_data(user.id)
+        except exceptions.ApplicationError as e:
+            await update.message.reply_text(
+                text=e.detail,
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return
         await update_user_data(update, context)
     else:
         await register_user(update, context)
-        await history_service.create_history_message(user, update.effective_chat.id, start_text, status="registration")
+        # await history_service.create_history_message(
+        #   user, update.effective_chat.id, start_text, status="registration"
+        # )
 
 
 async def register_user(
@@ -193,14 +205,26 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
             f"Выполняй задания каждый день и не забывай отправлять фотоотчет! Ты молодец!"
         )
 
-    if update.message.text == SKIP_A_TASK:
+    elif update.message.text == SKIP_A_TASK:
+        await update.message.reply_text(
+            "Тобой была нажата кнопка \"пропустить задание\". "
+            "Если ты пропустишь задание, то не сможешь отправить отчёт сегодня.",
+            reply_markup=CONFIRM_SKIP_TASK_KEYBOARD,
+        )
+
+
+async def inline_button_handler(update: Update, context: CallbackContext) -> None:
+    text = "Действие отменено"
+
+    if update.callback_query.data == CONFIRM_SKIP_TASK:
         try:
             await skip_report(update.effective_chat.id)
         except exceptions.ApplicationError as e:
             text = e.detail
         else:
             text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
-        await update.message.reply_text(text)
+
+    await update.callback_query.message.edit_text(text)
 
 
 async def get_balance(telegram_id: int) -> int:

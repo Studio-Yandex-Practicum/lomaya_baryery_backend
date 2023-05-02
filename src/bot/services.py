@@ -1,7 +1,10 @@
 import asyncio
+import functools
+import logging
 from datetime import date, datetime
 
 from telegram import ReplyKeyboardMarkup
+from telegram.error import NetworkError, RetryAfter, TelegramError, TimedOut
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
@@ -13,37 +16,56 @@ from src.core.utils import get_lombaryers_for_quantity
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
+def check_user_blocked(func):
+    """Проверка блокировки пользователя перед отправкой сообщения."""
+
+    @functools.wraps(func)
+    async def _func_wrapper(*args, **kwargs):
+        user = kwargs['user'] if 'user' in kwargs else args[1]
+        if user.telegram_blocked:
+            return
+        await func(*args, **kwargs)
+
+    return _func_wrapper
+
+
+def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
+    """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
+
+    def _func_wrapper(func):
+        @functools.wraps(func)
+        async def _inner(*args, **kwargs):
+            user = kwargs['user'] if 'user' in kwargs else args[1]
+            for n in range(max_attempt_number):
+                try:
+                    return await func(*args, **kwargs)
+                except (RetryAfter, TimedOut, NetworkError) as exc:
+                    logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
+                    retry_delay = start_sleep_time * 3**n
+                    await asyncio.sleep(retry_delay)
+                    continue
+                except TelegramError as exc:
+                    return await error_handler(user, exc)
+
+        return _inner
+
+    return _func_wrapper
+
+
 class BotService:
     def __init__(self, telegram_bot: Application) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
 
-    async def send_message(
-        self,
-        user: models.User,
-        text: str,
-        status: str,
-    ) -> None:
-        if user.telegram_blocked:
-            return
-        chat_id = user.telegram_id
-        try:
-            await self.__bot.send_message(chat_id=chat_id, text=text)
-            # Тут я хотел написать код который записывал бы в БД после отправки сообщения
-            # session = get_session()
-            # history_service = await history_message()
-            # await history_service.create_history_message(user.id, chat_id, text, status)
-        except Exception as exc:
-            await error_handler(chat_id, exc)
+    @check_user_blocked
+    @retry()
+    async def send_message(self, user: models.User, text: str) -> None:
+        await self.__bot.send_message(user.telegram_id, text)
 
+    @check_user_blocked
+    @retry()
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
-        if user.telegram_blocked:
-            return
-        chat_id = user.telegram_id
-        try:
-            await self.__bot.send_photo(chat_id=chat_id, photo=photo, caption=caption, reply_markup=reply_markup)
-        except Exception as exc:
-            await error_handler(chat_id, exc)
+        await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
