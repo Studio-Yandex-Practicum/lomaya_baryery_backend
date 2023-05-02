@@ -34,7 +34,7 @@ class ShiftCreateRequest(RequestBase):
     def validate_title(cls, value):
         value = value.strip()
         if not (3 <= len(value) <= 60):
-            raise exceptions.ShiftTitleToShortError()
+            raise exceptions.ShiftTitleLengthError()
         return value
 
 
