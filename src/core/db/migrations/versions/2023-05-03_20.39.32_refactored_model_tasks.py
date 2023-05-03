@@ -1,8 +1,8 @@
 """refactored model tasks
 
-Revision ID: 5a1ecb2d17c4
+Revision ID: 808d85cae7c0
 Revises: 2c304127881b
-Create Date: 2023-05-03 19:01:21.680368
+Create Date: 2023-05-03 20:39:32.229446
 
 """
 import json
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '5a1ecb2d17c4'
+revision = '808d85cae7c0'
 down_revision = '2c304127881b'
 branch_labels = None
 depends_on = None
