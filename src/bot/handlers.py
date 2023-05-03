@@ -14,7 +14,7 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
-from src.bot.api_services import get_user_service_callback
+from src.bot.api_services import get_history_service, get_user_service_callback
 from src.bot.ui import (
     CONFIRM_SKIP_TASK,
     CONFIRM_SKIP_TASK_KEYBOARD,
@@ -23,6 +23,7 @@ from src.bot.ui import (
 )
 from src.core import exceptions
 from src.core.db.db import get_session
+from src.core.db.models import MessageHistory
 from src.core.db.repository import (
     MemberRepository,
     ReportRepository,
@@ -39,8 +40,6 @@ from src.core.services.user_service import UserService
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 
-# from src.core.services.history_message_service import MessageHistoryService
-
 
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
@@ -52,9 +51,9 @@ async def start(update: Update, context: CallbackContext) -> None:
         "и награждать самых активных и старательных ребят!"
     )
     user_session = get_session()
-    # history_session = get_session()
+    history_session = get_session()
     user_service = await get_user_service_callback(user_session)
-    # history_service = await get_history_service(history_session)
+    history_service = await get_history_service(history_session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
     if user and user.telegram_blocked:
@@ -70,11 +69,14 @@ async def start(update: Update, context: CallbackContext) -> None:
             )
             return
         await update_user_data(update, context)
+        # не знаю как сюда попасть чтобы проверить
+        await history_service.create_history_message(
+            user.id, update.effective_chat.id, start_text, status='update_data'
+        )
     else:
         await register_user(update, context)
-        # await history_service.create_history_message(
-        #   user, update.effective_chat.id, start_text, status="registration"
-        # )
+        event = MessageHistory.Event.REGISTRATION.value
+        await history_service.create_history_message(user, update.effective_chat.id, start_text, event)
 
 
 async def register_user(

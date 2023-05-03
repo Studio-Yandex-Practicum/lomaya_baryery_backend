@@ -10,6 +10,7 @@ from telegram.ext import Application
 from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
+from src.core.services.history_message_service import MessageHistoryService
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 
@@ -53,19 +54,24 @@ def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application) -> None:
+    def __init__(self, telegram_bot: Application, history_service: MessageHistoryService) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
+        self.__history_service = history_service
 
     @check_user_blocked
     @retry()
-    async def send_message(self, user: models.User, text: str) -> None:
+    async def send_message(self, user: models.User, text: str, event: str) -> None:
         await self.__bot.send_message(user.telegram_id, text)
+        await self.__history_service.create_history_message(user.id, user.telegram_id, text, event)
 
     @check_user_blocked
     @retry()
-    async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
+    async def send_photo(
+        self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup, event: str
+    ) -> None:
         await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
+        await self.__history_service.create_history_message(user.id, user.telegram_id, caption, event)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -77,8 +83,8 @@ class BotService:
             f"{first_task_date} в {settings.formatted_task_time} часов утра "
             "тебе поступит первое задание."
         )
-        status = models.MessageHistory.Event.PARTICIPATION_DECISION
-        await self.send_message(user, text, status)
+        event = models.MessageHistory.Event.REQUEST_ACCEPTED.value
+        await self.send_message(user, text, event)
 
     async def notify_declined_request(
         self, user: models.User, decline_request_data: RequestDeclineRequest | None
@@ -97,7 +103,8 @@ class BotService:
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
                 f"{settings.ORGANIZATIONS_GROUP}"
             )
-        await self.send_message(user, text)
+        event = models.MessageHistory.Event.REQUEST_CANCELED.value
+        await self.send_message(user, text, event)
 
     async def notify_approved_task(self, user: models.User, report: models.Report, shift: models.Shift) -> None:
         """Уведомление участника о проверенном задании.
@@ -108,7 +115,8 @@ class BotService:
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
             text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
-        await self.send_message(user, text)
+        event = models.MessageHistory.Event.TASK_ACCEPTED.value
+        await self.send_message(user, text, event)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
         """Уведомление участника о проверенном задании.
@@ -121,7 +129,8 @@ class BotService:
         )
         if date.today() < shift.finished_at:
             text = text + f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра."
-        await self.send_message(user, text)
+        event = models.MessageHistory.Event.TASK_NOT_ACCEPTED.value
+        await self.send_message(user, text, event)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
         """Уведомляет участников об исключении из смены."""
@@ -132,11 +141,13 @@ class BotService:
             "Если Вы считаете, что произошла ошибка - обращайтесь "
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
-        send_message_tasks = [self.send_message(member.user, text) for member in members]
+        event = models.MessageHistory.Event.EXCLUDE_FROM_SHIFT.value
+        send_message_tasks = [self.send_message(member.user, text, event) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
+        event = models.MessageHistory.Event.SHIFT_ENDED.value
         send_message_tasks = [
             self.send_message(
                 member.user,
@@ -146,6 +157,7 @@ class BotService:
                     numbers_lombaryers=member.numbers_lombaryers,
                     lombaryers_case=get_lombaryers_for_quantity(member.numbers_lombaryers),
                 ),
+                event,
             )
             for member in shift.members
         ]
@@ -153,12 +165,14 @@ class BotService:
 
     async def notify_that_shift_is_cancelled(self, users: list[models.User], final_message: str) -> None:
         """Уведомляет пользователей об отмене смены."""
-        send_message_tasks = [self.send_message(user, final_message) for user in users]
+        event = models.MessageHistory.Event.SHIFT_CANCELED.value
+        send_message_tasks = [self.send_message(user, final_message, event) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_start_date_is_changed(
         self, users: list[models.User], start_date_changed_message: str
     ) -> None:
         """Уведомляет пользователей о переносе даты старта смены."""
-        send_message_tasks = [self.send_message(user, start_date_changed_message) for user in users]
+        event = models.MessageHistory.Event.START_SHIFT_CHANGED.value
+        send_message_tasks = [self.send_message(user, start_date_changed_message, event) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
