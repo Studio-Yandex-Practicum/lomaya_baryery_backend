@@ -62,7 +62,7 @@ async def get_shift_service_callback(sessions):
         return shift_service
 
 
-async def get_history_service_callback(sessions):
+async def get_history_service(sessions):
     async for session in sessions:  # noqa R503
         shift_repository = ShiftRepository(session)
         history_repository = MessageHistoryRepository(session)
