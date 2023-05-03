@@ -13,9 +13,11 @@ class MemberService:
         self,
         member_repository: MemberRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
+        history_service: services.MessageHistoryService = Depends(),
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
+        self.__history_service = history_service
         self.__telegram_bot = services.BotService
 
     async def exclude_lagging_members(self, bot: Application) -> None:
@@ -31,7 +33,7 @@ class MemberService:
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
             await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_excluded_members(lagging_members)
+        await self.__telegram_bot(bot, self.__history_service).notify_excluded_members(lagging_members)
 
     async def get_members_with_no_reports(self) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
