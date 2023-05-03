@@ -312,22 +312,25 @@ class MessageHistory(Base):
         REGISTRATION = "registration"
         GET_TASK = "get_task"
         REPORT_MENTION = "report_mention"
-        PARTICIPATION_DECISION = "participation_decision"
-        STATUS_OF_CHECKED_TASK = "status_of_checked_task"
+        REQUEST_ACCEPTED = "request_accepted"
+        REQUEST_CANCELED = "request_canceled"
+        TASK_ACCEPTED = "task_accepted"
+        TASK_NOT_ACCEPTED = "task_not_accepted"
         EXCLUDE_FROM_SHIFT = "exclude_from_shift"
         SHIFT_ENDED = "shift_ended"
         SHIFT_CANCELED = "shift_canceled"
+        START_SHIFT_CHANGED = "start_shift_changed"
 
     __tablename__ = 'message_history'
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id))
     message = Column(String(400), nullable=False)
     chat_id = Column(BigInteger, nullable=False)
-    status = Column(
-        Enum(Event, name="message_history_status", values_callable=lambda obj: [e.value for e in obj]),
+    event = Column(
+        Enum(Event, name="message_history_event", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
     )
-    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
+    shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id))
 
     def __repr__(self) -> str:
         return f"<MessageHistory: {self.user_id} - {self.status}"
