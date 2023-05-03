@@ -47,7 +47,7 @@ class TaskService:
     async def update_task(self, task_id: UUID, update_task_data: TaskUpdateRequest) -> Task:
         task = await self.__task_repository.get(task_id)
         task.title = update_task_data.title
-        task.url = update_task_data.url
+        task.url = await self.__download_file(update_task_data.image)
         return await self.__task_repository.update(task_id, task)
 
     async def change_status(self, task_id: UUID) -> Task:

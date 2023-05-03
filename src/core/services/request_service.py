@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -54,7 +54,7 @@ class RequestService:
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
         member = await self.__member_repository.create(member)
         shift = await self.__shift_service.get_shift(request.shift_id)
-        if shift.started_at < date.today():
+        if shift.started_at < get_current_task_date():
             await self.__report_service.create_not_participated_reports(member_id=member.id, shift=shift)
 
         first_task_date = shift.started_at

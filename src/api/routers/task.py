@@ -95,12 +95,13 @@ class TaskCBV:
     async def update_task(
         self,
         task_id: UUID,
-        update_task_data: TaskUpdateRequest,
+        update_task_data: TaskUpdateRequest = Depends(),
     ) -> TaskResponse:
         """
         Обновить информацию о задании с указанным ID.
 
-        - **url**: url задания
+        - **task_id**: id задания
+        - **image**: изображение задания
         - **title**: описание задания в совершенном виде, например: "Убрать со стола"
         """
         await self.authentication_service.get_current_active_administrator(self.token.credentials)

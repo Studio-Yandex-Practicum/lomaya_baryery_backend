@@ -156,6 +156,10 @@ class CurrentShiftChangeDateError(BadRequestError):
     detail = "Нельзя изменить дату начала текущей смены"
 
 
+class RequestIsPendingError(BadRequestError):
+    detail = "Ваша заявка на участие уже в процессе рассмотрения. "
+
+
 class NewShiftExclusiveError(BadRequestError):
     detail = "Запрещено создавать более одной новой смены"
 
@@ -232,6 +236,10 @@ class InvalidDateFormatError(BadRequestError):
 
 class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
+
+
+class ShiftTitleLengthError(BadRequestError):
+    detail = "Название смены должно содержать от 3 до 60 символов."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):
