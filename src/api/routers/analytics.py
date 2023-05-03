@@ -51,3 +51,21 @@ class AnalyticsCBV:
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
         workbook = await self._analytics_service.generate_task_report()
         return StreamingResponse(workbook, headers=headers)
+
+    @router.get(
+        "/current_shift_report",
+        response_model=None,
+        response_class=StreamingResponse,
+        status_code=HTTPStatus.OK,
+        summary="Формирование отчёта по текущей смене",
+    )
+    async def generate_current_shift_report(self) -> StreamingResponse:
+        """
+        Формирует отчёт по текущей смене с общей статистикой для каждого задания.
+
+        Содержит:
+        """
+        filename = f"current_shift_report{datetime.now()}.xlsx"
+        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        workbook = await self._analytics_service.generate_task_report()
+        return StreamingResponse(workbook, headers=headers)
