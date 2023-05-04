@@ -11,6 +11,8 @@ from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoResponse
 from src.core import exceptions
 from src.core.db.db import get_session
+
+# from src.core.db.DTO_models import ShiftAnalyticReportDto
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
 from src.core.settings import settings
@@ -211,3 +213,16 @@ class ShiftRepository(AbstractRepository):
             ),
         )
         return await self._session.scalar(statement)
+
+    async def get_current_shift_statistics_report(self):
+        """Отчёт по задачам со текущей смены.
+
+        Содержит:
+        """
+        task_stmt = Report.task
+        current_shift_id = select(Shift.id).where(
+            Shift.status == Shift.Status.STARTED,
+        )
+        stmt = select(Report).where(Report.shift_id == current_shift_id).options(selectinload(task_stmt))
+        reports = await self._session.execute(stmt)
+        return reports.scalars().all()
