@@ -9,6 +9,7 @@ class TaskResponse(BaseModel):
     url: str
     title: str
     is_archived: bool
+    sequence_number: int
 
     class Config:
         orm_mode = True

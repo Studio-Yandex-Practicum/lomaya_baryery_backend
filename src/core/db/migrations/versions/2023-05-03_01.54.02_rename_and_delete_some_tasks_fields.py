@@ -25,6 +25,8 @@ def upgrade():
     op.drop_constraint('tasks_description_key', 'tasks', type_='unique')
     op.drop_column('tasks', 'description')
 
+    op.add_column('tasks', sa.Column('sequence_number', sa.Integer(), sa.Identity(always=False, start=1, cycle=True), nullable=False))
+
 
 def downgrade():
     op.alter_column('tasks', 'title', new_column_name='description_for_message')
@@ -41,3 +43,5 @@ def downgrade():
     op.drop_constraint('tasks_title_key', 'tasks', type_='unique')
     op.create_unique_constraint(None, 'tasks', ['description'])
     op.create_unique_constraint(None, 'tasks', ['description_for_message'])
+
+    op.drop_column('tasks', 'sequence_number')

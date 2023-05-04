@@ -96,6 +96,7 @@ class Task(Base):
 
     __tablename__ = "tasks"
 
+    sequence_number = Column(Integer, Identity(start=1, cycle=True))
     url = Column(String(length=150), unique=True, nullable=False)
     title = Column(String(length=150), unique=True, nullable=False)
     is_archived = Column(Boolean, default=False, nullable=False)
