@@ -7,8 +7,7 @@ class TaskResponse(BaseModel):
 
     id: UUID
     url: str
-    description: str
-    description_for_message: str
+    title: str
     is_archived: bool
 
     class Config:
