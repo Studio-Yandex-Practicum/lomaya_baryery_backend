@@ -325,7 +325,7 @@ class MessageHistory(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id))
     message = Column(String(400), nullable=False)
-    chat_id = Column(BigInteger, nullable=False)
+    message_id = Column(BigInteger, nullable=False)
     event = Column(
         Enum(Event, name="message_history_event", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
