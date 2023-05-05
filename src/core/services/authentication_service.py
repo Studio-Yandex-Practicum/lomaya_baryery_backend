@@ -29,6 +29,18 @@ class AuthenticationService:
         """Получить хэш пароля."""
         return PASSWORD_CONTEXT.hash(password)
 
+    @staticmethod
+    def get_email_from_token(token: str) -> str:
+        """Возвращает email из JWT токена."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        return email
+
     def __verify_hashed_password(self, plain_password: str, hashed_password: str) -> bool:
         """Сравнить открытый пароль с хэшем."""
         return PASSWORD_CONTEXT.verify(plain_password, hashed_password)
@@ -43,18 +55,6 @@ class AuthenticationService:
         expire = dt.datetime.utcnow() + dt.timedelta(minutes=expires_delta)
         to_encode = {"email": email, "exp": expire}
         return jwt.encode(to_encode, settings.SECRET_KEY, ALGORITHM)
-
-    @staticmethod
-    def get_email_from_token(token: str) -> str:
-        """Возвращает email из JWT токена."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
-        return email
 
     async def __authenticate_administrator(self, auth_data: AdministratorAuthenticateRequest) -> Administrator:
         """Аутентификация администратора по email и паролю."""
@@ -77,6 +77,20 @@ class AuthenticationService:
             administrator=administrator,
         )
 
+    async def check_administrator_is_active_by_token(self, token: str) -> Administrator:
+        """Проверяет существование активного администратора с ролью admin по token-у.
+
+        Проверяет есть ли в базе администратор, не заблокирован ли он и
+        есть ли у него роль ADMINISTRATOR.
+        Если одно из условий не выполняется, выбрасывается исключение.
+        Если все условия выполняются — возвращает True
+        """
+        email = self.get_email_from_token(token)
+        administrator_exists = await self.__administrator_repository.administrator_is_active(email)
+        if not administrator_exists:
+            raise exceptions.ForbiddenError
+        return True
+
     async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
         email = self.get_email_from_token(token)
@@ -85,9 +99,11 @@ class AuthenticationService:
             raise exceptions.AdministratorBlockedError
         return administrator
 
-    async def refresh(self, token: str) -> AdministratorAndTokensDTO:
+    async def refresh(self, refresh_token: str | None) -> AdministratorAndTokensDTO:
         """Получить новую пару refresh- и access- токенов и информацию об администраторе."""
-        administrator = await self.get_current_active_administrator(token)
+        if not refresh_token:
+            raise exceptions.UnauthorizedError
+        administrator = await self.get_current_active_administrator(refresh_token)
         return AdministratorAndTokensDTO(
             access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),

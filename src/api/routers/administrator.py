@@ -17,7 +17,6 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedError
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -69,9 +68,7 @@ class AdministratorCBV:
 
         Вернуть access-токен и информацию об администраторе.
         """
-        await self.authentication_service.get_current_active_administrator(token.credentials)
-        if not refresh_token:
-            raise UnauthorizedError
+        await self.authentication_service.check_administrator_is_active_by_token(token.credentials)
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token
@@ -128,7 +125,7 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
-        await self.authentication_service.get_current_active_administrator(token.credentials)
+        await self.authentication_service.check_administrator_is_active_by_token(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
 
     @router.patch(
@@ -144,9 +141,8 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
-        return await self.administrator_service.switch_a_field_with_checks(
-            token.credentials, administrator_id, Administrator.Role
-        )
+        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
+        return await self.administrator_service.switch_administrator_role(current_admin_email, administrator_id)
 
     @router.patch(
         "/reset_password",
@@ -160,7 +156,8 @@ class AdministratorCBV:
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        return await self.administrator_service.restore_administrator_password(token.credentials, payload.email)
+        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
+        return await self.administrator_service.restore_administrator_password(current_admin_email, payload.email)
 
     @router.patch(
         "/{administrator_id}/block",
@@ -175,6 +172,5 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить статус администратора."""
-        return await self.administrator_service.switch_a_field_with_checks(
-            token.credentials, administrator_id, Administrator.Status
-        )
+        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
+        return await self.administrator_service.switch_administrator_status(current_admin_email, administrator_id)

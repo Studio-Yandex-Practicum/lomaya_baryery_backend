@@ -7,6 +7,7 @@ from uuid import UUID
 from src.core.settings import settings
 
 if TYPE_CHECKING:
+    from src.core.db.models import Administrator
     from src.core.db.models import Base as DatabaseModel
     from src.core.db.models import Request, Shift
 
@@ -253,3 +254,13 @@ class AdministratorBlockError(ForbiddenError):
 
 class AdministratorRestPasswordError(ForbiddenError):
     detail = "Вы не можете сбросить пароль другому пользователю"
+
+
+class AdministratorUnknownStatusError(BadRequestError):
+    def __init__(self, status: Administrator.Status):
+        self.detail = "Неизвестный статус администратора: {}".format(status)
+
+
+class AdministratorUnknownRoleError(BadRequestError):
+    def __init__(self, role: Administrator.Role):
+        self.detail = "Неизвестный статус администратора: {}".format(role)

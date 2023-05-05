@@ -40,6 +40,23 @@ class AdministratorRepository(AbstractRepository):
         )
         return administrator_exists.scalar()
 
+    async def administrator_is_active(self, email: str) -> bool:
+        """Проверяет существование активного администратора с ролью admin по email.
+
+        Args:
+            email (str) - email администратора.
+
+        Returns:
+            bool: True — если администратор есть в БД, False — если нет
+        """
+        stmt = select(
+            select(Administrator)
+            .where(and_(Administrator.email == email, Administrator.status == Administrator.Status.ACTIVE))
+            .exists()
+        )
+        administrator_exists = await self._session.execute(stmt)
+        return administrator_exists.scalar()
+
     async def administrator_is_active_and_is_admin(self, email: str) -> bool:
         """Проверяет существование активного администратора с ролью admin по email.
 
