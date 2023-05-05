@@ -58,7 +58,8 @@ async def start(update: Update, context: CallbackContext) -> None:
     context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    message = await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    event = MessageHistory.Event.REGISTRATION
     if user:
         try:
             await user_service.check_before_change_user_data(user.id)
@@ -69,14 +70,10 @@ async def start(update: Update, context: CallbackContext) -> None:
             )
             return
         await update_user_data(update, context)
-        # не знаю как сюда попасть чтобы проверить
-        await history_service.create_history_message(
-            user.id, update.effective_chat.id, start_text, status='update_data'
-        )
+        await history_service.create_history_message(user.id, message.message_id, start_text, event=event)
     else:
         await register_user(update, context)
-        event = MessageHistory.Event.REGISTRATION.value
-        await history_service.create_history_message(user, update.effective_chat.id, start_text, event)
+        await history_service.create_history_message(user, message.message_id, start_text, event)
 
 
 async def register_user(

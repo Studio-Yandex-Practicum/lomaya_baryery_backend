@@ -25,7 +25,7 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     member_service = await get_member_service_callback(member_session_generator)
     bot_service = BotService(context, history_service)
     members = await member_service.get_members_with_no_reports()
-    event = MessageHistory.Event.REPORT_MENTION.value
+    event = MessageHistory.Event.REPORT_MENTION
     send_message_tasks = [
         bot_service.send_message(
             member.user,
@@ -61,7 +61,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     task, members = await report_service.get_today_task_and_active_members(date.today().day)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
-    event = MessageHistory.Event.GET_TASK.value
+    event = MessageHistory.Event.GET_TASK
     send_message_tasks = [
         bot_service.send_photo(
             member.user,

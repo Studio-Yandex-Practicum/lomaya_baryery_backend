@@ -103,7 +103,7 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            event = MessageHistory.Event.SHIFT_ENDED.value
+            event = MessageHistory.Event.SHIFT_ENDED
             await self.__telegram_bot(bot, self.__history_message).send_message(
                 member.user,
                 member.shift.final_message.format(

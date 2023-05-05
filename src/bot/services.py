@@ -61,17 +61,24 @@ class BotService:
 
     @check_user_blocked
     @retry()
-    async def send_message(self, user: models.User, text: str, event: str) -> None:
-        await self.__bot.send_message(user.telegram_id, text)
-        await self.__history_service.create_history_message(user.id, user.telegram_id, text, event)
+    async def send_message(self, user: models.User, text: str, event: models.MessageHistory.Event) -> None:
+        message = await self.__bot.send_message(user.telegram_id, text)
+        await self.__history_service.create_history_message(user.id, message.message_id, text, event)
 
     @check_user_blocked
     @retry()
     async def send_photo(
-        self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup, event: str
+        self,
+        user: models.User,
+        photo: str,
+        caption: str,
+        reply_markup: ReplyKeyboardMarkup,
+        event: models.MessageHistory.Event,
     ) -> None:
-        await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
-        await self.__history_service.create_history_message(user.id, user.telegram_id, caption, event)
+        message = await self.__bot.send_photo(
+            chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup
+        )
+        await self.__history_service.create_history_message(user.id, message.message_id, caption, event)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
@@ -83,7 +90,7 @@ class BotService:
             f"{first_task_date} в {settings.formatted_task_time} часов утра "
             "тебе поступит первое задание."
         )
-        event = models.MessageHistory.Event.REQUEST_ACCEPTED.value
+        event = models.MessageHistory.Event.REQUEST_ACCEPTED
         await self.send_message(user, text, event)
 
     async def notify_declined_request(
@@ -103,7 +110,7 @@ class BotService:
                 f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
                 f"{settings.ORGANIZATIONS_GROUP}"
             )
-        event = models.MessageHistory.Event.REQUEST_CANCELED.value
+        event = models.MessageHistory.Event.REQUEST_CANCELED
         await self.send_message(user, text, event)
 
     async def notify_approved_task(self, user: models.User, report: models.Report, shift: models.Shift) -> None:
@@ -115,7 +122,7 @@ class BotService:
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
             text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
-        event = models.MessageHistory.Event.TASK_ACCEPTED.value
+        event = models.MessageHistory.Event.TASK_ACCEPTED
         await self.send_message(user, text, event)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
@@ -129,7 +136,7 @@ class BotService:
         )
         if date.today() < shift.finished_at:
             text = text + f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра."
-        event = models.MessageHistory.Event.TASK_NOT_ACCEPTED.value
+        event = models.MessageHistory.Event.TASK_NOT_ACCEPTED
         await self.send_message(user, text, event)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
@@ -141,13 +148,13 @@ class BotService:
             "Если Вы считаете, что произошла ошибка - обращайтесь "
             f"за помощью на электронную почту {settings.ORGANIZATIONS_EMAIL}."
         )
-        event = models.MessageHistory.Event.EXCLUDE_FROM_SHIFT.value
+        event = models.MessageHistory.Event.EXCLUDE_FROM_SHIFT
         send_message_tasks = [self.send_message(member.user, text, event) for member in members]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
     async def notify_that_shift_is_finished(self, shift: models.Shift) -> None:
         """Уведомляет активных участников об окончании смены."""
-        event = models.MessageHistory.Event.SHIFT_ENDED.value
+        event = models.MessageHistory.Event.SHIFT_ENDED
         send_message_tasks = [
             self.send_message(
                 member.user,
@@ -165,7 +172,7 @@ class BotService:
 
     async def notify_that_shift_is_cancelled(self, users: list[models.User], final_message: str) -> None:
         """Уведомляет пользователей об отмене смены."""
-        event = models.MessageHistory.Event.SHIFT_CANCELED.value
+        event = models.MessageHistory.Event.SHIFT_CANCELED
         send_message_tasks = [self.send_message(user, final_message, event) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
 
@@ -173,6 +180,6 @@ class BotService:
         self, users: list[models.User], start_date_changed_message: str
     ) -> None:
         """Уведомляет пользователей о переносе даты старта смены."""
-        event = models.MessageHistory.Event.START_SHIFT_CHANGED.value
+        event = models.MessageHistory.Event.START_SHIFT_CHANGED
         send_message_tasks = [self.send_message(user, start_date_changed_message, event) for user in users]
         self.__bot_application.create_task(asyncio.gather(*send_message_tasks))
