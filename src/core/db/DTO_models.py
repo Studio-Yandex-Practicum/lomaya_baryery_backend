@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from datetime import date, datetime
 from uuid import UUID
@@ -38,6 +37,17 @@ class FullReportDto:
 @dataclass
 class TasksAnalyticReportDto:
     description: str
+    approved: int
+    declined: int
+    skipped: int
+
+
+@dataclass
+class ShiftAnalyticReportDto:
+    description: str
+    approved_1_attempt: int
+    approved_2_attempt: int
+    approved_3_attempt: int
     approved: int
     declined: int
     skipped: int

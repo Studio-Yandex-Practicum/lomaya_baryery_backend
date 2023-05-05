@@ -64,8 +64,11 @@ class AnalyticsCBV:
         Формирует отчёт по текущей смене с общей статистикой для каждого задания.
 
         Содержит:
+        - список всех задач;
+        - количество отчетов принятых с 1-й/2-й/3-й попытки;
+        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
         filename = f"current_shift_report{datetime.now()}.xlsx"
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        workbook = await self._analytics_service.generate_task_report()
+        workbook = await self._analytics_service.generate_current_shift_report()
         return StreamingResponse(workbook, headers=headers)
