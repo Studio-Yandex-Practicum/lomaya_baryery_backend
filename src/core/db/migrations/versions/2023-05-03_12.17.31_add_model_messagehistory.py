@@ -51,7 +51,7 @@ def upgrade():
     op.create_table('message_history',
     sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('message', sa.String(length=400), nullable=False),
-    sa.Column('chat_id', sa.BigInteger(), nullable=False),
+    sa.Column('message_id', sa.BigInteger(), nullable=False),
     sa.Column('event', STATUS_ENUM, nullable=False),
     sa.Column('shift_id', sa.UUID(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
