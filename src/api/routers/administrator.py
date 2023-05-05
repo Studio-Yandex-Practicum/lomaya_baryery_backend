@@ -62,13 +62,11 @@ class AdministratorCBV:
         self,
         response: Response,
         refresh_token: str | None = Cookie(default=None),
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorAndAccessTokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
 
         Вернуть access-токен и информацию об администраторе.
         """
-        await self.authentication_service.check_administrator_is_active_by_token(token.credentials)
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token
