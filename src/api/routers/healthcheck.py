@@ -26,6 +26,10 @@ class HealthcheckCBV:
         result = await self.healthcheck_service.get_healthcheck_status(request.app.state.bot_instance.bot)
         for component in result.components:
             if not component.status:
-                raise HTTPException(
-                    status_code=HTTPStatus.BAD_REQUEST, detail=jsonable_encoder(result))
+                raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=jsonable_encoder(result))
         return result
+
+
+@router.get("/ping")
+def ping() -> HTTPStatus:
+    return HTTPStatus.OK
