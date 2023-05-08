@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
@@ -26,57 +26,34 @@ class AdministratorRepository(AbstractRepository):
             raise exceptions.AdministratorNotFoundError
         return administrator
 
-    async def administrator_exists(self, email: str) -> bool:
-        """Проверяет существование администратора по email.
+    async def administrator_exists(
+        self,
+        email: str,
+        status: Administrator.Status | None = None,
+        role: Administrator.Role | None = None,
+    ) -> bool:
+        """Проверяет существование администратора в БД.
 
         Args:
-            email (str) - email администратора.
+            email (str): email администратора.
+            status (Administrator.Status): статус администратора; если None — то статус администратора не проверяется.
+            role (Administrator.Role): роль администратора; если None — то роль администратора не проверяется.
 
         Returns:
             bool: True — если администратор есть в БД, False — если нет
         """
-        administrator_exists = await self._session.execute(
-            select(select(Administrator).where(Administrator.email == email).exists())
-        )
-        return administrator_exists.scalar()
+        check_conditions = [
+            Administrator.email == email,
+        ]
 
-    async def administrator_is_active(self, email: str) -> bool:
-        """Проверяет существование активного администратора с ролью admin по email.
+        if status is not None:
+            check_conditions.append(Administrator.status == status)
 
-        Args:
-            email (str) - email администратора.
+        if role is not None:
+            check_conditions.append(Administrator.role == role)
 
-        Returns:
-            bool: True — если администратор есть в БД, False — если нет
-        """
-        stmt = select(
-            select(Administrator)
-            .where(and_(Administrator.email == email, Administrator.status == Administrator.Status.ACTIVE))
-            .exists()
-        )
-        administrator_exists = await self._session.execute(stmt)
-        return administrator_exists.scalar()
+        stmt = select(select(Administrator).filter(*check_conditions).exists())
 
-    async def administrator_is_active_and_is_admin(self, email: str) -> bool:
-        """Проверяет существование активного администратора с ролью admin по email.
-
-        Args:
-            email (str) - email администратора.
-
-        Returns:
-            bool: True — если администратор есть в БД, False — если нет
-        """
-        stmt = select(
-            select(Administrator)
-            .where(
-                and_(
-                    Administrator.email == email,
-                    Administrator.status == Administrator.Status.ACTIVE,
-                    Administrator.role == Administrator.Role.ADMINISTRATOR,
-                )
-            )
-            .exists()
-        )
         administrator_exists = await self._session.execute(stmt)
         return administrator_exists.scalar()
 

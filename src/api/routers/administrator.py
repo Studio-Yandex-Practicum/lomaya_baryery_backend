@@ -123,7 +123,7 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
-        await self.authentication_service.check_administrator_is_active_by_token(token.credentials)
+        await self.authentication_service.check_administrator_by_token(token, is_active=True)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
 
     @router.patch(
@@ -139,8 +139,8 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
-        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
-        return await self.administrator_service.switch_administrator_role(current_admin_email, administrator_id)
+        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        return await self.administrator_service.switch_administrator_role(administrator_id, token.credentials)
 
     @router.patch(
         "/reset_password",
@@ -154,8 +154,8 @@ class AdministratorCBV:
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
-        return await self.administrator_service.restore_administrator_password(current_admin_email, payload.email)
+        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        return await self.administrator_service.restore_administrator_password(payload.email)
 
     @router.patch(
         "/{administrator_id}/block",
@@ -170,5 +170,5 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить статус администратора."""
-        current_admin_email = self.authentication_service.get_email_from_token(token.credentials)
-        return await self.administrator_service.switch_administrator_status(current_admin_email, administrator_id)
+        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        return await self.administrator_service.switch_administrator_status(administrator_id, token.credentials)

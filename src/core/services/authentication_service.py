@@ -1,7 +1,7 @@
 import datetime as dt
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -77,19 +77,44 @@ class AuthenticationService:
             administrator=administrator,
         )
 
-    async def check_administrator_is_active_by_token(self, token: str) -> Administrator:
-        """Проверяет существование активного администратора с ролью admin по token-у.
+    async def check_administrator_by_token(
+        self,
+        token: HTTPAuthorizationCredentials,
+        is_active: bool | None = None,
+        is_admin: bool | None = None,
+    ) -> None:
+        """Проверяет существование администратора по token-у.
 
-        Проверяет есть ли в базе администратор, не заблокирован ли он и
-        есть ли у него роль ADMINISTRATOR.
         Если одно из условий не выполняется, выбрасывается исключение.
-        Если все условия выполняются — возвращает True
+
+        Args:
+            token (str): JWT token.
+            is_active (bool): True — проверяет, что администратор активный;
+                              False — проверяет, что администратор не активный;
+                              None — статус администратора не проверяется.
+            is_admin (bool): True — администратор имеет роль ADMINISTRATOR;
+                             False — администратор имеет роль EXPERT;
+                             None — роль администратора не проверяется.
+
         """
-        email = self.get_email_from_token(token)
-        administrator_exists = await self.__administrator_repository.administrator_is_active(email)
+        email = self.get_email_from_token(token.credentials)
+
+        check_conditions = {"email": email}
+
+        if is_active:
+            check_conditions.update({"status": Administrator.Status.ACTIVE})
+        elif is_active is not None:
+            check_conditions.update({"status": Administrator.Status.BLOCKED})
+
+        if is_admin:
+            check_conditions.update({"role": Administrator.Role.ADMINISTRATOR})
+        elif is_admin is not None:
+            check_conditions.update({"role": Administrator.Role.EXPERT})
+
+        administrator_exists = await self.__administrator_repository.administrator_exists(**check_conditions)
+
         if not administrator_exists:
             raise exceptions.ForbiddenError
-        return True
 
     async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
