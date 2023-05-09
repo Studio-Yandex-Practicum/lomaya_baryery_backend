@@ -165,7 +165,7 @@ class AdministratorCBV:
         self,
         administrator_id: UUID,
         schema: AdministratorUpdateNameAndSurnameRequest,
-        # token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
         """Редактирование информации об администраторе.
 
@@ -173,7 +173,7 @@ class AdministratorCBV:
             name (str): имя администратора
             surname (str): фамилия администратора
         """
-        # await self.authentication_service.get_current_active_administrator(token.credentials)
+        await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.update_administrator(administrator_id, schema)
 
     @router.patch(
