@@ -122,6 +122,14 @@ class Settings(BaseSettings):
         dt = time(hour=8)
         return dt.strftime('%H')
 
+    @property
+    def swagger(self) -> (None | str):
+        return None if self.DEBUG is False else "/docs"
+
+    @property
+    def redoc(self) -> (None | str):
+        return None if self.DEBUG is False else "/redoc"
+
     class Config:
         env_file = ENV_FILE
 

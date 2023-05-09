@@ -16,9 +16,9 @@ from src.core.utils import setup_logging
 
 
 def create_app() -> FastAPI:
-    swagger = None if settings.DEBUG is False else "/docs"
-    redoc = None if settings.DEBUG is False else "/redoc"
-    app = FastAPI(debug=settings.DEBUG, root_path=settings.ROOT_PATH, docs_url=swagger, redoc_url=redoc)
+    app = FastAPI(
+        debug=settings.DEBUG, root_path=settings.ROOT_PATH, docs_url=settings.swagger, redoc_url=settings.redoc
+    )
 
     origins = ["*"]
 

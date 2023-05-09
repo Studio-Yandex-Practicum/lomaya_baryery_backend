@@ -29,7 +29,12 @@ class HealthcheckCBV:
                 raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=jsonable_encoder(result))
         return result
 
-
-@router.get("/ping")
-def ping() -> HTTPStatus:
-    return HTTPStatus.OK
+    @router.get(
+        "/ping",
+        status_code=HTTPStatus.OK,
+        summary="Проверить работоспособность АПИ.",
+        response_description="Проверить работоспособность АПИ.",
+    )
+    def ping(self):
+        """Пингует АПИ для проверки работоспособности."""
+        return {"API": "OK"}
