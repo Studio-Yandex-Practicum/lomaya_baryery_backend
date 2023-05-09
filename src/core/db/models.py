@@ -22,7 +22,8 @@ from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import ForeignKey
 
-from src.core import exceptions, settings
+from src.core import exceptions
+from src.core.settings import settings
 
 
 @as_declarative()

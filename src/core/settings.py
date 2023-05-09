@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     LOG_COMPRESSION: str = "tar.gz"
     LOG_LEVEL: str = "WARNING"
 
+    NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
+    INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
@@ -132,6 +135,3 @@ def get_settings():
 
 
 settings = get_settings()
-
-NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
-INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
