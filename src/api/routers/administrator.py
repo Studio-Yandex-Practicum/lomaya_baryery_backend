@@ -123,7 +123,7 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
-        await self.authentication_service.check_administrator_by_token(token, is_active=True)
+        await self.authentication_service.check_administrator_by_token(token)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
 
     @router.patch(
@@ -139,7 +139,7 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
-        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        await self.authentication_service.check_administrator_by_token(token, is_admin=True)
         return await self.administrator_service.switch_administrator_role(administrator_id, token.credentials)
 
     @router.patch(
@@ -154,7 +154,7 @@ class AdministratorCBV:
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        await self.authentication_service.check_administrator_by_token(token, is_admin=True)
         return await self.administrator_service.restore_administrator_password(payload.email)
 
     @router.patch(
@@ -170,5 +170,5 @@ class AdministratorCBV:
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить статус администратора."""
-        await self.authentication_service.check_administrator_by_token(token, is_active=True, is_admin=True)
+        await self.authentication_service.check_administrator_by_token(token, is_admin=True)
         return await self.administrator_service.switch_administrator_status(administrator_id, token.credentials)

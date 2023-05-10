@@ -29,14 +29,12 @@ class AdministratorRepository(AbstractRepository):
     async def administrator_exists(
         self,
         email: str,
-        status: Administrator.Status | None = None,
         role: Administrator.Role | None = None,
     ) -> bool:
         """Проверяет существование администратора в БД.
 
         Args:
             email (str): email администратора.
-            status (Administrator.Status): статус администратора; если None — то статус администратора не проверяется.
             role (Administrator.Role): роль администратора; если None — то роль администратора не проверяется.
 
         Returns:
@@ -44,10 +42,8 @@ class AdministratorRepository(AbstractRepository):
         """
         check_conditions = [
             Administrator.email == email,
+            Administrator.status == Administrator.Status.ACTIVE,
         ]
-
-        if status is not None:
-            check_conditions.append(Administrator.status == status)
 
         if role is not None:
             check_conditions.append(Administrator.role == role)

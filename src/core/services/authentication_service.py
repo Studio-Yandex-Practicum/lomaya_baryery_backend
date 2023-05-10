@@ -80,18 +80,16 @@ class AuthenticationService:
     async def check_administrator_by_token(
         self,
         token: HTTPAuthorizationCredentials,
-        is_active: bool | None = None,
         is_admin: bool | None = None,
     ) -> None:
         """Проверяет существование администратора по token-у.
 
+        Администратор должен существовать, иметь статус ACTIVE, а также
+        удовлетворять проверке роли (указывается в аргументах).
         Если одно из условий не выполняется, выбрасывается исключение.
 
         Args:
             token (str): JWT token.
-            is_active (bool): True — проверяет, что администратор активный;
-                              False — проверяет, что администратор не активный;
-                              None — статус администратора не проверяется.
             is_admin (bool): True — администратор имеет роль ADMINISTRATOR;
                              False — администратор имеет роль EXPERT;
                              None — роль администратора не проверяется.
@@ -100,11 +98,6 @@ class AuthenticationService:
         email = self.get_email_from_token(token.credentials)
 
         check_conditions = {"email": email}
-
-        if is_active:
-            check_conditions.update({"status": Administrator.Status.ACTIVE})
-        elif is_active is not None:
-            check_conditions.update({"status": Administrator.Status.BLOCKED})
 
         if is_admin:
             check_conditions.update({"role": Administrator.Role.ADMINISTRATOR})

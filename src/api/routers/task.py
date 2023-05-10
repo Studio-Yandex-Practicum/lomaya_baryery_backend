@@ -39,7 +39,7 @@ class TaskCBV:
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
         - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.task_service.create_task(task)
 
     @router.get(
@@ -59,7 +59,7 @@ class TaskCBV:
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
         - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.task_service.get_all_tasks()
 
     @router.get(
@@ -83,7 +83,7 @@ class TaskCBV:
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
         - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.task_service.get_task(task_id)
 
     @router.patch(
@@ -107,7 +107,7 @@ class TaskCBV:
         - **description**: описание задания в повелительном наклонении, например: "Убери со стола"
         - **description_for_message**: описание задания в совершенном виде, например: "Убрать со стола"
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.task_service.update_task(task_id, update_task_data)
 
     @router.patch(

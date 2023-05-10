@@ -35,7 +35,7 @@ class RequestCBV:
         request: Request,
     ) -> RequestResponse:
         """Одобрить заявку на участие в акции."""
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.request_service.approve_request(request_id, request.app.state.bot_instance)
 
     @router.patch(
@@ -52,7 +52,7 @@ class RequestCBV:
         decline_request_data: RequestDeclineRequest | None = Body(None),
     ) -> RequestResponse:
         """Отклонить заявку на участие в акции."""
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.request_service.decline_request(
             request_id, request.app.state.bot_instance, decline_request_data
         )
@@ -77,5 +77,5 @@ class RequestCBV:
         - **request_status**: статус заявки
         - **user_status**: статус участника
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.request_service.get_requests_list(status)

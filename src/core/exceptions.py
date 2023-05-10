@@ -240,20 +240,8 @@ class InvitationAlreadyActivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже активно"
 
 
-class AdministratorChangeError(ForbiddenError):
-    detail = "У вас нет прав на изменение других администраторов."
-
-
 class AdministratorSelfChangeError(ForbiddenError):
     detail = "Вы не можете изменить самого себя."
-
-
-class AdministratorBlockError(ForbiddenError):
-    detail = "У Вас нет прав на блокировку других администраторов."
-
-
-class AdministratorRestPasswordError(ForbiddenError):
-    detail = "Вы не можете сбросить пароль другому пользователю"
 
 
 class AdministratorUnknownStatusError(BadRequestError):
