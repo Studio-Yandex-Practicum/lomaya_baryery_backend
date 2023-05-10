@@ -30,7 +30,7 @@ class TaskRepository(AbstractRepository):
         """
         stmt = (
             select(
-                Task.description,
+                Task.title,
                 func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
                 func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
