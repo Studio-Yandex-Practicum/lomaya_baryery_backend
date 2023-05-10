@@ -64,8 +64,7 @@ class UserService:
 
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""
-        if request.status is Request.Status.APPROVED:
-            raise exceptions.AlreadyRegisteredError
+        await self.check_before_change_user_data(request.user_id)
         if request.status is Request.Status.DECLINED:
             if request.is_repeated < settings.MAX_REQUESTS:
                 request.is_repeated += 1
@@ -118,3 +117,13 @@ class UserService:
     async def unset_telegram_blocked(self, user: User) -> None:
         user.telegram_blocked = False
         await self.__user_repository.update(user.id, user)
+
+    async def check_before_change_user_data(self, user_id: UUID) -> None:
+        available_shift = await self.__shift_service.get_open_for_registration_shift_id()
+        current_request = await self.__request_repository.get_by_user_and_shift(user_id, available_shift)
+        if not current_request:
+            return
+        if current_request.status == Request.Status.PENDING.value:
+            raise exceptions.RequestIsPendingError
+        if current_request.status == Request.Status.APPROVED.value:
+            raise exceptions.AlreadyRegisteredError

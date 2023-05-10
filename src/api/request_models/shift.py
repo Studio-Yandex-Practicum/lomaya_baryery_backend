@@ -20,7 +20,7 @@ class ShiftSortRequest(str, enum.Enum):
 class ShiftCreateRequest(RequestBase):
     started_at: date
     finished_at: date
-    title: str = Field(..., min_length=3, max_length=60)
+    title: str
 
     @validator("started_at", "finished_at", pre=True)
     def validate_date_format(cls, value):
@@ -28,6 +28,13 @@ class ShiftCreateRequest(RequestBase):
             datetime.strptime(str(value), DATE_FORMAT)
         except ValueError:
             raise exceptions.InvalidDateFormatError
+        return value
+
+    @validator("title", pre=True)
+    def validate_title(cls, value):
+        value = value.strip()
+        if not (3 <= len(value) <= 60):
+            raise exceptions.ShiftTitleLengthError()
         return value
 
 
