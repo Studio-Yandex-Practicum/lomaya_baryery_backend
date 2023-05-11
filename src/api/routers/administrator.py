@@ -164,7 +164,7 @@ class AdministratorCBV:
     async def update_administrator(
         self,
         administrator_id: UUID,
-        schema: AdministratorUpdateNameAndSurnameRequest = Depends(),
+        schema: AdministratorUpdateNameAndSurnameRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> Any:
         """Редактирование информации об администраторе.
