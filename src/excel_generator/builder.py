@@ -73,11 +73,8 @@ class AnalyticReportBuilder:
             self.__add_row(worksheet, analytic_task_report, data=astuple(task))
 
     def __add_footer(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
-        """Заполняет последнюю строку в листе, если установлено значение footer_data."""
-        try:
-            self.__add_row(worksheet, analytic_task_report, data=analytic_task_report.footer_data)
-        except AttributeError:
-            pass
+        """Заполняет последнюю строку в листе."""
+        self.__add_row(worksheet, analytic_task_report, data=analytic_task_report.footer_data)
 
     def __apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""

@@ -44,10 +44,10 @@ class TasksAnalyticReportDto:
 
 @dataclass
 class ShiftAnalyticReportDto:
-    description: str
-    approved_1_attempt: int
-    approved_2_attempt: int
-    approved_3_attempt: int
+    title: str
+    approved_from_1_attempt: int
+    approved_from_2_attempt: int
+    approved_from_3_attempt: int
     approved: int
     declined: int
     skipped: int

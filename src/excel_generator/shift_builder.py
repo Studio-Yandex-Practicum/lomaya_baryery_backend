@@ -15,3 +15,16 @@ class ShiftAnalyticReportSettings(BaseAnalyticReportSettings):
         "Кол-во отклонённых отчётов",
     )
     row_count: int = 0
+
+    @classmethod
+    @property
+    def footer_data(cls):
+        return (
+            "ИТОГО:",
+            f"=SUM(B2:B{cls.row_count})",
+            f"=SUM(C2:C{cls.row_count})",
+            f"=SUM(D2:D{cls.row_count})",
+            f"=SUM(E2:E{cls.row_count})",
+            f"=SUM(F2:F{cls.row_count})",
+            f"=SUM(G2:G{cls.row_count})",
+        )

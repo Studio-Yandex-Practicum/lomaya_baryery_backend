@@ -1,4 +1,5 @@
 from io import BytesIO
+from uuid import UUID
 
 from fastapi import Depends
 from openpyxl import Workbook
@@ -32,9 +33,9 @@ class AnalyticsService:
             analytic_task_report_full=TaskAnalyticReportSettings,
         )
 
-    async def __generate_current_shift_report(self, workbook: Workbook) -> Workbook:
+    async def __generate_current_shift_report(self, workbook: Workbook, shift_id: UUID) -> Workbook:
         """Генерация отчёта по текущей смене."""
-        current_shift_statistic = await self.__shift_repository.get_current_shift_statistics_report()
+        current_shift_statistic = await self.__shift_repository.get_shift_statistics_report_by_id(shift_id)
         await self.__task_report_builder.generate_report(
             current_shift_statistic,
             workbook=workbook,
@@ -54,8 +55,8 @@ class AnalyticsService:
         await self.__generate_task_report(workbook)
         return await self.__task_report_builder.get_report_response(workbook)
 
-    async def generate_current_shift_report(self) -> BytesIO:
+    async def generate_current_shift_report(self, shift_id: UUID) -> BytesIO:
         """Генерация отчёта по текущей смене."""
         workbook = self.__task_report_builder.create_workbook()
-        await self.__generate_current_shift_report(workbook)
+        await self.__generate_current_shift_report(workbook, shift_id)
         return await self.__task_report_builder.get_report_response(workbook)

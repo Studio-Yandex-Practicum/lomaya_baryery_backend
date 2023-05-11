@@ -1,5 +1,6 @@
 from datetime import datetime
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -53,13 +54,13 @@ class AnalyticsCBV:
         return StreamingResponse(workbook, headers=headers)
 
     @router.get(
-        "/current_shift_report",
+        "/{shift_id}/current_shift_report",
         response_model=None,
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Формирование отчёта по текущей смене",
     )
-    async def generate_current_shift_report(self) -> StreamingResponse:
+    async def generate_current_shift_report(self, shift_id: UUID) -> StreamingResponse:
         """
         Формирует отчёт по текущей смене с общей статистикой для каждого задания.
 
@@ -70,5 +71,5 @@ class AnalyticsCBV:
         """
         filename = f"current_shift_report{datetime.now()}.xlsx"
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        workbook = await self._analytics_service.generate_current_shift_report()
+        workbook = await self._analytics_service.generate_current_shift_report(shift_id)
         return StreamingResponse(workbook, headers=headers)

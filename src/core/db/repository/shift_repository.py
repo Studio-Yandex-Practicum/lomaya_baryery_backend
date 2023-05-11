@@ -213,7 +213,7 @@ class ShiftRepository(AbstractRepository):
         )
         return await self._session.scalar(statement)
 
-    async def get_current_shift_statistics_report(self):
+    async def get_shift_statistics_report_by_id(self, shift_id: UUID):
         """Отчёт по задачам с текущей смены.
 
         Содержит:
@@ -221,20 +221,17 @@ class ShiftRepository(AbstractRepository):
         - количество отчетов принятых с 1-й/2-й/3-й попытки;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        current_shift_id = select(Shift.id).where(
-            Shift.status == Shift.Status.STARTED,
-        )
         stmt = (
             select(
                 Task.description,
-                func.count().filter(Report.number_attempt == 0).label('1_attempt'),
-                func.count().filter(Report.number_attempt == 1).label('2_attempt'),
-                func.count().filter(Report.number_attempt == 2).label('3_attempt'),
+                func.count().filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
+                func.count().filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
+                func.count().filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
                 func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
                 func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
             )
-            .where(Report.shift_id == current_shift_id)
+            .where(Report.shift_id == shift_id)
             .join(Task.reports)
             .group_by(Task.description)
         )
