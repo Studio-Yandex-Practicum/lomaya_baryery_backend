@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import time, timedelta
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urljoin
 
 from pydantic import BaseSettings
@@ -123,11 +124,11 @@ class Settings(BaseSettings):
         return dt.strftime('%H')
 
     @property
-    def swagger(self) -> (None | str):
+    def swagger(self) -> Optional[str]:
         return None if self.DEBUG is False else "/docs"
 
     @property
-    def redoc(self) -> (None | str):
+    def redoc(self) -> Optional[str]:
         return None if self.DEBUG is False else "/redoc"
 
     class Config:
