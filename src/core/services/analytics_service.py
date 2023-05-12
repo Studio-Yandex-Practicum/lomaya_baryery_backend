@@ -1,4 +1,6 @@
+from datetime import datetime
 from io import BytesIO
+from urllib.parse import quote_plus
 from uuid import UUID
 
 from fastapi import Depends
@@ -33,8 +35,8 @@ class AnalyticsService:
             analytic_task_report_full=TaskAnalyticReportSettings,
         )
 
-    async def __generate_current_shift_report(self, workbook: Workbook, shift_id: UUID) -> Workbook:
-        """Генерация отчёта по текущей смене."""
+    async def __generate_shift_report_by_id(self, workbook: Workbook, shift_id: UUID) -> Workbook:
+        """Генерация отчёта по выбранной смене."""
         current_shift_statistic = await self.__shift_repository.get_shift_statistics_report_by_id(shift_id)
         await self.__task_report_builder.generate_report(
             current_shift_statistic,
@@ -55,8 +57,15 @@ class AnalyticsService:
         await self.__generate_task_report(workbook)
         return await self.__task_report_builder.get_report_response(workbook)
 
-    async def generate_current_shift_report(self, shift_id: UUID) -> BytesIO:
-        """Генерация отчёта по текущей смене."""
+    async def generate_shift_report_by_id(self, shift_id: UUID) -> BytesIO:
+        """Генерация отчёта по выбранной смене."""
         workbook = self.__task_report_builder.create_workbook()
-        await self.__generate_current_shift_report(workbook, shift_id)
+        await self.__generate_shift_report_by_id(workbook, shift_id)
         return await self.__task_report_builder.get_report_response(workbook)
+
+    async def generate_shift_report_filename(self, shift_id: UUID):
+        """Генерация названия файла отчета по смене."""
+        shift = await self.__shift_repository.get(shift_id)
+        shift_name = '_'.join(shift.title.split()).replace('.', '')
+        filename = f"Отчёт_по_смене_№{shift.sequence_number}_{shift_name}_{datetime.now()}.xlsx"
+        return quote_plus(filename)
