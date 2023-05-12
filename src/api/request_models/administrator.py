@@ -12,11 +12,16 @@ class AdministratorAuthenticateRequest(RequestBase):
     password: SecretStr
 
 
-class AdministratorRegistrationRequest(RequestBase):
-    """Схема для регистрации администратора."""
+class AdministratorUpdateNameAndSurnameRequest(RequestBase):
+    """Схема для обновления имени и фамилии администратора."""
 
     name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
+
+
+class AdministratorRegistrationRequest(AdministratorUpdateNameAndSurnameRequest):
+    """Схема для регистрации администратора."""
+
     password: SecretStr
 
     _validate_name = name_surname_validator("name")
