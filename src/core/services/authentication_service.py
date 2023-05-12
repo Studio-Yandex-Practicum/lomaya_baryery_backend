@@ -80,31 +80,26 @@ class AuthenticationService:
     async def check_administrator_by_token(
         self,
         token: HTTPAuthorizationCredentials,
-        is_admin: bool | None = None,
+        role: Administrator.Role | None = None,
     ) -> None:
-        """Проверяет существование администратора по token-у.
+        """Проверяет существование администратора по token-у и его роли (опционально).
 
         Администратор должен существовать, иметь статус ACTIVE, а также
-        удовлетворять проверке роли (указывается в аргументах).
+        иметь роль, указанную в аргументах.
         Если одно из условий не выполняется, выбрасывается исключение.
+        Если role=None, то роль администратора не проверяется.
 
         Args:
             token (str): JWT token.
-            is_admin (bool): True — администратор имеет роль ADMINISTRATOR;
-                             False — администратор имеет роль EXPERT;
-                             None — роль администратора не проверяется.
-
+            role (Administrator.Role): роль администратора или None — тогда
+                                       роль администратора не проверяется.
         """
+        if role is not None and role not in Administrator.Role.__members__.values():
+            raise exceptions.AdministratorUnknownRoleError(role)
+
         email = self.get_email_from_token(token.credentials)
 
-        check_conditions = {"email": email}
-
-        if is_admin:
-            check_conditions.update({"role": Administrator.Role.ADMINISTRATOR})
-        elif is_admin is not None:
-            check_conditions.update({"role": Administrator.Role.EXPERT})
-
-        administrator_exists = await self.__administrator_repository.administrator_exists(**check_conditions)
+        administrator_exists = await self.__administrator_repository.is_administrator_exists(email, role)
 
         if not administrator_exists:
             raise exceptions.ForbiddenError

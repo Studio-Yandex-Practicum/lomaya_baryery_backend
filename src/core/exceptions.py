@@ -248,10 +248,6 @@ class InvitationAlreadyActivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже активно"
 
 
-class AdministratorSelfChangeError(ForbiddenError):
-    detail = "Вы не можете изменить самого себя."
-
-
 class AdministratorUnknownStatusError(BadRequestError):
     def __init__(self, status: Administrator.Status):
         self.detail = "Неизвестный статус администратора: {}".format(status)
@@ -259,4 +255,12 @@ class AdministratorUnknownStatusError(BadRequestError):
 
 class AdministratorUnknownRoleError(BadRequestError):
     def __init__(self, role: Administrator.Role):
-        self.detail = "Неизвестный статус администратора: {}".format(role)
+        self.detail = "Неизвестная роль администратора: {}".format(role)
+
+
+class AdministratorSelfChangeRoleError(ForbiddenError):
+    detail = "Вы не можете изменить роль самому себе."
+
+
+class AdministratorSelfChangeStatusError(ForbiddenError):
+    detail = "Вы не можете изменить статус самому себе."

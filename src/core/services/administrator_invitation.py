@@ -29,7 +29,7 @@ class AdministratorInvitationService:
         Аргументы:
             invitation_data (AdministratorMailRequestRequest): предзаполненные администратором данные
         """
-        if await self.__administrator_repository.administrator_exists(invitation_data.email):
+        if await self.__administrator_repository.is_administrator_exists(invitation_data.email):
             raise exceptions.AdministratorAlreadyExistsError
         expiration_date = datetime.utcnow() + settings.INVITE_LINK_EXPIRATION_TIME
         return await self.__administrator_mail_request_repository.create(

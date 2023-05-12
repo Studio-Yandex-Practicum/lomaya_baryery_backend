@@ -26,7 +26,7 @@ class AdministratorRepository(AbstractRepository):
             raise exceptions.AdministratorNotFoundError
         return administrator
 
-    async def administrator_exists(
+    async def is_administrator_exists(
         self,
         email: str,
         role: Administrator.Role | None = None,

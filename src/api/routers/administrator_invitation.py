@@ -14,6 +14,7 @@ from src.api.response_models.administrator_invitation import (
     AdministratorInvitationResponse,
 )
 from src.api.response_models.error import generate_error_responses
+from src.core.db.models import Administrator
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
 from src.core.services.authentication_service import AuthenticationService
@@ -94,7 +95,7 @@ class AdministratorInvitationCBV:
     async def deactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        await self.authentication_service.check_administrator_by_token(token, is_admin=True)
+        await self.authentication_service.check_administrator_by_token(token, Administrator.Role.ADMINISTRATOR)
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
@@ -111,7 +112,7 @@ class AdministratorInvitationCBV:
     async def reactivate_invitation(
         self, invitation_id: UUID, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
     ) -> Any:
-        await self.authentication_service.check_administrator_by_token(token, is_admin=True)
+        await self.authentication_service.check_administrator_by_token(token, Administrator.Role.ADMINISTRATOR)
         invitation = await self.administrator_invitation_service.reactivate_invitation(invitation_id)
         url = urljoin(settings.APPLICATION_URL, f"/pwd_create/{invitation.token}")
         await self.email_provider.send_invitation_link(url, invitation.name, invitation.email)
