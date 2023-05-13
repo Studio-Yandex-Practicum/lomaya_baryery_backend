@@ -71,7 +71,9 @@ def upgrade():
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('url', sa.String(length=150), nullable=False),
     sa.Column('title', sa.String(length=150), nullable=False),
-    sa.Column('is_archived', sa.Boolean(), nullable=False, default=sa.sql.expression.false()),
+    sa.Column('is_archived', sa.Boolean(), nullable=False, server_default=sa.sql.expression.false()),
+    sa.Column('sequence_number', sa.Integer(), sa.Identity(always=False, start=1, cycle=True), nullable=False),
+
     sa.PrimaryKeyConstraint('id'),
 
     sa.UniqueConstraint('title'),
@@ -101,8 +103,9 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
-    sa.Column('shift_id', postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column('shift_id', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('status', REQUEST_STATUS_ENUM, nullable=False),
+    sa.Column('is_repeated', sa.Integer, default='1', nullable=False),
     sa.PrimaryKeyConstraint('id'),
 
     sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], ),
@@ -138,7 +141,7 @@ def upgrade():
     sa.Column('status', ADMIN_STATUS_ENUM, nullable=False, server_default='active'),
     sa.Column('is_superadmin', sa.Boolean(), nullable=False, server_default=sa.sql.expression.false()),
     sa.PrimaryKeyConstraint('id'),
-    
+
     sa.UniqueConstraint('email'),
     )
 
@@ -157,10 +160,10 @@ def upgrade():
     sa.Column('report_url', sa.VARCHAR(length=4096), nullable=True),
     sa.Column('number_attempt', sa.Integer(), nullable=False, server_default='0'),
     sa.PrimaryKeyConstraint('id'),
-    
+
     sa.UniqueConstraint('shift_id', 'task_date', 'member_id', name='_member_task_uc'),
     sa.UniqueConstraint('report_url'),
-    
+
     sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], ),
     sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
     sa.ForeignKeyConstraint(['member_id'], ['members.id'], ),
