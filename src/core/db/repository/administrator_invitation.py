@@ -20,7 +20,7 @@ class AdministratorInvitationRepository(AbstractRepository):
         statement = select(AdministratorInvitation).where(
             and_(
                 AdministratorInvitation.token == token,
-                AdministratorInvitation.expired_datetime > datetime.utcnow(),
+                AdministratorInvitation.expired_datetime > datetime.now(),
             )
         )
         result = (await self._session.scalars(statement)).first()

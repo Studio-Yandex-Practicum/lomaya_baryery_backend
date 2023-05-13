@@ -69,13 +69,13 @@ async def send_daily_task_job(context: CallbackContext) -> None:
             (
                 f"Привет, {member.user.name}!\n"
                 f"Вчерашнее задание не было выполнено! Сегодня можешь отправить отчет только по новому заданию. "
-                f"Сегодня твоим заданием будет {task.description_for_message}. "
+                f"Сегодня твоим заданием будет {task.title}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             )
             if await report_service.is_previous_report_not_submitted(member.id)
             else (
                 f"Привет, {member.user.name}!\n"
-                f"Сегодня твоим заданием будет {task.description_for_message}. "
+                f"Сегодня твоим заданием будет {task.title}. "
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
             DAILY_TASK_BUTTONS,
