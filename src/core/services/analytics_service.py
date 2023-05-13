@@ -42,13 +42,12 @@ class AnalyticsService:
 
     async def __generate_shift_report_description(self, shift_id: UUID) -> str:
         shift = await self.__shift_repository.get(shift_id)
-        description = (
+        return (
             f"Отчёт по смене №{shift.sequence_number} ({shift.title}), "
             f"дата старта: {shift.started_at.strftime('%d.%m.%Y')}, "
             f"дата окончания: {shift.finished_at.strftime('%d.%m.%Y')}, "
             f"дата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
         )
-        return description
 
     async def __generate_report_for_shift(self, workbook: Workbook, shift_id: UUID) -> None:
         """Генерация отчёта по выбранной смене."""

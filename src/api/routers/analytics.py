@@ -54,13 +54,13 @@ class AnalyticsCBV:
         return StreamingResponse(workbook, headers=headers)
 
     @router.get(
-        "/{shift_id}/current_shift_report",
+        "/{shift_id}/shift_report",
         response_model=None,
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Формирование отчёта по выбранной смене",
     )
-    async def generate_shift_report_by_id(self, shift_id: UUID) -> StreamingResponse:
+    async def generate_report_for_shift(self, shift_id: UUID) -> StreamingResponse:
         """
         Формирует отчёт по выбранной смене с общей статистикой для каждого задания.
 
