@@ -71,5 +71,5 @@ class AnalyticsCBV:
         """
         filename = await self._analytics_service.generate_shift_report_filename(shift_id)
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        workbook = await self._analytics_service.generate_shift_report_by_id(shift_id)
+        workbook = await self._analytics_service.generate_report_for_shift(shift_id)
         return StreamingResponse(workbook, headers=headers)

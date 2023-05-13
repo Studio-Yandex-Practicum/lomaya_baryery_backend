@@ -214,7 +214,7 @@ class ShiftRepository(AbstractRepository):
         return await self._session.scalar(statement)
 
     async def get_shift_statistics_report_by_id(self, shift_id: UUID):
-        """Отчёт по задачам с текущей смены.
+        """Отчёт по задачам из выбранной смены.
 
         Содержит:
         - список всех задач;
@@ -223,7 +223,8 @@ class ShiftRepository(AbstractRepository):
         """
         stmt = (
             select(
-                Task.description,
+                Task.sequence_number,
+                Task.title,
                 func.count().filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
                 func.count().filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
                 func.count().filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
@@ -233,7 +234,8 @@ class ShiftRepository(AbstractRepository):
             )
             .where(Report.shift_id == shift_id)
             .join(Task.reports)
-            .group_by(Task.description)
+            .group_by(Task.title, Task.sequence_number)
+            .order_by(Task.sequence_number)
         )
         reports = await self._session.execute(stmt)
         return tuple(ShiftAnalyticReportDto(*report) for report in reports.all())
