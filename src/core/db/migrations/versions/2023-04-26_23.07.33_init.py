@@ -142,7 +142,7 @@ def upgrade():
     sa.Column('is_superadmin', sa.Boolean(), nullable=False, server_default=sa.sql.expression.false()),
     sa.PrimaryKeyConstraint('id'),
 
-    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('email', name='administrators_email_key'),
     )
 
     op.create_table('reports',
@@ -181,3 +181,54 @@ def upgrade():
     sa.Column('expired_datetime', sa.TIMESTAMP(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+
+
+def downgrade():
+    # drop tables and constraints
+    op.drop_constraint('_member_task_uc', 'reports', type_='unique')
+    op.drop_constraint('reports_report_url_key', 'reports', type_='unique')
+    op.drop_constraint('reports_member_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('reports_shift_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('reports_task_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('reports_updated_by_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('reports_pkey', 'reports', type_='primary')
+    op.drop_table('reports')
+
+    op.drop_constraint('_user_shift_uc', 'members', type_='unique')
+    op.drop_constraint('members_shift_id_fkey', 'members', type_='foreignkey')
+    op.drop_constraint('members_user_id_fkey', 'members', type_='foreignkey')
+    op.drop_constraint('members_pkey', 'members', type_='primary')
+    op.drop_table('members')
+
+    op.drop_constraint('requests_shift_id_fkey', 'requests', type_='foreignkey')
+    op.drop_constraint('requests_user_id_fkey', 'requests', type_='foreignkey')
+    op.drop_constraint('requests_pkey', 'requests', type_='primary')
+    op.drop_table('requests')
+
+    op.drop_constraint('administrator_invitations_pkey', 'administrator_invitations', type_='primary')
+    op.drop_table('administrator_invitations')
+
+    op.drop_constraint('administrators_email_key', 'administrators', type_='unique')
+    op.drop_constraint('administrators_pkey', 'administrators', type_='primary')
+    op.drop_table('administrators')
+
+    op.drop_constraint('shifts_pkey', 'shifts', type_='primary')
+    op.drop_table('shifts')
+
+    op.drop_constraint('tasks_title_key', 'tasks', type_='unique')
+    op.drop_constraint('tasks_url_key', 'tasks', type_='unique')
+    op.drop_constraint('tasks_pkey', 'tasks', type_='primary')
+    op.drop_table('tasks')
+
+    op.drop_constraint('users_telegram_id_key', 'users', type_='unique')
+    op.drop_constraint('users_pkey', 'users', type_='primary')
+    op.drop_table('users')
+    # drop types
+    SHIFT_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    USER_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    REQUEST_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    MEMBER_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    ADMIN_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    ADMIN_ROLE_ENUM.drop(op.get_bind(), checkfirst=True)
+    REPORT_STATUS_ENUM.drop(op.get_bind(), checkfirst=True)
+    # ### end Alembic commands ###
