@@ -152,21 +152,21 @@ def upgrade():
     sa.Column('shift_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('task_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('member_id', postgresql.UUID(as_uuid=True), nullable=False),
-    sa.Column('updated_by', postgresql.UUID(as_uuid=True), nullable=True),
+    sa.Column('updated_by', postgresql.UUID(as_uuid=True), nullable=True), # TODO
     sa.Column('uploaded_at', sa.TIMESTAMP(), nullable=True),
     sa.Column('reviewed_at', sa.TIMESTAMP(), nullable=True),
     sa.Column('task_date', sa.DATE(), nullable=False),
     sa.Column('status', REPORT_STATUS_ENUM, nullable=False),
     sa.Column('report_url', sa.VARCHAR(length=4096), nullable=True),
     sa.Column('number_attempt', sa.Integer(), nullable=False, server_default='0'),
-    sa.PrimaryKeyConstraint('id'),
+    sa.PrimaryKeyConstraint('id', name='user_tasks_pkey'),
 
     sa.UniqueConstraint('shift_id', 'task_date', 'member_id', name='_member_task_uc'),
-    sa.UniqueConstraint('report_url'),
+    sa.UniqueConstraint('report_url', name='user_tasks_report_url_key'),
 
-    sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], ),
-    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
-    sa.ForeignKeyConstraint(['member_id'], ['members.id'], ),
+    sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], name='user_tasks_shift_id_fkey'),
+    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], name='user_tasks_task_id_fkey'),
+    sa.ForeignKeyConstraint(['member_id'], ['members.id'], name='user_tasks_member_id_fkey'),
     sa.ForeignKeyConstraint(['updated_by'], ['administrators.id'])
     )
 
@@ -186,12 +186,12 @@ def upgrade():
 def downgrade():
     # drop tables and constraints
     op.drop_constraint('_member_task_uc', 'reports', type_='unique')
-    op.drop_constraint('reports_report_url_key', 'reports', type_='unique')
-    op.drop_constraint('reports_member_id_fkey', 'reports', type_='foreignkey')
-    op.drop_constraint('reports_shift_id_fkey', 'reports', type_='foreignkey')
-    op.drop_constraint('reports_task_id_fkey', 'reports', type_='foreignkey')
-    op.drop_constraint('reports_updated_by_fkey', 'reports', type_='foreignkey')
-    op.drop_constraint('reports_pkey', 'reports', type_='primary')
+    op.drop_constraint('user_tasks_report_url_key', 'reports', type_='unique') # Ok default name:   reports_report_url_key
+    op.drop_constraint('reports_updated_by_fkey', 'reports', type_='foreignkey') # Ok
+    op.drop_constraint('user_tasks_member_id_fkey', 'reports', type_='foreignkey') # Ok
+    op.drop_constraint('user_tasks_shift_id_fkey', 'reports', type_='foreignkey') # Ok
+    op.drop_constraint('user_tasks_task_id_fkey', 'reports', type_='foreignkey') # Ok
+    op.drop_constraint('user_tasks_pkey', 'reports', type_='primary') # OK default name:  reports_pkey
     op.drop_table('reports')
 
     op.drop_constraint('_user_shift_uc', 'members', type_='unique')
