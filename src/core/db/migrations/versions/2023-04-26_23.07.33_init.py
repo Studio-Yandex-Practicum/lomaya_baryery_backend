@@ -152,7 +152,7 @@ def upgrade():
     sa.Column('shift_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('task_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('member_id', postgresql.UUID(as_uuid=True), nullable=False),
-    sa.Column('updated_by', postgresql.UUID(as_uuid=True), nullable=True), # TODO
+    sa.Column('updated_by', postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column('uploaded_at', sa.TIMESTAMP(), nullable=True),
     sa.Column('reviewed_at', sa.TIMESTAMP(), nullable=True),
     sa.Column('task_date', sa.DATE(), nullable=False),
@@ -186,12 +186,12 @@ def upgrade():
 def downgrade():
     # drop tables and constraints
     op.drop_constraint('_member_task_uc', 'reports', type_='unique')
-    op.drop_constraint('user_tasks_report_url_key', 'reports', type_='unique') # Ok default name:   reports_report_url_key
-    op.drop_constraint('reports_updated_by_fkey', 'reports', type_='foreignkey') # Ok
-    op.drop_constraint('user_tasks_member_id_fkey', 'reports', type_='foreignkey') # Ok
-    op.drop_constraint('user_tasks_shift_id_fkey', 'reports', type_='foreignkey') # Ok
-    op.drop_constraint('user_tasks_task_id_fkey', 'reports', type_='foreignkey') # Ok
-    op.drop_constraint('user_tasks_pkey', 'reports', type_='primary') # OK default name:  reports_pkey
+    op.drop_constraint('user_tasks_report_url_key', 'reports', type_='unique')
+    op.drop_constraint('reports_updated_by_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('user_tasks_member_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('user_tasks_shift_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('user_tasks_task_id_fkey', 'reports', type_='foreignkey')
+    op.drop_constraint('user_tasks_pkey', 'reports', type_='primary')
     op.drop_table('reports')
 
     op.drop_constraint('_user_shift_uc', 'members', type_='unique')
