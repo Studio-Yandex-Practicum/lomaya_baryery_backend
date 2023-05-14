@@ -35,6 +35,7 @@ class FullReportDto:
 
 @dataclass
 class TasksAnalyticReportDto:
+    sequence_number: int
     title: str
     approved: int
     declined: int
