@@ -9,6 +9,7 @@ from telegram.ext import (
     CallbackQueryHandler,
     ChatMemberHandler,
     CommandHandler,
+    Defaults,
     MessageHandler,
     PicklePersistence,
     filters,
@@ -38,13 +39,18 @@ def create_bot() -> Application:
     """Создать бота."""
     Path(settings.user_reports_dir).mkdir(parents=True, exist_ok=True)
     bot_persistence = PicklePersistence(filepath=settings.BOT_PERSISTENCE_FILE)
+    defaults = Defaults(
+        tzinfo=pytz.timezone(settings.TIME_ZONE),
+    )
     bot_instance = (
         ApplicationBuilder()
+        .defaults(defaults)
         .token(settings.BOT_TOKEN)
         .rate_limiter(AIORateLimiter())
         .persistence(persistence=bot_persistence)
         .build()
     )
+
     bot_instance.add_handler(ChatMemberHandler(chat_member_handler, ChatMemberHandler.MY_CHAT_MEMBER))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))
@@ -54,15 +60,15 @@ def create_bot() -> Application:
     bot_instance.add_handler(CallbackQueryHandler(inline_button_handler))
     bot_instance.job_queue.run_daily(
         finish_shift_automatically_job,
-        time(hour=settings.SEND_NEW_TASK_HOUR - 1, tzinfo=pytz.timezone(settings.TIME_ZONE)),
+        time(hour=settings.SEND_NEW_TASK_HOUR - 1),
     )
     bot_instance.job_queue.run_daily(
         send_daily_task_job,
-        time(hour=settings.SEND_NEW_TASK_HOUR, tzinfo=pytz.timezone(settings.TIME_ZONE)),
+        time(hour=settings.SEND_NEW_TASK_HOUR),
     )
     bot_instance.job_queue.run_daily(
         send_no_report_reminder_job,
-        time(hour=settings.SEND_NO_REPORT_REMINDER_HOUR, tzinfo=pytz.timezone(settings.TIME_ZONE)),
+        time(hour=settings.SEND_NO_REPORT_REMINDER_HOUR),
     )
     return bot_instance
 
