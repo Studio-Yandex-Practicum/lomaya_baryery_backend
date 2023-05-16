@@ -95,6 +95,7 @@ jobs:
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
             echo TZ=${{ secrets.TZ }} >> .env
+            echo DEBUG=${{ secrets.DEBUG }} >> .env
 
   start_application:
     name: Start application
