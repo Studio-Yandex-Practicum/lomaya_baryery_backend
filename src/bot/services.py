@@ -109,17 +109,22 @@ class BotService:
             text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
         await self.send_message(user, text)
 
-    async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
+    async def notify_declined_task(self, user: models.User, shift: models.Shift, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
         """
         text = (
-            "К сожалению, мы не можем принять твой фотоотчет! "
+            f"К сожалению, мы не можем принять твой фотоотчет от {report.uploaded_at:%d-%m-%Y}! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at:
-            text = text + f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра."
+            att_cnt = settings.NUMBER_ATTEMPTS_SUBMIT_REPORT - report.number_attempt
+            extra_text = f"осталась {att_cnt} попытка" if att_cnt == 1 else f"осталось {att_cnt} попытки"
+            text = text + (
+                f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра. "
+                f"У тебя {extra_text}."
+            )
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
