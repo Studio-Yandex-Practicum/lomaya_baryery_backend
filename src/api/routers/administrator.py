@@ -98,7 +98,9 @@ class AdministratorCBV:
         status_code=HTTPStatus.CREATED,
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
+        responses=generate_error_responses(
+            HTTPStatus.BAD_REQUEST,
+        ),
     )
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
         """Зарегистрировать нового администратора по токену из приглашения.
