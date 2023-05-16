@@ -90,10 +90,12 @@ jobs:
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
+            echo ORGANIZATIONS_EMAIL=${{ secrets.ORGANIZATIONS_EMAIL }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
             echo TZ=${{ secrets.TZ }} >> .env
             echo DEBUG=${{ secrets.DEBUG }} >> .env
+
 
       - name: Start application
         uses: appleboy/ssh-action@master
