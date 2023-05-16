@@ -70,7 +70,7 @@ async def start(update: Update, context: CallbackContext) -> None:
             )
             return
         await update_user_data(update, context)
-        await history_service.create_history_message(user.id, message.message_id, start_text, event=event)
+        await history_service.create_history_message(user.id, message.message_id, start_text, event)
     else:
         await register_user(update, context)
         await history_service.create_history_message(user, message.message_id, start_text, event)

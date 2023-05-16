@@ -25,7 +25,10 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
     member_service = await get_member_service_callback(member_session_generator)
     bot_service = BotService(context, history_service)
     members = await member_service.get_members_with_no_reports()
-    event = MessageHistory.Event.REPORT_MENTION
+    if members:
+        shift_id = members[0].shift_id
+    else:
+        shift_id = None
     send_message_tasks = [
         bot_service.send_message(
             member.user,
@@ -35,7 +38,8 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
             ),
-            event,
+            MessageHistory.Event.REPORT_MENTION,
+            shift_id,
         )
         for member in members
     ]
@@ -61,7 +65,10 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     task, members = await report_service.get_today_task_and_active_members(date.today().day)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
-    event = MessageHistory.Event.GET_TASK
+    if members:
+        shift_id = members[0].shift_id
+    else:
+        shift_id = None
     send_message_tasks = [
         bot_service.send_photo(
             member.user,
@@ -79,7 +86,8 @@ async def send_daily_task_job(context: CallbackContext) -> None:
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
             DAILY_TASK_BUTTONS,
-            event,
+            MessageHistory.Event.GET_TASK,
+            shift_id,
         )
         for member in members
     ]

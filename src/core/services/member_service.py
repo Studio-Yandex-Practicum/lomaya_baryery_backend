@@ -33,7 +33,7 @@ class MemberService:
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
             await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot, self.__history_service).notify_excluded_members(lagging_members)
+        await self.__telegram_bot(bot, self.__history_service).notify_excluded_members(lagging_members, shift_id)
 
     async def get_members_with_no_reports(self) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""

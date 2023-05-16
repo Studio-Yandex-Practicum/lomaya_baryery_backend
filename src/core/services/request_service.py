@@ -65,7 +65,7 @@ class RequestService:
             first_task_date = get_current_task_date() + timedelta(days=1)
 
         await self.__telegram_bot(bot, self.__history_service).notify_approved_request(
-            request.user, first_task_date.strftime('%d.%m.%Y')
+            request.user, first_task_date.strftime('%d.%m.%Y'), shift.id
         )
         return RequestResponse.parse_from(request)
 
@@ -82,7 +82,7 @@ class RequestService:
             user.status = User.Status.DECLINED
             await self.__user_repository.update(user.id, user)
         await self.__telegram_bot(bot, self.__history_service).notify_declined_request(
-            request.user, decline_request_data
+            request.user, decline_request_data, request.shift_id
         )
         return RequestResponse.parse_from(request)
 

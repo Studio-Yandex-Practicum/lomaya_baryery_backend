@@ -195,6 +195,7 @@ class ShiftService:
                 START_DATE_CHANGED_MESSAGE.format(
                     started_at=shift.started_at.strftime('%d.%m.%Y'),
                 ),
+                shift.id,
             )
 
         shift.finished_at = update_shift_data.finished_at
@@ -286,7 +287,9 @@ class ShiftService:
                 user.status = User.Status.DECLINED.value
                 users_to_update.append(user)
         await self.__user_repository.update_all(users_to_update)
-        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_cancelled(users, final_message)
+        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_cancelled(
+            users, final_message, shift.id
+        )
         return shift
 
     async def start_prepared_shift(self) -> None:
