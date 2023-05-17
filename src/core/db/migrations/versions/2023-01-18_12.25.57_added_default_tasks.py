@@ -27,7 +27,7 @@ def upgrade():
                 "INSERT INTO "
                 "tasks(id, url, description) "
                 "VALUES "
-                f"(gen_random_uuid(), '{urljoin(settings.task_image_url, task['filename'])}', '{task['description']}')"
+                f"(gen_random_uuid(), '{urljoin(settings.TASK_IMAGE_URL, task['filename'])}', '{task['description']}')"
             )
 
 

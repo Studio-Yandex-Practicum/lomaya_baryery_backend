@@ -16,10 +16,10 @@ class TaskService:
 
     async def __download_file(self, file: UploadFile) -> str:
         file_name = file.filename.replace(' ', '_')
-        with open((settings.task_image_dir / file_name), 'wb') as image:
+        with open((settings.TASK_IMAGE_DIR / file_name), 'wb') as image:
             image.write(file.file.read())
             image.close()
-        return urljoin(settings.task_image_url, file_name)
+        return urljoin(settings.TASK_IMAGE_URL, file_name)
 
     async def get_task_ids_list(self) -> list[UUID]:
         return await self.__task_repository.get_task_ids_list()

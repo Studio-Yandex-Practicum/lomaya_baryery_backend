@@ -40,7 +40,7 @@ class EmailProvider:
             MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
             USE_CREDENTIALS=settings.USE_CREDENTIALS,
             VALIDATE_CERTS=settings.VALIDATE_CERTS,
-            TEMPLATE_FOLDER=settings.email_template_directory,
+            TEMPLATE_FOLDER=settings.EMAIL_TEMPLATE_DIRECTORY,
         )
         message = MessageSchema(
             subject=subject,
