@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import time, timedelta
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urljoin
 
 from pydantic import BaseSettings
@@ -63,6 +64,9 @@ class Settings(BaseSettings):
     LOG_COMPRESSION: str = "tar.gz"
     LOG_LEVEL: str = "WARNING"
 
+    NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
+    INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
+
     @property
     def database_url(self) -> str:
         """Получить ссылку для подключения к DB."""
@@ -122,6 +126,14 @@ class Settings(BaseSettings):
         dt = time(hour=8)
         return dt.strftime('%H')
 
+    @property
+    def swagger(self) -> Optional[str]:
+        return None if self.DEBUG is False else "/docs"
+
+    @property
+    def redoc(self) -> Optional[str]:
+        return None if self.DEBUG is False else "/redoc"
+
     class Config:
         env_file = ENV_FILE
 
@@ -132,6 +144,3 @@ def get_settings():
 
 
 settings = get_settings()
-
-NUMBER_ATTEMPTS_SUBMIT_REPORT: int = 3  # количество попыток для сдачи фотоотчета для одного задания
-INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)  # время существования ссылки для приглашения на регистрацию
