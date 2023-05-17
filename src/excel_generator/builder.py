@@ -89,8 +89,14 @@ class AnalyticReportBuilder:
 
     def __apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""
-        # задаём стиль для хэдера
         rows = list(worksheet.iter_rows())
+        worksheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(rows[0]))
+        # задаём стиль для описания отчета
+        description_rows = rows[0]
+        for cell in description_rows:
+            cell.font = self.Styles.FONT_STANDART.value
+            cell.alignment = self.Styles.DESCRIPTION_ALIGNMENT.value
+        # задаём стиль для хэдера
         header_cells = rows[1]
         for cell in header_cells:
             cell.font = self.Styles.FONT_BOLD.value
@@ -111,13 +117,16 @@ class AnalyticReportBuilder:
             for cell in row:
                 cell.border = self.Styles.BORDER.value
         worksheet.column_dimensions["B"].width = self.Styles.WIDTH.value
+        worksheet.row_dimensions[1].height = self.Styles.HEIGHT.value
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
         FONT_STANDART = Font(name='Times New Roman', size=11, bold=False)
         ALIGNMENT_HEADER = Alignment(horizontal='center', vertical='center', wrap_text=True)
         ALIGNMENT_STANDART = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        DESCRIPTION_ALIGNMENT = Alignment(horizontal='left', vertical='center', wrap_text=True, shrink_to_fit=True)
         BORDER = Border(
             left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin')
         )
         WIDTH = 50
+        HEIGHT = 55

@@ -28,7 +28,7 @@ class AnalyticsService:
 
     async def __generate_task_report_description(self) -> str:
         """Генерация описания к отчёту с заданиями."""
-        return f"Отчёт по задачам, " f"дата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
+        return f"Отчёт по задачам\nдата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
 
     async def __generate_task_report(self, workbook: Workbook) -> None:
         """Генерация отчёта с заданиями."""
@@ -45,9 +45,9 @@ class AnalyticsService:
         """Генерация описания к отчёту по выбранной смене."""
         shift = await self.__shift_repository.get(shift_id)
         return (
-            f"Отчёт по смене №{shift.sequence_number} ({shift.title}), "
-            f"дата старта: {shift.started_at.strftime('%d.%m.%Y')}, "
-            f"дата окончания: {shift.finished_at.strftime('%d.%m.%Y')}, "
+            f"Отчёт по смене №{shift.sequence_number} ({shift.title})\n"
+            f"дата старта: {shift.started_at.strftime('%d.%m.%Y')}\n"
+            f"дата окончания: {shift.finished_at.strftime('%d.%m.%Y')}\n"
             f"дата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
         )
 
