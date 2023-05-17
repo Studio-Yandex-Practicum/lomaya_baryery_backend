@@ -1,21 +1,21 @@
-"""added default tasks
+"""added_default_tasks
 
-Revision ID: a6d858f5a96e
-Revises: 36ecaebc781b
-Create Date: 2023-01-18 12:25:57.080431
+Revision ID: 5a1ecb2d17c4
+Revises: 2c304127881b
+Create Date: 2023-05-03 01:54:02.703700
 
 """
-
 import json
 from urllib.parse import urljoin
 
+import sqlalchemy as sa
 from alembic import op
 
 from src.core.settings import settings
 
 # revision identifiers, used by Alembic.
-revision = 'a6d858f5a96e'
-down_revision = '36ecaebc781b'
+revision = '5a1ecb2d17c4'
+down_revision = '2c304127881b'
 branch_labels = None
 depends_on = None
 
@@ -25,9 +25,9 @@ def upgrade():
         for task in json.load(file):
             op.execute(
                 "INSERT INTO "
-                "tasks(id, url, description) "
+                "tasks(id, url, title, is_archived) "
                 "VALUES "
-                f"(gen_random_uuid(), '{urljoin(settings.TASK_IMAGE_URL, task['filename'])}', '{task['description']}')"
+                f"(gen_random_uuid(), '{urljoin(settings.TASK_IMAGE_URL, task['filename'])}', '{task['title']}', {sa.sql.expression.false()})"
             )
 
 
