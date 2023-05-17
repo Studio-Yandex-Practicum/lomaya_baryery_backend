@@ -14,7 +14,7 @@ class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
     sheet_name: str = "Задачи"
     header_data: tuple[str] = (
         "№ Задачи",
-        "Задача",
+        "Название",
         "Кол-во принятых отчётов",
         "Кол-во отклонённых отчётов",
         "Кол-во не предоставленных отчётов",

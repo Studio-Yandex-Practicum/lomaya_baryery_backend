@@ -7,7 +7,7 @@ class ShiftAnalyticReportSettings(BaseAnalyticReportSettings):
     sheet_name: str = "Отчёт по смене"
     header_data: tuple[str] = (
         "№ Задачи",
-        "Задача",
+        "Название",
         "Принята с 1-й попытки",
         "Принята с 2-й попытки",
         "Принята с 3-й попытки",

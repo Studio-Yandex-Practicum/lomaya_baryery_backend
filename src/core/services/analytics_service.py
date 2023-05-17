@@ -26,7 +26,8 @@ class AnalyticsService:
         self.__task_repository = task_repository
         self.__shift_repository = shift_repository
 
-    async def __generate_task_report_description(self) -> str:
+    @staticmethod
+    async def __generate_task_report_description() -> str:
         """Генерация описания к отчёту с заданиями."""
         return f"Отчёт по задачам\nдата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
 
@@ -84,6 +85,6 @@ class AnalyticsService:
     async def generate_shift_report_filename(self, shift_id: UUID):
         """Генерация названия файла отчета по смене."""
         shift = await self.__shift_repository.get(shift_id)
-        shift_name = '_'.join(shift.title.split()).replace('.', '')
+        shift_name = shift.title.replace(' ', '_').replace('.', '')
         filename = f"Отчёт_по_смене_№{shift.sequence_number}_{shift_name}_{date.today().strftime('%d-%m-%Y')}.xlsx"
         return quote_plus(filename)
