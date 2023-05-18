@@ -37,7 +37,7 @@ HANDLED_MESSAGE_TYPES = filters.PHOTO | filters.TEXT | filters.StatusUpdate.WEB_
 
 def create_bot() -> Application:
     """Создать бота."""
-    Path(settings.user_reports_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.USER_REPORTS_DIR).mkdir(parents=True, exist_ok=True)
     bot_persistence = PicklePersistence(filepath=settings.BOT_PERSISTENCE_FILE)
     defaults = Defaults(
         tzinfo=pytz.timezone(settings.TIME_ZONE),

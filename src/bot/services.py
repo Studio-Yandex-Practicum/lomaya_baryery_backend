@@ -78,7 +78,7 @@ class BotService:
         """
         text = (
             f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте! "
-            f"{first_task_date} в {settings.formatted_task_time} часов утра "
+            f"{first_task_date} в {settings.FORMATTED_TASK_TIME} часов утра "
             "тебе поступит первое задание."
         )
         await self.send_message(user, text)
@@ -110,7 +110,7 @@ class BotService:
         photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
-            text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
+            text = text + f"Следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
         await self.send_message(user, text)
 
     async def notify_declined_task(self, user: models.User, shift: models.Shift, report: models.Report) -> None:
