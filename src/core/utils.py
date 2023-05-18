@@ -58,7 +58,7 @@ def setup_logging():
     logger.add(sys.stdout, level='INFO')
     logger.add(
         settings.LOG_LOCATION,
-        rotation=settings.LOG_ROTATION,
+        rotation=settings.LOG_ROTATION_TIME,
         compression=settings.LOG_COMPRESSION,
         level=settings.LOG_LEVEL,
     )
