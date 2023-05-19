@@ -52,6 +52,7 @@ class ShiftAnalyticReportDto:
     approved: int
     declined: int
     skipped: int
+    reports_total: int
 
 
 @dataclass

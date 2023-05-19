@@ -14,6 +14,7 @@ class ShiftAnalyticReportSettings(BaseAnalyticReportSettings):
         "Кол-во пропусков задания",
         "Кол-во одобренных отчётов",
         "Кол-во отклонённых отчётов",
+        "Всего отчётов",
     )
     row_count: int = 0
 
@@ -29,4 +30,5 @@ class ShiftAnalyticReportSettings(BaseAnalyticReportSettings):
             f"=SUM(F2:F{cls.row_count})",
             f"=SUM(G2:G{cls.row_count})",
             f"=SUM(H2:H{cls.row_count})",
+            f"=SUM(I2:I{cls.row_count})",
         )

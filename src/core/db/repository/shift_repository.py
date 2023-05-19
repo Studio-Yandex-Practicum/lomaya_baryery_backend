@@ -231,6 +231,7 @@ class ShiftRepository(AbstractRepository):
                 func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
                 func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
+                func.count().label('reports_total'),
             )
             .where(Report.shift_id == shift_id)
             .join(Task.reports)
