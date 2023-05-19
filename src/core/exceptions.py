@@ -109,12 +109,6 @@ class ReportWaitingPhotoError(NotFoundError):
     detail = "К заданию нет отчета участника."
 
 
-class OldTaskReportError(ApplicationError):
-    """Задание устарело."""
-
-    detail = "Отчеты по данному заданию уже не принимаются."
-
-
 class ShiftStartError(BadRequestError):
     def __init__(self, shift: Shift):
         self.detail = "Невозможно начать смену {!r}. Проверьте статус смены".format(shift)

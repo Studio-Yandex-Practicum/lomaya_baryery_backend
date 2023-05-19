@@ -24,7 +24,6 @@ from sqlalchemy.schema import ForeignKey
 
 from src.core import exceptions
 from src.core.settings import settings
-from src.core.utils import get_current_task_date
 
 
 @as_declarative()
@@ -270,8 +269,6 @@ class Report(Base):
         return f"<Report: {self.id}, task_date: {self.task_date}, status: {self.status}>"
 
     def send_report(self, photo_url: str):
-        if self.task_date != get_current_task_date():
-            raise exceptions.OldTaskReportError
         if self.number_attempt == settings.NUMBER_ATTEMPTS_SUBMIT_REPORT:
             raise exceptions.ExceededAttemptsReportError
         if not photo_url:
