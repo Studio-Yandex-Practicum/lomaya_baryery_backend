@@ -11,7 +11,11 @@ from src.api.request_models.request import RequestDeclineRequest
 from src.bot.error_handler import error_handler
 from src.core.db import models
 from src.core.settings import settings
-from src.core.utils import get_lombaryers_for_quantity
+from src.core.utils import (
+    get_current_task_date,
+    get_lombaryers_for_quantity,
+    get_message_with_numbers_attempts,
+)
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -109,17 +113,18 @@ class BotService:
             text = text + f"Следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
         await self.send_message(user, text)
 
-    async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
+    async def notify_declined_task(self, user: models.User, shift: models.Shift, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
         """
         text = (
-            "К сожалению, мы не можем принять твой фотоотчет! "
+            f"К сожалению, мы не можем принять твой фотоотчет от {report.uploaded_at:%d.%m.%Y}! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
-        if date.today() < shift.finished_at:
-            text = text + f"Ты можешь отправить отчет повторно до {settings.FORMATTED_TASK_TIME} часов утра."
+        if date.today() < shift.finished_at and report.task_date == get_current_task_date():
+            count_attempts = settings.NUMBER_ATTEMPTS_SUBMIT_REPORT - report.number_attempt
+            text += get_message_with_numbers_attempts(count_attempts)
         await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member]) -> None:
