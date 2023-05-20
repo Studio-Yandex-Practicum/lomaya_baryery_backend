@@ -2,7 +2,7 @@ from fastapi import Depends
 from telegram.ext import Application
 
 from src.bot import services
-from src.core.db.models import Member
+from src.core.db.models import Member, Shift
 from src.core.db.repository import MemberRepository, ShiftRepository
 from src.core.settings import settings
 from src.core.utils import get_current_task_date
@@ -18,15 +18,14 @@ class MemberService:
         self.__shift_repository = shift_repository
         self.__telegram_bot = services.BotService
 
-    async def exclude_lagging_members(self, bot: Application) -> None:
+    async def exclude_lagging_members(self, shift: Shift, bot: Application) -> None:
         """Исключает участников из стартовавшей смены.
 
         Если участники не посылают отчет о выполненом задании указанное
         в настройках количество раз подряд, то они будут исключены из смены.
         """
-        shift_id = await self.__shift_repository.get_started_shift_id()
         lagging_members = await self.__member_repository.get_members_for_excluding(
-            shift_id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
+            shift.id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED

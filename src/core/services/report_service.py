@@ -50,12 +50,11 @@ class ReportService:
         if report.status == Report.Status.SKIPPED:
             raise exceptions.ReportAlreadySkippedError
 
-    async def get_today_task_and_active_members(self, current_day_of_month: int) -> tuple[Task, list[Member]]:
+    async def get_today_task_and_active_members(self, shift: Shift, current_day_of_month: int) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
-        shift_id = await self.__shift_repository.get_started_shift_id()
-        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
+        members = await self.__member_repository.get_active_members_for_shift(shift.id)
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
-        return task, shift.members
+        return task, members
 
     async def approve_report(self, report_id: UUID, administrator_id: UUID, bot: Application) -> ReportResponse:
         """Задание принято: изменение статуса, начисление 1 /"ломбарьерчика/", уведомление участника."""
