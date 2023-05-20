@@ -91,12 +91,6 @@ class Settings(BaseSettings):
     # Директория с изображениями заданий
     TASK_IMAGE_DIR: Path = BASE_DIR / "static" / "tasks"
 
-    # Относительный путь к Swagger UI
-    SWAGGER: str | None = "/docs" if DEBUG else None
-
-    # Относительный путь к ReDoc UI
-    REDOC: str | None = "/redoc" if DEBUG else None
-
     # Путь до HTML-шаблона формы регистрации
     REGISTRATION_TEMPLATE: Path = BASE_DIR / "src" / "templates" / "registration" / "registration.html"
 
@@ -121,6 +115,16 @@ class Settings(BaseSettings):
     LOG_ROTATION_TIME: str = "12:00"
     LOG_COMPRESSION: str = "tar.gz"
     LOG_LEVEL: str = "WARNING"
+
+    # Относительный путь к Swagger UI
+    @property
+    def swagger(self):
+        return "/docs" if self.DEBUG else None
+
+    # Относительный путь к ReDoc UI
+    @property
+    def redoc(self):
+        return "/redoc" if self.DEBUG else None
 
     @property
     def database_url(self) -> str:
