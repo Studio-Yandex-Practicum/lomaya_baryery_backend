@@ -13,9 +13,6 @@ services:
     restart: always
     volumes:
       - postgres_data_test:/var/lib/postgresql/data/
-    ports:
-      - "6100:6100"
-    command: -p 6100
     env_file:
       - .env
 
