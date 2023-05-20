@@ -104,7 +104,7 @@ class ShiftRepository(AbstractRepository):
         """Возвращает активную на данный момент смену или None."""
         shift_id = await self._session.scalars(select(Shift).where(Shift.status == Shift.Status.STARTED))
         return shift_id.first()
-         
+
     async def get_open_for_registration_shift_id(self) -> UUID:
         can_be_added_to_active_shift = (
             Shift.started_at + timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN) >= date.today()
