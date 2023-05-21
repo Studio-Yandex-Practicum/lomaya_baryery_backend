@@ -154,7 +154,7 @@ class ShiftService:
 
     async def __create_shift_dir(self, shift: Shift) -> None:
         shift_dir = await self.get_shift_dir(shift)
-        path = Path(settings.user_reports_dir / shift_dir)
+        path = Path(settings.USER_REPORTS_DIR / shift_dir)
         path.mkdir(parents=True, exist_ok=True)
 
     async def get_shift_dir(self, shift_id: UUID) -> str:

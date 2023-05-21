@@ -79,7 +79,7 @@ class ReportService:
         report.set_reviewer(administrator_id)
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
-        await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift)
+        await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift, report)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
@@ -190,3 +190,7 @@ class ReportService:
             for day in range(0, count_of_missed_days + 1)
         ]
         await self.__report_repository.create_all(reports)
+
+    async def is_previous_report_not_submitted(self, member_id: UUID) -> bool:
+        """Проверяет статус вчерашнего отчета."""
+        return await self.__report_repository.is_previous_report_not_submitted(member_id)

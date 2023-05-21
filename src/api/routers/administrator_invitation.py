@@ -32,11 +32,11 @@ class AdministratorInvitationCBV:
         '/invitations',
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.CREATED,
+        response_description=HTTPStatus.CREATED.phrase,
         responses=generate_error_responses(
             HTTPStatus.UNAUTHORIZED,
             HTTPStatus.NOT_FOUND,
             HTTPStatus.BAD_REQUEST,
-            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         summary="Создать и отправить на электронную почту ссылку для регистрации нового администратора/эксперта",
     )

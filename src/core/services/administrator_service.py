@@ -4,7 +4,10 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from src.api.request_models.administrator import AdministratorRegistrationRequest
+from src.api.request_models.administrator import (
+    AdministratorRegistrationRequest,
+    AdministratorUpdateNameAndSurnameRequest,
+)
 from src.core import exceptions
 from src.core.db.models import Administrator
 from src.core.db.repository import AdministratorRepository
@@ -24,7 +27,8 @@ class AdministratorService:
         self.__administrator_invitation_service = administrator_invitation_service
         self.__email = email
 
-    def __create_new_password(self) -> str:
+    @staticmethod
+    def __create_new_password() -> str:
         """Создать новый пароль."""
         alphabet = string.ascii_lowercase + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(8))
@@ -75,8 +79,8 @@ class AdministratorService:
         Восстановление пароля администратора.
 
         -Генерация нового пароля.
-        -Хэширование нового пароля.
-        -Сохранеине нового пароля в БД.
+        -Хеширование нового пароля.
+        -Сохранение нового пароля в БД.
         -Отправка нового пароля на почту Администратору/Эксперту.
         """
         password = self.__create_new_password()
@@ -104,3 +108,15 @@ class AdministratorService:
         else:
             administrator.status = Administrator.Status.ACTIVE
         return await self.__administrator_repository.update(administrator.id, administrator)
+
+    async def get_by_id(self, administrator_id: UUID) -> Administrator:
+        """Возвращает сущность администратора по id."""
+        return await self.__administrator_repository.get(administrator_id)
+
+    async def update_administrator(
+        self, administrator_id: UUID, schema: AdministratorUpdateNameAndSurnameRequest
+    ) -> Administrator:
+        administrator = await self.__administrator_repository.get(administrator_id)
+        administrator.name = schema.name
+        administrator.surname = schema.surname
+        return await self.__administrator_repository.update(administrator_id, administrator)

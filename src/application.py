@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from src.api import routers
 from src.bot.main import start_bot
@@ -16,12 +15,11 @@ from src.core.utils import setup_logging
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(debug=settings.DEBUG, root_path=settings.ROOT_PATH)
+    app = FastAPI(
+        debug=settings.DEBUG, root_path=settings.ROOT_PATH, docs_url=settings.swagger, redoc_url=settings.redoc
+    )
 
     origins = ["*"]
-
-    # для локального тестирования монтируем статику
-    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     app.add_middleware(
         CORSMiddleware,
@@ -31,16 +29,16 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(routers.report_router)
-    app.include_router(routers.shift_router)
-    app.include_router(routers.request_router)
-    app.include_router(routers.healthcheck_router)
-    app.include_router(routers.user_router)
     app.include_router(routers.administrator_router)
-    app.include_router(routers.task_router)
     app.include_router(routers.administrator_invitation_router)
-    app.include_router(routers.telegram)
     app.include_router(routers.analytics_router)
+    app.include_router(routers.healthcheck_router)
+    app.include_router(routers.report_router)
+    app.include_router(routers.request_router)
+    app.include_router(routers.shift_router)
+    app.include_router(routers.task_router)
+    app.include_router(routers.telegram)
+    app.include_router(routers.user_router)
 
     app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
     app.add_exception_handler(exceptions.ApplicationError, application_error_handler)

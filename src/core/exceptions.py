@@ -81,7 +81,7 @@ class ExceededAttemptsReportError(ApplicationError):
     detail = (
         "Превышено количество попыток сдать отчет."
         "Предлагаем продолжить, ведь впереди много интересных заданий. "
-        "Следующее задание придет в {} часов утра.".format(settings.formatted_task_time)
+        "Следующее задание придет в {} часов утра.".format(settings.FORMATTED_TASK_TIME)
     )
 
 
@@ -98,7 +98,7 @@ class ReportCantBeSkippedError(BadRequestError):
 class ReportAlreadySkippedError(ApplicationError):
     """Отчет пропущен."""
 
-    detail = "Задание было пропущено, следующее задание придет в {} часов утра.".format(settings.formatted_task_time)
+    detail = "Задание было пропущено, следующее задание придет в {} часов утра.".format(settings.FORMATTED_TASK_TIME)
 
 
 class ReportAlreadyReviewedError(BadRequestError):
@@ -236,6 +236,10 @@ class InvalidDateFormatError(BadRequestError):
 
 class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
+
+
+class ShiftTitleLengthError(BadRequestError):
+    detail = "Название смены должно содержать от 3 до 60 символов."
 
 
 class InvitationAlreadyActivatedError(BadRequestError):

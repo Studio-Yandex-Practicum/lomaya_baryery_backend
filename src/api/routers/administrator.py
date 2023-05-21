@@ -10,6 +10,7 @@ from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorPasswordResetRequest,
     AdministratorRegistrationRequest,
+    AdministratorUpdateNameAndSurnameRequest,
 )
 from src.api.response_models.administrator import (
     AdministratorAndAccessTokenResponse,
@@ -97,7 +98,9 @@ class AdministratorCBV:
         status_code=HTTPStatus.CREATED,
         summary="Регистрация администратора",
         response_description="Регистрация нового администратора по токену приглашения.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY),
+        responses=generate_error_responses(
+            HTTPStatus.BAD_REQUEST,
+        ),
     )
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Any:
         """Зарегистрировать нового администратора по токену из приглашения.
@@ -130,6 +133,50 @@ class AdministratorCBV:
         """
         await self.authentication_service.get_current_active_administrator(token.credentials)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
+
+    @router.get(
+        "/{administrator_id}/",
+        response_model=AdministratorResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Информация об администраторе по id.",
+        response_description="Информация об администраторе",
+    )
+    async def get_administrator(
+        self,
+        administrator_id: UUID,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> Any:
+        """Получить полную информацию об администраторе по его id.
+
+        Аргументы:
+            id (UUID): id администратора.
+        """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.get_by_id(administrator_id)
+
+    @router.patch(
+        "/{administrator_id}/",
+        response_model=AdministratorResponse,
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Редактирование информации об администраторе.",
+        response_description="Информация об администраторе",
+    )
+    async def update_administrator(
+        self,
+        administrator_id: UUID,
+        schema: AdministratorUpdateNameAndSurnameRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> Any:
+        """Редактирование информации об администраторе.
+
+        Аргументы:
+            name (str): имя администратора
+            surname (str): фамилия администратора
+        """
+        await self.authentication_service.get_current_active_administrator(token.credentials)
+        return await self.administrator_service.update_administrator(administrator_id, schema)
 
     @router.patch(
         "/{administrator_id}/change_role",
