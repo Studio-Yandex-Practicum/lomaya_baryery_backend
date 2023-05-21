@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload, selectinload, subqueryload
 
 from src.core.db.db import get_session
 from src.core.db.models import Member, Report, Shift, User
@@ -46,7 +46,7 @@ class MemberRepository(AbstractRepository):
                 Report.task_date >= func.current_date() - task_amount,
             )
             .join(Report)
-            .join(Member.user)
+            .options(subqueryload(Member.user))
             .group_by(Member)
             .having(func.count() >= task_amount)
         )

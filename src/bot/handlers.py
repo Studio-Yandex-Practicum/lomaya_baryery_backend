@@ -163,7 +163,7 @@ async def download_photo_report_callback(update: Update, context: CallbackContex
     file = await update.message.photo[-1].get_file()
     file_name = file.file_unique_id + Path(file.file_path).suffix
     file_path = f"{shift_user_dir}/{file_name}"
-    await file.download_to_drive(custom_path=(settings.user_reports_dir / file_path))
+    await file.download_to_drive(custom_path=(settings.USER_REPORTS_DIR / file_path))
     return file_path
 
 
@@ -182,7 +182,7 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
         report = await report_service.get_current_report(user.id)
         shift_dir = await shift_service.get_shift_dir(report.shift_id)
         file_path = await download_photo_report_callback(update, context, f"{shift_dir}/{user.id}")
-        photo_url = urljoin(settings.user_reports_url, file_path)
+        photo_url = urljoin(settings.USER_REPORTS_URL, file_path)
         await report_service.send_report(report, photo_url)
     except exceptions.ApplicationError as e:
         text = e.detail
@@ -215,7 +215,7 @@ async def inline_button_handler(update: Update, context: CallbackContext) -> Non
         except exceptions.ApplicationError as e:
             text = e.detail
         else:
-            text = f"Задание пропущено, следующее задание придет в {settings.formatted_task_time} часов утра."
+            text = f"Задание пропущено, следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
 
     await update.callback_query.message.edit_text(text)
 

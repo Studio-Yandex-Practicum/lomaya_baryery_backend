@@ -30,6 +30,19 @@ def get_lombaryers_for_quantity(numbers_lombaryers: int) -> str:
     return PLURAL
 
 
+def get_message_with_numbers_attempts(count_attempts: int) -> str:
+    """Возвращает правильные словосочетания в зависимости от количества оставшихся попыток для сдачи отчета."""
+    if count_attempts == 0:
+        return "У тебя не осталось попыток для сдачи отчета."
+    if count_attempts == 1:
+        extra_text = f"осталась {count_attempts} попытка"
+    elif count_attempts > 4:
+        extra_text = f"осталось {count_attempts} попыток"
+    else:
+        extra_text = f"осталось {count_attempts} попытки"
+    return f"Ты можешь отправить отчет повторно до {settings.FORMATTED_TASK_TIME} часов утра. У тебя {extra_text}."
+
+
 class InterceptHandler(logging.Handler):
     """Класс для перехвата логов для loguru."""
 
@@ -58,7 +71,7 @@ def setup_logging():
     logger.add(sys.stdout, level='INFO')
     logger.add(
         settings.LOG_LOCATION,
-        rotation=settings.LOG_ROTATION,
+        rotation=settings.LOG_ROTATION_TIME,
         compression=settings.LOG_COMPRESSION,
         level=settings.LOG_LEVEL,
     )
