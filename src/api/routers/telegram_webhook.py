@@ -38,7 +38,7 @@ def user_register_form_webhook() -> StreamingResponse:
 
         Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
         """
-        with open(settings.registration_template, 'r') as template:
+        with open(settings.REGISTRATION_TEMPLATE, 'r') as template:
             endpoint_url = settings.registration_data_from_template_url
             template_edited = (bytes(item.replace("endpoint_url", endpoint_url, 1), "utf-8") for item in template)
             yield from template_edited
