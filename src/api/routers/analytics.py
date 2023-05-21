@@ -69,7 +69,7 @@ class AnalyticsCBV:
         - количество отчетов принятых с 1-й/2-й/3-й попытки;
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
-        filename, shift = await self._analytics_service.generate_shift_report_filename(shift_id)
+        filename = await self._analytics_service.generate_shift_report_filename(shift_id)
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
-        workbook = await self._analytics_service.generate_report_for_shift(shift)
+        workbook = await self._analytics_service.generate_report_for_shift(shift_id)
         return StreamingResponse(workbook, headers=headers)
