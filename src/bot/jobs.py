@@ -42,6 +42,7 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     shift_session = get_session()
     shift_service = await get_shift_service_callback(shift_session)
     started_shift = await shift_service.get_started_shift_or_none()
+    await shift_service.start_prepared_shift()
     if not started_shift:
         return
     member_session = get_session()
@@ -49,7 +50,6 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     report_session = get_session()
     report_service = await get_report_service_callback(report_session)
     bot_service = BotService(context)
-    await shift_service.start_prepared_shift()
 
     await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
     await member_service.exclude_lagging_members(started_shift, context.application)
