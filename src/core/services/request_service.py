@@ -11,7 +11,7 @@ from src.api.response_models.request import RequestResponse
 from src.bot import services
 from src.core import exceptions
 from src.core.db.DTO_models import RequestDTO
-from src.core.db.models import Member, Request, User
+from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
@@ -54,7 +54,7 @@ class RequestService:
         member = Member(user_id=request.user_id, shift_id=request.shift_id)
         member = await self.__member_repository.create(member)
         shift = await self.__shift_service.get_shift(request.shift_id)
-        if shift.started_at < get_current_task_date():
+        if shift.status is Shift.Status.STARTED:
             await self.__report_service.create_not_participated_reports(member_id=member.id, shift=shift)
 
         first_task_date = shift.started_at
