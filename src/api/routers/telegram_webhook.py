@@ -38,7 +38,7 @@ def user_register_form_webhook() -> StreamingResponse:
 
         Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
         """
-        with open(settings.registration_template, 'rb') as html_form:
+        with open(settings.REGISTRATION_TEMPLATE, 'rb') as html_form:
             yield from html_form
 
     return StreamingResponse(get_register_form(), media_type="text/html", headers=headers)

@@ -82,7 +82,7 @@ class ReportService:
         report.set_reviewer(administrator_id)
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
-        await self.__telegram_bot(bot, self.__history_message).notify_declined_task(member.user, member.shift)
+        await self.__telegram_bot(bot, self.__history_message).notify_declined_task(member.user, member.shift, report)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 

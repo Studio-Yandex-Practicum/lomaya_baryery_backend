@@ -40,7 +40,7 @@ class RequestService:
 
     async def __create_user_dir(self, user: User, request: Request) -> None:
         shift_dir = await self.__shift_service.get_shift_dir(request.shift_id)
-        path = Path(settings.user_reports_dir / shift_dir / str(user.id))
+        path = Path(settings.USER_REPORTS_DIR / shift_dir / str(user.id))
         path.mkdir(parents=True, exist_ok=True)
 
     async def approve_request(self, request_id: UUID, bot: Application) -> RequestResponse:

@@ -12,7 +12,11 @@ from src.bot.error_handler import error_handler
 from src.core.db import models
 from src.core.services.history_message_service import MessageHistoryService
 from src.core.settings import settings
-from src.core.utils import get_lombaryers_for_quantity
+from src.core.utils import (
+    get_current_task_date,
+    get_lombaryers_for_quantity,
+    get_message_with_numbers_attempts,
+)
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -90,7 +94,7 @@ class BotService:
         """
         text = (
             f"Привет, {user.name} {user.surname}! Поздравляем, ты в проекте! "
-            f"{first_task_date} в {settings.formatted_task_time} часов утра "
+            f"{first_task_date} в {settings.FORMATTED_TASK_TIME} часов утра "
             "тебе поступит первое задание."
         )
         event = models.MessageHistory.Event.REQUEST_ACCEPTED
@@ -124,23 +128,22 @@ class BotService:
         photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
-            text = text + f"Следующее задание придет в {settings.formatted_task_time} часов утра."
-        event = models.MessageHistory.Event.TASK_ACCEPTED
-        await self.send_message(user, text, event, shift.id)
+            text = text + f"Следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
+        await self.send_message(user, text)
 
-    async def notify_declined_task(self, user: models.User, shift: models.Shift) -> None:
+    async def notify_declined_task(self, user: models.User, shift: models.Shift, report: models.Report) -> None:
         """Уведомление участника о проверенном задании.
 
         - Задание не принято.
         """
         text = (
-            "К сожалению, мы не можем принять твой фотоотчет! "
+            f"К сожалению, мы не можем принять твой фотоотчет от {report.uploaded_at:%d.%m.%Y}! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
-        if date.today() < shift.finished_at:
-            text = text + f"Ты можешь отправить отчет повторно до {settings.formatted_task_time} часов утра."
-        event = models.MessageHistory.Event.TASK_NOT_ACCEPTED
-        await self.send_message(user, text, event, shift.id)
+        if date.today() < shift.finished_at and report.task_date == get_current_task_date():
+            count_attempts = settings.NUMBER_ATTEMPTS_SUBMIT_REPORT - report.number_attempt
+            text += get_message_with_numbers_attempts(count_attempts)
+        await self.send_message(user, text)
 
     async def notify_excluded_members(self, members: list[models.Member], shift_id: int) -> None:
         """Уведомляет участников об исключении из смены."""
