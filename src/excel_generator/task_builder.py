@@ -13,7 +13,8 @@ class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
 
     sheet_name: str = "Задачи"
     header_data: tuple[str] = (
-        "Задача",
+        "№ Задачи",
+        "Название",
         "Кол-во принятых отчётов",
         "Кол-во отклонённых отчётов",
         "Кол-во не предоставленных отчётов",
@@ -25,6 +26,7 @@ class TaskAnalyticReportSettings(BaseAnalyticReportSettings):
     def footer_data(cls):
         return (
             "ИТОГО:",
+            "",
             f"=SUM(B2:B{cls.row_count})",
             f"=SUM(C2:C{cls.row_count})",
             f"=SUM(D2:D{cls.row_count})",

@@ -11,7 +11,8 @@ from src.api.request_models.shift import ShiftSortRequest
 from src.api.response_models.shift import ShiftDtoResponse
 from src.core import exceptions
 from src.core.db.db import get_session
-from src.core.db.models import Member, Report, Request, Shift, User
+from src.core.db.DTO_models import ShiftAnalyticReportDto
+from src.core.db.models import Member, Report, Request, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 from src.core.settings import settings
 
@@ -211,3 +212,31 @@ class ShiftRepository(AbstractRepository):
             ),
         )
         return await self._session.scalar(statement)
+
+    async def get_shift_statistics_report_by_id(self, shift_id: UUID):
+        """Отчёт по задачам из выбранной смены.
+
+        Содержит:
+        - список всех задач;
+        - количество отчетов принятых с 1-й/2-й/3-й попытки;
+        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
+        """
+        stmt = (
+            select(
+                Task.sequence_number,
+                Task.title,
+                func.count().filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
+                func.count().filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
+                func.count().filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
+                func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
+                func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
+                func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
+                func.count().label('reports_total'),
+            )
+            .where(Report.shift_id == shift_id)
+            .join(Task.reports)
+            .group_by(Task.title, Task.sequence_number)
+            .order_by(Task.sequence_number)
+        )
+        reports = await self._session.execute(stmt)
+        return tuple(ShiftAnalyticReportDto(*report) for report in reports.all())

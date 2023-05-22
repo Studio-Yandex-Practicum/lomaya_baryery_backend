@@ -30,13 +30,15 @@ class TaskRepository(AbstractRepository):
         """
         stmt = (
             select(
+                Task.sequence_number,
                 Task.title,
                 func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
                 func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
             )
             .join(Task.reports)
-            .group_by(Task.id)
+            .group_by(Task.id, Task.sequence_number)
+            .order_by(Task.sequence_number)
         )
         tasks = await self._session.execute(stmt)
         return tuple(TasksAnalyticReportDto(*task) for task in tasks.all())
