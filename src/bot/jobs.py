@@ -41,8 +41,8 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     """Автоматически запускает смену и рассылает задания."""
     shift_session = get_session()
     shift_service = await get_shift_service_callback(shift_session)
-    started_shift = await shift_service.get_started_shift_or_none()
     await shift_service.start_prepared_shift()
+    started_shift = await shift_service.get_started_shift_or_none()
     if not started_shift:
         return
     member_session = get_session()
