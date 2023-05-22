@@ -4,6 +4,7 @@ volumes:
   postgres_data_test:
   static_value:
   tasks:
+  logs:
 
 
 services:
@@ -13,6 +14,9 @@ services:
     restart: always
     volumes:
       - postgres_data_test:/var/lib/postgresql/data/
+    expose:
+      - "6100"
+    command: -p 6100
     env_file:
       - .env
 
@@ -26,6 +30,7 @@ services:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
       - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
+      - logs:/LOMAYA_BARYERY_BACKEND/logs/
     env_file:
       - .env
 
