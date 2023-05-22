@@ -66,7 +66,7 @@ class BotService:
     @check_user_blocked
     @retry()
     async def send_message(
-        self, user: models.User, text: str, event: models.MessageHistory.Event, shift_id=None
+        self, user: models.User, text: str, event: models.MessageHistory.Event, shift_id: int = None
     ) -> None:
         message = await self.__bot.send_message(user.telegram_id, text)
         await self.__history_service.create_history_message(user.id, message.message_id, text, event, shift_id)
@@ -80,7 +80,7 @@ class BotService:
         caption: str,
         reply_markup: ReplyKeyboardMarkup,
         event: models.MessageHistory.Event,
-        shift_id: models.Shift | None,
+        shift_id: int = None,
     ) -> None:
         message = await self.__bot.send_photo(
             chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup

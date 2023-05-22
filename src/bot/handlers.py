@@ -51,15 +51,12 @@ async def start(update: Update, context: CallbackContext) -> None:
         "и награждать самых активных и старательных ребят!"
     )
     user_session = get_session()
-    history_session = get_session()
     user_service = await get_user_service_callback(user_session)
-    history_service = await get_history_service(history_session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
-    message = await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
-    event = MessageHistory.Event.REGISTRATION
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
         try:
             await user_service.check_before_change_user_data(user.id)
@@ -70,10 +67,8 @@ async def start(update: Update, context: CallbackContext) -> None:
             )
             return
         await update_user_data(update, context)
-        await history_service.create_history_message(user.id, message.message_id, start_text, event)
     else:
         await register_user(update, context)
-        await history_service.create_history_message(user, message.message_id, start_text, event)
 
 
 async def register_user(
@@ -136,10 +131,12 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         return
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
+    history_session = get_session()
+    history_service = await get_history_service(history_session)
     registration_service = await get_user_service_callback(session)
     reply_markup, validation_error = None, False
     try:
-        await registration_service.register_user(user_scheme)
+        user = await registration_service.register_user(user_scheme)
     except exceptions.NotValidValueError as e:
         text = e.detail
         validation_error = True
@@ -147,7 +144,9 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         text = e.detail
     else:
         text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
+        event = MessageHistory.Event.REGISTRATION
         if context.user_data.get('user'):
+            event = MessageHistory.Event.REGISTRATION  # Возможно можно поменять на другое название события
             text = (
                 "Обновленные данные приняты!\n"
                 "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
@@ -158,6 +157,7 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
             text=text,
             reply_markup=reply_markup,
         )
+        await history_service.create_history_message(user.id, update.message.id, text, event)
         if validation_error and context.user_data.get("user"):
             await update_user_data(update, context)
         elif validation_error:
