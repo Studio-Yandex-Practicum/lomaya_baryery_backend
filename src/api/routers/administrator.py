@@ -196,7 +196,7 @@ class AdministratorCBV:
         "/{administrator_id}/status/",
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
-        summary="Заблокировать администратора.",
+        summary="Изменить статус администратора.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
     async def change_administrator_status(
