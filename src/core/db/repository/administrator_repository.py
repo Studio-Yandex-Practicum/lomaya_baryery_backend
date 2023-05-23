@@ -40,18 +40,14 @@ class AdministratorRepository(AbstractRepository):
         Returns:
             bool: True — если администратор есть в БД, False — если нет
         """
-        check_conditions = [
-            Administrator.email == email,
-            Administrator.status == Administrator.Status.ACTIVE,
-        ]
+        statement = select(Administrator).filter_by(email=email)
 
         if role is not None:
-            check_conditions.append(Administrator.role == role)
+            statement = statement.filter_by(role=role)
 
-        stmt = select(select(Administrator).filter(*check_conditions).exists())
+        statement = select(statement.exists())
 
-        administrator_exists = await self._session.execute(stmt)
-        return administrator_exists.scalar()
+        return (await self._session.execute(statement)).scalar()
 
     async def get_administrators_filter_by_role_and_status(
         self, status: Administrator.Status | None, role: Administrator.Role | None

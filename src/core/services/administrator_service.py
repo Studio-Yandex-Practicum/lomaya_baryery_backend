@@ -79,8 +79,6 @@ class AdministratorService:
     async def change_administrator_status(
         self, administrator_id: UUID, status: Administrator.Status, changer_token: str
     ) -> Administrator:
-        if status not in Administrator.Status.__members__.values():
-            raise exceptions.AdministratorUnknownStatusError(status)
 
         administrator = await self.__administrator_repository.get(administrator_id)
 
@@ -96,8 +94,6 @@ class AdministratorService:
     async def change_administrator_role(
         self, administrator_id: UUID, role: Administrator.Role, changer_token: str
     ) -> Administrator:
-        if role not in Administrator.Role.__members__.values():
-            raise exceptions.AdministratorUnknownRoleError(role)
 
         administrator = await self.__administrator_repository.get(administrator_id)
 
