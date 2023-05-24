@@ -89,3 +89,15 @@ class MemberRepository(AbstractRepository):
             )
         )
         return amount.scalars().one_or_none() or 0
+
+    async def get_active_members_for_shift(self, shift_id: UUID) -> list[Member]:
+        """Возвращает активных участников смены."""
+        members = await self._session.scalars(
+            select(Member)
+            .where(
+                Member.shift_id == shift_id,
+                Member.status == Member.Status.ACTIVE,
+            )
+            .options(joinedload(Member.user))
+        )
+        return members.all()

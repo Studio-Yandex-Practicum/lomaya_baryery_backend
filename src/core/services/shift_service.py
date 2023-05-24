@@ -292,3 +292,7 @@ class ShiftService:
         if shift:
             shift.status = Shift.Status.STARTED.value
             await self.__shift_repository.update(shift.id, shift)
+
+    async def get_started_shift_or_none(self) -> Optional[Shift]:
+        """Возвращает активную на данный момент смену или None."""
+        return await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)

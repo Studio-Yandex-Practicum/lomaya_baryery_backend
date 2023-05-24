@@ -40,18 +40,20 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
 async def send_daily_task_job(context: CallbackContext) -> None:
     """Автоматически запускает смену и рассылает задания."""
     shift_session = get_session()
-    report_session = get_session()
-    member_session = get_session()
     shift_service = await get_shift_service_callback(shift_session)
-    report_service = await get_report_service_callback(report_session)
-    member_service = await get_member_service_callback(member_session)
-
     await shift_service.start_prepared_shift()
-
+    started_shift = await shift_service.get_started_shift_or_none()
+    if not started_shift:
+        return
+    member_session = get_session()
+    member_service = await get_member_service_callback(member_session)
+    report_session = get_session()
+    report_service = await get_report_service_callback(report_session)
     bot_service = BotService(context)
+
     await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
-    await member_service.exclude_lagging_members(context.application)
-    task, members = await report_service.get_today_task_and_active_members(date.today().day)
+    await member_service.exclude_lagging_members(started_shift, context.application)
+    task, members = await report_service.get_today_task_and_active_members(started_shift, date.today().day)
     await report_service.create_daily_reports(members, task)
     task_photo = urljoin(settings.APPLICATION_URL, task.url)
     send_message_tasks = [
