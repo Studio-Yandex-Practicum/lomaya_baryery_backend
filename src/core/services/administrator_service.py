@@ -93,7 +93,7 @@ class AdministratorService:
         hashed_password = AuthenticationService.get_hashed_password(password)
         administrator = await self.__administrator_repository.get_by_email(email)
         instance = Administrator(hashed_password=hashed_password)
-        return await self.__administrator_repository.update(id=administrator.id, instance=instance)
+        return await self.__administrator_repository.update(administrator.id, instance)
 
     async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
         """Блокирует администратора."""
