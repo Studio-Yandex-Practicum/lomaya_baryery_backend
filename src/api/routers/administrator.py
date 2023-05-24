@@ -10,6 +10,8 @@ from src.api.request_models.administrator import (
     AdministratorAuthenticateRequest,
     AdministratorPasswordResetRequest,
     AdministratorRegistrationRequest,
+    AdministratorRoleRequest,
+    AdministratorStatusRequest,
     AdministratorUpdateNameAndSurnameRequest,
 )
 from src.api.response_models.administrator import (
@@ -18,7 +20,6 @@ from src.api.response_models.administrator import (
 )
 from src.api.response_models.error import generate_error_responses
 from src.core.db.models import Administrator
-from src.core.exceptions import UnauthorizedError
 from src.core.services.administrator_service import AdministratorService
 from src.core.services.authentication_service import AuthenticationService
 
@@ -64,15 +65,11 @@ class AdministratorCBV:
         self,
         response: Response,
         refresh_token: str | None = Cookie(default=None),
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorAndAccessTokenResponse:
         """Обновление access и refresh токенов при помощи refresh токена, получаемого из cookie.
 
         Вернуть access-токен и информацию об администраторе.
         """
-        await self.authentication_service.get_current_active_administrator(token.credentials)
-        if not refresh_token:
-            raise UnauthorizedError
         admin_and_token = await self.authentication_service.refresh(refresh_token)
         response.set_cookie(key="refresh_token", value=admin_and_token.refresh_token, httponly=True, samesite="strict")
         admin_and_token.administrator.access_token = admin_and_token.access_token
@@ -131,7 +128,7 @@ class AdministratorCBV:
             status (Administrator.Status, optional): Требуемый статус администраторов. По-умолчанию None.
             role (Administrator.Role, optional): Требуемая роль администраторов. По-умолчанию None.
         """
-        await self.authentication_service.get_current_active_administrator(token.credentials)
+        await self.authentication_service.check_administrator_by_token(token)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
 
     @router.get(
@@ -179,48 +176,54 @@ class AdministratorCBV:
         return await self.administrator_service.update_administrator(administrator_id, schema)
 
     @router.patch(
-        "/{administrator_id}/change_role",
+        "/{administrator_id}/role/",
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Изменить роль администратора.",
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
     )
-    async def administrator_change_role(
+    async def change_administrator_role(
         self,
         administrator_id: UUID,
+        schema: AdministratorRoleRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
         """Изменить роль администратора."""
-        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.switch_administrator_role(current_admin, administrator_id)
+        await self.authentication_service.check_administrator_by_token(token, Administrator.Role.ADMINISTRATOR)
+        return await self.administrator_service.change_administrator_role(
+            administrator_id, schema.role, token.credentials
+        )
+
+    @router.patch(
+        "/{administrator_id}/status/",
+        response_model=AdministratorResponse,
+        status_code=HTTPStatus.OK,
+        summary="Изменить статус администратора.",
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
+    )
+    async def change_administrator_status(
+        self,
+        administrator_id: UUID,
+        schema: AdministratorStatusRequest,
+        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    ) -> AdministratorResponse:
+        """Изменить статус администратора."""
+        await self.authentication_service.check_administrator_by_token(token, Administrator.Role.ADMINISTRATOR)
+        return await self.administrator_service.change_administrator_status(
+            administrator_id, schema.status, token.credentials
+        )
 
     @router.patch(
         "/reset_password",
         response_model=AdministratorResponse,
         status_code=HTTPStatus.OK,
         summary="Сброс пароля администратора.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND),
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN),
     )
     async def administrator_reset_password(
         self,
         payload: AdministratorPasswordResetRequest,
         token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     ) -> AdministratorResponse:
-        await self.authentication_service.get_current_active_administrator(token.credentials)
+        await self.authentication_service.check_administrator_by_token(token, Administrator.Role.ADMINISTRATOR)
         return await self.administrator_service.restore_administrator_password(payload.email)
-
-    @router.patch(
-        "/{administrator_id}/block",
-        response_model=AdministratorResponse,
-        status_code=HTTPStatus.OK,
-        summary="Заблокировать администратора.",
-        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN, HTTPStatus.NOT_FOUND),
-    )
-    async def administrator_blocking(
-        self,
-        administrator_id: UUID,
-        token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
-    ) -> AdministratorResponse:
-        """Заблокировать администратора."""
-        current_admin = await self.authentication_service.get_current_active_administrator(token.credentials)
-        return await self.administrator_service.block_administrator(current_admin, administrator_id)

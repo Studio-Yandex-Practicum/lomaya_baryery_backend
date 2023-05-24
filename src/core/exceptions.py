@@ -7,6 +7,7 @@ from uuid import UUID
 from src.core.settings import settings
 
 if TYPE_CHECKING:
+    from src.core.db.models import Administrator
     from src.core.db.models import Base as DatabaseModel
     from src.core.db.models import Request, Shift
 
@@ -28,6 +29,7 @@ class UnauthorizedError(ApplicationError):
 
 class ForbiddenError(ApplicationError):
     status_code: HTTPStatus = HTTPStatus.FORBIDDEN
+    detail = "У вас недостаточно прав для выполнения этой операции"
 
 
 class NotFoundError(ApplicationError):
@@ -246,17 +248,19 @@ class InvitationAlreadyActivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже активно"
 
 
-class AdministratorChangeError(ForbiddenError):
-    detail = "У вас нет прав на изменение других администраторов."
+class AdministratorUnknownStatusError(BadRequestError):
+    def __init__(self, status: Administrator.Status):
+        self.detail = "Неизвестный статус администратора: {}".format(status)
+
+
+class AdministratorUnknownRoleError(BadRequestError):
+    def __init__(self, role: Administrator.Role):
+        self.detail = "Неизвестная роль администратора: {}".format(role)
 
 
 class AdministratorSelfChangeRoleError(ForbiddenError):
     detail = "Вы не можете изменить роль самому себе."
 
 
-class AdministratorBlockError(ForbiddenError):
-    detail = "У Вас нет прав на блокировку других администраторов."
-
-
-class AdministratorSelfBlockError(ForbiddenError):
-    detail = "Вы не можете заблокировать себя."
+class AdministratorSelfChangeStatusError(ForbiddenError):
+    detail = "Вы не можете изменить статус самому себе."

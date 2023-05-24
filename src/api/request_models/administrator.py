@@ -2,6 +2,7 @@ from pydantic import EmailStr, Field, SecretStr, StrictStr, validator
 
 from src.api.request_models.request_base import RequestBase
 from src.api.request_models.validators import name_surname_validator
+from src.core.db.models import Administrator
 from src.core.settings import settings
 
 
@@ -49,3 +50,15 @@ class AdministratorPasswordResetRequest(RequestBase):
     """Схема для запроса восстановления пароля администратора или эксперта."""
 
     email: EmailStr
+
+
+class AdministratorRoleRequest(RequestBase):
+    """Схема для запроса на смену роли администратора."""
+
+    role: Administrator.Role
+
+
+class AdministratorStatusRequest(RequestBase):
+    """Схема для запроса на смену статуса администратора."""
+
+    status: Administrator.Status
