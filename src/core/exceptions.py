@@ -236,6 +236,10 @@ class InvalidDateFormatError(BadRequestError):
     detail = "Некорректный формат даты. Ожидаемый формат: YYYY-MM-DD."
 
 
+class InvitationAlreadyRegisteredError(BadRequestError):
+    detail = "Невозможно изменить состояние приглашения. Пользователь уже зарегистрирован."
+
+
 class InvitationAlreadyDeactivatedError(BadRequestError):
     detail = "Невозможно изменить состояние приглашения. Приглашение уже деактивировано."
 
