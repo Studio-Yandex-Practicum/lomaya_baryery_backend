@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
+from src.core.settings import settings
 
 
 class UserRepository(AbstractRepository):
@@ -99,6 +101,7 @@ class UserRepository(AbstractRepository):
             .group_by(User.id)
             .where(
                 or_(status is None, User.status == status),
+                User.is_test_user == False,  # noqa
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
@@ -106,6 +109,27 @@ class UserRepository(AbstractRepository):
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
-            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
+            select(User).where(
+                User.id.in_(
+                    select(Request.user_id).where(
+                        Request.shift_id == shift_id,
+                        User.is_test_user == False,  # noqa
+                    )
+                )
+            )
         )
+
         return users.scalars().all()
+
+    async def create_test_user(self, telegram_id: int, phone_number: str) -> User:
+        user = User(
+            name='Test_name',
+            surname='Test_surname',
+            date_of_birth=date.today() - timedelta(days=settings.MIN_AGE + 1),
+            city='Test_city',
+            phone_number=phone_number,
+            telegram_id=telegram_id,
+            status=User.Status.PENDING,
+            is_test_user=True,
+        )
+        return await self.create(user)
