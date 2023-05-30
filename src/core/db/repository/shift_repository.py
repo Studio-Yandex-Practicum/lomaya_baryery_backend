@@ -240,3 +240,10 @@ class ShiftRepository(AbstractRepository):
         )
         reports = await self._session.execute(stmt)
         return tuple(ShiftAnalyticReportDto(*report) for report in reports.all())
+
+    async def get_all_reports_of_member(self, shift_id: UUID, member_id: UUID) -> list[Report]:
+        stmt = (
+            select(Report).where(Report.shift_id == shift_id, Report.member_id == member_id).order_by(Report.task_date)
+        )
+        reports = await self._session.execute(stmt)
+        return reports.scalars().all()

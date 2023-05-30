@@ -89,6 +89,7 @@ class ShiftByUserWithReportSummaryDto:
     started_at: date
     finished_at: date
     numbers_lombaryers: int
+    member_id: UUID
     total_approved: int
     total_declined: int
     total_skipped: int
