@@ -64,6 +64,8 @@ class AdministratorInvitationService:
         invitation = await self.get_invitation_by_id(invitation_id)
         if invitation.expired_datetime > datetime.now():
             raise exceptions.InvitationAlreadyActivatedError
+        if self.__administrator_repository.is_administrator_exists(invitation.email):
+            raise exceptions.InvitationAlreadyRegisteredError
         invitation.expired_datetime = datetime.now() + settings.INVITE_LINK_EXPIRATION_TIME
         await self.__administrator_mail_request_repository.update(invitation_id, invitation)
         return invitation
