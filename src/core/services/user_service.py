@@ -99,6 +99,8 @@ class UserService:
         """Получить участника проекта с информацией о сменах по его id."""
         user = await self.__user_repository.get(user_id)
         list_user_shifts = await self.__user_repository.get_user_shifts_detail(user.id)
+        for shift in list_user_shifts:
+            shift.reports = await self.__shift_service.get_all_report_of_member_for_shift(shift.id, shift.member_id)
         user.shifts = list_user_shifts
         return user
 

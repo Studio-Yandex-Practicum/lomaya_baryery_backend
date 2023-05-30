@@ -46,3 +46,14 @@ class ReportSummaryResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ShortReportResponse(BaseModel):
+    """Модель с краткой информацией об отчёте."""
+
+    task_id: UUID
+    task_date: date
+    status: Report.Status
+
+    class Config:
+        orm_mode = True

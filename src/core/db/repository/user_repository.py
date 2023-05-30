@@ -36,6 +36,7 @@ class UserRepository(AbstractRepository):
                 Shift.started_at,
                 Shift.finished_at,
                 Member.numbers_lombaryers,
+                Member.id,
                 func.count(case(((Report.status == "approved"), Report.id))).label("total_approved"),
                 func.count(case(((Report.status == "declined"), Report.id))).label("total_declined"),
                 func.count(case(((Report.status == "waiting"), Report.id))).label("total_skipped"),
@@ -44,7 +45,7 @@ class UserRepository(AbstractRepository):
             .join(User.members, isouter=True)
             .join(Member.shift, isouter=True)
             .join(Member.reports, isouter=True)
-            .group_by(Member.numbers_lombaryers, Member.status, Shift.id)
+            .group_by(Member.numbers_lombaryers, Member.status, Shift.id, Member.id)
             .where(User.id == user_id)
         )
         list_user_shifts = await self._session.execute(stmt)

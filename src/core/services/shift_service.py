@@ -296,3 +296,6 @@ class ShiftService:
     async def get_started_shift_or_none(self) -> Optional[Shift]:
         """Возвращает активную на данный момент смену или None."""
         return await self.__shift_repository.get_shift_with_status_or_none(Shift.Status.STARTED)
+
+    async def get_all_report_of_member_for_shift(self, shift_id: UUID, member_id: UUID) -> list[Report]:
+        return await self.__shift_repository.get_all_reports_of_member(shift_id, member_id)
