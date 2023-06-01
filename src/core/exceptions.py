@@ -116,6 +116,11 @@ class ShiftStartError(BadRequestError):
         self.detail = "Невозможно начать смену {!r}. Проверьте статус смены".format(shift)
 
 
+class ShiftReadyForCompleteError(BadRequestError):
+    def __init__(self, shift: Shift):
+        self.detail = "Невозможно перевести в статус 'завершающаяся' смену {!r}. Проверьте статус смены".format(shift)
+
+
 class ShiftFinishError(BadRequestError):
     def __init__(self, shift: Shift):
         self.detail = "Невозможно завершить смену {!r}. Проверьте статус смены".format(shift)
