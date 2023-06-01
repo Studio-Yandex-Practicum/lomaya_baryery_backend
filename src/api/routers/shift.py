@@ -175,7 +175,7 @@ class ShiftCBV:
         - **status**: Статус заявки
         """
         await self.authentication_service.check_administrator_by_token(self.token)
-        return await self.shift_service.list_all_requests(_id=shift_id, status=status)
+        return await self.shift_service.list_all_requests(shift_id, status)
 
     @router.get(
         "/",

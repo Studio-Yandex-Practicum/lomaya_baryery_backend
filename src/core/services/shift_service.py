@@ -57,12 +57,14 @@ class ShiftService:
         self.__request_repository = request_repository
         self.__telegram_bot = services.BotService
 
-    def __check_date_not_today_or_in_past(self, _date: date) -> None:
+    @staticmethod
+    def __check_date_not_today_or_in_past(_date: date) -> None:
         """Проверка, что дата не является сегодняшним или прошедшим числом."""
         if _date <= _date.today():
             raise exceptions.ShiftPastDateError
 
-    def __check_started_and_finished_dates(self, started_at: date, finished_at: date) -> None:
+    @staticmethod
+    def __check_started_and_finished_dates(started_at: date, finished_at: date) -> None:
         """Проверка дат начала и окончания смены между собой.
 
         - Дата начала не больше и не равна дате окончания.
@@ -73,12 +75,14 @@ class ShiftService:
         if finished_at > (started_at + timedelta(days=120)):
             raise exceptions.ShiftTooLongError
 
-    def __check_shifts_dates_intersection(self, preparing_started_at: date, started_finished_at: date) -> None:
+    @staticmethod
+    def __check_shifts_dates_intersection(preparing_started_at: date, started_finished_at: date) -> None:
         """Проверка наложения дат окончания текущей смены и начала новой смены."""
         if preparing_started_at <= started_finished_at:
             raise exceptions.ShiftsDatesIntersectionError
 
-    def __check_that_request_filling_for_previous_shift_is_over(self, started_at: date) -> None:
+    @staticmethod
+    def __check_that_request_filling_for_previous_shift_is_over(started_at: date) -> None:
         """Проверка, что приём заявок на участие в предыдущей смене закончен.
 
         Если текущая смена длится менее DAYS_FROM_START_OF_SHIFT_TO_JOIN дней (прием заявок не окончен),
@@ -87,7 +91,8 @@ class ShiftService:
         if date.today() - started_at < timedelta(days=settings.DAYS_FROM_START_OF_SHIFT_TO_JOIN):
             raise exceptions.ShiftCreatedTooFastError
 
-    def __check_update_shift_forbidden(self, status: Shift.Status) -> None:
+    @staticmethod
+    def __check_update_shift_forbidden(status: Shift.Status) -> None:
         """Проверка, что смену нельзя изменить.
 
         Нельзя изменять смены со статусами CANCELLED и FINISHED.
@@ -95,7 +100,8 @@ class ShiftService:
         if status in (Shift.Status.CANCELLED, Shift.Status.FINISHED):
             raise exceptions.ChangeCompletedShiftError
 
-    def __check_shift_started_at_date_changed(self, started_at: date, update_started_at: date) -> None:
+    @staticmethod
+    def __check_shift_started_at_date_changed(started_at: date, update_started_at: date) -> None:
         """Проверка, что дата начала изменилась."""
         if started_at != update_started_at:
             raise exceptions.CurrentShiftChangeDateError
@@ -178,11 +184,11 @@ class ShiftService:
         await self.__create_shift_dir(shift.id)
         return shift
 
-    async def get_shift(self, _id: UUID) -> Shift:
-        return await self.__shift_repository.get(_id)
+    async def get_shift(self, shift_id: UUID) -> Shift:
+        return await self.__shift_repository.get(shift_id)
 
-    async def update_shift(self, bot: Application, _id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
-        shift: Shift = await self.__shift_repository.get(_id)
+    async def update_shift(self, bot: Application, shift_id: UUID, update_shift_data: ShiftUpdateRequest) -> Shift:
+        shift: Shift = await self.__shift_repository.get(shift_id)
         await self.__validate_shift_on_update(shift, update_shift_data)
         if shift.started_at != update_shift_data.started_at:
             shift.started_at = update_shift_data.started_at
@@ -197,30 +203,32 @@ class ShiftService:
         shift.finished_at = update_shift_data.finished_at
         shift.title = update_shift_data.title
         shift.final_message = update_shift_data.final_message
-        return await self.__shift_repository.update(_id, shift)
+        return await self.__shift_repository.update(shift_id, shift)
 
-    async def start_shift(self, _id: UUID) -> Shift:
-        shift = await self.__shift_repository.get(_id)
+    async def start_shift(self, shift_id: UUID) -> Shift:
+        shift = await self.__shift_repository.get(shift_id)
         await shift.start()
-        await self.__shift_repository.update(_id, shift)
+        await self.__shift_repository.update(shift_id, shift)
         return shift
 
-    async def finish_shift(self, bot: Application, _id: UUID) -> Shift:
-        shift = await self.__shift_repository.get_with_members(_id, Member.Status.ACTIVE)
+    async def finish_shift(self, bot: Application, shift_id: UUID) -> Shift:
+        shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
         await shift.finish()
-        await self.__shift_repository.update(_id, shift)
+        await self.__shift_repository.update(shift_id, shift)
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
         return shift
 
-    async def get_shift_with_members(self, _id: UUID, member_status: Optional[Member.Status]) -> ShiftMembersResponse:
-        shift = await self.__shift_repository.get_with_members(_id, member_status)
+    async def get_shift_with_members(
+        self, shift_id: UUID, member_status: Optional[Member.Status]
+    ) -> ShiftMembersResponse:
+        shift = await self.__shift_repository.get_with_members(shift_id, member_status)
         return ShiftMembersResponse(members=shift.members)
 
-    async def list_all_requests(self, _id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
-        shift_exists = await self.__shift_repository.check_shift_existence(_id)
+    async def list_all_requests(self, shift_id: UUID, status: Optional[Request.Status]) -> list[ShiftDtoResponse]:
+        shift_exists = await self.__shift_repository.check_shift_existence(shift_id)
         if not shift_exists:
-            raise exceptions.ObjectNotFoundError(Shift, _id)
-        return await self.__shift_repository.list_all_requests(id=_id, status=status)
+            raise exceptions.ObjectNotFoundError(Shift, shift_id)
+        return await self.__shift_repository.list_all_requests(shift_id, status)
 
     async def list_all_shifts(
         self, status: Optional[list[Shift.Status]] = None, sort: Optional[ShiftSortRequest] = None
@@ -261,14 +269,14 @@ class ShiftService:
         await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
 
     async def cancel_shift(
-        self, bot: Application, _id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
+        self, bot: Application, shift_id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
     ) -> Shift:
-        shift = await self.__shift_repository.get_shift_with_request(_id)
+        shift = await self.__shift_repository.get_shift_with_request(shift_id)
         final_message = "Смена отменена"
         if cancel_shift_data:
             final_message = cancel_shift_data.final_message
         await shift.cancel(final_message)
-        await self.__shift_repository.update(_id, shift)
+        await self.__shift_repository.update(shift_id, shift)
         requests_to_update = []
         for request in shift.requests:
             if request.status == Request.Status.PENDING:

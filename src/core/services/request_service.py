@@ -55,7 +55,7 @@ class RequestService:
         member = await self.__member_repository.create(member)
         shift = await self.__shift_service.get_shift(request.shift_id)
         if shift.status is Shift.Status.STARTED:
-            await self.__report_service.create_not_participated_reports(member_id=member.id, shift=shift)
+            await self.__report_service.create_not_participated_reports(member.id, shift)
 
         first_task_date = shift.started_at
         if get_current_task_date() >= shift.started_at:
