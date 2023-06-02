@@ -46,7 +46,7 @@ class ReportsCBV:
         - **status**: статус задачи
         - **photo_url**: url фото выполненной задачи
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.report_service.get_report(report_id)
 
     @router.patch(
@@ -102,5 +102,5 @@ class ReportsCBV:
         - **shift_id**: уникальный id смены, ожидается в формате UUID.uuid4
         - **report.status**: статус задачи
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.report_service.get_summaries_of_reports(shift_id, status)

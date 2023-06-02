@@ -29,6 +29,7 @@ services:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
       - tasks:/LOMAYA_BARYERY_BACKEND/static/tasks/
+      - ./logs:/LOMAYA_BARYERY_BACKEND/logs/
     env_file:
       - .env
 

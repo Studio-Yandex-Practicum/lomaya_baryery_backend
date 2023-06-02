@@ -15,6 +15,7 @@ class AnalyticReportBuilder:
 
     async def generate_report(
         self,
+        description: str,
         data: tuple[TasksAnalyticReportDto],
         workbook: Workbook,
         analytic_task_report_full: BaseAnalyticReportSettings,
@@ -22,6 +23,7 @@ class AnalyticReportBuilder:
         """Генерация листа с данными."""
         worksheet = self._create_sheet(workbook, sheet_name=analytic_task_report_full.sheet_name)
         analytic_task_report_full.row_count = 0
+        self.__add_description(worksheet, description, analytic_task_report_full)
         self.__add_header(worksheet, analytic_task_report_full)
         self.__add_data(worksheet, data, analytic_task_report_full)
         self.__add_footer(worksheet, analytic_task_report_full)
@@ -58,6 +60,15 @@ class AnalyticReportBuilder:
         """Создаёт лист внутри отчёта."""
         return workbook.create_sheet(sheet_name)
 
+    def __add_description(
+        self,
+        worksheet: Worksheet,
+        description: str,
+        analytic_task_report: BaseAnalyticReportSettings,
+    ) -> None:
+        """Заполняет описание отчета."""
+        self.__add_row(worksheet, analytic_task_report, (description,))
+
     def __add_header(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
         """Заполняет первые строки в листе."""
         self.__add_row(worksheet, analytic_task_report, analytic_task_report.header_data)
@@ -78,14 +89,20 @@ class AnalyticReportBuilder:
 
     def __apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""
-        # задаём стиль для хэдера
         rows = list(worksheet.iter_rows())
-        header_cells = rows[0]
+        worksheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(rows[0]))
+        # задаём стиль для описания отчета
+        description_rows = rows[0]
+        for cell in description_rows:
+            cell.font = self.Styles.FONT_STANDART.value
+            cell.alignment = self.Styles.DESCRIPTION_ALIGNMENT.value
+        # задаём стиль для хэдера
+        header_cells = rows[1]
         for cell in header_cells:
             cell.font = self.Styles.FONT_BOLD.value
             cell.alignment = self.Styles.ALIGNMENT_HEADER.value
         # задаём стиль для ячеек с данными
-        data_rows = rows[1:-1]
+        data_rows = rows[2:-1]
         for row in data_rows:
             for cell in row:
                 cell.font = self.Styles.FONT_STANDART.value
@@ -99,14 +116,17 @@ class AnalyticReportBuilder:
         for row in rows:
             for cell in row:
                 cell.border = self.Styles.BORDER.value
-        worksheet.column_dimensions["A"].width = self.Styles.WIDTH.value
+        worksheet.column_dimensions["B"].width = self.Styles.WIDTH.value
+        worksheet.row_dimensions[1].height = self.Styles.HEIGHT.value
 
     class Styles(enum.Enum):
         FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
         FONT_STANDART = Font(name='Times New Roman', size=11, bold=False)
         ALIGNMENT_HEADER = Alignment(horizontal='center', vertical='center', wrap_text=True)
         ALIGNMENT_STANDART = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        DESCRIPTION_ALIGNMENT = Alignment(horizontal='left', vertical='center', wrap_text=True, shrink_to_fit=True)
         BORDER = Border(
             left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin')
         )
         WIDTH = 50
+        HEIGHT = 55

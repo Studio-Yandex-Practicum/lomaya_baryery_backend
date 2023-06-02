@@ -56,27 +56,8 @@ class AdministratorService:
         """Получает список администраторов, опционально отфильтрованых по роли и/или статусу."""
         return await self.__administrator_repository.get_administrators_filter_by_role_and_status(status, role)
 
-    async def switch_administrator_role(self, changed_by: Administrator, administrator_id: UUID) -> Administrator:
-        """Переключает роль администратора."""
-        if changed_by.role is not Administrator.Role.ADMINISTRATOR:
-            raise exceptions.AdministratorChangeError
-
-        # не надо менять роль самому себе
-        if administrator_id == changed_by.id:
-            raise exceptions.AdministratorSelfChangeRoleError
-
-        administrator = await self.__administrator_repository.get(administrator_id)
-
-        if administrator.role is Administrator.Role.ADMINISTRATOR:
-            administrator.role = Administrator.Role.EXPERT
-        else:
-            administrator.role = Administrator.Role.ADMINISTRATOR
-
-        return await self.__administrator_repository.update(administrator.id, administrator)
-
     async def restore_administrator_password(self, email: str) -> Administrator:
-        """
-        Восстановление пароля администратора.
+        """Сброс пароля администратора.
 
         -Генерация нового пароля.
         -Хеширование нового пароля.
@@ -93,20 +74,36 @@ class AdministratorService:
         hashed_password = AuthenticationService.get_hashed_password(password)
         administrator = await self.__administrator_repository.get_by_email(email)
         instance = Administrator(hashed_password=hashed_password)
-        return await self.__administrator_repository.update(id=administrator.id, instance=instance)
+        return await self.__administrator_repository.update(administrator.id, instance)
 
-    async def block_administrator(self, blocked_by: Administrator, blocked_id: UUID) -> Administrator:
-        """Блокирует администратора."""
-        if blocked_by.role is not Administrator.Role.ADMINISTRATOR:
-            raise exceptions.AdministratorBlockError
-        if blocked_by.id == blocked_id:
-            raise exceptions.AdministratorSelfBlockError
+    async def change_administrator_status(
+        self, administrator_id: UUID, status: Administrator.Status, changer_token: str
+    ) -> Administrator:
 
-        administrator = await self.__administrator_repository.get(blocked_id)
-        if administrator.status is Administrator.Status.ACTIVE:
-            administrator.status = Administrator.Status.BLOCKED
-        else:
-            administrator.status = Administrator.Status.ACTIVE
+        administrator = await self.__administrator_repository.get(administrator_id)
+
+        changer_email = AuthenticationService.get_email_from_token(changer_token)
+
+        if administrator.email == changer_email:
+            raise exceptions.AdministratorSelfChangeStatusError
+
+        administrator.status = status
+
+        return await self.__administrator_repository.update(administrator.id, administrator)
+
+    async def change_administrator_role(
+        self, administrator_id: UUID, role: Administrator.Role, changer_token: str
+    ) -> Administrator:
+
+        administrator = await self.__administrator_repository.get(administrator_id)
+
+        changer_email = AuthenticationService.get_email_from_token(changer_token)
+
+        if administrator.email == changer_email:
+            raise exceptions.AdministratorSelfChangeRoleError
+
+        administrator.role = role
+
         return await self.__administrator_repository.update(administrator.id, administrator)
 
     async def get_by_id(self, administrator_id: UUID) -> Administrator:

@@ -49,7 +49,7 @@ class UserCBV:
         - **shifts_count**: количество пройденных пользователем смен
         - **is_in_active_shift**: флаг, является ли пользователь участником текущей активной смены
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.user_service.list_all_users(status, field_sort, direction_sort)
 
     @router.get(
@@ -73,5 +73,5 @@ class UserCBV:
         - **phone_number**: телефон пользователя
         - **shifts**: список смен пользователя
         """
-        await self.authentication_service.get_current_active_administrator(self.token.credentials)
+        await self.authentication_service.check_administrator_by_token(self.token)
         return await self.user_service.get_user_by_id_with_shifts_detail(user_id)

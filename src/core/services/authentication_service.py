@@ -1,7 +1,7 @@
 import datetime as dt
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -28,6 +28,18 @@ class AuthenticationService:
     def get_hashed_password(password: str) -> str:
         """Получить хэш пароля."""
         return PASSWORD_CONTEXT.hash(password)
+
+    @staticmethod
+    def get_email_from_token(token: str) -> str:
+        """Возвращает email из JWT токена."""
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            raise exceptions.UnauthorizedError
+        email = payload.get("email")
+        if not email:
+            raise exceptions.UnauthorizedError
+        return email
 
     def __verify_hashed_password(self, plain_password: str, hashed_password: str) -> bool:
         """Сравнить открытый пароль с хэшем."""
@@ -65,23 +77,46 @@ class AuthenticationService:
             administrator=administrator,
         )
 
+    async def check_administrator_by_token(
+        self,
+        token: HTTPAuthorizationCredentials,
+        role: Administrator.Role | None = None,
+    ) -> None:
+        """Проверяет существование администратора по token-у и его роли (опционально).
+
+        Администратор должен существовать, иметь статус ACTIVE, а также
+        иметь роль, указанную в аргументах.
+        Если одно из условий не выполняется, выбрасывается исключение.
+        Если role=None, то роль администратора не проверяется.
+
+        Args:
+            token (str): JWT token.
+            role (Administrator.Role): роль администратора или None — тогда
+                                       роль администратора не проверяется.
+        """
+        if role is not None and role not in Administrator.Role.__members__.values():
+            raise exceptions.AdministratorUnknownRoleError(role)
+
+        email = self.get_email_from_token(token.credentials)
+
+        administrator_exists = await self.__administrator_repository.is_administrator_exists(email, role)
+
+        if not administrator_exists:
+            raise exceptions.ForbiddenError
+
     async def get_current_active_administrator(self, token: str) -> Administrator:
         """Получить текущего активного администратора, используя токен."""
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
-            raise exceptions.UnauthorizedError
-        email = payload.get("email")
-        if not email:
-            raise exceptions.UnauthorizedError
+        email = self.get_email_from_token(token)
         administrator = await self.__administrator_repository.get_by_email(email)
         if administrator.status == Administrator.Status.BLOCKED:
             raise exceptions.AdministratorBlockedError
         return administrator
 
-    async def refresh(self, token: str) -> AdministratorAndTokensDTO:
+    async def refresh(self, refresh_token: str | None) -> AdministratorAndTokensDTO:
         """Получить новую пару refresh- и access- токенов и информацию об администраторе."""
-        administrator = await self.get_current_active_administrator(token)
+        if not refresh_token:
+            raise exceptions.UnauthorizedError
+        administrator = await self.get_current_active_administrator(refresh_token)
         return AdministratorAndTokensDTO(
             access_token=self.__create_jwt_token(administrator.email, ACCESS_TOKEN_EXPIRE_MINUTES),
             refresh_token=self.__create_jwt_token(administrator.email, REFRESH_TOKEN_EXPIRE_MINUTES),
