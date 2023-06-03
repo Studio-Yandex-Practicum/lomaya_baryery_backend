@@ -156,7 +156,11 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
             text=text,
             reply_markup=reply_markup,
         )
-        await history_service.create_history_message(user.id, update.message.id, text, event)
+        if user is not None:
+            history_message = await history_service.create_object_history_message(
+                user.id, update.message.id, text, event
+            )
+            settings.LIST_OBJECTS_MESSAGE_HISTORY.append(history_message)
         if validation_error and context.user_data.get("user"):
             await update_user_data(update, context)
         elif validation_error:
