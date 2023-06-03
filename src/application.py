@@ -61,6 +61,7 @@ def create_app() -> FastAPI:
             session = get_session()
             history_message_service = await get_history_service(session)
             await history_message_service.create_bulk_history_message(settings.LIST_OBJECTS_MESSAGE_HISTORY)
+            settings.LIST_OBJECTS_MESSAGE_HISTORY = []
         return response
 
     @app.on_event("shutdown")
