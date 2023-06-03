@@ -334,4 +334,4 @@ class MessageHistory(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id))
 
     def __repr__(self) -> str:
-        return f"<MessageHistory: {self.user_id} - {self.status}"
+        return f"<MessageHistory: {self.user_id} - {self.event}"
