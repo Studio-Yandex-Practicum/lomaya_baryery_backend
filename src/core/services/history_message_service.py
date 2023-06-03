@@ -11,8 +11,11 @@ class MessageHistoryService:
     ) -> None:
         self.__history_message_repository = history_message_repository
 
-    async def create_history_message(self, user_id, message_id, message, event, shift_id=None) -> None:
+    async def create_object_history_message(self, user_id, message_id, message, event, shift_id=None) -> MessageHistory:
         history_message = MessageHistory(
             user_id=user_id, message_id=message_id, message=message, event=event, shift_id=shift_id
         )
-        await self.__history_message_repository.create(instance=history_message)
+        return history_message
+
+    async def create_bulk_history_message(self, objects: list[MessageHistory]) -> None:
+        await self.__history_message_repository.update_all(objects)

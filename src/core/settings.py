@@ -116,6 +116,10 @@ class Settings(BaseSettings):
     LOG_COMPRESSION: str = "tar.gz"
     LOG_LEVEL: str = "WARNING"
 
+    # Список с объектами модели MessageHistory
+    LIST_OBJECTS_MESSAGE_HISTORY: list = []
+    COUNT_MESSAGE = 50
+
     # Относительный путь к Swagger UI
     @property
     def swagger(self):

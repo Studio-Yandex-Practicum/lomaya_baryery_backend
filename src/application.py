@@ -1,11 +1,13 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import routers
+from src.bot.api_services import get_history_service
 from src.bot.main import start_bot
 from src.core import exceptions
+from src.core.db.db import get_session
 from src.core.exception_handlers import (
     application_error_handler,
     internal_exception_handler,
@@ -52,12 +54,25 @@ def create_app() -> FastAPI:
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
 
+    @app.middleware("http")
+    async def create_bundle_message(request: Request, call_next):
+        response = await call_next(request)
+        if len(settings.LIST_OBJECTS_MESSAGE_HISTORY) >= settings.COUNT_MESSAGE:
+            session = get_session()
+            history_message_service = await get_history_service(session)
+            await history_message_service.create_bulk_history_message(settings.LIST_OBJECTS_MESSAGE_HISTORY)
+        return response
+
     @app.on_event("shutdown")
     async def on_shutdown():
         """Действия после остановки сервера."""
         bot_instance = app.state.bot_instance
         # manually stopping bot updater when running in polling mode
         # see https://github.com/python-telegram-bot/python-telegram-bot/blob/master/telegram/ext/_application.py#L523
+        if settings.LIST_OBJECTS_MESSAGE_HISTORY:
+            session = get_session()
+            history_message_service = await get_history_service(session)
+            await history_message_service.create_bulk_history_message(settings.LIST_OBJECTS_MESSAGE_HISTORY)
         if not settings.BOT_WEBHOOK_MODE:
             await bot_instance.updater.stop()
         await bot_instance.stop()
