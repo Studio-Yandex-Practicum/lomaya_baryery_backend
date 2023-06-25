@@ -31,6 +31,11 @@ services:
       - ./logs:/LOMAYA_BARYERY_BACKEND/logs/
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "${DB_HOST}", "-p", "${DB_PORT}", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
