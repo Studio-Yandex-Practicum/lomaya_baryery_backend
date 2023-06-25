@@ -121,15 +121,6 @@ class UserRepository(AbstractRepository):
 
         return users.scalars().all()
 
-    async def create_test_user(self, telegram_id: int, phone_number: str) -> User:
-        user = User(
-            name='Test_name',
-            surname='Test_surname',
-            date_of_birth=date.today() - timedelta(days=settings.MIN_AGE + 1),
-            city='Test_city',
-            phone_number=phone_number,
-            telegram_id=telegram_id,
-            status=User.Status.PENDING,
-            is_test_user=True,
-        )
-        return await self.create(user)
+    async def get_test_users(self) -> list[User]:
+        users = await self._session.execute(select(User).where(User.is_test_user == True))  # noqa
+        return users.scalars().all()

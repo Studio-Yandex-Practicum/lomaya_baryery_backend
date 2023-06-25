@@ -177,11 +177,9 @@ class ShiftService:
         shift = await self.__shift_repository.create(instance=shift)
         await self.__create_shift_dir(shift.id)
 
-        user = await self.__user_repository.create_test_user(
-            settings.TEST_USER_TELEGRAM_ID,
-            settings.TEST_USER_PHONE_NUMBER,
-        )
-        await self.__request_repository.create(Request(user_id=user.id, shift_id=shift.id))
+        users = await self.__user_repository.get_test_users()
+        for user in users:
+            await self.__request_repository.create(Request(user_id=user.id, shift_id=shift.id))
         return shift
 
     async def get_shift(self, _id: UUID) -> Shift:

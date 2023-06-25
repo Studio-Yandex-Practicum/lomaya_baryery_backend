@@ -51,10 +51,6 @@ class Settings(BaseSettings):
     ORGANIZATIONS_EMAIL: str = "lomayabaryery.noreply@yandex.ru"
     ORGANIZATIONS_GROUP: str = "https://vk.com/socialrb02"  # используется при отправке сообщений пользователям
 
-    # Данные для создания тестового участника
-    TEST_USER_TELEGRAM_ID: int = 123556786
-    TEST_USER_PHONE_NUMBER: str = "+79991234566"
-
     # Количество заданий для исключения участника из смены.
     # Участник исключается из смены, если он пропустил или не отправил указанное количество отчётов подряд
     SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE: int = 5
