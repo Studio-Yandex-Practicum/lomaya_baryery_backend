@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.db import get_session
 from src.core.db.DTO_models import TasksAnalyticReportDto
-from src.core.db.models import Report, Task
+from src.core.db.models import Report, Task, User, Member
 from src.core.db.repository import AbstractRepository
 
 
@@ -37,6 +37,9 @@ class TaskRepository(AbstractRepository):
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
             )
             .join(Task.reports)
+            .join(Report.member)
+            .join(Member.user)
+            .where(Member.user.has(User.is_test_user == False))  # noqa
             .group_by(Task.id, Task.sequence_number)
             .order_by(Task.sequence_number)
         )

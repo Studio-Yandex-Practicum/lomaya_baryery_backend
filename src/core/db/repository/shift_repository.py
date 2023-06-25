@@ -235,6 +235,9 @@ class ShiftRepository(AbstractRepository):
             )
             .where(Report.shift_id == shift_id)
             .join(Task.reports)
+            .join(Report.member)
+            .join(Member.user)
+            .where(Member.user.has(User.is_test_user == False))  # noqa
             .group_by(Task.title, Task.sequence_number)
             .order_by(Task.sequence_number)
         )
