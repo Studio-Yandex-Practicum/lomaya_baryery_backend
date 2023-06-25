@@ -64,9 +64,6 @@ class Settings(BaseSettings):
     # Время (час) для напоминания о невыполненном задании
     SEND_NO_REPORT_REMINDER_HOUR: int = 19
 
-    # Максимальная продолжительность смены в месяцах
-    MAX_SHIFT_DURATION_IN_MONTH: int = 4
-
     # Минимальный возраст участника
     MIN_AGE: int = 3
 
