@@ -24,7 +24,8 @@ services:
     container_name: lomaya_baryery_backend
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
