@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
-from dateutil.relativedelta import relativedelta
 from fastapi import Depends
 from telegram.ext import Application
 
@@ -73,7 +72,7 @@ class ShiftService:
         """
         if started_at >= finished_at:
             raise exceptions.ShiftTooShortError
-        if finished_at >= (started_at + relativedelta(months=settings.MAX_SHIFT_DURATION_IN_MONTH)):
+        if finished_at > (started_at + timedelta(days=120)):
             raise exceptions.ShiftTooLongError
 
     @staticmethod
