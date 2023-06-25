@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -11,7 +10,6 @@ from src.core.db.db import get_session
 from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import AbstractRepository
-from src.core.settings import settings
 
 
 class UserRepository(AbstractRepository):
