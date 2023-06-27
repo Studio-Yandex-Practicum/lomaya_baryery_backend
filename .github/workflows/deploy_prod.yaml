@@ -3,7 +3,7 @@ name: Prod backend build and deploy
 on:
   pull_request:
     branches:
-      - develop
+      - master
     types: [ closed ]
 
 env:
