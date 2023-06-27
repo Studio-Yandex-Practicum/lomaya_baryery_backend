@@ -23,7 +23,8 @@ services:
     container_name: lomaya_baryery_backend
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - static_value:/LOMAYA_BARYERY_BACKEND/src/templates/registration/
       - ./static/user_reports:/LOMAYA_BARYERY_BACKEND/static/user_reports/
@@ -31,6 +32,11 @@ services:
       - ./logs:/LOMAYA_BARYERY_BACKEND/logs/
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "${DB_HOST}", "-p", "${DB_PORT}", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     image: ghcr.io/studio-yandex-practicum/lomaya_baryery_frontend:latest
