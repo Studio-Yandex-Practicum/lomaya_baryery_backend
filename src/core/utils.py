@@ -75,3 +75,9 @@ def setup_logging():
         compression=settings.LOG_COMPRESSION,
         level=settings.LOG_LEVEL,
     )
+    logger.add(
+        settings.LOG_ERROR_LOCATION,
+        rotation=settings.LOG_ROTATION_TIME,
+        compression=settings.LOG_COMPRESSION,
+        level=settings.LOG_ERROR_LEVEL,
+    )
