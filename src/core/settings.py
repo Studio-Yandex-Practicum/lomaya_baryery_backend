@@ -112,9 +112,11 @@ class Settings(BaseSettings):
 
     # Logging settings
     LOG_LOCATION: str = "logs/warning.log"
+    LOG_ERROR_LOCATION: str = "logs/error.log"
     LOG_ROTATION_TIME: str = "12:00"
     LOG_COMPRESSION: str = "tar.gz"
     LOG_LEVEL: str = "WARNING"
+    LOG_ERROR_LEVEL: str = "ERROR"
 
     # Относительный путь к Swagger UI
     @property
