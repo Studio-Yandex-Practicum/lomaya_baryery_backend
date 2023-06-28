@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import Depends
 from telegram.ext import Application
 
@@ -32,9 +34,8 @@ class MemberService:
             await self.__member_repository.update(member.id, member)
         await self.__telegram_bot(bot).notify_excluded_members(lagging_members)
 
-    async def get_members_with_no_reports(self) -> list[Member]:
+    async def get_members_with_no_reports(self, shift_id: UUID) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""
-        shift_id = await self.__shift_repository.get_started_shift_id()
         current_task_date = get_current_task_date()
         return await self.__member_repository.get_members_for_reminding(shift_id, current_task_date)
 

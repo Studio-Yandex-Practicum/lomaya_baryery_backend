@@ -170,10 +170,6 @@ class ShiftsDatesIntersectionError(BadRequestError):
     detail = "Дата окончания текущей смены не может равняться или быть больше даты начала новой смены"
 
 
-class ShiftNotFoundError(NotFoundError):
-    detail = "Активной смены не найдено."
-
-
 class RegistrationForbiddenError(BadRequestError):
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "

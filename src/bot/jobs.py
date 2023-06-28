@@ -18,10 +18,15 @@ from src.core.settings import settings
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
+    shift_session = get_session()
+    shift_service = await get_shift_service_callback(shift_session)
+    started_shift = await shift_service.get_started_shift_or_none()
+    if not started_shift:
+        return
     member_session_generator = get_session()
     member_service = await get_member_service_callback(member_session_generator)
     bot_service = BotService(context)
-    members = await member_service.get_members_with_no_reports()
+    members = await member_service.get_members_with_no_reports(started_shift.id)
     send_message_tasks = [
         bot_service.send_message(
             member.user,
