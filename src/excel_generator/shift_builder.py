@@ -1,4 +1,4 @@
-from src.excel_generator.task_builder import BaseAnalyticReportSettings
+from src.excel_generator.base_analytic_report_settings import BaseAnalyticReportSettings
 
 
 class ShiftAnalyticReportSettings(BaseAnalyticReportSettings):

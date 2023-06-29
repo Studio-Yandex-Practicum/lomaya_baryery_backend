@@ -1,11 +1,4 @@
-from dataclasses import dataclass
-
-
-@dataclass
-class BaseAnalyticReportSettings:
-    sheet_name: str
-    header_data: tuple[str]
-    row_coun: int
+from src.excel_generator.base_analytic_report_settings import BaseAnalyticReportSettings
 
 
 class TaskAnalyticReportSettings(BaseAnalyticReportSettings):

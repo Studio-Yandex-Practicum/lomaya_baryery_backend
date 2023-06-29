@@ -94,3 +94,16 @@ class ShiftByUserWithReportSummaryDto:
     total_declined: int
     total_skipped: int
     is_excluded: bool
+
+
+@dataclass
+class UserAnalyticReportDto:
+    sequence_number: int
+    title: str
+    approved_from_1_attempt: int
+    approved_from_2_attempt: int
+    approved_from_3_attempt: int
+    approved: int
+    declined: int
+    skipped: int
+    reports_total: int
