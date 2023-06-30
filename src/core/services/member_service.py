@@ -13,9 +13,11 @@ class MemberService:
         self,
         member_repository: MemberRepository = Depends(),
         shift_repository: ShiftRepository = Depends(),
+        history_service: services.MessageHistoryService = Depends(),
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
+        self.__history_service = history_service
         self.__telegram_bot = services.BotService
 
     async def exclude_lagging_members(self, shift: Shift, bot: Application) -> None:
@@ -24,13 +26,14 @@ class MemberService:
         Если участники не посылают отчет о выполненом задании указанное
         в настройках количество раз подряд, то они будут исключены из смены.
         """
+        shift_id = await self.__shift_repository.get_started_shift_id()
         lagging_members = await self.__member_repository.get_members_for_excluding(
             shift.id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
             await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_excluded_members(lagging_members)
+        await self.__telegram_bot(bot, self.__history_service).notify_excluded_members(lagging_members, shift_id)
 
     async def get_members_with_no_reports(self) -> list[Member]:
         """Получить всех участников, у которых отчеты в статусе WAITING."""

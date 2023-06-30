@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 from telegram.ext import CallbackContext
 
 from src.bot.api_services import (
+    get_history_service,
     get_member_service_callback,
     get_report_service_callback,
     get_shift_service_callback,
@@ -12,15 +13,17 @@ from src.bot.api_services import (
 from src.bot.services import BotService
 from src.bot.ui import DAILY_TASK_BUTTONS
 from src.core.db.db import get_session
-from src.core.db.models import Report
+from src.core.db.models import MessageHistory, Report
 from src.core.settings import settings
 
 
 async def send_no_report_reminder_job(context: CallbackContext) -> None:
     """Отправить напоминание об отчёте."""
     member_session_generator = get_session()
+    history_session = get_session()
+    history_service = await get_history_service(history_session)
     member_service = await get_member_service_callback(member_session_generator)
-    bot_service = BotService(context)
+    bot_service = BotService(context, history_service)
     members = await member_service.get_members_with_no_reports()
     send_message_tasks = [
         bot_service.send_message(
@@ -31,6 +34,8 @@ async def send_no_report_reminder_job(context: CallbackContext) -> None:
                 f"Напоминаем, что за каждое выполненное задание ты получаешь виртуальные "
                 f"\"ломбарьерчики\", которые можешь обменять на призы и подарки!"
             ),
+            MessageHistory.Event.REPORT_MENTION,
+            member.shift_id,
         )
         for member in members
     ]
@@ -45,12 +50,13 @@ async def send_daily_task_job(context: CallbackContext) -> None:
     started_shift = await shift_service.get_started_shift_or_none()
     if not started_shift:
         return
+    history_session = get_session()
+    history_service = await get_history_service(history_session)
     member_session = get_session()
     member_service = await get_member_service_callback(member_session)
     report_session = get_session()
     report_service = await get_report_service_callback(report_session)
-    bot_service = BotService(context)
-
+    bot_service = BotService(context, history_service)
     await report_service.set_status_to_waiting_reports(Report.Status.SKIPPED)
     await member_service.exclude_lagging_members(started_shift, context.application)
     task, members = await report_service.get_today_task_and_active_members(started_shift, date.today().day)
@@ -73,6 +79,8 @@ async def send_daily_task_job(context: CallbackContext) -> None:
                 f"Не забудь сделать фотографию, как ты выполняешь задание, и отправить на проверку."
             ),
             DAILY_TASK_BUTTONS,
+            MessageHistory.Event.GET_TASK,
+            member.shift_id,
         )
         for member in members
     ]

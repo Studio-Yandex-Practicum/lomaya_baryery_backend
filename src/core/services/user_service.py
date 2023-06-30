@@ -61,6 +61,7 @@ class UserService:
         else:
             request = Request(user_id=user.id, shift_id=shift_id)
             await self.__request_repository.create(request)
+        return user
 
     async def __update_request_data(self, request: Request) -> None:
         """Обработка повторного запроса пользователя на участие в смене."""

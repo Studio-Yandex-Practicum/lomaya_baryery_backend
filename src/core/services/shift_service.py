@@ -28,6 +28,7 @@ from src.core.db.repository import (
     ShiftRepository,
     UserRepository,
 )
+from src.core.services.history_message_service import MessageHistoryService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
 
@@ -49,12 +50,14 @@ class ShiftService:
         report_repository: ReportRepository = Depends(),
         user_repository: UserRepository = Depends(),
         request_repository: RequestRepository = Depends(),
+        history_service: MessageHistoryService = Depends(),
     ) -> None:
         self.__shift_repository = shift_repository
         self.__task_service = task_service
         self.__report_repository = report_repository
         self.__user_repository = user_repository
         self.__request_repository = request_repository
+        self.__history_service = history_service
         self.__telegram_bot = services.BotService
 
     @staticmethod
@@ -193,11 +196,12 @@ class ShiftService:
         if shift.started_at != update_shift_data.started_at:
             shift.started_at = update_shift_data.started_at
             users = await self.__user_repository.get_users_by_shift_id(shift.id)
-            await self.__telegram_bot(bot).notify_that_shift_start_date_is_changed(
+            await self.__telegram_bot(bot, self.__history_service).notify_that_shift_start_date_is_changed(
                 users,
                 START_DATE_CHANGED_MESSAGE.format(
                     started_at=shift.started_at.strftime('%d.%m.%Y'),
                 ),
+                shift.id,
             )
 
         shift.finished_at = update_shift_data.finished_at
@@ -214,8 +218,8 @@ class ShiftService:
     async def finish_shift(self, bot: Application, shift_id: UUID) -> Shift:
         shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
         await shift.finish()
+        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_finished(shift)
         await self.__shift_repository.update(shift_id, shift)
-        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
         return shift
 
     async def get_shift_with_members(
@@ -255,7 +259,7 @@ class ShiftService:
     async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:
         """Уведомляет пользователей, у которых нет непроверенных отчетов, об окончании смены."""
         shift = await self.__shift_repository.get_with_members_with_reviewed_reports(shift_id)
-        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_finished(shift)
 
     async def __decline_reports_and_notify_users(self, shift_id: UUID, bot: Application) -> None:
         """Отклоняет непроверенные задания, уведомляет пользователей об окончании смены."""
@@ -266,7 +270,7 @@ class ShiftService:
                 report.status = Report.Status.DECLINED
                 reports_for_update.append(report)
         await self.__report_repository.update_all(reports_for_update)
-        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_finished(shift)
 
     async def cancel_shift(
         self, bot: Application, shift_id: UUID, cancel_shift_data: Optional[ShiftCancelRequest] = None
@@ -291,7 +295,9 @@ class ShiftService:
                 user.status = User.Status.DECLINED.value
                 users_to_update.append(user)
         await self.__user_repository.update_all(users_to_update)
-        await self.__telegram_bot(bot).notify_that_shift_is_cancelled(users, final_message)
+        await self.__telegram_bot(bot, self.__history_service).notify_that_shift_is_cancelled(
+            users, final_message, shift.id
+        )
         return shift
 
     async def start_prepared_shift(self) -> None:

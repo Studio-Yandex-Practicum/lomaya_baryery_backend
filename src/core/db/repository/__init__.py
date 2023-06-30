@@ -1,6 +1,7 @@
 from .abstract_repository import AbstractRepository  # noqa
 from .administrator_invitation import AdministratorInvitationRepository  # noqa
 from .administrator_repository import AdministratorRepository  # noqa
+from .history_message_repository import MessageHistoryRepository  # noqa
 from .member_repository import MemberRepository  # noqa
 from .report_repository import ReportRepository  # noqa
 from .request_repository import RequestRepository  # noqa

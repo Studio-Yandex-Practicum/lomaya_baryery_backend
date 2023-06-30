@@ -13,6 +13,7 @@ from src.core import exceptions
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, Shift, User
 from src.core.db.repository import MemberRepository, RequestRepository, UserRepository
+from src.core.services.history_message_service import MessageHistoryService
 from src.core.services.report_service import ReportService
 from src.core.services.shift_service import ShiftService
 from src.core.settings import settings
@@ -27,12 +28,14 @@ class RequestService:
         user_repository: UserRepository = Depends(),
         shift_service: ShiftService = Depends(),
         report_service: ReportService = Depends(),
+        history_service: MessageHistoryService = Depends(),
     ) -> None:
         self.__request_repository = request_repository
         self.__member_repository = member_repository
         self.__user_repository = user_repository
         self.__shift_service = shift_service
         self.__report_service = report_service
+        self.__history_service = history_service
         self.__telegram_bot = services.BotService
 
     async def __create_user_dir(self, user: User, request: Request) -> None:
@@ -61,7 +64,9 @@ class RequestService:
         if get_current_task_date() >= shift.started_at:
             first_task_date = get_current_task_date() + timedelta(days=1)
 
-        await self.__telegram_bot(bot).notify_approved_request(request.user, first_task_date.strftime('%d.%m.%Y'))
+        await self.__telegram_bot(bot, self.__history_service).notify_approved_request(
+            request.user, first_task_date.strftime('%d.%m.%Y'), shift.id
+        )
         return RequestResponse.parse_from(request)
 
     async def decline_request(
@@ -76,7 +81,9 @@ class RequestService:
         if user.status is User.Status.PENDING:
             user.status = User.Status.DECLINED
             await self.__user_repository.update(user.id, user)
-        await self.__telegram_bot(bot).notify_declined_request(request.user, decline_request_data)
+        await self.__telegram_bot(bot, self.__history_service).notify_declined_request(
+            request.user, decline_request_data, request.shift_id
+        )
         return RequestResponse.parse_from(request)
 
     async def get_requests_list(self, status: Optional[Request.Status]) -> list[RequestDTO]:

@@ -118,6 +118,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "WARNING"
     LOG_ERROR_LEVEL: str = "ERROR"
 
+    # Список с объектами модели MessageHistory
+    LIST_OBJECTS_MESSAGE_HISTORY: list = []
+    COUNT_MESSAGE = 50
+
     # Относительный путь к Swagger UI
     @property
     def swagger(self):

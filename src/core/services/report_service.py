@@ -7,11 +7,12 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
-from src.bot import services
+from src.bot.services import BotService
 from src.core import exceptions
 from src.core.db import DTO_models
-from src.core.db.models import Member, Report, Shift, Task
+from src.core.db.models import Member, MessageHistory, Report, Shift, Task
 from src.core.db.repository import MemberRepository, ReportRepository, ShiftRepository
+from src.core.services.history_message_service import MessageHistoryService
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
 from src.core.utils import get_current_task_date, get_lombaryers_for_quantity
@@ -31,12 +32,14 @@ class ReportService:
         shift_repository: ShiftRepository = Depends(),
         member_repository: MemberRepository = Depends(),
         task_service: TaskService = Depends(),
+        history_message: MessageHistoryService = Depends(),
     ) -> None:
-        self.__telegram_bot = services.BotService
+        self.__telegram_bot = BotService
         self.__report_repository = report_repository
         self.__shift_repository = shift_repository
         self.__member_repository = member_repository
         self.__task_service = task_service
+        self.__history_message = history_message
 
     async def get_report(self, id: UUID) -> Report:
         return await self.__report_repository.get(id)
@@ -51,7 +54,8 @@ class ReportService:
             raise exceptions.ReportAlreadySkippedError
 
     async def get_today_task_and_active_members(
-            self, shift: Shift, current_day_of_month: int) -> tuple[Task, list[Member]]:
+        self, shift: Shift, current_day_of_month: int
+    ) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
         members = await self.__member_repository.get_active_members_for_shift(shift.id)
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)
@@ -67,7 +71,7 @@ class ReportService:
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
         member.numbers_lombaryers += 1
         await self.__member_repository.update(member.id, member)
-        await self.__telegram_bot(bot).notify_approved_task(member.user, report, member.shift)
+        await self.__telegram_bot(bot, self.__history_message).notify_approved_task(member.user, report, member.shift)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
@@ -79,7 +83,7 @@ class ReportService:
         report.set_reviewer(administrator_id)
         report = await self.__report_repository.update(report_id, report)
         member = await self.__member_repository.get_with_user_and_shift(report.member_id)
-        await self.__telegram_bot(bot).notify_declined_task(member.user, member.shift, report)
+        await self.__telegram_bot(bot, self.__history_message).notify_declined_task(member.user, member.shift, report)
         await self.__notify_member_about_finished_shift(member, bot)
         return report
 
@@ -100,7 +104,7 @@ class ReportService:
             and not await self.__member_repository.is_unreviewed_report_exists(member.id)
         ):
             await self.__finish_shift_with_all_reports_reviewed(member.shift)
-            await self.__telegram_bot(bot).send_message(
+            await self.__telegram_bot(bot, self.__history_message).send_message(
                 member.user,
                 member.shift.final_message.format(
                     name=member.user.name,
@@ -108,6 +112,7 @@ class ReportService:
                     numbers_lombaryers=member.numbers_lombaryers,
                     lombaryers_case=get_lombaryers_for_quantity(member.numbers_lombaryers),
                 ),
+                MessageHistory.Event.SHIFT_ENDED,
             )
 
     def __can_change_status(self, status: Report.Status) -> None:
