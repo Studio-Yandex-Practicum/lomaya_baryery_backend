@@ -1,3 +1,4 @@
+from dataclasses import astuple
 from datetime import date
 from io import BytesIO
 from urllib.parse import quote_plus
@@ -13,6 +14,7 @@ from src.excel_generator.builder import AnalyticReportBuilder
 from src.excel_generator.shift_builder import ShiftAnalyticReportSettings
 from src.excel_generator.task_builder import TaskAnalyticReportSettings
 from src.excel_generator.user_builder import (
+    UserFullAnalyticReportSettings,
     UserShiftAnalyticReportSettings,
     UserTaskAnalyticReportSettings,
 )
@@ -112,29 +114,52 @@ class AnalyticsService:
             f"Дата формирования отчёта: {date.today().strftime('%d.%m.%Y')}"
         )
 
-    async def __generate_report_for_user(self, workbook: Workbook, user_id: UUID) -> Workbook:
+    async def __add_sheets_to_user_report(self, workbook: Workbook, user_id: UUID) -> Workbook:
         """Генерация отчёта по участнику."""
         description = await self.__generate_user_report_description(user_id)
 
-        user_task_statistic = await self.__user_repository.get_user_task_statistics_report_by_id(user_id)
-        user_shift_statistic = await self.__user_repository.get_user_shift_statistics_report_by_id(user_id)
-
+        user_task_statistic = await self.__user_repository.get_user_task_statistics_by_id_and_shift(user_id)
         self.__workbook.add_sheet(
             description,
             data=user_task_statistic,
             workbook=workbook,
             analytic_report_settings=UserTaskAnalyticReportSettings,
         )
+
+        user_shift_statistic = await self.__user_repository.get_user_shift_statistics_by_id(user_id)
         self.__workbook.add_sheet(
             description,
             data=user_shift_statistic,
             workbook=workbook,
             analytic_report_settings=UserShiftAnalyticReportSettings,
         )
+
+        all_tasks_data: dict[int, list] = dict()
+        user_shift_and_task_report = UserFullAnalyticReportSettings()
+
+        user_shifts = await self.__user_repository.get_user_shifts_titles(user_id)
+
+        for shift in user_shifts:
+            shift_tasks = await self.__user_repository.get_user_task_statistics_by_id_and_shift(user_id, shift.id)
+
+            user_shift_and_task_report.add_shift(shift.title)
+
+            for task in shift_tasks:
+                all_tasks_data.setdefault(task.sequence_number, [task.sequence_number, task.title]).extend(
+                    astuple(task)[2:]
+                )
+
+        self.__workbook.add_sheet(
+            description,
+            data=tuple(all_tasks_data.values()),
+            workbook=workbook,
+            analytic_report_settings=user_shift_and_task_report,
+        )
+
         return workbook
 
     async def generate_report_for_user(self, user_id: UUID) -> BytesIO:
         """Генерация отчёта по участнику."""
         workbook = self.__workbook.create_workbook()
-        workbook = await self.__generate_report_for_user(workbook, user_id)
+        await self.__add_sheets_to_user_report(workbook, user_id)
         return self.__workbook.get_report_response(workbook)

@@ -1,3 +1,4 @@
+import dataclasses
 import enum
 from dataclasses import astuple
 from io import BytesIO
@@ -81,7 +82,9 @@ class AnalyticReportBuilder:
     ) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
-            self.__add_row(worksheet, analytic_report_settings, data=astuple(task))
+            if dataclasses.is_dataclass(task):
+                task = astuple(task)
+            self.__add_row(worksheet, analytic_report_settings, task)
 
     def __add_footer(self, worksheet: Worksheet, analytic_report_settings: BaseAnalyticReportSettings) -> None:
         """Заполняет последнюю строку в листе."""

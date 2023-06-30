@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class BaseAnalyticReportSettings:
     sheet_name: str
     header_data: tuple[str]
-    row_coun: int
+    row_count: int
