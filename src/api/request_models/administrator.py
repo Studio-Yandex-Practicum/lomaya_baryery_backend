@@ -19,14 +19,14 @@ class AdministratorUpdateNameAndSurnameRequest(RequestBase):
     name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
 
+    _validate_name = name_surname_validator("name")
+    _validate_surname = name_surname_validator("surname")
+
 
 class AdministratorRegistrationRequest(AdministratorUpdateNameAndSurnameRequest):
     """Схема для регистрации администратора."""
 
     password: SecretStr
-
-    _validate_name = name_surname_validator("name")
-    _validate_surname = name_surname_validator("surname")
 
     @validator("password")
     def validate_password(cls, value: SecretStr) -> SecretStr:
