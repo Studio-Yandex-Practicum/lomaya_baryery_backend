@@ -161,6 +161,11 @@ class ShiftService:
         shift = await self.__shift_repository.get(shift_id)
         return f"shift_{shift.sequence_number}"
 
+    async def get_test_users_and_create_request_to_shift(self, shift_id: UUID) -> None:
+        users = await self.__user_repository.get_test_users()
+        for user in users:
+            await self.__request_repository.create(Request(user_id=user.id, shift_id=shift_id))
+
     async def create_new_shift(self, new_shift: ShiftCreateRequest) -> Shift:
         shift = Shift(**new_shift.dict())
         await self.__validate_shift_on_create(shift)
@@ -176,10 +181,7 @@ class ShiftService:
         shift.tasks = month_tasks
         shift = await self.__shift_repository.create(instance=shift)
         await self.__create_shift_dir(shift.id)
-
-        users = await self.__user_repository.get_test_users()
-        for user in users:
-            await self.__request_repository.create(Request(user_id=user.id, shift_id=shift.id))
+        await self.get_test_users_and_create_request_to_shift(shift.id)
         return shift
 
     async def get_shift(self, _id: UUID) -> Shift:
