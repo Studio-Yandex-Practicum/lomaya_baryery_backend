@@ -110,8 +110,7 @@ class UserRepository(AbstractRepository):
             select(User).where(
                 User.id.in_(
                     select(Request.user_id).where(
-                        Request.shift_id == shift_id,
-                        User.is_test_user == False,  # noqa
+                        Request.shift_id == shift_id
                     )
                 )
             )
