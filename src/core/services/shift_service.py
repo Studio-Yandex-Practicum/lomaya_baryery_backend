@@ -30,6 +30,7 @@ from src.core.db.repository import (
 )
 from src.core.services.task_service import TaskService
 from src.core.settings import settings
+from src.core.utils import add_months
 
 FINAL_MESSAGE = (
     "Привет, {name} {surname}! "
@@ -72,7 +73,7 @@ class ShiftService:
         """
         if started_at >= finished_at:
             raise exceptions.ShiftTooShortError
-        if finished_at > (started_at + timedelta(days=120)):
+        if finished_at > add_months(started_at, settings.MAX_MONTH_IN_SHIFT):
             raise exceptions.ShiftTooLongError
 
     @staticmethod

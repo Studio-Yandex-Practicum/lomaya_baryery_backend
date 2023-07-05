@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     # Минимальный возраст участника
     MIN_AGE: int = 3
 
+    # Максимальная продолжительность смены в месяцах
+    MAX_MONTH_IN_SHIFT: int = 4
+
     # Сколько дней от начала смены возможна регистрация
     DAYS_FROM_START_OF_SHIFT_TO_JOIN: int = 2
 

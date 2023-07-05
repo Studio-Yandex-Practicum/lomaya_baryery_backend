@@ -1,6 +1,10 @@
 import logging
+import secrets
+import string
 import sys
-from datetime import datetime, timedelta
+from calendar import calendar
+from datetime import date, datetime, timedelta
+from random import shuffle
 
 import pytz
 from loguru import logger
@@ -12,6 +16,24 @@ def get_current_task_date() -> datetime.date:
     """Вычислить текущий день задания с учетом времени отправления."""
     now = datetime.now(pytz.timezone(settings.TIME_ZONE))
     return now.date() if now.hour >= settings.SEND_NEW_TASK_HOUR else now.date() - timedelta(days=1)
+
+
+def add_months(source_date: date, months: int):
+    """Добавляет к дате заданное количество месяцев."""
+    month = source_date.month - 1 + months
+    year = source_date.year + month // 12
+    month = month % 12 + 1
+    day = min(source_date.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def generate_password() -> str:
+    """Генерация пароля в соответствии с правилами."""
+    password_chars = [secrets.choice(string.ascii_uppercase) for _ in range(2)]
+    password_chars += [secrets.choice(string.ascii_lowercase) for _ in range(4)]
+    password_chars += [secrets.choice(string.digits) for _ in range(2)]
+    shuffle(password_chars)
+    return ''.join(password_chars)
 
 
 def get_lombaryers_for_quantity(numbers_lombaryers: int) -> str:
