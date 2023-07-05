@@ -1,5 +1,3 @@
-import secrets
-import string
 from uuid import UUID
 
 from fastapi import Depends
@@ -14,6 +12,7 @@ from src.core.db.repository import AdministratorRepository
 from src.core.email import EmailProvider
 from src.core.services.administrator_invitation import AdministratorInvitationService
 from src.core.services.authentication_service import AuthenticationService
+from src.core.utils import generate_password
 
 
 class AdministratorService:
@@ -26,12 +25,6 @@ class AdministratorService:
         self.__administrator_repository = administrator_repository
         self.__administrator_invitation_service = administrator_invitation_service
         self.__email = email
-
-    @staticmethod
-    def __create_new_password() -> str:
-        """Создать новый пароль."""
-        alphabet = string.ascii_lowercase + string.digits
-        return ''.join(secrets.choice(alphabet) for _ in range(8))
 
     async def register_new_administrator(self, token: UUID, schema: AdministratorRegistrationRequest) -> Administrator:
         """Регистрация нового администратора."""
@@ -64,7 +57,7 @@ class AdministratorService:
         -Сохранение нового пароля в БД.
         -Отправка нового пароля на почту Администратору/Эксперту.
         """
-        password = self.__create_new_password()
+        password = generate_password()
         administrator = await self.__set_new_password(password, email)
         await self.__email.send_restored_password(password, email)
         return administrator  # noqa R: 504
