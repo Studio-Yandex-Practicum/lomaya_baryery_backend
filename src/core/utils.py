@@ -2,7 +2,7 @@ import logging
 import secrets
 import string
 import sys
-from calendar import calendar
+from calendar import monthrange
 from datetime import date, datetime, timedelta
 from random import shuffle
 
@@ -23,7 +23,7 @@ def add_months(source_date: date, months: int):
     month = source_date.month - 1 + months
     year = source_date.year + month // 12
     month = month % 12 + 1
-    day = min(source_date.day, calendar.monthrange(year, month)[1])
+    day = min(source_date.day, monthrange(year, month)[1])
     return date(year, month, day)
 
 

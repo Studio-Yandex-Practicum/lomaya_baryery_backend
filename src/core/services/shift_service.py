@@ -73,7 +73,7 @@ class ShiftService:
         """
         if started_at >= finished_at:
             raise exceptions.ShiftTooShortError
-        if finished_at > add_months(started_at, settings.MAX_MONTH_IN_SHIFT):
+        if finished_at >= add_months(started_at, settings.MAX_MONTH_IN_SHIFT):
             raise exceptions.ShiftTooLongError
 
     @staticmethod
