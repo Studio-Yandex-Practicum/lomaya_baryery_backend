@@ -133,6 +133,7 @@ class User(Base):
     requests = relationship("Request", back_populates="user")
     members = relationship("Member", back_populates="user")
     telegram_blocked = Column(Boolean, default=False, nullable=False)
+    is_test_user = Column(Boolean, default=False, nullable=False)
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"

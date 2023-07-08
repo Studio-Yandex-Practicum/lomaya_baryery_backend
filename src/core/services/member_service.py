@@ -29,6 +29,7 @@ class MemberService:
         lagging_members = await self.__member_repository.get_members_for_excluding(
             shift.id, settings.SEQUENTIAL_TASKS_PASSES_FOR_EXCLUDE
         )
+        lagging_members = [member for member in lagging_members if member.user.is_test_user is False]
         for member in lagging_members:
             member.status = Member.Status.EXCLUDED
             await self.__member_repository.update(member.id, member)

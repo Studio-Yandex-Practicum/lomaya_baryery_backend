@@ -100,6 +100,7 @@ class UserRepository(AbstractRepository):
             .group_by(User.id)
             .where(
                 or_(status is None, User.status == status),
+                User.is_test_user == False,  # noqa
             )
             .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
         )
@@ -107,6 +108,17 @@ class UserRepository(AbstractRepository):
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
-            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
+            select(User).where(
+                User.id.in_(
+                    select(Request.user_id).where(
+                        Request.shift_id == shift_id
+                    )
+                )
+            )
         )
+
+        return users.scalars().all()
+
+    async def get_test_users(self) -> list[User]:
+        users = await self._session.execute(select(User).where(User.is_test_user == True))  # noqa
         return users.scalars().all()
