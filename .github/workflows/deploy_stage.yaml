@@ -10,6 +10,7 @@ env:
   REGISTRY: ghcr.io
   REP_OWNER: studio-yandex-practicum
   IMAGE_NAME: lomaya_baryery_backend
+  IMAGE_NAME_FRONT: lomaya_baryery_frontend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
   HEALTHCHECK_URL: https://stage.lombaryery.tk/api/healthcheck
@@ -116,10 +117,11 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME_FRONT }}:latest
             docker-compose --file docker-compose.yaml stop
             docker-compose --file docker-compose.yaml rm backend
             docker-compose --file docker-compose.yaml rm frontend
-            rm -rf frontend
+            rm -r frontend
             docker-compose --file docker-compose.yaml up -d
       - name: Making migrations
         uses: appleboy/ssh-action@master
