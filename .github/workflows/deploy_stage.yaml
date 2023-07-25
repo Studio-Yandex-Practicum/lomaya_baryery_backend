@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - develop
-    types: [ closed ]
+#    types: [ closed ]
 
 env:
   REGISTRY: ghcr.io
@@ -68,6 +68,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
           source: "docker-compose.stage.yaml,nginx/default.conf"
           target: ${{ env.DEPLOY_PATH }}
 
@@ -77,6 +78,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             mv docker-compose.stage.yaml docker-compose.yaml
@@ -113,6 +115,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
@@ -121,7 +124,6 @@ jobs:
             docker-compose --file docker-compose.yaml stop
             docker-compose --file docker-compose.yaml rm backend
             docker-compose --file docker-compose.yaml rm frontend
-            rm -r frontend
             docker-compose --file docker-compose.yaml up -d
       - name: Making migrations
         uses: appleboy/ssh-action@master
@@ -129,6 +131,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
             docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
