@@ -97,8 +97,8 @@ jobs:
             echo MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} >> .env
             echo ORGANIZATIONS_EMAIL=${{ secrets.ORGANIZATIONS_EMAIL }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
             echo TZ=${{ secrets.TZ }} >> .env
+            echo ROOT_PATH=${{ secrets.ROOT_PATH }} >> .env
             echo DEBUG=${{ secrets.DEBUG }} >> .env
 
   start_application:
