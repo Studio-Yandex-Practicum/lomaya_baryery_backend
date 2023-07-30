@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 from uuid import UUID
 
 from fastapi import Depends
@@ -7,8 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.request_models.user import UserDescAscSortRequest, UserFieldSortRequest
 from src.core.db.db import get_session
-from src.core.db.DTO_models import ShiftByUserWithReportSummaryDto
-from src.core.db.models import Member, Report, Request, Shift, User
+from src.core.db.DTO_models import (
+    ShiftByUserWithReportSummaryDto,
+    UserAnalyticReportDto,
+)
+from src.core.db.models import Member, Report, Request, Shift, Task, User
 from src.core.db.repository import AbstractRepository
 
 
@@ -122,3 +125,69 @@ class UserRepository(AbstractRepository):
     async def get_test_users(self) -> list[User]:
         users = await self._session.execute(select(User).where(User.is_test_user == True))  # noqa
         return users.scalars().all()
+
+    async def get_user_task_statistics_by_id_and_shift(self, user_id: UUID, shift_id: Optional[UUID] = None):
+        """Отчёт по задачам участника.
+
+        Содержит:
+        - список *всех* задач;
+        - количество отчетов принятых с 1-й/2-й/3-й попытки;
+        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
+        """
+        sub_stmt = select(Member.id).filter(Member.user_id == user_id)
+        if shift_id:
+            sub_stmt = sub_stmt.filter(Member.shift_id == shift_id)
+
+        stmt = (
+            select(
+                Task.sequence_number,
+                Task.title,
+                func.count(Report.id).filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
+                func.count(Report.id).filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
+                func.count(Report.id).filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
+                func.count(Report.id).filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
+                func.count(Report.id).filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
+                func.count(Report.id).filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
+                func.count(Report.id).label('reports_total'),
+            )
+            .outerjoin(Task.reports.and_(Report.member_id.in_(sub_stmt)))
+            .group_by(Task.sequence_number, Task.id)
+            .order_by(Task.sequence_number)
+        )
+        reports = await self._session.execute(stmt)
+        return tuple(UserAnalyticReportDto(*report) for report in reports.all())
+
+    async def get_user_shift_statistics_by_id(self, user_id: UUID):
+        """Отчёт по сменам участника.
+
+        Содержит:
+        - список смен, в которых участвует указанный пользователь;
+        - количество отчетов принятых с 1-й/2-й/3-й попытки;
+        - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
+        """
+        stmt = (
+            select(
+                Shift.sequence_number,
+                Shift.title,
+                func.count(Report.id).filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
+                func.count(Report.id).filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
+                func.count(Report.id).filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
+                func.count(Report.id).filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
+                func.count(Report.id).filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
+                func.count(Report.id).filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
+                func.count(Report.id).label('reports_total'),
+            )
+            .join(Shift.reports)
+            .join(Report.member)
+            .where(Member.user_id == user_id)
+            .group_by(Shift.sequence_number, Shift.id)
+            .order_by(Shift.sequence_number)
+        )
+        reports = await self._session.execute(stmt)
+        return tuple(UserAnalyticReportDto(*report) for report in reports.all())
+
+    async def get_user_shifts_titles(self, user_id: UUID) -> Sequence[Shift]:
+        """Получить список смен заданного участника."""
+        stmt = select(Shift).join(Member.shift).filter(Member.user_id == user_id)
+        shifts = await self._session.execute(stmt)
+        return shifts.scalars().all()

@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_restful.cbv import cbv
 
+from src.api.response_models.error import generate_error_responses
 from src.core.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -59,6 +60,7 @@ class AnalyticsCBV:
         response_class=StreamingResponse,
         status_code=HTTPStatus.OK,
         summary="Формирование отчёта по выбранной смене",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
     )
     async def generate_report_for_shift(self, shift_id: UUID) -> StreamingResponse:
         """
@@ -72,4 +74,28 @@ class AnalyticsCBV:
         filename = await self._analytics_service.generate_shift_report_filename(shift_id)
         headers = {'Content-Disposition': f'attachment; filename={filename}'}
         workbook = await self._analytics_service.generate_report_for_shift(shift_id)
+        return StreamingResponse(workbook, headers=headers)
+
+    @router.get(
+        "/user/{user_id}",
+        response_model=None,
+        response_class=StreamingResponse,
+        status_code=HTTPStatus.OK,
+        summary="Формирование отчёта по пользователю",
+        responses=generate_error_responses(HTTPStatus.NOT_FOUND),
+    )
+    async def generate_report_for_user(self, user_id: UUID) -> StreamingResponse:
+        """Формирует отчёт по выбранному участнику.
+
+        Отчёт содержит:
+        - список всех задач;
+            - количество отчетов, принятых с 1-й/2-й/3-й попытки по каждому заданию;
+            - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию;
+        - список всех смен участника;
+            - количество отчетов, принятых с 1-й/2-й/3-й попытки по каждой смене;
+            - общее количество принятых/отклонённых/не предоставленных отчётов по каждой смене
+        """
+        filename = await self._analytics_service.generate_user_report_filename(user_id)
+        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        workbook = await self._analytics_service.generate_report_for_user(user_id)
         return StreamingResponse(workbook, headers=headers)

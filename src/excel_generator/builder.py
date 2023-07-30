@@ -1,3 +1,4 @@
+import dataclasses
 import enum
 from dataclasses import astuple
 from io import BytesIO
@@ -7,41 +8,41 @@ from openpyxl.styles import Alignment, Border, Font, Side
 from openpyxl.worksheet.worksheet import Worksheet
 
 from src.core.db.DTO_models import TasksAnalyticReportDto
-from src.excel_generator.task_builder import BaseAnalyticReportSettings
+from src.excel_generator.base_analytic_report_settings import BaseAnalyticReportSettings
 
 
 class AnalyticReportBuilder:
     """Интерфейс строителя."""
 
-    async def generate_report(
+    def add_sheet(
         self,
         description: str,
         data: tuple[TasksAnalyticReportDto],
         workbook: Workbook,
-        analytic_task_report_full: BaseAnalyticReportSettings,
+        analytic_report_settings: BaseAnalyticReportSettings,
     ) -> Workbook:
         """Генерация листа с данными."""
-        worksheet = self._create_sheet(workbook, sheet_name=analytic_task_report_full.sheet_name)
-        analytic_task_report_full.row_count = 0
-        self.__add_description(worksheet, description, analytic_task_report_full)
-        self.__add_header(worksheet, analytic_task_report_full)
-        self.__add_data(worksheet, data, analytic_task_report_full)
-        self.__add_footer(worksheet, analytic_task_report_full)
+        worksheet = self._create_sheet(workbook, sheet_name=analytic_report_settings.sheet_name)
+        analytic_report_settings.row_count = 0
+        self.__add_description(worksheet, description, analytic_report_settings)
+        self.__add_header(worksheet, analytic_report_settings)
+        self.__add_data(worksheet, data, analytic_report_settings)
+        self.__add_footer(worksheet, analytic_report_settings)
         self.__apply_styles(worksheet)
         return workbook
 
     def __add_row(
         self,
         worksheet: Worksheet,
-        analytic_task_report: BaseAnalyticReportSettings,
+        analytic_report_settings: BaseAnalyticReportSettings,
         data: tuple[str | int],
     ) -> None:
-        analytic_task_report.row_count += 1
+        analytic_report_settings.row_count += 1
         for index, value in enumerate(data, start=1):
-            worksheet.cell(row=analytic_task_report.row_count, column=index, value=value)
+            worksheet.cell(row=analytic_report_settings.row_count, column=index, value=value)
 
     @staticmethod
-    async def get_report_response(workbook: Workbook) -> BytesIO:
+    def get_report_response(workbook: Workbook) -> BytesIO:
         """Создание ответа."""
         stream = BytesIO()
         workbook.save(stream)
@@ -64,28 +65,30 @@ class AnalyticReportBuilder:
         self,
         worksheet: Worksheet,
         description: str,
-        analytic_task_report: BaseAnalyticReportSettings,
+        analytic_report_settings: BaseAnalyticReportSettings,
     ) -> None:
         """Заполняет описание отчета."""
-        self.__add_row(worksheet, analytic_task_report, (description,))
+        self.__add_row(worksheet, analytic_report_settings, (description,))
 
-    def __add_header(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
+    def __add_header(self, worksheet: Worksheet, analytic_report_settings: BaseAnalyticReportSettings) -> None:
         """Заполняет первые строки в листе."""
-        self.__add_row(worksheet, analytic_task_report, analytic_task_report.header_data)
+        self.__add_row(worksheet, analytic_report_settings, analytic_report_settings.header_data)
 
     def __add_data(
         self,
         worksheet: Worksheet,
         data: tuple[TasksAnalyticReportDto],
-        analytic_task_report: BaseAnalyticReportSettings,
+        analytic_report_settings: BaseAnalyticReportSettings,
     ) -> None:
         """Заполняет строки данными из БД."""
         for task in data:
-            self.__add_row(worksheet, analytic_task_report, data=astuple(task))
+            if dataclasses.is_dataclass(task):
+                task = astuple(task)
+            self.__add_row(worksheet, analytic_report_settings, task)
 
-    def __add_footer(self, worksheet: Worksheet, analytic_task_report: BaseAnalyticReportSettings) -> None:
+    def __add_footer(self, worksheet: Worksheet, analytic_report_settings: BaseAnalyticReportSettings) -> None:
         """Заполняет последнюю строку в листе."""
-        self.__add_row(worksheet, analytic_task_report, data=analytic_task_report.footer_data)
+        self.__add_row(worksheet, analytic_report_settings, data=analytic_report_settings.footer_data)
 
     def __apply_styles(self, worksheet: Worksheet):
         """Задаёт форматирование отчёта."""
