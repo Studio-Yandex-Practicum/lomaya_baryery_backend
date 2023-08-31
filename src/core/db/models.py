@@ -79,7 +79,7 @@ class Shift(Base):
         self.started_at = datetime.now().date()
 
     async def finish(self):
-        if self.status != Shift.Status.STARTED.value:
+        if self.status != Shift.Status.STARTED.value or self.status != Shift.Status.READY_FOR_COMPLETE.value:
             raise exceptions.ShiftFinishError(self)
         self.status = Shift.Status.FINISHED.value
         self.finished_at = datetime.now().date()

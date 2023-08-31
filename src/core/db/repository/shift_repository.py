@@ -205,6 +205,11 @@ class ShiftRepository(AbstractRepository):
         )
         return await self._session.scalar(statement)
 
+    async def get_preparing_shift(self) -> Optional[Shift]:
+        """Возвращает смену, если смена имеет статус preparing."""
+        statement = select(Shift).where(Shift.status == Shift.Status.PREPARING)
+        return await self._session.scalar(statement)
+
     async def get_shift_statistics_report_by_id(self, shift_id: UUID):
         """Отчёт по задачам из выбранной смены.
 
