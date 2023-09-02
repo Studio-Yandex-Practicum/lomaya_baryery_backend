@@ -34,21 +34,8 @@ class UserFactory(BaseFactory):
     id = factory.Faker("uuid4")
     name = factory.Faker("first_name")
     surname = factory.Faker("last_name")
-    date_of_birth = factory.Faker(
-        "date_between_dates",
-        date_start=MAX_USER_BIRTH_DATE,
-        date_end=MIN_USER_BIRTH_DATE,
-    )
-    city = factory.Iterator(
-        [
-            "Москва",
-            "Санкт-Петербург",
-            "Казань",
-            "Нижний Новгород",
-            "Екатеринбург",
-            "Хабаровск",
-        ]
-    )
+    date_of_birth = factory.Faker("date_between_dates", date_start=MAX_USER_BIRTH_DATE, date_end=MIN_USER_BIRTH_DATE)
+    city = factory.Iterator(["Москва", "Санкт-Петербург", "Казань", "Нижний Новгород", "Екатеринбург", "Хабаровск"])
     phone_number = factory.Sequence(lambda n: str(89991234567 + n))
     telegram_id = factory.Sequence(lambda n: 123556787 + n)
     status = factory.Iterator([status for status in models.User.Status])
@@ -145,6 +132,7 @@ class MemberFactory(BaseFactory):
         all_dates = list((start_date + timedelta(day)) for day in range(91))
         for date in all_dates:
             if date <= datetime.date.today():
+
                 if created and count:
                     ReportFactory.create_batch(
                         count,
@@ -152,11 +140,7 @@ class MemberFactory(BaseFactory):
                         shift_id=self.shift_id,
                         task_date=date,
                         uploaded_at=datetime.datetime.combine(
-                            date,
-                            datetime.time(
-                                hour=random.randrange(0, 24),
-                                minute=random.randrange(0, 60),
-                            ),
+                            date, datetime.time(hour=random.randrange(0, 24), minute=random.randrange(0, 60))
                         ),
                     )
 

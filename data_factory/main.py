@@ -79,49 +79,32 @@ def generate_fake_data() -> None:
 
         logger.info("Создание одобренных заявок и заданий для активной смены...")
         create_approved_requests_and_members_with_user_tasks(
-            get_random_user_ids(request_user_numbers, User.Status.VERIFIED),
-            started_shift,
+            get_random_user_ids(request_user_numbers, User.Status.VERIFIED), started_shift
         )
 
         logger.info("Создание отклоненных заявок для активной смены...")
-        create_declined_requests(
-            get_random_user_ids(request_user_numbers, User.Status.DECLINED),
-            started_shift,
-        )
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), started_shift)
 
         logger.info("Создание новой смены...")
         preparing_shift = ShiftFactory.create(status=Shift.Status.PREPARING)
 
         logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'PENDING'...")
-        create_pending_requests(
-            get_random_user_ids(request_user_numbers, User.Status.PENDING),
-            preparing_shift,
-        )
+        create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.PENDING), preparing_shift)
         logger.info("Создание отклоненных заявок для пользователей новой смены со статусом 'VERIFIED'...")
-        create_declined_requests(
-            get_random_user_ids(request_user_numbers, User.Status.VERIFIED),
-            preparing_shift,
-        )
+        create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
         logger.info("Создание рассматриваемых заявок для пользователей новой смены со статусом 'VERIFIED'...")
-        create_pending_requests(
-            get_random_user_ids(request_user_numbers, User.Status.VERIFIED),
-            preparing_shift,
-        )
+        create_pending_requests(get_random_user_ids(request_user_numbers, User.Status.VERIFIED), preparing_shift)
 
         logger.info("Создание завершенной смены...")
         finished_shifts = ShiftFactory.create_batch(5, status=Shift.Status.FINISHED)
         for finished_shift in finished_shifts:
             logger.info("Создание одобренных заявок и заданий для завершенной смены...")
             create_approved_requests_and_members_with_user_tasks(
-                get_random_user_ids(request_user_numbers, User.Status.VERIFIED),
-                finished_shift,
+                get_random_user_ids(request_user_numbers, User.Status.VERIFIED), finished_shift
             )
 
             logger.info("Создание отклоненных заявок для завершенной смены...")
-            create_declined_requests(
-                get_random_user_ids(request_user_numbers, User.Status.DECLINED),
-                finished_shift,
-            )
+            create_declined_requests(get_random_user_ids(request_user_numbers, User.Status.DECLINED), finished_shift)
         logger.info("Создание администратора")
         create_administrator()
 
