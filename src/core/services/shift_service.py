@@ -267,14 +267,19 @@ class ShiftService:
             await self.__shift_repository.update(shift.id, shift)
 
         if shift.status is Shift.Status.READY_FOR_COMPLETE:
-            if date.today() < preparing_shift.started_at:
-                if not unreviewed_report_exists:
+            if preparing_shift:
+                if date.today() < preparing_shift.started_at:
+                    if not unreviewed_report_exists:
+                        shift.status = Shift.Status.FINISHED
+                        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+                else:
+                    await self.__decline_reports_and_notify_users(shift.id, bot)
                     shift.status = Shift.Status.FINISHED
                     await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
             else:
-                await self.__decline_reports_and_notify_users(shift.id, bot)
-                shift.status = Shift.Status.FINISHED
-                await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+                if not unreviewed_report_exists:
+                    shift.status = Shift.Status.FINISHED
+                    await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
             await self.__shift_repository.update(shift.id, shift)
 
     async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:
