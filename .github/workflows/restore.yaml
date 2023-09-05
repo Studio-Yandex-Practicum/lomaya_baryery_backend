@@ -1,0 +1,35 @@
+name: restore
+
+on:
+  pull_request:
+    branches:
+      - dcevelop
+
+env:
+  DEPLOY_PATH: /lombarye/full
+  WORK_DIR: /LOMAYA_BARYERY_BACKEND
+
+jobs:
+  start_application:
+    name: Start application
+    runs-on: ubuntu-latest
+    needs: build_and_push_docker_image
+    environment:
+      name: prod_deploy
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_RESTORE }}
+          username: deployer
+          password: ${{ secrets.SSH_PASSWORD_RESTORE }}
+          port: 122
+
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            rm -f .env_restore
+            touch .env_restore
+            echo KEY=${{ secrets.SSH_KEY }} >> .env
