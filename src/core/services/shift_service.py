@@ -226,8 +226,7 @@ class ShiftService:
             await self.__shift_repository.update(shift_id, shift)
             await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
             return shift
-        else:
-            raise exceptions.ShiftFinishUnreviewedPeportsError(shift)
+        raise exceptions.ShiftFinishUnreviewedPeportsError(shift)
 
     async def get_shift_with_members(
         self, shift_id: UUID, member_status: Optional[Member.Status]
