@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - develop
+      - master
 
 env:
   DEPLOY_PATH: /lombarye/full
