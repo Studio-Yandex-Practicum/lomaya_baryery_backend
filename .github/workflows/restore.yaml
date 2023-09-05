@@ -32,5 +32,5 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             rm -f .env_restore
             touch .env_restore
-            echo KEY=${{ secrets.SSH_KEY }} >> .env
+            echo "KEY=${{ secrets.SSH_KEY }}" >> .env
             echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
