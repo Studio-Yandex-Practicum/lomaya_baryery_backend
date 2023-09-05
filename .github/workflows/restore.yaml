@@ -3,7 +3,7 @@ name: restore
 on:
   pull_request:
     branches:
-      - dcevelop
+      - develop
 
 env:
   DEPLOY_PATH: /lombarye/full
