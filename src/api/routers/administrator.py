@@ -131,6 +131,21 @@ class AdministratorCBV:
         await self.authentication_service.check_administrator_by_token(token)
         return await self.administrator_service.get_administrators_filter_by_role_and_status(status, role)
 
+    ###
+    @router.get(
+        "/active_administrators",
+        response_model=list[AdministratorResponse],
+        response_model_exclude_none=True,
+        status_code=HTTPStatus.OK,
+        summary="Запрос списка аутивных администраторов",
+        response_description="Список администраторов",
+    )
+    async def get_administrators_active(self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> Any:
+        """Получить список активных администраторов."""
+        await self.authentication_service.check_administrator_by_token(token)
+        return await self.administrator_service.get_administrators_active()
+
+    ###
     @router.get(
         "/{administrator_id}/",
         response_model=AdministratorResponse,

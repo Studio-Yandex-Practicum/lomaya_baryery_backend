@@ -66,3 +66,8 @@ class AdministratorRepository(AbstractRepository):
             .order_by(Administrator.surname, Administrator.name)
         )
         return (await self._session.scalars(statement)).all()
+
+    async def get_administrators_active(self) -> list[Administrator]:
+        """Возвращает из БД список активных администраторов."""
+        statement = select(Administrator).where(Administrator.status == "active")
+        return (await self._session.scalars(statement)).all()

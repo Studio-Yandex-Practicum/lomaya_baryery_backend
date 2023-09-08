@@ -68,6 +68,20 @@ class AdministratorInvitationCBV:
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
+        '/invitations_active',
+        response_model=list[AdministratorInvitationResponse],
+        status_code=HTTPStatus.OK,
+        responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED),
+        summary="Получить информацию о активынх приглашениях",
+        response_description="Информация о приглашениях",
+    )
+    async def get_all_active_invitations(
+        self, token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    ) -> list[AdministratorInvitationResponse]:
+        await self.authentication_service.check_administrator_by_token(token)
+        return await self.administrator_invitation_service.list_all_active_invitations()
+
+    @router.get(
         '/register/{token}',
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.OK,

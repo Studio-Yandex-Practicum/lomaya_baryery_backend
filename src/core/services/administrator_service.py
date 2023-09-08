@@ -49,6 +49,10 @@ class AdministratorService:
         """Получает список администраторов, опционально отфильтрованых по роли и/или статусу."""
         return await self.__administrator_repository.get_administrators_filter_by_role_and_status(status, role)
 
+    async def get_administrators_active(self) -> list[Administrator]:
+        """Получает список активных администраторов."""
+        return await self.__administrator_repository.get_administrators_active()
+
     async def restore_administrator_password(self, email: str) -> Administrator:
         """Сброс пароля администратора.
 

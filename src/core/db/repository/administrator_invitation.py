@@ -27,3 +27,7 @@ class AdministratorInvitationRepository(AbstractRepository):
         if result is None:
             raise exceptions.AdministratorInvitationInvalidError
         return result
+
+    async def get_active_all(self) -> list[AdministratorInvitation]:
+        statement = select(AdministratorInvitation).where(AdministratorInvitation.expired_datetime > datetime.now())
+        return (await self._session.scalars(statement)).all()
