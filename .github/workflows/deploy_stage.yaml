@@ -13,7 +13,7 @@ env:
   IMAGE_NAME_FRONT: lomaya_baryery_frontend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: https://stage.lombaryery.tk/api/healthcheck
+  HEALTHCHECK_URL: https://тестовый.бот.ломаябарьеры.рф/api/healthcheck
 
 defaults:
   run:

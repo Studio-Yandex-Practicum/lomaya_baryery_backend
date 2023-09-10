@@ -3,7 +3,7 @@ name: Prod backend build and deploy
 on:
   pull_request:
     branches:
-      - master
+      - develop
     types: [ closed ]
 
 env:
@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: lomaya_baryery_backend
   DEPLOY_PATH: /lombarye/full
   WORK_DIR: /LOMAYA_BARYERY_BACKEND
-  HEALTHCHECK_URL: https://lombaryery.tk/healthcheck
+  HEALTHCHECK_URL: https://бот.ломаябарьеры.рф/api/healthcheck
 
 defaults:
   run:
