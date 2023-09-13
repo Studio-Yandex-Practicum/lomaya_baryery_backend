@@ -29,3 +29,5 @@ fill_db.log
 
 # Frontend build
 frontend/
+
+venv/
