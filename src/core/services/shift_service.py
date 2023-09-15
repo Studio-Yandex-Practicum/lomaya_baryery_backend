@@ -265,7 +265,7 @@ class ShiftService:
             await self.__shift_repository.update(shift.id, shift)
 
         if shift.status is Shift.Status.READY_FOR_COMPLETE:
-            if date.today() <= (shift.finished_at + timedelta(days=3)):
+            if date.today() <= (shift.finished_at + timedelta(days=settings.NUMBER_OF_DAYS_BEFORE_CLOSING_SHIFT)):
                 if not unreviewed_report_exists:
                     shift.status = Shift.Status.FINISHED
                     await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
