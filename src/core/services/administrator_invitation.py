@@ -47,7 +47,7 @@ class AdministratorInvitationService:
         await self.__administrator_mail_request_repository.update(invitation.id, invitation)
 
     async def list_all_invitations(self) -> list[AdministratorInvitation]:
-        return await self.__administrator_mail_request_repository.get_all()
+        return await self.__administrator_mail_request_repository.get_all_invitations()
 
     async def get_invitation_by_id(self, invitation_id: UUID) -> AdministratorInvitation:
         return await self.__administrator_mail_request_repository.get(invitation_id)
