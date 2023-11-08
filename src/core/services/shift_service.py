@@ -220,10 +220,13 @@ class ShiftService:
 
     async def finish_shift(self, bot: Application, shift_id: UUID) -> Shift:
         shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
-        await shift.finish()
-        await self.__shift_repository.update(shift_id, shift)
-        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
-        return shift
+        unreviewed_report_exists = await self.__shift_repository.is_unreviewed_report_exists(shift.id)
+        if not unreviewed_report_exists:
+            await shift.finish()
+            await self.__shift_repository.update(shift_id, shift)
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+            return shift
+        raise exceptions.ShiftFinishUnreviewedPeportsError(shift)
 
     async def get_shift_with_members(
         self, shift_id: UUID, member_status: Optional[Member.Status]
@@ -247,16 +250,30 @@ class ShiftService:
 
     async def finish_shift_automatically(self, bot: Application) -> None:
         shift = await self.__shift_repository.get_active_or_complete_shift()
+
         if not shift:
             return
-        if shift.status is Shift.Status.READY_FOR_COMPLETE:
-            await self.__decline_reports_and_notify_users(shift.id, bot)
-            shift.status = Shift.Status.FINISHED
+
+        unreviewed_report_exists = await self.__shift_repository.is_unreviewed_report_exists(shift.id)
+
+        if shift.status is Shift.Status.STARTED and (shift.finished_at + timedelta(days=1)) == date.today():
+            if not unreviewed_report_exists:
+                shift.status = Shift.Status.FINISHED
+                await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+            else:
+                shift.status = Shift.Status.READY_FOR_COMPLETE
             await self.__shift_repository.update(shift.id, shift)
-        if shift.finished_at + timedelta(days=1) == date.today():
-            await self.__notify_users_with_reviewed_reports(shift.id, bot)
-            unreviewed_report_exists = await self.__shift_repository.is_unreviewed_report_exists(shift.id)
-            shift.status = Shift.Status.READY_FOR_COMPLETE if unreviewed_report_exists else Shift.Status.FINISHED
+
+        if shift.status is Shift.Status.READY_FOR_COMPLETE:
+            if date.today() <= (shift.finished_at + timedelta(days=settings.NUMBER_OF_DAYS_BEFORE_CLOSING_SHIFT)):
+                if not unreviewed_report_exists:
+                    shift.status = Shift.Status.FINISHED
+                    await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+            else:
+                await self.__decline_reports_and_notify_users(shift.id, bot)
+                shift.status = Shift.Status.FINISHED
+                await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+
             await self.__shift_repository.update(shift.id, shift)
 
     async def __notify_users_with_reviewed_reports(self, shift_id: UUID, bot: Application) -> None:

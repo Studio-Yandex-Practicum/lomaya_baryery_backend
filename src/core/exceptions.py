@@ -121,6 +121,11 @@ class ShiftFinishError(BadRequestError):
         self.detail = "Невозможно завершить смену {!r}. Проверьте статус смены".format(shift)
 
 
+class ShiftFinishUnreviewedPeportsError(BadRequestError):
+    def __init__(self, shift: Shift):
+        self.detail = "Невозможно завершить смену {!r}. Проверьте недопроверенные работы".format(shift)
+
+
 class ShiftCancelError(BadRequestError):
     def __init__(self, shift: Shift):
         self.detail = "Невозможно отменить смену {!r}. Проверьте статус смены".format(shift)

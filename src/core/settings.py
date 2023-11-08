@@ -82,6 +82,9 @@ class Settings(BaseSettings):
     # Время жизни ссылки для приглашения на регистрацию
     INVITE_LINK_EXPIRATION_TIME = timedelta(days=1)
 
+    # Количество дней после которого смена закроется автоматически
+    NUMBER_OF_DAYS_BEFORE_CLOSING_SHIFT = 3
+
     # Директория для сохранения фотоотчётов
     USER_REPORTS_DIR: Path = BASE_DIR / "static" / "user_reports"
 
