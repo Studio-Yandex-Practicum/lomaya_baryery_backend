@@ -220,9 +220,14 @@ class ShiftService:
 
     async def finish_shift(self, bot: Application, shift_id: UUID) -> Shift:
         shift = await self.__shift_repository.get_with_members(shift_id, Member.Status.ACTIVE)
-        await shift.finish()
-        await self.__shift_repository.update(shift_id, shift)
-        await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+        shift.set_finished_at_date()
+        if await self.__shift_repository.is_unreviewed_report_exists(shift.id):
+            shift.prepare_to_finish()
+            await self.__notify_users_with_reviewed_reports(shift.id, bot)
+        else:
+            shift.finish()
+            await self.__telegram_bot(bot).notify_that_shift_is_finished(shift)
+        await self.__shift_repository.update(shift.id, shift)
         return shift
 
     async def get_shift_with_members(
