@@ -12,13 +12,15 @@ from telegram.ext import (
     Defaults,
     MessageHandler,
     PicklePersistence,
+    TypeHandler,
     filters,
 )
-from telegram.ext.filters import PHOTO, TEXT, StatusUpdate
+from telegram.ext.filters import PHOTO, TEXT, Regex, StatusUpdate
 
 from src.bot.handlers import (
     button_handler,
     chat_member_handler,
+    get_web_app_query_data,
     incorrect_report_type_handler,
     inline_button_handler,
     photo_handler,
@@ -33,6 +35,8 @@ from src.bot.jobs import (
 from src.core.settings import settings
 
 HANDLED_MESSAGE_TYPES = filters.PHOTO | filters.TEXT | filters.StatusUpdate.WEB_APP_DATA
+
+RE_PATTERN: str = "Данные успешно отправлены боту"
 
 
 def create_bot() -> Application:
@@ -50,7 +54,13 @@ def create_bot() -> Application:
         .persistence(persistence=bot_persistence)
         .build()
     )
-
+    bot_instance.add_handler(
+        TypeHandler(
+            dict,
+            get_web_app_query_data,
+        )
+    )
+    bot_instance.add_handler(MessageHandler(Regex(RE_PATTERN), web_app_data))
     bot_instance.add_handler(ChatMemberHandler(chat_member_handler, ChatMemberHandler.MY_CHAT_MEMBER))
     bot_instance.add_handler(CommandHandler("start", start))
     bot_instance.add_handler(MessageHandler(PHOTO, photo_handler))

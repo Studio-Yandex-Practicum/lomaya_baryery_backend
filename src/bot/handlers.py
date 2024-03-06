@@ -5,7 +5,12 @@ from urllib.parse import urljoin
 
 from pydantic import ValidationError
 from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
     KeyboardButton,
+    MenuButtonWebApp,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
@@ -50,11 +55,11 @@ async def start(update: Update, context: CallbackContext) -> None:
     )
     session = get_session()
     user_service = await get_user_service_callback(session)
-    user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
+    user = await user_service.get_user_by_telegram_id(update.effective_user.id)
     context.user_data["user"] = user
     if user and user.telegram_blocked:
         await user_service.unset_telegram_blocked(user)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    await update.message.reply_text(start_text)
     if user:
         try:
             await user_service.check_before_change_user_data(user.id)
@@ -69,16 +74,21 @@ async def start(update: Update, context: CallbackContext) -> None:
         await register_user(update, context)
 
 
-async def register_user(
-    update: Update,
-    context: CallbackContext,
-) -> None:
+async def register_user(update: Update, context: CallbackContext) -> None:
     """Инициализация формы регистрации пользователя."""
-    query = None
-    text = "Зарегистрироваться в проекте"
-    if update.effective_message.web_app_data:
-        query = urllib.parse.urlencode(json.loads(update.effective_message.web_app_data.data))
-        text = "Исправить неверно внесенные данные"
+    await create_registration_buttons(update, context, "Зарегистрироваться в проекте", None)
+
+
+async def update_user_data(update: Update, context: CallbackContext) -> None:
+    """Инициализация формы для обновления регистрационных данных пользователя."""
+    user = context.user_data.get("user")
+    web_hook = UserWebhookTelegram.from_orm(user)
+    query = urllib.parse.urlencode({"update": "true"} | web_hook.dict())
+    await create_registration_buttons(update, context, "Подать заявку на участие в смене", query)
+
+
+async def create_registration_buttons(update: Update, context: CallbackContext, text: str, query: str) -> None:
+    """Создание кнопок для вызова формы регистрации пользователя в проекте."""
     await update.message.reply_text(
         "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
         reply_markup=ReplyKeyboardMarkup.from_button(
@@ -88,27 +98,33 @@ async def register_user(
             )
         ),
     )
+    await context.bot.set_chat_menu_button(
+        chat_id=update.message.chat.id,
+        menu_button=MenuButtonWebApp(
+            text="Форма регистрации",
+            web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+        ),
+    )
+    context.chat_data["inline_message"] = await update.effective_message.reply_text(
+        "\N{white down pointing backhand index}" * 4,
+        reply_markup=InlineKeyboardMarkup.from_button(
+            InlineKeyboardButton(
+                text=text,
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
+            )
+        ),
+    )
 
 
-async def update_user_data(
-    update: Update,
-    context: CallbackContext,
-) -> None:
-    """Инициализация формы для обновления регистрационных данных пользователя."""
-    if update.effective_message.web_app_data:
-        query = urllib.parse.urlencode(json.loads(update.effective_message.web_app_data.data))
-        text = "Исправить неверно внесенные данные"
-    else:
-        text = "Подать заявку на участие в смене"
-        user = context.user_data.get("user")
-        web_hook = UserWebhookTelegram.from_orm(user)
-        query = urllib.parse.urlencode(web_hook.dict())
+async def correct_wrong_user_data(update: Update, user_data: dict) -> None:
+    """Инициализация формы для исправления неверных регистрационных данных пользователя."""
+    query = urllib.parse.urlencode(user_data)
     await update.message.reply_text(
-        "Нажмите на кнопку ниже, чтобы перейти на форму регистрации.",
+        "Нажмите на кнопку ниже, чтобы исправить данные.",
         reply_markup=ReplyKeyboardMarkup.from_button(
             KeyboardButton(
-                text=text,
-                web_app=WebAppInfo(url=f"{settings.registration_template_url}?update=true&{query}"),
+                text="Исправить неверно внесенные данные",
+                web_app=WebAppInfo(url=f"{settings.registration_template_url}?{query}"),
             )
         ),
     )
@@ -116,21 +132,20 @@ async def update_user_data(
 
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
-    user_data = json.loads(update.effective_message.web_app_data.data)
+    if not update.effective_message.web_app_data:
+        user_data = context.bot_data.pop(update.effective_user.id)
+    else:
+        user_data = json.loads(update.effective_message.web_app_data.data)
     try:
         user_scheme = UserCreateRequest(**user_data)
     except ValidationError as e:
         e = "\n".join(tuple(error.get("msg", "Проверьте правильность заполнения данных.") for error in e.errors()))
         await update.message.reply_text(f"Ошибка при заполнении данных:\n{e}")
-        if context.user_data.get("user"):
-            await update_user_data(update, context)
-        else:
-            await register_user(update, context)
-        return
+        return await correct_wrong_user_data(update, user_data)
     user_scheme.telegram_id = update.effective_user.id
     session = get_session()
     registration_service = await get_user_service_callback(session)
-    reply_markup, validation_error = None, False
+    reply_markup, text, validation_error = None, "Что-то пошло не так", False
     try:
         await registration_service.register_user(user_scheme)
     except exceptions.NotValidValueError as e:
@@ -146,15 +161,37 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
                 "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
             )
         reply_markup = ReplyKeyboardRemove()
+        await context.bot.set_chat_menu_button(
+            chat_id=update.message.chat.id,
+            menu_button=None,
+        )
+        await context.bot.edit_message_reply_markup(
+            chat_id=update.effective_chat.id,
+            message_id=context.chat_data.pop("inline_message").message_id,
+        )
     finally:
         await update.message.reply_text(
             text=text,
             reply_markup=reply_markup,
         )
-        if validation_error and context.user_data.get("user"):
-            await update_user_data(update, context)
-        elif validation_error:
-            await register_user(update, context)
+        if validation_error:
+            await correct_wrong_user_data(update, user_data)
+
+
+async def get_web_app_query_data(update: dict, context: CallbackContext) -> None:
+    """Получение данных из формы регистрации, запущенной с inline-, menu- кнопки."""
+    web_app_query_id = update.get("query_id")
+    context.bot_data[update.get("user_id")] = update.get("data")
+    await context.bot.answer_web_app_query(
+        web_app_query_id=web_app_query_id,
+        result=InlineQueryResultArticle(
+            id=web_app_query_id,
+            title="Данные отправлены",
+            input_message_content=InputTextMessageContent(
+                "Данные успешно отправлены боту",
+            ),
+        ),
+    )
 
 
 async def download_photo_report_callback(update: Update, context: CallbackContext, shift_user_dir: str) -> str:

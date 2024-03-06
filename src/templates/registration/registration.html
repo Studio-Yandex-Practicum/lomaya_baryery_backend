@@ -452,8 +452,21 @@
         data[input.name] = input.value.trim();
         return data;
       }, {});
-
-      tg.sendData(JSON.stringify(data));
+      if (tg.initDataUnsafe.query_id) {
+        fetch("endpoint_url", {
+          method: "POST",
+          body: JSON.stringify({
+            "data": data,
+            "query_id": tg.initDataUnsafe.query_id,
+            "user_id": tg.initDataUnsafe.user.id,
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        });
+      } else {
+        tg.sendData(JSON.stringify(data));
+      }
       tg.close();
     };
 

@@ -38,10 +38,24 @@ def user_register_form_webhook() -> StreamingResponse:
 
         Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
         """
-        with open(settings.REGISTRATION_TEMPLATE, 'rb') as html_form:
-            yield from html_form
+        with open(settings.REGISTRATION_TEMPLATE, 'r') as template:
+            endpoint_url = settings.registration_data_from_template_url
+            template_edited = (bytes(item.replace("endpoint_url", endpoint_url, 1), "utf-8") for item in template)
+            yield from template_edited
 
     return StreamingResponse(get_register_form(), media_type="text/html", headers=headers)
+
+
+@router.post(
+    "/inline_registration_data",
+    summary="Получить регистрационные данные пользователя telegram, переданные с inline/menu кнопки",
+    response_description="Данные получены",
+)
+async def get_web_app_query_data(request: Request) -> None:
+    """Получение регистрационных данных от пользователя telegram, переданных с inline/menu кнопки."""
+    bot_instance = request.app.state.bot_instance
+    request_data = await request.json()
+    await bot_instance.update_queue.put(request_data)
 
 
 if settings.BOT_WEBHOOK_MODE:
@@ -51,7 +65,7 @@ if settings.BOT_WEBHOOK_MODE:
         summary="Получить обновления telegram",
         response_description="Обновления получены",
     )
-    async def get_telegram_bot_updates(request: Request) -> dict:
+    async def get_telegram_bot_updates(request: Request) -> None:
         """Получение обновлений telegram в режиме работы бота webhook."""
         secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
         if secret_token != settings.SECRET_KEY:
@@ -59,4 +73,3 @@ if settings.BOT_WEBHOOK_MODE:
         bot_instance = request.app.state.bot_instance
         request_json_data = await request.json()
         await bot_instance.update_queue.put(Update.de_json(data=request_json_data, bot=bot_instance.bot))
-        return request_json_data
