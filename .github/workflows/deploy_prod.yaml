@@ -107,9 +107,9 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             docker image prune -f
             docker pull  ${{ env.REGISTRY }}/${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:prod
-            docker-compose --file docker-compose.yaml stop
-            docker-compose --file docker-compose.yaml rm backend
-            docker-compose --file docker-compose.yaml up -d
+            docker compose --file docker-compose.yaml stop
+            docker compose --file docker-compose.yaml rm backend
+            docker compose --file docker-compose.yaml up -d
 
       - name: Making migrations
         uses: appleboy/ssh-action@master
@@ -119,7 +119,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ env.DEPLOY_PATH }}
-            docker-compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
+            docker compose exec -T -w ${{ env.WORK_DIR }} backend alembic upgrade head
 
       - name: Sleep for 30 seconds
         run: sleep 30s
