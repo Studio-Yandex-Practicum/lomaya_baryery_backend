@@ -174,7 +174,7 @@ class RegistrationForbiddenError(BadRequestError):
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас в проекте: смена уже "
         "началась и группа участников набрана. Чтобы не пропустить актуальные новости "
-        "Центра \"Ломая барьеры\" - вступайте в нашу группу ВКонтакте {}".format(settings.ORGANIZATIONS_GROUP)
+        'Центра "Ломая барьеры" - вступайте в нашу группу ВКонтакте {}'.format(settings.ORGANIZATIONS_GROUP)
     )
 
 
@@ -194,7 +194,7 @@ class RequestAlreadyReviewedError(BadRequestError):
 class RequestForbiddenError(BadRequestError):
     detail = (
         "К сожалению, на данный момент мы не можем зарегистрировать вас на текущую смену. "
-        "Чтобы не пропустить актуальные новости Центра \"Ломая барьеры\" - вступайте "
+        'Чтобы не пропустить актуальные новости Центра "Ломая барьеры" - вступайте '
         "в нашу группу ВКонтакте {}".format(settings.ORGANIZATIONS_GROUP)
     )
 

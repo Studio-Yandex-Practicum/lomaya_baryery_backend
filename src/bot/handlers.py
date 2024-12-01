@@ -43,9 +43,9 @@ from src.core.utils import get_lombaryers_for_quantity
 async def start(update: Update, context: CallbackContext) -> None:
     """Команда /start."""
     start_text = (
-        "Это бот Центра \"Ломая барьеры\", который в игровой форме поможет "
+        'Это бот Центра "Ломая барьеры", который в игровой форме поможет '
         "особенному ребенку стать немного самостоятельнее! Выполняя задания "
-        "каждый день, ребенок будет получать виртуальные \"ломбарьерчики\". "
+        'каждый день, ребенок будет получать виртуальные "ломбарьерчики". '
         "В конце смены мы подведем итоги и наградим самых активных и старательных ребят!"
     )
     session = get_session()
@@ -140,7 +140,7 @@ async def web_app_data(update: Update, context: CallbackContext) -> None:
         text = e.detail
     else:
         text = "Процесс регистрации занимает некоторое время - вам придет уведомление."
-        if context.user_data.get('user'):
+        if context.user_data.get("user"):
             text = (
                 "Обновленные данные приняты!\n"
                 "Процесс обработки заявок занимает некоторое время - вам придет уведомление."
@@ -199,7 +199,7 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
 
     elif update.message.text == SKIP_A_TASK:
         await update.message.reply_text(
-            "Тобой была нажата кнопка \"пропустить задание\". "
+            'Тобой была нажата кнопка "пропустить задание". '
             "Если ты пропустишь задание, то не сможешь отправить отчёт сегодня.",
             reply_markup=CONFIRM_SKIP_TASK_KEYBOARD,
         )

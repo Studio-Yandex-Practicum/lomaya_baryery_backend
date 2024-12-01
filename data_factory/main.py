@@ -21,16 +21,16 @@ from src.core.db.models import Member, Request, Shift, User
 
 
 def get_logger(log_filename: str) -> logging.Logger:
-    file_handler = logging.FileHandler(filename=f'data_factory/{log_filename}', encoding='utf-8')
+    file_handler = logging.FileHandler(filename=f"data_factory/{log_filename}", encoding="utf-8")
     stdout_handler = logging.StreamHandler(stream=sys.stdout)
     handlers = [file_handler, stdout_handler]
     format = "%(asctime)s - [%(levelname)s] - %(name)s - %(message)s"
-    name = 'fill_db_log'
+    name = "fill_db_log"
     logging.basicConfig(level=logging.INFO, handlers=handlers, format=format)
     return logging.getLogger(name)
 
 
-logger = get_logger('fill_db.log')
+logger = get_logger("fill_db.log")
 
 
 def get_random_user_ids(count: int, status: User.Status) -> list:
@@ -112,7 +112,7 @@ def generate_fake_data() -> None:
 
 
 @click.command()
-@click.option('--delete', is_flag=True, help="Удаление существующих данных из таблиц")
+@click.option("--delete", is_flag=True, help="Удаление существующих данных из таблиц")
 def fill_command(delete) -> None:
     if delete:
         msg = (

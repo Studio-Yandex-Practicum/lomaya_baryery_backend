@@ -89,7 +89,7 @@ class AdministratorCBV:
         return await self.authentication_service.get_current_active_administrator(token.credentials)
 
     @router.post(
-        '/register/{token}',
+        "/register/{token}",
         response_model=AdministratorResponse,
         response_model_exclude_none=True,
         status_code=HTTPStatus.CREATED,

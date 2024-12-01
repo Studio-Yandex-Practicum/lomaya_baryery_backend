@@ -76,7 +76,7 @@ class UserRepository(AbstractRepository):
         field_sort: Optional[UserFieldSortRequest] = None,
         direction_sort: Optional[UserDescAscSortRequest] = None,
     ) -> list[User]:
-        sorting = {'desc': desc, 'asc': asc}
+        sorting = {"desc": desc, "asc": asc}
         users = await self._session.execute(
             select(
                 User.id,
@@ -86,7 +86,7 @@ class UserRepository(AbstractRepository):
                 User.city,
                 User.phone_number,
                 User.status,
-                func.count(Member.shift).label('shifts_count'),
+                func.count(Member.shift).label("shifts_count"),
                 case(
                     (
                         ((func.count(Shift.status).filter(Shift.status == Shift.Status.STARTED)) == 1),
@@ -102,19 +102,13 @@ class UserRepository(AbstractRepository):
                 or_(status is None, User.status == status),
                 User.is_test_user == False,  # noqa
             )
-            .order_by(sorting[direction_sort.value if direction_sort else 'asc'](field_sort or User.created_at))
+            .order_by(sorting[direction_sort.value if direction_sort else "asc"](field_sort or User.created_at))
         )
         return users.all()
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
-            select(User).where(
-                User.id.in_(
-                    select(Request.user_id).where(
-                        Request.shift_id == shift_id
-                    )
-                )
-            )
+            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
         )
 
         return users.scalars().all()

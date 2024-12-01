@@ -25,7 +25,7 @@ def check_user_blocked(func):
 
     @functools.wraps(func)
     async def _func_wrapper(*args, **kwargs):
-        user = kwargs['user'] if 'user' in kwargs else args[1]
+        user = kwargs["user"] if "user" in kwargs else args[1]
         if user.telegram_blocked:
             return
         await func(*args, **kwargs)
@@ -39,7 +39,7 @@ def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
     def _func_wrapper(func):
         @functools.wraps(func)
         async def _inner(*args, **kwargs):
-            user = kwargs['user'] if 'user' in kwargs else args[1]
+            user = kwargs["user"] if "user" in kwargs else args[1]
             for n in range(max_attempt_number):
                 try:
                     return await func(*args, **kwargs)
@@ -97,7 +97,7 @@ class BotService:
                 f"К сожалению, на данный момент мы не можем зарегистрировать вас"
                 f" в проекте. Вы можете написать на почту "
                 f"{settings.ORGANIZATIONS_EMAIL}. Чтобы не пропустить актуальные"
-                f" новости Центра \"Ломая барьеры\" - вступайте в нашу группу "
+                f' новости Центра "Ломая барьеры" - вступайте в нашу группу '
                 f"{settings.ORGANIZATIONS_GROUP}"
             )
         await self.send_message(user, text)
@@ -108,7 +108,7 @@ class BotService:
         - Задание принято, начислен 1 ломбарьерчик.
         """
         photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
-        text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
+        text = f'Твой отчет от {photo_date} принят! Тебе начислен 1 "ломбарьерчик". '
         if date.today() < shift.finished_at:
             text = text + f"Следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
         await self.send_message(user, text)

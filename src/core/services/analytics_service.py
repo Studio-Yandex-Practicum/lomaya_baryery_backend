@@ -85,6 +85,6 @@ class AnalyticsService:
     async def generate_shift_report_filename(self, shift_id: UUID) -> str:
         """Генерация названия файла отчета по смене."""
         shift = await self.__shift_repository.get(shift_id)
-        shift_name = shift.title.replace(' ', '_').replace('.', '')
+        shift_name = shift.title.replace(" ", "_").replace(".", "")
         filename = f"Отчёт_по_смене_№{shift.sequence_number}_{shift_name}_{date.today().strftime('%d-%m-%Y')}.xlsx"
         return quote_plus(filename)

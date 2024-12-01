@@ -5,6 +5,7 @@ Revises: 2c304127881b
 Create Date: 2023-05-03 01:54:02.703700
 
 """
+
 import json
 from urllib.parse import urljoin
 
@@ -14,14 +15,14 @@ from alembic import op
 from src.core.settings import settings
 
 # revision identifiers, used by Alembic.
-revision = '5a1ecb2d17c4'
-down_revision = '2c304127881b'
+revision = "5a1ecb2d17c4"
+down_revision = "2c304127881b"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    with open('tasks.json', 'r', encoding='UTF-8') as file:
+    with open("tasks.json", "r", encoding="UTF-8") as file:
         for task in json.load(file):
             op.execute(
                 "INSERT INTO "

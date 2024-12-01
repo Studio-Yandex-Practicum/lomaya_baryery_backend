@@ -52,7 +52,7 @@ class ReportsCBV:
     @router.patch(
         "/{report_id}/approve",
         status_code=HTTPStatus.OK,
-        summary="Принять задание. Будет начислен 1 \"ломбарьерчик\".",
+        summary='Принять задание. Будет начислен 1 "ломбарьерчик".',
         response_model=ReportResponse,
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
     )

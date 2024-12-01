@@ -77,13 +77,13 @@ class ShiftRepository(AbstractRepository):
         shifts = (
             select(
                 Shift.id,
-                Shift.status.label('status'),
+                Shift.status.label("status"),
                 Shift.started_at,
                 Shift.finished_at,
                 Shift.title,
                 Shift.final_message,
                 Shift.sequence_number,
-                func.count(Member.user_id).label('total_users'),
+                func.count(Member.user_id).label("total_users"),
             )
             .outerjoin(Shift.members)
             .group_by(Shift.id)
@@ -217,13 +217,13 @@ class ShiftRepository(AbstractRepository):
             select(
                 Task.sequence_number,
                 Task.title,
-                func.count().filter(Report.number_attempt == 0).label('approved_from_1_attempt'),
-                func.count().filter(Report.number_attempt == 1).label('approved_from_2_attempt'),
-                func.count().filter(Report.number_attempt == 2).label('approved_from_3_attempt'),
+                func.count().filter(Report.number_attempt == 0).label("approved_from_1_attempt"),
+                func.count().filter(Report.number_attempt == 1).label("approved_from_2_attempt"),
+                func.count().filter(Report.number_attempt == 2).label("approved_from_3_attempt"),
                 func.count().filter(Report.status == Report.Status.APPROVED).label(Report.Status.APPROVED),
                 func.count().filter(Report.status == Report.Status.DECLINED).label(Report.Status.DECLINED),
                 func.count().filter(Report.status == Report.Status.SKIPPED).label(Report.Status.SKIPPED),
-                func.count().label('reports_total'),
+                func.count().label("reports_total"),
             )
             .where(Report.shift_id == shift_id)
             .join(Task.reports)

@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 
-LOMBARIERS_BALANCE = 'Баланс ломбарьеров'
-SKIP_A_TASK = 'Пропустить задание'
+LOMBARIERS_BALANCE = "Баланс ломбарьеров"
+SKIP_A_TASK = "Пропустить задание"
 
 DAILY_TASK_BUTTONS = ReplyKeyboardMarkup(
     [[SKIP_A_TASK, LOMBARIERS_BALANCE]],
@@ -9,8 +9,8 @@ DAILY_TASK_BUTTONS = ReplyKeyboardMarkup(
 )
 
 
-CONFIRM_SKIP_TASK = 'Пропустить'
-CANCEL_SKIP_TASK = 'Отмена'
+CONFIRM_SKIP_TASK = "Пропустить"
+CANCEL_SKIP_TASK = "Отмена"
 
 CONFIRM_SKIP_TASK_KEYBOARD = InlineKeyboardMarkup(
     [

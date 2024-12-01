@@ -68,7 +68,7 @@ class EmailProvider:
         email_obj = EmailSchema(recipients=recipients, template_body=template_body)
         await self.__send_mail(
             email_obj,
-            "Приглашение в проект \"Ломая Барьеры\"",
+            'Приглашение в проект "Ломая Барьеры"',
             "send_invitation_link.html",
         )
 
@@ -79,6 +79,6 @@ class EmailProvider:
         email_obj = EmailSchema(recipients=recipients, template_body=template_body)
         await self.__send_mail(
             email_obj,
-            "Восстановленный пароль от учетной записи в проекте \"Ломая Барьеры\"",
+            'Восстановленный пароль от учетной записи в проекте "Ломая Барьеры"',
             "send_password_restore_email.html",
         )
