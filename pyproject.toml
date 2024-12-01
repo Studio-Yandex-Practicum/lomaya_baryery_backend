@@ -30,7 +30,7 @@ loguru = "^0.6.0"
 openpyxl = "^3.1.2"
 
 [tool.black]
-skip-string-normalization = true
+line-length = 120
 
 [tool.poetry.group.dev.dependencies]
 click = "^8.1.3"
