@@ -30,7 +30,7 @@ class AdministratorInvitationCBV:
     email_provider: EmailProvider = Depends()
 
     @router.post(
-        '/invitations',
+        "/invitations",
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.CREATED,
         response_description=HTTPStatus.CREATED.phrase,
@@ -54,7 +54,7 @@ class AdministratorInvitationCBV:
         return invite
 
     @router.get(
-        '/invitations',
+        "/invitations",
         response_model=list[AdministratorInvitationResponse],
         status_code=HTTPStatus.OK,
         responses=generate_error_responses(HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED),
@@ -68,7 +68,7 @@ class AdministratorInvitationCBV:
         return await self.administrator_invitation_service.list_all_invitations()
 
     @router.get(
-        '/register/{token}',
+        "/register/{token}",
         response_model=AdministratorInvitationResponse,
         status_code=HTTPStatus.OK,
         summary="Получить данные приглашенного администратора по токену.",
@@ -85,7 +85,7 @@ class AdministratorInvitationCBV:
         return await self.administrator_invitation_service.get_invitation_by_token(token)
 
     @router.patch(
-        '/invitations/{invitation_id}/deactivate',
+        "/invitations/{invitation_id}/deactivate",
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),
@@ -99,7 +99,7 @@ class AdministratorInvitationCBV:
         return await self.administrator_invitation_service.deactivate_invitation(invitation_id)
 
     @router.patch(
-        '/invitations/{invitation_id}/reactivate',
+        "/invitations/{invitation_id}/reactivate",
         status_code=HTTPStatus.OK,
         response_model=AdministratorInvitationResponse,
         responses=generate_error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST),

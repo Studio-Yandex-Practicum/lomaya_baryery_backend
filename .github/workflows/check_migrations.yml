@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - master
+      - experimental
 
 env:
   DB_PORT: 5432

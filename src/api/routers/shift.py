@@ -147,7 +147,7 @@ class ShiftCBV:
         return await self.shift_service.get_shift_with_members(shift_id, member_status)
 
     @router.get(
-        '/{shift_id}/requests',
+        "/{shift_id}/requests",
         response_model=list[ShiftDtoResponse],
         response_model_exclude_none=True,
         summary="Получить информацию обо всех заявках смены с возможностью фильтрации",

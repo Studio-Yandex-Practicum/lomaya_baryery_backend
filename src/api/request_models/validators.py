@@ -17,8 +17,8 @@ def _is_russian_or_hyphen_or_len(value: str, regexp: str, field_name: str) -> st
     if not re.compile(regexp).match(value):
         message = INVALID_TEXT_ERROR.format(field_name=EN_RU.get(field_name, "Неизвестное поле"))
         raise ValueError(message)
-    if field_name == 'name' and (len(value) > 20 or len(value) < 2):
-        raise ValueError('Длина поля Имя должна быть от 2 до 20 символов.')
+    if field_name == "name" and (len(value) > 20 or len(value) < 2):
+        raise ValueError("Длина поля Имя должна быть от 2 до 20 символов.")
     return value.title()
 
 

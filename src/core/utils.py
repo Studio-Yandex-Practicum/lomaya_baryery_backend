@@ -33,14 +33,14 @@ def generate_password() -> str:
     password_chars += [secrets.choice(string.ascii_lowercase) for _ in range(4)]
     password_chars += [secrets.choice(string.digits) for _ in range(2)]
     shuffle(password_chars)
-    return ''.join(password_chars)
+    return "".join(password_chars)
 
 
 def get_lombaryers_for_quantity(numbers_lombaryers: int) -> str:
     """Склоняем слово ломбарьерчик в зависимости от кол-ва."""
-    PLURAL = 'ломбарьерчиков'  # noqa
-    SINGULAR = 'ломбарьерчик'  # noqa
-    GENITIVE = 'ломбарьерчика'  # noqa
+    PLURAL = "ломбарьерчиков"  # noqa
+    SINGULAR = "ломбарьерчик"  # noqa
+    GENITIVE = "ломбарьерчика"  # noqa
     last_two_digits = numbers_lombaryers % 100
     if 11 <= last_two_digits <= 19:
         return PLURAL
@@ -90,7 +90,7 @@ def setup_logging():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
     logger.remove()
-    logger.add(sys.stdout, level='INFO')
+    logger.add(sys.stdout, level="INFO")
     logger.add(
         settings.LOG_LOCATION,
         rotation=settings.LOG_ROTATION_TIME,

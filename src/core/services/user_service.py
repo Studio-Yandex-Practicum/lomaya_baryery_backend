@@ -22,7 +22,7 @@ def validate_date_of_birth(value: date) -> None:
     """Валидация даты рождения пользователя."""
     current_date = date.today()
     if current_date.year - value.year < settings.MIN_AGE:
-        raise exceptions.NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
+        raise exceptions.NotValidValueError(f"Возраст не может быть менее {settings.MIN_AGE} лет.")
 
 
 async def validate_user_not_exists(
@@ -31,7 +31,7 @@ async def validate_user_not_exists(
     """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
     user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
     if user_exists:
-        raise exceptions.NotValidValueError('Пользователь с таким номером телефона уже существует.')
+        raise exceptions.NotValidValueError("Пользователь с таким номером телефона уже существует.")
 
 
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:

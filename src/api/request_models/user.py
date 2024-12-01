@@ -11,7 +11,7 @@ from src.api.request_models.validators import name_surname_validator
 from src.core.db.models import User
 
 VALID_CITY_TEXT = r"^[А-ЯЁ][а-яё]*(([-][А-ЯЁ][а-яё]+)|[-](на)+)*([\s][А-ЯЁ][а-яё]+)*$"
-INVALID_TEXT_ERROR = "В поле {} может быть использована только кириллица и \"-\"."
+INVALID_TEXT_ERROR = 'В поле {} может быть использована только кириллица и "-".'
 DATE_FORMAT = "%d.%m.%Y"
 
 
@@ -29,12 +29,12 @@ class UserCreateRequest(BaseModel):
     @validator("city")
     def validate_city(cls, value: str):
         if not re.compile(VALID_CITY_TEXT).match(value):
-            raise ValueError(INVALID_TEXT_ERROR.format('Город'))
+            raise ValueError(INVALID_TEXT_ERROR.format("Город"))
         return value.title()
 
     @validator("phone_number", pre=True)
     def validate_phone_number(cls, value: str):
-        invalid_phone_number = 'Некорректный номер телефона'
+        invalid_phone_number = "Некорректный номер телефона"
         try:
             parsed_number = phonenumbers.parse(value, "RU")
         except NumberParseException:

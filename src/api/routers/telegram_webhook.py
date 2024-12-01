@@ -38,7 +38,7 @@ def user_register_form_webhook() -> StreamingResponse:
 
         Возвращает генератор для последующего рендеринга шаблона StreamingResponse-ом.
         """
-        with open(settings.REGISTRATION_TEMPLATE, 'rb') as html_form:
+        with open(settings.REGISTRATION_TEMPLATE, "rb") as html_form:
             yield from html_form
 
     return StreamingResponse(get_register_form(), media_type="text/html", headers=headers)
@@ -53,7 +53,7 @@ if settings.BOT_WEBHOOK_MODE:
     )
     async def get_telegram_bot_updates(request: Request) -> dict:
         """Получение обновлений telegram в режиме работы бота webhook."""
-        secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
+        secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
         if secret_token != settings.SECRET_KEY:
             raise UnauthorizedError
         bot_instance = request.app.state.bot_instance

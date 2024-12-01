@@ -15,8 +15,8 @@ class TaskService:
         self.__task_repository = task_repository
 
     async def __download_file(self, file: UploadFile) -> str:
-        file_name = file.filename.replace(' ', '_')
-        with open((settings.TASK_IMAGE_DIR / file_name), 'wb') as image:
+        file_name = file.filename.replace(" ", "_")
+        with open((settings.TASK_IMAGE_DIR / file_name), "wb") as image:
             image.write(file.file.read())
             image.close()
         return urljoin(settings.TASK_IMAGE_URL, file_name)

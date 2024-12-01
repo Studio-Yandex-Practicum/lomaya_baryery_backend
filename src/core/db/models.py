@@ -187,7 +187,7 @@ class Member(Base):
     shift_id = Column(UUID(as_uuid=True), ForeignKey(Shift.id), nullable=False)
     shift = relationship("Shift", back_populates="members")
     numbers_lombaryers = Column(Integer, default=0, nullable=False)
-    reports = relationship("Report", back_populates="member", order_by='Report.task_date')
+    reports = relationship("Report", back_populates="member", order_by="Report.task_date")
     member_user_name = deferred((select(User.name).where(User.id == user_id)).scalar_subquery())
 
     __table_args__ = (UniqueConstraint("user_id", "shift_id", name="_user_shift_uc"),)
@@ -262,7 +262,7 @@ class Report(Base):
     )
     report_url = Column(String(length=4096), unique=True, nullable=True)
     uploaded_at = Column(TIMESTAMP, nullable=True)
-    number_attempt = Column(Integer, nullable=False, server_default='0')
+    number_attempt = Column(Integer, nullable=False, server_default="0")
 
     __table_args__ = (UniqueConstraint("shift_id", "task_date", "member_id", name="_member_task_uc"),)
 

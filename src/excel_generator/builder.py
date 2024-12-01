@@ -120,13 +120,13 @@ class AnalyticReportBuilder:
         worksheet.row_dimensions[1].height = self.Styles.HEIGHT.value
 
     class Styles(enum.Enum):
-        FONT_BOLD = Font(name='Times New Roman', size=11, bold=True)
-        FONT_STANDART = Font(name='Times New Roman', size=11, bold=False)
-        ALIGNMENT_HEADER = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        ALIGNMENT_STANDART = Alignment(horizontal='left', vertical='center', wrap_text=True)
-        DESCRIPTION_ALIGNMENT = Alignment(horizontal='left', vertical='center', wrap_text=True, shrink_to_fit=True)
+        FONT_BOLD = Font(name="Times New Roman", size=11, bold=True)
+        FONT_STANDART = Font(name="Times New Roman", size=11, bold=False)
+        ALIGNMENT_HEADER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        ALIGNMENT_STANDART = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        DESCRIPTION_ALIGNMENT = Alignment(horizontal="left", vertical="center", wrap_text=True, shrink_to_fit=True)
         BORDER = Border(
-            left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin')
+            left=Side(style="thin"), right=Side(style="thin"), top=Side(style="thin"), bottom=Side(style="thin")
         )
         WIDTH = 50
         HEIGHT = 55

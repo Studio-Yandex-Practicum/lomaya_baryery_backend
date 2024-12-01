@@ -29,7 +29,7 @@ class AnalyticsCBV:
     ) -> StreamingResponse:
         """Формирует excel файл со всеми отчётами."""
         filename = f"full_report_{datetime.now()}.xlsx"
-        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
         workbook = await self._analytics_service.generate_full_report()
         return StreamingResponse(workbook, headers=headers)
 
@@ -49,7 +49,7 @@ class AnalyticsCBV:
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
         filename = f"tasks_report_{datetime.now()}.xlsx"
-        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
         workbook = await self._analytics_service.generate_task_report()
         return StreamingResponse(workbook, headers=headers)
 
@@ -70,6 +70,6 @@ class AnalyticsCBV:
         - общее количество принятых/отклонённых/не предоставленных отчётов по каждому заданию.
         """
         filename = await self._analytics_service.generate_shift_report_filename(shift_id)
-        headers = {'Content-Disposition': f'attachment; filename={filename}'}
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
         workbook = await self._analytics_service.generate_report_for_shift(shift_id)
         return StreamingResponse(workbook, headers=headers)
