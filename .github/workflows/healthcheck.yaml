@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - master
+      - experimental
 
 env:
   POSTGRES_PASSWORD: postgres
