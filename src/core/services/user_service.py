@@ -25,11 +25,9 @@ def validate_date_of_birth(value: date) -> None:
         raise exceptions.NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
 
 
-async def validate_user_not_exists(
-    user_repository: UserRepository, telegram_id: int = None, phone_number: str = None, max_user_id: int = None
-) -> None:
+async def validate_user_not_exists(user: UserCreateRequest, user_repository: UserRepository) -> None:
     """Проверка, что в БД нет пользователя с указанным telegram_id, max_user_id или phone_number."""
-    user_exists = await user_repository.check_user_existence(telegram_id, phone_number, max_user_id)
+    user_exists = await user_repository.check_user_existence(user.telegram_id, user.phone_number, user.max_user_id)
     if user_exists:
         raise exceptions.NotValidValueError('Пользователь с таким номером телефона уже существует.')
 
@@ -37,7 +35,7 @@ async def validate_user_not_exists(
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
     """Валидация персональных данных пользователя."""
     validate_date_of_birth(user.date_of_birth)
-    await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number, user.max_user_id)
+    await validate_user_not_exists(user, user_repository)
 
 
 class UserService:
