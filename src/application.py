@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import routers
 from src.bot.main import start_bot
-from src.max_bot.main import start_max_bot, stop_max_bot
 from src.core import exceptions
 from src.core.exception_handlers import (
     application_error_handler,
@@ -13,6 +12,7 @@ from src.core.exception_handlers import (
 )
 from src.core.settings import settings
 from src.core.utils import setup_logging
+from src.max_bot.main import MaxBot
 
 
 def create_app() -> FastAPI:
@@ -53,7 +53,7 @@ def create_app() -> FastAPI:
         # storing bot_instance to extra state of FastAPI app instance
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
-        app.state.max_bot = await start_max_bot()
+        app.state.max_bot = await MaxBot.start_bot()
 
     @app.on_event("shutdown")
     async def on_shutdown():
@@ -65,6 +65,6 @@ def create_app() -> FastAPI:
             await bot_instance.updater.stop()
         await bot_instance.stop()
         await bot_instance.shutdown()
-        await stop_max_bot()
+        await MaxBot.stop_bot()
 
     return app

@@ -213,7 +213,7 @@ settings_module.settings.MAX_BOT_TOKEN = "fake_token"
 from src.bot.services import BotService
 from src.core.db.models import User
 from src.max_bot import handlers
-from src.max_bot.main import create_max_bot
+from src.max_bot.main import MaxBot
 
 # 1. Валидация шагов диалога регистрации
 for field, value, valid in (
@@ -233,7 +233,7 @@ for field, value, valid in (
 print("валидация анкеты - ок")
 
 # 2. Хендлеры и команды зарегистрированы
-bot = create_max_bot()
+bot = MaxBot()
 counts = {key: len(value) for key, value in bot.handlers.items() if value}
 assert counts["message_created"] == 3 and counts["message_callback"] == 4
 assert counts["bot_started"] == 1 and sorted(bot.commands) == ["cancel", "start"]

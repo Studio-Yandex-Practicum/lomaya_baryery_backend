@@ -1,17 +1,17 @@
 from telegram.ext import Application
 
 from src.bot.main import create_bot
-from src.max_bot.main import start_max_bot, stop_max_bot
+from src.max_bot.main import MaxBot
 
 
 async def start_additional_bots(_: Application) -> None:
     """Запустить ботов дополнительных мессенджеров."""
-    await start_max_bot(webhook_mode=False)
+    await MaxBot.start_bot(webhook_mode=False)
 
 
 async def stop_additional_bots(_: Application) -> None:
     """Остановить ботов дополнительных мессенджеров."""
-    await stop_max_bot()
+    await MaxBot.stop_bot()
 
 
 if __name__ == '__main__':
