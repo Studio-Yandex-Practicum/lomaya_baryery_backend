@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import logging
 import os
 import ssl
@@ -8,10 +9,59 @@ from urllib.parse import urljoin
 
 import aiohttp
 import aiomax
+from aiolimiter import AsyncLimiter
+from aiomax.exceptions import AiomaxException, InternalError
 
+from src.core.db import models
 from src.core.settings import settings
+from src.max_bot import ui
 from src.max_bot.handlers import bot_stopped_handler, router
 from src.max_bot.instance import get_max_bot, set_max_bot
+
+# Лимит API Max - 30 запросов в секунду, оставляем запас
+send_rate_limiter = AsyncLimiter(25, 1)
+
+RETRIABLE_ERRORS = (aiohttp.ClientError, asyncio.TimeoutError, InternalError)
+
+
+def check_user_blocked(func):
+    """Проверка блокировки пользователя перед отправкой сообщения."""
+
+    @functools.wraps(func)
+    async def _func_wrapper(*args, **kwargs):
+        user = kwargs['user'] if 'user' in kwargs else args[1]
+        if user.max_blocked:
+            return
+        await func(*args, **kwargs)
+
+    return _func_wrapper
+
+
+def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
+    """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
+
+    def _func_wrapper(func):
+        @functools.wraps(func)
+        async def _inner(*args, **kwargs):
+            user = kwargs['user'] if 'user' in kwargs else args[1]
+            for n in range(max_attempt_number):
+                try:
+                    return await func(*args, **kwargs)
+                except RETRIABLE_ERRORS as exc:
+                    logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
+                    retry_delay = start_sleep_time * 3**n
+                    await asyncio.sleep(retry_delay)
+                    continue
+                except AiomaxException as exc:
+                    # импорт внутри функции: error_handler зависит от сервисов приложения,
+                    # которые импортируют src.bot.services
+                    from src.max_bot.error_handler import error_handler
+
+                    return await error_handler(user, exc)
+
+        return _inner
+
+    return _func_wrapper
 
 
 class MaxBot(aiomax.Bot):
@@ -63,6 +113,29 @@ class MaxBot(aiomax.Bot):
             return
         await bot.stop()
         set_max_bot(None)
+
+    @check_user_blocked
+    @retry()
+    async def send_message_to_user(self, user: models.User, text: str) -> None:
+        """Отправить участнику проекта текстовое сообщение.
+
+        Имя отличается от send_message родительского класса: тот принимает chat_id/user_id
+        и используется обработчиками бота для ответов в чате.
+        """
+        async with send_rate_limiter:
+            await self.send_message(text, user_id=user.max_user_id)
+
+    @check_user_blocked
+    @retry()
+    async def send_photo_to_user(self, user: models.User, photo: str, caption: str) -> None:
+        """Отправить участнику проекта фото задания с клавиатурой ежедневного задания."""
+        async with send_rate_limiter:
+            await self.send_message(
+                caption,
+                user_id=user.max_user_id,
+                attachments=aiomax.PhotoAttachment(url=photo),
+                keyboard=ui.DAILY_TASK_KEYBOARD,
+            )
 
     async def handle_update(self, update: dict) -> None:
         if update.get("update_type") == "bot_stopped":

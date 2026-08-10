@@ -2,6 +2,7 @@ import asyncio
 import functools
 import logging
 from datetime import date, datetime
+from typing import TYPE_CHECKING, Optional
 
 from telegram import ReplyKeyboardMarkup
 from telegram.error import NetworkError, RetryAfter, TelegramError, TimedOut
@@ -16,8 +17,10 @@ from src.core.utils import (
     get_lombaryers_for_quantity,
     get_message_with_numbers_attempts,
 )
-from src.max_bot import services as max_services
-from src.max_bot import ui as max_ui
+from src.max_bot.instance import get_max_bot
+
+if TYPE_CHECKING:
+    from src.max_bot.main import MaxBot
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -59,22 +62,31 @@ def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
 
 
 class BotService:
-    def __init__(self, telegram_bot: Application) -> None:
+    def __init__(self, telegram_bot: Application, max_bot: Optional["MaxBot"] = None) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
+        # Max-бот необязателен: если он не запущен, участники из Max уведомления не получат,
+        # но отправка участникам из telegram продолжит работать
+        self.__max_bot = max_bot if max_bot is not None else get_max_bot()
 
     @check_user_blocked
     @retry()
     async def send_message(self, user: models.User, text: str) -> None:
         if user.max_user_id is not None:
-            return await max_services.send_message(user, text)
+            if self.__max_bot is None:
+                logging.warning(f"Max-бот не запущен, сообщение пользователю {user} не отправлено.")
+                return
+            return await self.__max_bot.send_message_to_user(user, text)
         await self.__bot.send_message(user.telegram_id, text)
 
     @check_user_blocked
     @retry()
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
         if user.max_user_id is not None:
-            return await max_services.send_photo(user, photo, caption, keyboard=max_ui.DAILY_TASK_KEYBOARD)
+            if self.__max_bot is None:
+                logging.warning(f"Max-бот не запущен, задание пользователю {user} не отправлено.")
+                return
+            return await self.__max_bot.send_photo_to_user(user, photo, caption)
         await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
