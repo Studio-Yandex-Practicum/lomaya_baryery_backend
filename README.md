@@ -32,6 +32,7 @@
             <li><a href="#запуск-без-api-приложения">Запуск без API приложения</a></li>
             <li><a href="#polling">Polling</a></li>
             <li><a href="#webhook">Webhook</a></li>
+            <li><a href="#бот-мессенджера-max">Бот мессенджера Max</a></li>
           </ul>
         </li>
         <li>
@@ -222,6 +223,26 @@
     > **Warning**:
     > Необходимо доменное имя с установленным SSL-сертификатом.
     > Иначе обратитесь к разделу "[Использование Ngrok](#использование-ngrok)".
+
+#### Бот мессенджера Max
+
+Помимо telegram-бота проект поддерживает бота мессенджера
+[Max](https://dev.max.ru) с тем же набором функций. Он запускается вместе с
+приложением (`run.py`) и вместе с telegram-ботом (`run_bot.py`).
+
+1. Задать значение переменным окружения (.env).
+
+    ```dotenv
+    MAX_BOT_TOKEN=  # Токен аутентификации Max-бота
+    MAX_BOT_WEBHOOK_MODE=False  # Запустить Max-бота в режиме webhook(True) | polling(False)
+    ```
+
+    > **Note**:
+    > Если `MAX_BOT_TOKEN` не задан, Max-бот не запускается,
+    > telegram-бот и API работают в обычном режиме.
+
+Как получить токен, поднять и протестировать Max-бота локально:
+[src/max_bot/README.md](src/max_bot/README.md).
 
 ### Работа с базой данных
 
@@ -439,6 +460,9 @@ Ngrok — это инструмент, который позволяет соз�
 # Переменные приложения
 BOT_TOKEN=  # Токен аутентификации бота
 BOT_WEBHOOK_MODE=False  # Запустить бота в режиме webhook(True) | polling(False)
+MAX_BOT_TOKEN=  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)
+MAX_BOT_WEBHOOK_MODE=False  # Запустить Max-бота в режиме webhook(True) | polling(False)
+MAX_BOT_USE_CERTIFICATE=False  # Использовать сертификат Минцифры для соединения с API Max
 APPLICATION_URL=  # Домен, на котором развернуто приложение
 HEALTHCHECK_API_URL=http://127.0.0.1:8080/docs  # Эндпоинт для проверки API
 DEBUG=False  # Включение(True) | Выключение(False) режима отладки

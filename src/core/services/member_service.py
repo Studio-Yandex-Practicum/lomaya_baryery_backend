@@ -43,3 +43,7 @@ class MemberService:
     async def get_number_of_lombariers_by_telegram_id(self, telegram_id) -> int:
         """Получение баланса ломбарьеров в текущей смене по telegram_id."""
         return await self.__member_repository.get_number_of_lombariers_by_telegram_id(telegram_id)
+
+    async def get_number_of_lombariers_by_max_user_id(self, max_user_id) -> int:
+        """Получение баланса ломбарьеров в текущей смене по max_user_id."""
+        return await self.__member_repository.get_number_of_lombariers_by_max_user_id(max_user_id)

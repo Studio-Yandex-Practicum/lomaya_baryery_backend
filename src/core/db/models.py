@@ -8,6 +8,7 @@ from sqlalchemy import (
     TIMESTAMP,
     BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     Enum,
     Identity,
@@ -118,13 +119,19 @@ class User(Base):
         PENDING = "pending"
 
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "telegram_id IS NOT NULL OR max_user_id IS NOT NULL",
+            name="users_messenger_id_check",
+        ),
+    )
 
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
     phone_number = Column(String(16), unique=True, nullable=False)
-    telegram_id = Column(BigInteger, unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=True)
     status = Column(
         Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),
         default=Status.PENDING.value,
@@ -134,6 +141,10 @@ class User(Base):
     members = relationship("Member", back_populates="user")
     telegram_blocked = Column(Boolean, default=False, nullable=False)
     is_test_user = Column(Boolean, default=False, nullable=False)
+    # Поля дополнительного канала связи - мессенджера Max.
+    # Заполняются только у пользователей, пришедших не из telegram
+    max_user_id = Column(BigInteger, unique=True, nullable=True)
+    max_blocked = Column(Boolean, default=False, nullable=False)
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"

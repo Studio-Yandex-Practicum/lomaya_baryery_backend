@@ -16,6 +16,8 @@ from src.core.utils import (
     get_lombaryers_for_quantity,
     get_message_with_numbers_attempts,
 )
+from src.max_bot import services as max_services
+from src.max_bot import ui as max_ui
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
@@ -64,11 +66,15 @@ class BotService:
     @check_user_blocked
     @retry()
     async def send_message(self, user: models.User, text: str) -> None:
+        if user.max_user_id is not None:
+            return await max_services.send_message(user, text)
         await self.__bot.send_message(user.telegram_id, text)
 
     @check_user_blocked
     @retry()
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
+        if user.max_user_id is not None:
+            return await max_services.send_photo(user, photo, caption, keyboard=max_ui.DAILY_TASK_KEYBOARD)
         await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:

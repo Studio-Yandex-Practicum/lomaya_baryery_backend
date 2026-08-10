@@ -55,19 +55,19 @@ class UserRepository(AbstractRepository):
         user = await self._session.execute(select(User).where(User.telegram_id == telegram_id))
         return user.scalars().first()
 
-    async def check_user_existence(self, telegram_id: int, phone_number: str) -> bool:
-        user_exists = await self._session.execute(
-            select(
-                select(User)
-                .where(
-                    or_(
-                        User.phone_number == phone_number,
-                        User.telegram_id == telegram_id,
-                    )
-                )
-                .exists()
-            )
-        )
+    async def get_by_max_user_id(self, max_user_id: int) -> Optional[User]:
+        user = await self._session.execute(select(User).where(User.max_user_id == max_user_id))
+        return user.scalars().first()
+
+    async def check_user_existence(
+        self, telegram_id: Optional[int] = None, phone_number: Optional[str] = None, max_user_id: Optional[int] = None
+    ) -> bool:
+        conditions = [User.phone_number == phone_number]
+        if telegram_id is not None:
+            conditions.append(User.telegram_id == telegram_id)
+        if max_user_id is not None:
+            conditions.append(User.max_user_id == max_user_id)
+        user_exists = await self._session.execute(select(select(User).where(or_(*conditions)).exists()))
         return user_exists.scalar()
 
     async def get_users_with_status(

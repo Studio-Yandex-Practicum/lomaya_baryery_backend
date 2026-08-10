@@ -4,6 +4,7 @@ from src.api.routers.administrator_invitation import (  # noqa
 )
 from src.api.routers.analytics import router as analytics_router  # noqa
 from src.api.routers.healthcheck import router as healthcheck_router  # noqa
+from src.api.routers.max_webhook import router as max_router  # noqa
 from src.api.routers.report import router as report_router  # noqa
 from src.api.routers.request import router as request_router  # noqa
 from src.api.routers.shift import router as shift_router  # noqa

@@ -90,6 +90,21 @@ class MemberRepository(AbstractRepository):
         )
         return amount.scalars().one_or_none() or 0
 
+    async def get_number_of_lombariers_by_max_user_id(self, max_user_id: int) -> int:
+        amount = await self._session.execute(
+            select(Member.numbers_lombaryers)
+            .join(User)
+            .where(User.max_user_id == max_user_id)
+            .join(Shift)
+            .where(
+                or_(
+                    Shift.status == Shift.Status.READY_FOR_COMPLETE,
+                    Shift.status == Shift.Status.STARTED,
+                )
+            )
+        )
+        return amount.scalars().one_or_none() or 0
+
     async def get_active_members_for_shift(self, shift_id: UUID) -> list[Member]:
         """Возвращает активных участников смены."""
         members = await self._session.scalars(

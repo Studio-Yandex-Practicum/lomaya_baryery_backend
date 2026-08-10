@@ -26,10 +26,10 @@ def validate_date_of_birth(value: date) -> None:
 
 
 async def validate_user_not_exists(
-    user_repository: UserRepository, telegram_id: int = None, phone_number: str = None
+    user_repository: UserRepository, telegram_id: int = None, phone_number: str = None, max_user_id: int = None
 ) -> None:
-    """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
-    user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
+    """Проверка, что в БД нет пользователя с указанным telegram_id, max_user_id или phone_number."""
+    user_exists = await user_repository.check_user_existence(telegram_id, phone_number, max_user_id)
     if user_exists:
         raise exceptions.NotValidValueError('Пользователь с таким номером телефона уже существует.')
 
@@ -37,7 +37,7 @@ async def validate_user_not_exists(
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
     """Валидация персональных данных пользователя."""
     validate_date_of_birth(user.date_of_birth)
-    await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number)
+    await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number, user.max_user_id)
 
 
 class UserService:
@@ -75,7 +75,10 @@ class UserService:
 
     async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Получение пользователя: обновление или создание."""
-        db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
+        if user_scheme.telegram_id is not None:
+            db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
+        else:
+            db_user = await self.__user_repository.get_by_max_user_id(user_scheme.max_user_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
         user = user_scheme.create_db_model()
@@ -94,6 +97,10 @@ class UserService:
     async def get_user_by_telegram_id(self, telegram_id: int) -> User:
         """Получить участника проекта по его telegram_id."""
         return await self.__user_repository.get_by_telegram_id(telegram_id)
+
+    async def get_user_by_max_id(self, max_user_id: int) -> User:
+        """Получить участника проекта по его max_user_id."""
+        return await self.__user_repository.get_by_max_user_id(max_user_id)
 
     async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> UserDetailResponse:
         """Получить участника проекта с информацией о сменах по его id."""
@@ -118,6 +125,14 @@ class UserService:
 
     async def unset_telegram_blocked(self, user: User) -> None:
         user.telegram_blocked = False
+        await self.__user_repository.update(user.id, user)
+
+    async def set_max_blocked(self, user: User) -> None:
+        user.max_blocked = True
+        await self.__user_repository.update(user.id, user)
+
+    async def unset_max_blocked(self, user: User) -> None:
+        user.max_blocked = False
         await self.__user_repository.update(user.id, user)
 
     async def check_before_change_user_data(self, user_id: UUID) -> None:

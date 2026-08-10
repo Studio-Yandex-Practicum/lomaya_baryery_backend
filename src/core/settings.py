@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     BOT_WEBHOOK_MODE: bool = False  # запустить бота в режиме webhook(true)|polling(false)
     BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
 
+    # Настройки бота дополнительного мессенджера Max
+    MAX_BOT_TOKEN: str = ""  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)
+    MAX_BOT_WEBHOOK_MODE: bool = False  # запустить Max-бота в режиме webhook(true)|polling(false)
+    MAX_BOT_USE_CERTIFICATE: bool = False  # использовать сертификат Минцифры для соединения с API Max
+
     # Настройки взаимодействия с БД
     POSTGRES_DB: str  # Имя базы данных
     POSTGRES_USER: str  # имя пользователя ля для подключения к БД
@@ -154,6 +159,14 @@ class Settings(BaseSettings):
     def telegram_webhook_url(self) -> str:
         """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
         return urljoin(self.api_url, "telegram/webhook")
+
+    @property
+    def max_webhook_url(self) -> str:
+        """Получить url-ссылку на эндпоинт для работы Max-бота в режиме webhook.
+
+        Секретный ключ в пути заменяет секретный заголовок, которого нет в API Max.
+        """
+        return urljoin(self.api_url, f"max/webhook/{self.SECRET_KEY}")
 
     class Config:
         env_file = ENV_FILE
