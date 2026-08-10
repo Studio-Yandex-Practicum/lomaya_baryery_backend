@@ -39,7 +39,7 @@ class NotFoundError(ApplicationError):
 class NotValidValueError(ApplicationError):
     """Исключение для невалидных данных."""
 
-    def __int__(self, detail: str) -> None:
+    def __init__(self, detail: str) -> None:
         self.detail = detail
 
 
@@ -127,7 +127,7 @@ class ShiftCancelError(BadRequestError):
 
 
 class ShiftError(BadRequestError):
-    def __int__(self, detail: str) -> None:
+    def __init__(self, detail: str) -> None:
         self.detail = detail
 
 
