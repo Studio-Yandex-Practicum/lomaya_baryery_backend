@@ -206,14 +206,10 @@ Max-пользователю уходит в Max-ветку. Сохранить 
 ```python
 import asyncio
 
-from src.core import settings as settings_module
-
-settings_module.settings.MAX_BOT_TOKEN = "fake_token"
-
 from src.bot.services import BotService
 from src.core.db.models import User
 from src.max_bot import handlers
-from src.max_bot.main import MaxBot
+from src.max_bot.handlers import router
 
 # 1. Валидация шагов диалога регистрации
 for field, value, valid in (
@@ -233,11 +229,11 @@ for field, value, valid in (
 print("валидация анкеты - ок")
 
 # 2. Хендлеры и команды зарегистрированы
-bot = MaxBot()
-counts = {key: len(value) for key, value in bot.handlers.items() if value}
+# (проверяются на роутере: экземпляр MaxBot создает aiohttp-сессию и требует event loop)
+counts = {key: len(value) for key, value in router.handlers.items() if value}
 assert counts["message_created"] == 3 and counts["message_callback"] == 4
-assert counts["bot_started"] == 1 and sorted(bot.commands) == ["cancel", "start"]
-print(f"хендлеры - ок: {counts}, команды: {sorted(bot.commands)}")
+assert counts["bot_started"] == 1 and sorted(router.commands) == ["cancel", "start"]
+print(f"хендлеры - ок: {counts}, команды: {sorted(router.commands)}")
 
 # 3. Уведомление Max-пользователю уходит в Max-ветку (бот не запущен - только warning в логах)
 user = User()

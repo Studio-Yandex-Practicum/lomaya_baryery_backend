@@ -19,6 +19,10 @@ class MaxBot(aiomax.Bot):
 
     Дополняет aiomax обработкой события bot_stopped, нормализацией сообщений без текста
     и управлением жизненным циклом бота в режимах polling и webhook.
+
+    Экземпляр создается только внутри запущенного event loop: aiohttp-сессия
+    привязывается к текущему циклу событий. Экземпляр одноразовый - после stop()
+    сессия закрыта, для нового запуска нужен новый экземпляр.
     """
 
     def __init__(self) -> None:
@@ -30,19 +34,23 @@ class MaxBot(aiomax.Bot):
         self.add_router(router)
         self.__polling_task: Optional[asyncio.Task] = None
         self.__webhook_mode = False
+        self.session = self.__make_session()
 
     @classmethod
     async def start_bot(cls, webhook_mode: Optional[bool] = None) -> Optional["MaxBot"]:
         """Создать и запустить Max-бота. Возвращает None, если бот не настроен или не запустился."""
         if not settings.MAX_BOT_TOKEN:
+            # проверка токена до создания экземпляра: конструктор уже открывает сессию
             logging.warning("MAX_BOT_TOKEN не задан - Max-бот не запущен.")
             return None
-        bot = cls()
+        bot = None
         try:
+            bot = cls()
             await bot.start(webhook_mode)
         except Exception as e:
             logging.exception(f"Не удалось запустить Max-бота: {e}")
-            await bot.close_session()
+            if bot is not None:
+                await bot.close_session()
             return None
         set_max_bot(bot)
         return bot
@@ -69,17 +77,15 @@ class MaxBot(aiomax.Bot):
         await super().handle_update(update)
 
     async def start(self, webhook_mode: Optional[bool] = None) -> None:
-        """Открыть сессию и подписаться на обновления через webhook либо запустить polling."""
+        """Подписаться на обновления через webhook либо запустить polling."""
         self.__webhook_mode = settings.MAX_BOT_WEBHOOK_MODE if webhook_mode is None else webhook_mode
-        session = self.__make_session()
-        self.session = session
         await self.get_me()
         # режимы webhook и polling взаимоисключающие, поэтому старые подписки снимаются в обоих
         await self.__remove_subscriptions()
         if self.__webhook_mode:
             await self.post("subscriptions", json={"url": settings.max_webhook_url})
         else:
-            self.__polling_task = asyncio.create_task(self.start_polling(session=session))
+            self.__polling_task = asyncio.create_task(self.start_polling(session=self.session))
 
     async def stop(self) -> None:
         """Остановить получение обновлений и освободить ресурсы."""
@@ -88,16 +94,16 @@ class MaxBot(aiomax.Bot):
             self.__polling_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self.__polling_task
-            # сессию закрывает сам start_polling при выходе из цикла
             self.__polling_task = None
-            return
-        if self.__webhook_mode:
+        elif self.__webhook_mode:
             with suppress(Exception):
                 await self.delete("subscriptions", params={"url": settings.max_webhook_url})
+        # start_polling закрывает сессию сам, но только если успел её принять:
+        # отмененная сразу после запуска задача оставила бы сессию открытой
         await self.close_session()
 
     async def close_session(self) -> None:
-        """Закрыть сессию, если она была открыта."""
+        """Закрыть сессию, если она еще не закрыта."""
         if self.session is not None:
             await self.session.close()
             self.session = None
@@ -126,7 +132,11 @@ class MaxBot(aiomax.Bot):
         return url if "://" in url else urljoin(self.api_url, url)
 
     def __make_session(self) -> aiohttp.ClientSession:
-        """Создать aiohttp-сессию для API Max (aiomax создает её сам только внутри start_polling)."""
+        """Создать aiohttp-сессию для API Max при инициализации бота.
+
+        Собственную сессию aiomax создает только внутри start_polling, поэтому в режиме
+        webhook её не было бы вовсе, а настройки TLS применялись бы лишь при polling.
+        """
         connector = None
         if self.use_certificate:
             certificate_path = os.path.join(os.path.dirname(aiomax.__file__), "russian_trusted_root_ca.cer")
