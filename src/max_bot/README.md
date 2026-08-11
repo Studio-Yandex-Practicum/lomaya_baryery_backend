@@ -49,6 +49,10 @@ Max-бот необязателен: если `MAX_BOT_TOKEN` не задан, �
 ## 2. Установить зависимости
 
 ```shell
+poetry env use 3.10
+```
+
+```shell
 poetry install
 ```
 
@@ -57,11 +61,15 @@ poetry shell
 ```
 
 > **Warning**:
-> Проект рассчитан на Python 3.10. Под Python 3.11 не собирается `asyncpg 0.24.0`
-> из lock-файла (нет готовых wheel-ов). Варианты: использовать Python 3.10
-> (`poetry env use 3.10`) или поставить в окружение более новый asyncpg
-> вручную — только для локальной работы, без изменения `poetry.lock`:
-> `pip install asyncpg==0.29.0`.
+> Проект собирается только на Python 3.10: под 3.11 и выше падает сборка `asyncpg 0.24.0`,
+> под 3.12 и выше — `multidict 6.0.4`. Поэтому интерпретатор задаётся явно —
+> `poetry env use` не даёт Poetry взять слишком новый `python3` из PATH. Подробнее
+> в разделе «[Python](../../README.md#python)» README проекта.
+
+> **Warning**:
+> Нужен Poetry 1.3.2 — версия зафиксирована в `Dockerfile`, см.
+> «[Poetry](../../README.md#poetry)» в README проекта. На Poetry 2.x команды
+> `poetry shell` нет, а установка вызывается как `poetry install --no-root`.
 
 ## 3. Настроить переменные окружения
 
@@ -71,7 +79,7 @@ poetry shell
 BOT_TOKEN=<токен telegram-бота>
 MAX_BOT_TOKEN=<токен Max-бота из шага 1>
 MAX_BOT_WEBHOOK_MODE=False  # для локальной разработки — polling
-MAX_BOT_USE_CERTIFICATE=False
+MAX_BOT_USE_CERTIFICATE=True  # см. предупреждение про сертификат ниже
 APPLICATION_URL=http://localhost
 DEBUG=True  # чтобы открывалась документация API на /api/docs
 ```
@@ -79,11 +87,16 @@ DEBUG=True  # чтобы открывалась документация API н�
 Если `MAX_BOT_TOKEN` пуст, Max-бот просто не запускается (в логах — предупреждение),
 а telegram-бот и API работают как раньше.
 
-> **Note**:
-> Для соединения с `platform-api2.max.ru` может требоваться корневой сертификат Минцифры.
-> Если запуск падает с ошибкой SSL — либо установить
-> [сертификат](https://www.gosuslugi.ru/crt) в систему, либо задать
-> `MAX_BOT_USE_CERTIFICATE=True` (тогда aiomax использует встроенный сертификат).
+> **Warning**:
+> `platform-api2.max.ru` отдаёт сертификат, выпущенный удостоверяющим центром Минцифры,
+> которого нет ни в системном хранилище, ни в `certifi`. При `MAX_BOT_USE_CERTIFICATE=False`
+> запуск падает с `SSLCertVerificationError: unable to get local issuer certificate`.
+> Решение — `MAX_BOT_USE_CERTIFICATE=True`: тогда `MaxBot.__make_session` подкладывает
+> в SSL-контекст сертификат, поставляемый вместе с `aiomax`. Альтернатива — установить
+> [сертификат](https://www.gosuslugi.ru/crt) в систему.
+>
+> Запуск приложения эта ошибка не блокирует: `start_bot` её перехватывает, Max-бот не
+> поднимается, а API и telegram-бот продолжают работать.
 
 ## 4. Поднять базу данных
 
@@ -110,6 +123,10 @@ docker exec -it lomaya_baryery_local_postgres psql -U postgres -p 6100 -d lomaya
 ```shell
 python -m data_factory.main
 ```
+
+> **Note**:
+> Скрипту нужна группа зависимостей `dev` (`click`, `factory-boy`, `psycopg2-binary`).
+> Если окружение ставилось с `--without dev`, выполните `poetry install`.
 
 ## 5. Запустить приложение
 
@@ -246,7 +263,9 @@ print("маршрутизация уведомлений - ок")
 
 Для локальной разработки достаточно polling. Если нужен именно webhook:
 
-1. Поднять туннель с HTTPS (см. раздел «Использование Ngrok» в [README проекта](../../README.md)).
+1. Поднять туннель с HTTPS (см. раздел
+   «[HTTPS-адрес для локальной разработки](../../README.md#https-адрес-для-локальной-разработки)»
+   в README проекта).
 2. Задать переменные:
 
     ```dotenv
