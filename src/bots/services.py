@@ -39,7 +39,7 @@ def check_user_blocked(func):
     @functools.wraps(func)
     async def _func_wrapper(self: MessageSender, user: models.User, *args, **kwargs):
         if user.is_blocked:
-            return
+            return None
         return await func(self, user, *args, **kwargs)
 
     return _func_wrapper

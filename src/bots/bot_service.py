@@ -53,22 +53,24 @@ class BotService(MessageSender):
     @check_user_blocked
     @retry()
     async def send_message(self, user: models.User, text: str) -> None:
-        if user.max_user_id is not None:
-            if self.__max_bot is None:
-                logging.warning(f"Max-бот не запущен, сообщение пользователю {user} не отправлено.")
-                return
-            return await self.__max_bot.send_message_to_user(user, text)
-        await self.__bot.send_message(user.telegram_id, text)
+        if user.max_user_id is None:
+            await self.__bot.send_message(user.telegram_id, text)
+        elif self.__max_bot is not None:
+            await self.__max_bot.send_message_to_user(user, text)
+        else:
+            logging.warning(f"Max-бот не запущен, сообщение пользователю {user} не отправлено.")
 
     @check_user_blocked
     @retry()
     async def send_photo(self, user: models.User, photo: str, caption: str, reply_markup: ReplyKeyboardMarkup) -> None:
-        if user.max_user_id is not None:
-            if self.__max_bot is None:
-                logging.warning(f"Max-бот не запущен, задание пользователю {user} не отправлено.")
-                return
-            return await self.__max_bot.send_photo_to_user(user, photo, caption)
-        await self.__bot.send_photo(chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup)
+        if user.max_user_id is None:
+            await self.__bot.send_photo(
+                chat_id=user.telegram_id, photo=photo, caption=caption, reply_markup=reply_markup
+            )
+        elif self.__max_bot is not None:
+            await self.__max_bot.send_photo_to_user(user, photo, caption)
+        else:
+            logging.warning(f"Max-бот не запущен, задание пользователю {user} не отправлено.")
 
     async def notify_approved_request(self, user: models.User, first_task_date: str) -> None:
         """Уведомление участника о решении по заявке в telegram.
