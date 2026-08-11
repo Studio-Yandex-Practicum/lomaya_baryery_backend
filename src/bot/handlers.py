@@ -170,9 +170,10 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     """Обработка полученного фото."""
     session_gen = get_session()
     session = await session_gen.asend(None)
+    shift_repository = ShiftRepository(session)
     user_service = UserService(UserRepository(session), RequestRepository(session))
-    report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
-    shift_service = ShiftService(ShiftRepository(session))
+    report_service = ReportService(ReportRepository(session), shift_repository, MemberRepository(session))
+    shift_service = ShiftService(shift_repository)
 
     text = "Твой отчет отправлен на модерацию, после проверки тебе придет уведомление."
 
@@ -231,12 +232,11 @@ async def skip_report(chat_id: int) -> None:
     """Метод для пропуска задания."""
     session_gen = get_session()
     session = await session_gen.asend(None)
-    shift_service = ShiftService(ShiftRepository(session))
+    shift_repository = ShiftRepository(session)
+    shift_service = ShiftService(shift_repository)
     user_service = UserService(UserRepository(session), RequestRepository(session), shift_service)
     task_service = TaskService(TaskRepository(session))
-    report_service = ReportService(
-        ReportRepository(session), ShiftRepository(session), MemberRepository(session), task_service
-    )
+    report_service = ReportService(ReportRepository(session), shift_repository, MemberRepository(session), task_service)
     user = await user_service.get_user_by_telegram_id(chat_id)
     await report_service.skip_current_report(user.id)
 
