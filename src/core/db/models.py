@@ -146,6 +146,30 @@ class User(Base):
     max_user_id = Column(BigInteger, unique=True, nullable=True)
     max_blocked = Column(Boolean, default=False, nullable=False)
 
+    @property
+    def is_from_max(self) -> bool:
+        """Пришел ли пользователь из мессенджера Max, а не из telegram."""
+        return self.max_user_id is not None
+
+    @property
+    def is_blocked(self) -> bool:
+        """Заблокировал ли пользователь бота своего мессенджера."""
+        return self.max_blocked if self.is_from_max else self.telegram_blocked
+
+    def block(self) -> None:
+        """Отметить, что пользователь заблокировал бота своего мессенджера."""
+        if self.is_from_max:
+            self.max_blocked = True
+        else:
+            self.telegram_blocked = True
+
+    def unblock(self) -> None:
+        """Снять отметку о блокировке бота своего мессенджера."""
+        if self.is_from_max:
+            self.max_blocked = False
+        else:
+            self.telegram_blocked = False
+
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
 

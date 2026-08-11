@@ -133,8 +133,8 @@ async def _start_registration_dialog(max_user_id: int, send_callback, cursor: ai
     session = get_session()
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_max_id(max_user_id)
-    if user and user.max_blocked:
-        await user_service.unset_max_blocked(user)
+    if user and user.is_blocked:
+        await user_service.unblock_user(user)
     await send_callback(START_TEXT)
     current_values = None
     if user:
@@ -354,7 +354,7 @@ async def skip_report(max_user_id: int) -> None:
 
 
 async def bot_stopped_handler(update: dict) -> None:
-    """Пользователь остановил (заблокировал) бота: выставляет max_blocked."""
+    """Пользователь остановил (заблокировал) бота: отмечает блокировку в базе."""
     max_user_id = (update.get("user") or {}).get("user_id")
     if max_user_id is None:
         return
@@ -363,4 +363,4 @@ async def bot_stopped_handler(update: dict) -> None:
     user = await user_service.get_user_by_max_id(max_user_id)
     if user is None:
         return
-    await user_service.set_max_blocked(user)
+    await user_service.block_user(user)

@@ -18,6 +18,6 @@ async def error_handler(sender: MessageSender, user: User, error: Exception) -> 
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))
-    await sender.set_user_blocked(user_service, user)
+    await user_service.block_user(user)
     reason = str(error) or type(error).__name__
     logging.warning(f"Произведена блокировка пользователя: {user}. Причина блокировки: {reason}")

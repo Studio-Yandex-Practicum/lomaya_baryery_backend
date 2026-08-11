@@ -52,8 +52,8 @@ async def start(update: Update, context: CallbackContext) -> None:
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
-    if user and user.telegram_blocked:
-        await user_service.unset_telegram_blocked(user)
+    if user and user.is_blocked:
+        await user_service.unblock_user(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
         try:
@@ -247,7 +247,7 @@ async def incorrect_report_type_handler(update: Update, context: CallbackContext
 
 
 async def chat_member_handler(update: Update, context: CallbackContext) -> None:
-    """Меняет значение поля telegram_blocked при блокировке/разблокировке бота."""
+    """Отмечает в базе блокировку/разблокировку бота пользователем."""
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session))
@@ -258,10 +258,10 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> None:
         update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.BANNED
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.MEMBER
     ):
-        return await user_service.set_telegram_blocked(user)
+        return await user_service.block_user(user)
     if (
         update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.MEMBER
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.BANNED
     ):
-        return await user_service.unset_telegram_blocked(user)
+        return await user_service.unblock_user(user)
     return None

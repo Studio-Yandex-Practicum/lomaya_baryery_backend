@@ -117,20 +117,14 @@ class UserService:
     ) -> list[UserWithStatusResponse]:
         return await self.__user_repository.get_users_with_status(status, field_sort, direction_sort)
 
-    async def set_telegram_blocked(self, user: User) -> None:
-        user.telegram_blocked = True
+    async def block_user(self, user: User) -> None:
+        """Отметить, что пользователь заблокировал бота своего мессенджера."""
+        user.block()
         await self.__user_repository.update(user.id, user)
 
-    async def unset_telegram_blocked(self, user: User) -> None:
-        user.telegram_blocked = False
-        await self.__user_repository.update(user.id, user)
-
-    async def set_max_blocked(self, user: User) -> None:
-        user.max_blocked = True
-        await self.__user_repository.update(user.id, user)
-
-    async def unset_max_blocked(self, user: User) -> None:
-        user.max_blocked = False
+    async def unblock_user(self, user: User) -> None:
+        """Снять отметку о блокировке бота своего мессенджера."""
+        user.unblock()
         await self.__user_repository.update(user.id, user)
 
     async def check_before_change_user_data(self, user_id: UUID) -> None:

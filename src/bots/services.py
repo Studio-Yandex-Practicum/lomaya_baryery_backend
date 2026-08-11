@@ -1,12 +1,8 @@
 import asyncio
 import functools
 import logging
-from typing import TYPE_CHECKING
 
 from src.core.db import models
-
-if TYPE_CHECKING:
-    from src.core.services.user_service import UserService
 
 
 class MessageSender:
@@ -24,17 +20,9 @@ class MessageSender:
     # Ошибки мессенджера, означающие, что пользователь заблокировал бота
     BLOCKING_ERRORS: tuple = ()
 
-    def is_user_blocked(self, user: models.User) -> bool:
-        """Проверить, заблокировал ли пользователь бота этого мессенджера."""
-        raise NotImplementedError
-
     def is_blocking_error(self, error: Exception) -> bool:
         """Проверить, означает ли ошибка отправки, что пользователь заблокировал бота."""
         return isinstance(error, self.BLOCKING_ERRORS)
-
-    async def set_user_blocked(self, user_service: "UserService", user: models.User) -> None:
-        """Отметить в базе, что пользователь заблокировал бота этого мессенджера."""
-        raise NotImplementedError
 
     async def handle_send_error(self, user: models.User, error: Exception) -> None:
         """Обработать ошибку отправки, не требующую повтора."""
@@ -50,7 +38,7 @@ def check_user_blocked(func):
 
     @functools.wraps(func)
     async def _func_wrapper(self: MessageSender, user: models.User, *args, **kwargs):
-        if self.is_user_blocked(user):
+        if user.is_blocked:
             return
         return await func(self, user, *args, **kwargs)
 
