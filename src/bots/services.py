@@ -25,15 +25,35 @@ if TYPE_CHECKING:
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
+class MessageSender:
+    """Контракт для классов, отправляющих сообщения участникам через мессенджер.
+
+    Определяет то, что зависит от мессенджера, и позволяет использовать
+    декораторы check_user_blocked и retry для любого из ботов.
+    """
+
+    # Ошибки мессенджера, при которых отправку имеет смысл повторить
+    RETRIABLE_ERRORS: tuple = ()
+    # Ошибки мессенджера, которые обрабатываются без повторной отправки
+    SEND_ERRORS: tuple = ()
+
+    def is_user_blocked(self, user: models.User) -> bool:
+        """Проверить, заблокировал ли пользователь бота этого мессенджера."""
+        raise NotImplementedError
+
+    async def handle_send_error(self, user: models.User, error: Exception) -> None:
+        """Обработать ошибку отправки, не требующую повтора."""
+        raise NotImplementedError
+
+
 def check_user_blocked(func):
     """Проверка блокировки пользователя перед отправкой сообщения."""
 
     @functools.wraps(func)
-    async def _func_wrapper(*args, **kwargs):
-        user = kwargs['user'] if 'user' in kwargs else args[1]
-        if user.telegram_blocked:
+    async def _func_wrapper(self: MessageSender, user: models.User, *args, **kwargs):
+        if self.is_user_blocked(user):
             return
-        await func(*args, **kwargs)
+        return await func(self, user, *args, **kwargs)
 
     return _func_wrapper
 
@@ -43,31 +63,39 @@ def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
 
     def _func_wrapper(func):
         @functools.wraps(func)
-        async def _inner(*args, **kwargs):
-            user = kwargs['user'] if 'user' in kwargs else args[1]
+        async def _inner(self: MessageSender, user: models.User, *args, **kwargs):
             for n in range(max_attempt_number):
                 try:
-                    return await func(*args, **kwargs)
-                except (RetryAfter, TimedOut, NetworkError) as exc:
+                    return await func(self, user, *args, **kwargs)
+                except self.RETRIABLE_ERRORS as exc:
                     logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
                     retry_delay = start_sleep_time * 3**n
                     await asyncio.sleep(retry_delay)
                     continue
-                except TelegramError as exc:
-                    return await error_handler(user, exc)
+                except self.SEND_ERRORS as exc:
+                    return await self.handle_send_error(user, exc)
 
         return _inner
 
     return _func_wrapper
 
 
-class BotService:
+class BotService(MessageSender):
+    RETRIABLE_ERRORS = (RetryAfter, TimedOut, NetworkError)
+    SEND_ERRORS = (TelegramError,)
+
     def __init__(self, telegram_bot: Application, max_bot: Optional["MaxBot"] = None) -> None:
         self.__bot = telegram_bot.bot
         self.__bot_application = telegram_bot
         # Max-бот необязателен: если он не запущен, участники из Max уведомления не получат,
         # но отправка участникам из telegram продолжит работать
         self.__max_bot = max_bot if max_bot is not None else get_max_bot()
+
+    def is_user_blocked(self, user: models.User) -> bool:
+        return user.telegram_blocked
+
+    async def handle_send_error(self, user: models.User, error: TelegramError) -> None:
+        await error_handler(user, error)
 
     @check_user_blocked
     @retry()

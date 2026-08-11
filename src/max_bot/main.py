@@ -1,5 +1,4 @@
 import asyncio
-import functools
 import logging
 import os
 import ssl
@@ -12,6 +11,7 @@ import aiomax
 from aiolimiter import AsyncLimiter
 from aiomax.exceptions import AiomaxException, InternalError
 
+from src.bots.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
 from src.core.settings import settings
 from src.max_bot import ui
@@ -21,50 +21,8 @@ from src.max_bot.instance import get_max_bot, set_max_bot
 # Лимит API Max - 30 запросов в секунду, оставляем запас
 send_rate_limiter = AsyncLimiter(25, 1)
 
-RETRIABLE_ERRORS = (aiohttp.ClientError, asyncio.TimeoutError, InternalError)
 
-
-def check_user_blocked(func):
-    """Проверка блокировки пользователя перед отправкой сообщения."""
-
-    @functools.wraps(func)
-    async def _func_wrapper(*args, **kwargs):
-        user = kwargs['user'] if 'user' in kwargs else args[1]
-        if user.max_blocked:
-            return
-        await func(*args, **kwargs)
-
-    return _func_wrapper
-
-
-def retry(start_sleep_time: int = 3, max_attempt_number: int = 5):
-    """Функция для повторного выполнения метода через некоторое время, если возникла ошибка."""
-
-    def _func_wrapper(func):
-        @functools.wraps(func)
-        async def _inner(*args, **kwargs):
-            user = kwargs['user'] if 'user' in kwargs else args[1]
-            for n in range(max_attempt_number):
-                try:
-                    return await func(*args, **kwargs)
-                except RETRIABLE_ERRORS as exc:
-                    logging.exception(f"Сообщение пользователю {user} не было отправлено. Ошибка отправления: {exc}")
-                    retry_delay = start_sleep_time * 3**n
-                    await asyncio.sleep(retry_delay)
-                    continue
-                except AiomaxException as exc:
-                    # импорт внутри функции: error_handler зависит от сервисов приложения,
-                    # которые импортируют src.bot.services
-                    from src.max_bot.error_handler import error_handler
-
-                    return await error_handler(user, exc)
-
-        return _inner
-
-    return _func_wrapper
-
-
-class MaxBot(aiomax.Bot):
+class MaxBot(aiomax.Bot, MessageSender):
     """Бот мессенджера Max.
 
     Дополняет aiomax обработкой события bot_stopped, нормализацией сообщений без текста
@@ -74,6 +32,9 @@ class MaxBot(aiomax.Bot):
     привязывается к текущему циклу событий. Экземпляр одноразовый - после stop()
     сессия закрыта, для нового запуска нужен новый экземпляр.
     """
+
+    RETRIABLE_ERRORS = (aiohttp.ClientError, asyncio.TimeoutError, InternalError)
+    SEND_ERRORS = (AiomaxException,)
 
     def __init__(self) -> None:
         super().__init__(settings.MAX_BOT_TOKEN, use_certificate=settings.MAX_BOT_USE_CERTIFICATE)
@@ -113,6 +74,16 @@ class MaxBot(aiomax.Bot):
             return
         await bot.stop()
         set_max_bot(None)
+
+    def is_user_blocked(self, user: models.User) -> bool:
+        return user.max_blocked
+
+    async def handle_send_error(self, user: models.User, error: AiomaxException) -> None:
+        # импорт внутри метода: error_handler зависит от сервисов приложения,
+        # которые импортируют src.bots.services
+        from src.max_bot.error_handler import error_handler
+
+        await error_handler(user, error)
 
     @check_user_blocked
     @retry()

@@ -7,7 +7,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
-from src.bot import services
+from src.bots import services
 from src.core import exceptions
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
