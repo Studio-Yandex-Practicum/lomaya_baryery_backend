@@ -4,11 +4,17 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional
 
 from telegram import ReplyKeyboardMarkup
-from telegram.error import NetworkError, RetryAfter, TelegramError, TimedOut
+from telegram.error import (
+    BadRequest,
+    Forbidden,
+    NetworkError,
+    RetryAfter,
+    TelegramError,
+    TimedOut,
+)
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.bot.error_handler import error_handler
 from src.bots.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
 from src.core.settings import settings
@@ -20,6 +26,7 @@ from src.core.utils import (
 from src.max_bot.instance import get_max_bot
 
 if TYPE_CHECKING:
+    from src.core.services.user_service import UserService
     from src.max_bot.main import MaxBot
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
@@ -28,6 +35,11 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 class BotService(MessageSender):
     RETRIABLE_ERRORS = (RetryAfter, TimedOut, NetworkError)
     SEND_ERRORS = (TelegramError,)
+    # У telegram о блокировке говорит не тип ошибки, а её текст
+    BLOCKING_ERROR_MESSAGES = {
+        BadRequest: ("Chat not found",),
+        Forbidden: ("Forbidden: bot was blocked by the user",),
+    }
 
     def __init__(self, telegram_bot: Application, max_bot: Optional["MaxBot"] = None) -> None:
         self.__bot = telegram_bot.bot
@@ -39,8 +51,11 @@ class BotService(MessageSender):
     def is_user_blocked(self, user: models.User) -> bool:
         return user.telegram_blocked
 
-    async def handle_send_error(self, user: models.User, error: TelegramError) -> None:
-        await error_handler(user, error)
+    def is_blocking_error(self, error: TelegramError) -> bool:
+        return error.message in self.BLOCKING_ERROR_MESSAGES.get(type(error), ())
+
+    async def set_user_blocked(self, user_service: "UserService", user: models.User) -> None:
+        await user_service.set_telegram_blocked(user)
 
     @check_user_blocked
     @retry()

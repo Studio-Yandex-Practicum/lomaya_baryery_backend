@@ -3,13 +3,18 @@ import logging
 import os
 import ssl
 from contextlib import suppress
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import urljoin
 
 import aiohttp
 import aiomax
 from aiolimiter import AsyncLimiter
-from aiomax.exceptions import AiomaxException, InternalError
+from aiomax.exceptions import (
+    AccessDeniedException,
+    AiomaxException,
+    ChatNotFound,
+    InternalError,
+)
 
 from src.bots.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
@@ -17,6 +22,9 @@ from src.core.settings import settings
 from src.max_bot import ui
 from src.max_bot.handlers import bot_stopped_handler, router
 from src.max_bot.instance import get_max_bot, set_max_bot
+
+if TYPE_CHECKING:
+    from src.core.services.user_service import UserService
 
 # Лимит API Max - 30 запросов в секунду, оставляем запас
 send_rate_limiter = AsyncLimiter(25, 1)
@@ -35,6 +43,8 @@ class MaxBot(aiomax.Bot, MessageSender):
 
     RETRIABLE_ERRORS = (aiohttp.ClientError, asyncio.TimeoutError, InternalError)
     SEND_ERRORS = (AiomaxException,)
+    # Ошибки API Max, означающие, что диалог с пользователем недоступен
+    BLOCKING_ERRORS = (AccessDeniedException, ChatNotFound)
 
     def __init__(self) -> None:
         super().__init__(settings.MAX_BOT_TOKEN, use_certificate=settings.MAX_BOT_USE_CERTIFICATE)
@@ -78,12 +88,8 @@ class MaxBot(aiomax.Bot, MessageSender):
     def is_user_blocked(self, user: models.User) -> bool:
         return user.max_blocked
 
-    async def handle_send_error(self, user: models.User, error: AiomaxException) -> None:
-        # импорт внутри метода: error_handler зависит от сервисов приложения,
-        # которые импортируют src.bots.services
-        from src.max_bot.error_handler import error_handler
-
-        await error_handler(user, error)
+    async def set_user_blocked(self, user_service: "UserService", user: models.User) -> None:
+        await user_service.set_max_blocked(user)
 
     @check_user_blocked
     @retry()

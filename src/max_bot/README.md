@@ -277,4 +277,5 @@ print("маршрутизация уведомлений - ок")
   связывание аккаунтов не реализовано.
 * Точный код ошибки API Max для заблокированного диалога (`access.denied` или
   `chat.not.found`) подтверждён только по документации библиотеки; список
-  обрабатываемых ошибок — в [error_handler.py](error_handler.py).
+  обрабатываемых ошибок — в `MaxBot.BLOCKING_ERRORS` ([main.py](main.py)), сама обработка
+  общая для обоих ботов — в [src/bots/error_handler.py](../bots/error_handler.py).
