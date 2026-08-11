@@ -11,10 +11,12 @@ async def error_handler(sender: MessageSender, user: User, error: Exception) -> 
     """Обработать ошибку отправки сообщения участнику.
 
     Если ошибка мессенджера означает, что пользователь заблокировал бота, отметить это
-    в базе, иначе передать ошибку дальше.
+    в базе. Остальные ошибки только записываются в лог: недоставленное уведомление
+    не должно ломать операцию администратора, которая уже сохранена в базе.
     """
     if not sender.is_blocking_error(error):
-        raise error
+        logging.error(f"Сообщение пользователю {user} не отправлено: {error!r}", exc_info=error)
+        return
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session), RequestRepository(session))

@@ -26,6 +26,10 @@ from src.max_bot.instance import get_max_bot, set_max_bot
 # Лимит API Max - 30 запросов в секунду, оставляем запас
 send_rate_limiter = AsyncLimiter(25, 1)
 
+# Ограничение на одну отправку. Нужно потому, что aiomax при ответе API attachment.not.ready
+# повторяет запрос рекурсивно и без ограничения числа попыток
+SEND_TIMEOUT = 30
+
 
 class MaxBot(aiomax.Bot, MessageSender):
     """Бот мессенджера Max.
@@ -52,6 +56,7 @@ class MaxBot(aiomax.Bot, MessageSender):
         self.add_router(router)
         self.__polling_task: Optional[asyncio.Task] = None
         self.__webhook_mode = False
+        self.__stopping = False
         self.session = self.__make_session()
 
     @classmethod
@@ -91,18 +96,21 @@ class MaxBot(aiomax.Bot, MessageSender):
         и используется обработчиками бота для ответов в чате.
         """
         async with send_rate_limiter:
-            await self.send_message(text, user_id=user.max_user_id)
+            await asyncio.wait_for(self.send_message(text, user_id=user.max_user_id), timeout=SEND_TIMEOUT)
 
     @check_user_blocked
     @retry()
     async def send_photo_to_user(self, user: models.User, photo: str, caption: str) -> None:
         """Отправить участнику проекта фото задания с клавиатурой ежедневного задания."""
         async with send_rate_limiter:
-            await self.send_message(
-                caption,
-                user_id=user.max_user_id,
-                attachments=aiomax.PhotoAttachment(url=photo),
-                keyboard=ui.DAILY_TASK_KEYBOARD,
+            await asyncio.wait_for(
+                self.send_message(
+                    caption,
+                    user_id=user.max_user_id,
+                    attachments=aiomax.PhotoAttachment(url=photo),
+                    keyboard=ui.DAILY_TASK_KEYBOARD,
+                ),
+                timeout=SEND_TIMEOUT,
             )
 
     async def handle_update(self, update: dict) -> None:
@@ -127,13 +135,16 @@ class MaxBot(aiomax.Bot, MessageSender):
             await self.post("subscriptions", json={"url": settings.max_webhook_url})
         else:
             self.__polling_task = asyncio.create_task(self.start_polling(session=self.session))
+            self.__polling_task.add_done_callback(self.__on_polling_finished)
 
     async def stop(self) -> None:
         """Остановить получение обновлений и освободить ресурсы."""
+        self.__stopping = True
         if self.__polling_task is not None:
             self.polling = False
             self.__polling_task.cancel()
-            with suppress(asyncio.CancelledError):
+            # задача могла завершиться ошибкой еще до отмены; ее уже записал __on_polling_finished
+            with suppress(asyncio.CancelledError, Exception):
                 await self.__polling_task
             self.__polling_task = None
         elif self.__webhook_mode:
@@ -142,6 +153,27 @@ class MaxBot(aiomax.Bot, MessageSender):
         # start_polling закрывает сессию сам, но только если успел её принять:
         # отмененная сразу после запуска задача оставила бы сессию открытой
         await self.close_session()
+
+    def __on_polling_finished(self, task: asyncio.Task) -> None:
+        """Снять бота с публикации, если polling завершился сам.
+
+        Иначе get_max_bot() продолжит отдавать бота с закрытой сессией, и каждая
+        отправка будет падать ошибкой, которую не обрабатывают ни retry, ни error_handler.
+        """
+        if self.__stopping or task.cancelled():
+            return
+        self.polling = False
+        error = task.exception()
+        if error is None:
+            logging.warning("Polling Max-бота остановился, Max-бот отключен.")
+        else:
+            logging.error(f"Polling Max-бота прерван ошибкой, Max-бот отключен: {error!r}", exc_info=error)
+        if get_max_bot() is self:
+            set_max_bot(None)
+        if self.session is not None and not self.session.closed:
+            # обычно сессию закрывает сам start_polling, но он мог упасть до этого
+            with suppress(RuntimeError):
+                asyncio.get_running_loop().create_task(self.close_session())
 
     async def close_session(self) -> None:
         """Закрыть сессию, если она еще не закрыта."""
