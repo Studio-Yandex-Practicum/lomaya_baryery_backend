@@ -5,7 +5,7 @@ from functools import cache
 from pathlib import Path
 from urllib.parse import urljoin
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, validator
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 if os.path.exists(str(BASE_DIR / ".env")):
@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     MAX_BOT_TOKEN: str = ""  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)
     MAX_BOT_WEBHOOK_MODE: bool = False  # запустить Max-бота в режиме webhook(true)|polling(false)
     MAX_BOT_USE_CERTIFICATE: bool = False  # использовать сертификат Минцифры для соединения с API Max
+    # Секрет в пути вебхука Max. Отдельный от SECRET_KEY: путь попадает в логи веб-сервера
+    # и в реестр подписок Max, поэтому ключ подписи jwt-токенов туда попадать не должен
+    MAX_WEBHOOK_SECRET: str = ""
 
     # Настройки взаимодействия с БД
     POSTGRES_DB: str  # Имя базы данных
@@ -160,13 +163,18 @@ class Settings(BaseSettings):
         """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
         return urljoin(self.api_url, "telegram/webhook")
 
+    @validator("MAX_WEBHOOK_SECRET", always=True)
+    def set_max_webhook_secret(cls, value: str) -> str:
+        """Подставить случайный секрет вебхука Max, если он не задан."""
+        return value or str(uuid.uuid4())
+
     @property
     def max_webhook_url(self) -> str:
         """Получить url-ссылку на эндпоинт для работы Max-бота в режиме webhook.
 
-        Секретный ключ в пути заменяет секретный заголовок, которого нет в API Max.
+        Секрет в пути заменяет секретный заголовок, которого нет в API Max.
         """
-        return urljoin(self.api_url, f"max/webhook/{self.SECRET_KEY}")
+        return urljoin(self.api_url, f"max/webhook/{self.MAX_WEBHOOK_SECRET}")
 
     class Config:
         env_file = ENV_FILE

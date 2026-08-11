@@ -94,7 +94,9 @@ Max (библиотека `aiomax`), дополнительный. Общее л
 [src/max_bot/README.md](src/max_bot/README.md).
 
 **Вебхуки.** Telegram проверяет секрет заголовком, у Max такого заголовка нет — поэтому его секрет
-зашит в путь URL (`/max/webhook/{SECRET_KEY}`), см. `settings.max_webhook_url`.
+зашит в путь URL (`/max/webhook/{MAX_WEBHOOK_SECRET}`), см. `settings.max_webhook_url`. Секрет
+отдельный от `SECRET_KEY`: путь попадает в логи веб-сервера и в реестр подписок Max, а `SECRET_KEY`
+подписывает jwt-токены администраторов.
 
 **Периодические задачи** — `job_queue` из python-telegram-bot, зарегистрированы в `create_bot()`
 ([src/bot/jobs.py](src/bot/jobs.py)): выдача ежедневного задания, напоминание о несданном отчёте,

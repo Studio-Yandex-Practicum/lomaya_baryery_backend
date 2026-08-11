@@ -117,6 +117,9 @@ async def update_user_data(
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
     user_data = json.loads(update.effective_message.web_app_data.data)
+    # идентификаторы мессенджеров задает сервер, из формы они не принимаются
+    user_data.pop("telegram_id", None)
+    user_data.pop("max_user_id", None)
     try:
         user_scheme = UserCreateRequest(**user_data)
     except ValidationError as e:

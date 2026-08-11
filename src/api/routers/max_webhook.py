@@ -1,3 +1,5 @@
+from secrets import compare_digest
+
 from fastapi import APIRouter, Request
 
 from src.core.exceptions import UnauthorizedError
@@ -18,7 +20,9 @@ if settings.MAX_BOT_WEBHOOK_MODE:
         У API Max нет аналога секретного заголовка telegram, поэтому
         секрет вебхука передается в пути, зарегистрированном в подписке.
         """
-        if secret != settings.SECRET_KEY:
+        # сравниваем байты: compare_digest не работает со строками, содержащими не-ASCII,
+        # а секрет приходит из пути запроса и может быть любым
+        if not compare_digest(secret.encode(), settings.MAX_WEBHOOK_SECRET.encode()):
             raise UnauthorizedError
         max_bot = request.app.state.max_bot
         if max_bot is None:
