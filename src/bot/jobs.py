@@ -10,7 +10,7 @@ from src.bot.api_services import (
     get_shift_service_callback,
 )
 from src.bot.ui import DAILY_TASK_BUTTONS
-from src.bots.services import BotService
+from src.bots.bot_service import BotService
 from src.core.db.db import get_session
 from src.core.db.models import Report
 from src.core.settings import settings

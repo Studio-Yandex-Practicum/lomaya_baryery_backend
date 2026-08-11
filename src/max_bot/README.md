@@ -26,7 +26,7 @@ Max-бот необязателен: если `MAX_BOT_TOKEN` не задан, �
 (наличие хотя бы одного проверяет constraint `users_messenger_id_check`).
 
 Отправку сообщений выполняют методы `BotService.send_message` / `send_photo`
-в [src/bots/services.py](../bots/services.py): telegram — поведение по умолчанию,
+в [src/bots/bot_service.py](../bots/bot_service.py): telegram — поведение по умолчанию,
 и только при заполненном `user.max_user_id` сообщение уходит через Max.
 
 ## 1. Получить токен Max-бота
@@ -206,7 +206,7 @@ Max-пользователю уходит в Max-ветку. Сохранить 
 ```python
 import asyncio
 
-from src.bots.services import BotService
+from src.bots.bot_service import BotService
 from src.core.db.models import User
 from src.max_bot import handlers
 from src.max_bot.handlers import router
