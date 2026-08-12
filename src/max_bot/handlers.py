@@ -1,6 +1,9 @@
+import asyncio
 import enum
-import uuid
+import hashlib
+import logging
 from datetime import datetime
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 import aiofiles
@@ -30,6 +33,10 @@ from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
 from src.max_bot import ui
 
+if TYPE_CHECKING:
+    # импорт только для аннотации: src.max_bot.main импортирует этот модуль
+    from src.max_bot.main import MaxBot
+
 router = aiomax.Router()
 
 START_TEXT = (
@@ -39,6 +46,9 @@ START_TEXT = (
     "В конце смены мы подведем итоги и наградим самых активных и старательных ребят!"
 )
 INVALID_DATE_FORMAT_TEXT = "Дата рождения должна быть в формате ДД.ММ.ГГГГ, например 01.09.2015."
+# Ограничение на скачивание фото отчёта: у сессии бота таймаут по умолчанию 5 минут,
+# столько ждать ответа участнику нельзя
+PHOTO_DOWNLOAD_TIMEOUT = 30
 TEXT_ONLY_ANSWER_TEXT = "Пожалуйста, отправь ответ текстовым сообщением."
 CANCEL_REGISTRATION_TEXT = "Заполнение данных прервано. Отправь /start, чтобы начать заново."
 
@@ -243,15 +253,30 @@ async def _restart_registration_dialog(message: aiomax.Message, cursor: aiomax.f
     await message.send(_registration_prompt(RegistrationState.NAME, current_values))
 
 
-async def download_photo_report(photo: aiomax.PhotoAttachment, shift_user_dir: str) -> str:
-    """Сохранить фото отчёта на диск."""
-    file_name = f"{uuid.uuid4().hex}.jpg"
-    file_path = f"{shift_user_dir}/{file_name}"
-    (settings.USER_REPORTS_DIR / shift_user_dir).mkdir(parents=True, exist_ok=True)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(photo.url) as response:
+async def download_photo_report(bot: "MaxBot", photo: aiomax.PhotoAttachment, shift_user_dir: str) -> str:
+    """Сохранить фото отчёта на диск и вернуть путь к файлу.
+
+    Имя файла - хеш содержимого, поэтому одно и то же фото всегда сохраняется по одному пути,
+    и повторно отправленный отчёт отклоняет ReportService.check_duplicate_report. В telegram
+    ту же роль играет file_unique_id, из которого собирается имя файла.
+
+    Фото скачивается сессией бота: она настроена на сертификат Минцифры, которым подписаны
+    домены Max, поэтому отдельная сессия падала бы на проверке TLS.
+    """
+    if photo.url is None:
+        # ссылку на файл дает API Max: без нее скачивать нечего
+        logging.error(f"API Max не передал ссылку на фото отчёта, photo_id: {photo.photo_id}.")
+        raise exceptions.ReportPhotoNotDownloadedError
+    try:
+        timeout = aiohttp.ClientTimeout(total=PHOTO_DOWNLOAD_TIMEOUT)
+        async with bot.session.get(photo.url, timeout=timeout) as response:
             response.raise_for_status()
             content = await response.read()
+    except (aiohttp.ClientError, asyncio.TimeoutError) as error:
+        logging.error(f"Не удалось скачать фото отчёта по ссылке {photo.url}: {error!r}", exc_info=error)
+        raise exceptions.ReportPhotoNotDownloadedError
+    file_path = f"{shift_user_dir}/{hashlib.sha256(content).hexdigest()}.jpg"
+    (settings.USER_REPORTS_DIR / shift_user_dir).mkdir(parents=True, exist_ok=True)
     async with aiofiles.open(settings.USER_REPORTS_DIR / file_path, "wb") as file:
         await file.write(content)
     return file_path
@@ -279,7 +304,7 @@ async def photo_handler(message: aiomax.Message) -> None:
         photo = next(
             attachment for attachment in message.body.attachments if isinstance(attachment, aiomax.PhotoAttachment)
         )
-        file_path = await download_photo_report(photo, f"{shift_dir}/{user.id}")
+        file_path = await download_photo_report(message.bot, photo, f"{shift_dir}/{user.id}")
         photo_url = urljoin(settings.USER_REPORTS_URL, file_path)
         await report_service.send_report(report, photo_url)
     except exceptions.ApplicationError as e:

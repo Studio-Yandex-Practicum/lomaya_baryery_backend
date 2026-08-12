@@ -93,6 +93,12 @@ class EmptyReportError(ApplicationError):
     detail = "Отчет должен содержать фото."
 
 
+class ReportPhotoNotDownloadedError(ApplicationError):
+    """Не удалось получить файл фотоотчета из мессенджера."""
+
+    detail = "Не удалось загрузить фотографию. Пожалуйста, отправь её ещё раз."
+
+
 class ReportCantBeSkippedError(BadRequestError):
     detail = "Ранее отправленный отчет проверяется или уже принят, сейчас нельзя пропустить задание."
 

@@ -33,6 +33,9 @@ FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 class BotService(MessageSender):
     RETRIABLE_ERRORS = (RetryAfter, TimedOut, NetworkError)
+    # BadRequest наследуется от NetworkError, но означает ошибку в самом запросе:
+    # повтор не поможет, а недоступный чат так и не был бы отмечен блокировкой
+    NON_RETRIABLE_ERRORS = (BadRequest,)
     SEND_ERRORS = (TelegramError,)
     # У telegram о блокировке говорит не тип ошибки, а её текст
     BLOCKING_ERROR_MESSAGES = {
