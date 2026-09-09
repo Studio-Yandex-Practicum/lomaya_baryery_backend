@@ -154,7 +154,7 @@ class User(Base):
     @property
     def is_blocked(self) -> bool:
         """Заблокировал ли пользователь бота своего мессенджера."""
-        return self.max_blocked if self.is_from_max else self.telegram_blocked
+        return self.max_blocked or self.telegram_blocked
 
     def block(self) -> None:
         """Отметить, что пользователь заблокировал бота своего мессенджера."""
