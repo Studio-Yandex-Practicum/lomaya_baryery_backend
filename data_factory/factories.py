@@ -7,7 +7,7 @@ import factory
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from src.bots import bot_service  # noqa: prevent circular imports error
+from src.bot import bot_service  # noqa: prevent circular imports error
 from src.core.db import models
 from src.core.db.models import Report, Shift, Task
 from src.core.services.authentication_service import AuthenticationService

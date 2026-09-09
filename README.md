@@ -263,7 +263,7 @@
     > telegram-бот и API работают в обычном режиме.
 
 Как получить токен, поднять и протестировать Max-бота локально:
-[src/max_bot/README.md](src/max_bot/README.md).
+[src/bot/max/README.md](src/bot/max/README.md).
 
 ### Работа с базой данных
 

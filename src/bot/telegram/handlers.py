@@ -14,8 +14,8 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
-from src.bot.api_services import get_user_service_callback
-from src.bot.ui import (
+from src.bot.telegram.api_services import get_user_service_callback
+from src.bot.telegram.ui import (
     CONFIRM_SKIP_TASK,
     CONFIRM_SKIP_TASK_KEYBOARD,
     LOMBARIERS_BALANCE,

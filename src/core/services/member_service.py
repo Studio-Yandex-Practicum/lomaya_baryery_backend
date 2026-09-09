@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import Depends
 from telegram.ext import Application
 
-from src.bots import bot_service
+from src.bot import bot_service
 from src.core.db.models import Member, Shift
 from src.core.db.repository import MemberRepository, ShiftRepository
 from src.core.settings import settings

@@ -16,12 +16,12 @@ from aiomax.exceptions import (
     InternalError,
 )
 
-from src.bots.services import MessageSender, check_user_blocked, retry
+from src.bot.max import ui
+from src.bot.max.handlers import bot_stopped_handler, router
+from src.bot.max.instance import get_max_bot, set_max_bot
+from src.bot.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
 from src.core.settings import settings
-from src.max_bot import ui
-from src.max_bot.handlers import bot_stopped_handler, router
-from src.max_bot.instance import get_max_bot, set_max_bot
 
 # Лимит API Max - 30 запросов в секунду, оставляем запас
 send_rate_limiter = AsyncLimiter(25, 1)

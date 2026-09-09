@@ -15,7 +15,8 @@ from telegram.error import (
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
-from src.bots.services import MessageSender, check_user_blocked, retry
+from src.bot.max.instance import get_max_bot
+from src.bot.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
 from src.core.settings import settings
 from src.core.utils import (
@@ -23,10 +24,9 @@ from src.core.utils import (
     get_lombaryers_for_quantity,
     get_message_with_numbers_attempts,
 )
-from src.max_bot.instance import get_max_bot
 
 if TYPE_CHECKING:
-    from src.max_bot.main import MaxBot
+    from src.bot.max.main import MaxBot
 
 FORMAT_PHOTO_DATE = "%d.%m.%Y"
 

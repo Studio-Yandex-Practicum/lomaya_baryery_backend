@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     # Настройки telegram-бота
     BOT_TOKEN: str  # Токен аутентификации бота
     BOT_WEBHOOK_MODE: bool = False  # запустить бота в режиме webhook(true)|polling(false)
-    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
+    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "telegram" / "bot_persistence_file")
 
     # Настройки бота дополнительного мессенджера Max
     MAX_BOT_TOKEN: str = ""  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)

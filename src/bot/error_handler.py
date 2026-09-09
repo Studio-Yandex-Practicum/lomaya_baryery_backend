@@ -1,6 +1,6 @@
 import logging
 
-from src.bots.services import MessageSender
+from src.bot.services import MessageSender
 from src.core.db.db import get_session
 from src.core.db.models import User
 from src.core.db.repository import RequestRepository, UserRepository

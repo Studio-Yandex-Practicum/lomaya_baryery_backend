@@ -8,7 +8,7 @@ from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
-from src.bots import bot_service
+from src.bot import bot_service
 from src.core import exceptions
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, Shift, User

@@ -19,7 +19,7 @@ from src.api.response_models.shift import (
     ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
-from src.bots import bot_service
+from src.bot import bot_service
 from src.core import exceptions
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import (

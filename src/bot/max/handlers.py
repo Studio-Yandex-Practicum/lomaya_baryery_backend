@@ -13,7 +13,8 @@ from pydantic import ValidationError
 from pydantic.error_wrappers import ValidationError as PydanticValidationError
 
 from src.api.request_models.user import DATE_FORMAT, UserCreateRequest
-from src.bot.api_services import get_user_service_callback
+from src.bot.max import ui
+from src.bot.telegram.api_services import get_user_service_callback
 from src.core import exceptions
 from src.core.db.db import get_session
 from src.core.db.repository import (
@@ -31,11 +32,10 @@ from src.core.services.task_service import TaskService
 from src.core.services.user_service import UserService
 from src.core.settings import settings
 from src.core.utils import get_lombaryers_for_quantity
-from src.max_bot import ui
 
 if TYPE_CHECKING:
-    # импорт только для аннотации: src.max_bot.main импортирует этот модуль
-    from src.max_bot.main import MaxBot
+    # импорт только для аннотации: src.bot.max.main импортирует этот модуль
+    from src.bot.max.main import MaxBot
 
 router = aiomax.Router()
 

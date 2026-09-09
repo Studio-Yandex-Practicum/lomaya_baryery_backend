@@ -1,7 +1,7 @@
 from telegram.ext import Application
 
-from src.bot.main import create_bot
-from src.max_bot.main import MaxBot
+from src.bot.max.main import MaxBot
+from src.bot.telegram.main import create_bot
 
 
 async def start_additional_bots(_: Application) -> None:

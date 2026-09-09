@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import routers
-from src.bot.main import start_bot
+from src.bot.max.main import MaxBot
+from src.bot.telegram.main import start_bot
 from src.core import exceptions
 from src.core.exception_handlers import (
     application_error_handler,
@@ -12,7 +13,6 @@ from src.core.exception_handlers import (
 )
 from src.core.settings import settings
 from src.core.utils import setup_logging
-from src.max_bot.main import MaxBot
 
 
 def create_app() -> FastAPI:

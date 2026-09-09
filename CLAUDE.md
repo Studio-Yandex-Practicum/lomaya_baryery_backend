@@ -74,14 +74,14 @@ middleware, а явный вызов `AuthenticationService.check_administrator_
 **Два пути внедрения зависимостей — ключевая особенность.** Сервисы принимают репозитории через
 `Depends()` в `__init__`, что работает только внутри HTTP-запроса. Вне запроса (хендлеры ботов,
 джобы планировщика) те же сервисы собираются руками из генератора сессий фабриками в
-[src/bot/api_services.py](src/bot/api_services.py). Меняя конструктор сервиса, поправьте и
+[src/bot/telegram/api_services.py](src/bot/telegram/api_services.py). Меняя конструктор сервиса, поправьте и
 соответствующую фабрику — иначе сломается бот, а не API, и линтеры этого не заметят.
 
-**Два мессенджера.** `src/bot/` — telegram (python-telegram-bot), основной канал; `src/max_bot/` —
-Max (библиотека `aiomax`), дополнительный. Общее лежит в `src/bots/`: контракт `MessageSender`,
+**Два мессенджера.** `src/bot/telegram/` — telegram (python-telegram-bot), основной канал; `src/bot/max/` —
+Max (библиотека `aiomax`), дополнительный. Общее лежит в корне пакета `src/bot/`: контракт `MessageSender`,
 декораторы `check_user_blocked` и `retry`, единый `error_handler`, помечающий пользователя
 заблокированным. Исходящие уведомления идут через `BotService` в
-[src/bots/bot_service.py](src/bots/bot_service.py), который маршрутизирует по пользователю: при
+[src/bot/bot_service.py](src/bot/bot_service.py), который маршрутизирует по пользователю: при
 заполненном `user.max_user_id` — в Max, иначе в telegram.
 
 Соглашение об именах: telegram-сущности носят «голые» имена (`BOT_TOKEN`, `telegram_id`,
@@ -89,9 +89,9 @@ Max (библиотека `aiomax`), дополнительный. Общее л
 он просто не запускается.
 
 Два обхода циклических импортов, которые надо сохранять: синглтон Max-бота живёт в листовом модуле
-`src/max_bot/instance.py`, а `error_handler` импортируется лениво внутри
+`src/bot/max/instance.py`, а `error_handler` импортируется лениво внутри
 `MessageSender.handle_send_error`. Подробности отличий Max от telegram — в
-[src/max_bot/README.md](src/max_bot/README.md).
+[src/bot/max/README.md](src/bot/max/README.md).
 
 **Вебхуки.** Telegram проверяет секрет заголовком, у Max такого заголовка нет — поэтому его секрет
 зашит в путь URL (`/max/webhook/{MAX_WEBHOOK_SECRET}`), см. `settings.max_webhook_url`. Секрет
@@ -99,7 +99,7 @@ Max (библиотека `aiomax`), дополнительный. Общее л
 подписывает jwt-токены администраторов.
 
 **Периодические задачи** — `job_queue` из python-telegram-bot, зарегистрированы в `create_bot()`
-([src/bot/jobs.py](src/bot/jobs.py)): выдача ежедневного задания, напоминание о несданном отчёте,
+([src/bot/telegram/jobs.py](src/bot/telegram/jobs.py)): выдача ежедневного задания, напоминание о несданном отчёте,
 автозавершение смены. Работают только когда запущен telegram-бот.
 
 **Настройки** — pydantic v1 `BaseSettings` в [src/core/settings.py](src/core/settings.py),

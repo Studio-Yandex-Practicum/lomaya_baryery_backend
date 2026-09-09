@@ -1,6 +1,6 @@
 # Бот мессенджера Max: запуск и локальное тестирование
 
-Основной бот проекта — telegram-бот (`src/bot/`). Модуль `src/max_bot/` добавляет
+Основной бот проекта — telegram-бот (`src/bot/telegram/`). Модуль `src/bot/max/` добавляет
 дополнительный канал — бота мессенджера [Max](https://dev.max.ru), который повторяет
 сценарии основного бота: регистрация, фотоотчёты, баланс ломбарьеров, пропуск задания,
 ежедневные рассылки и уведомления из админки.
@@ -26,7 +26,7 @@ Max-бот необязателен: если `MAX_BOT_TOKEN` не задан, �
 (наличие хотя бы одного проверяет constraint `users_messenger_id_check`).
 
 Отправку сообщений выполняют методы `BotService.send_message` / `send_photo`
-в [src/bots/bot_service.py](../bots/bot_service.py): telegram — поведение по умолчанию,
+в [src/bot/bot_service.py](../bot_service.py): telegram — поведение по умолчанию,
 и только при заполненном `user.max_user_id` сообщение уходит через Max.
 
 ## 1. Получить токен Max-бота
@@ -225,8 +225,8 @@ import asyncio
 
 from src.bots.bot_service import BotService
 from src.core.db.models import User
-from src.max_bot import handlers
-from src.max_bot.handlers import router
+from src.bot.max import handlers
+from src.bot.max.handlers import router
 
 # 1. Валидация шагов диалога регистрации
 for field, value, valid in (
@@ -300,4 +300,4 @@ print("маршрутизация уведомлений - ок")
 * Точный код ошибки API Max для заблокированного диалога (`access.denied` или
   `chat.not.found`) подтверждён только по документации библиотеки; список
   обрабатываемых ошибок — в `MaxBot.BLOCKING_ERRORS` ([main.py](main.py)), сама обработка
-  общая для обоих ботов — в [src/bots/error_handler.py](../bots/error_handler.py).
+  общая для обоих ботов — в [src/bot/error_handler.py](../error_handler.py).

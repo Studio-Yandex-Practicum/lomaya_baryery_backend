@@ -7,7 +7,7 @@ from pydantic.schema import UUID
 from telegram.ext import Application
 
 from src.api.response_models.report import ReportResponse
-from src.bots import bot_service
+from src.bot import bot_service
 from src.core import exceptions
 from src.core.db import DTO_models
 from src.core.db.models import Member, Report, Shift, Task
@@ -51,7 +51,8 @@ class ReportService:
             raise exceptions.ReportAlreadySkippedError
 
     async def get_today_task_and_active_members(
-            self, shift: Shift, current_day_of_month: int) -> tuple[Task, list[Member]]:
+        self, shift: Shift, current_day_of_month: int
+    ) -> tuple[Task, list[Member]]:
         """Получить ежедневное задание и список активных участников смены."""
         members = await self.__member_repository.get_active_members_for_shift(shift.id)
         task = await self.__task_service.get_task_by_day_of_month(shift.tasks, current_day_of_month)

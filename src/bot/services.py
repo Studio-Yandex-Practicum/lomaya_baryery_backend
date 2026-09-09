@@ -34,7 +34,7 @@ class MessageSender:
         """Обработать ошибку отправки, не требующую повтора."""
         # импорт внутри метода: error_handler зависит от сервисов приложения,
         # которые импортируют этот модуль
-        from src.bots.error_handler import error_handler
+        from src.bot.error_handler import error_handler
 
         await error_handler(self, user, error)
 
