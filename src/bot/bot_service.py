@@ -15,6 +15,7 @@ from telegram.error import (
 from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
+from src.api.request_models.user import DATE_FORMAT
 from src.bot.max.instance import get_max_bot
 from src.bot.services import MessageSender, check_user_blocked, retry
 from src.core.db import models
@@ -27,8 +28,6 @@ from src.core.utils import (
 
 if TYPE_CHECKING:
     from src.bot.max.main import MaxBot
-
-FORMAT_PHOTO_DATE = "%d.%m.%Y"
 
 
 class BotService(MessageSender):
@@ -111,7 +110,7 @@ class BotService(MessageSender):
 
         - Задание принято, начислен 1 ломбарьерчик.
         """
-        photo_date = datetime.strftime(report.uploaded_at, FORMAT_PHOTO_DATE)
+        photo_date = datetime.strftime(report.uploaded_at, DATE_FORMAT)
         text = f"Твой отчет от {photo_date} принят! Тебе начислен 1 \"ломбарьерчик\". "
         if date.today() < shift.finished_at:
             text = text + f"Следующее задание придет в {settings.FORMATTED_TASK_TIME} часов утра."
@@ -123,7 +122,7 @@ class BotService(MessageSender):
         - Задание не принято.
         """
         text = (
-            f"К сожалению, мы не можем принять твой фотоотчет от {report.uploaded_at:%d.%m.%Y}! "
+            f"К сожалению, мы не можем принять твой фотоотчет от {report.uploaded_at.strftime(DATE_FORMAT)}! "
             "Возможно на фотографии не видно, что именно ты выполняешь задание. "
         )
         if date.today() < shift.finished_at and report.task_date == get_current_task_date():
