@@ -30,7 +30,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 docker-compose -f docker-compose.local.yaml up -d  # Postgres на порту 6100, nginx на 80, сборка фронта
 alembic upgrade head
 python run.py       # API + оба бота, uvicorn на 0.0.0.0:8080; наружу проксирует nginx (http://localhost)
-python run_bot.py   # только боты, без API; возможно лишь в режиме polling
+python run_bots.py   # только боты, без API; возможно лишь в режиме polling
 python -m data_factory.main  # тестовые данные (нужна dev-группа)
 ```
 

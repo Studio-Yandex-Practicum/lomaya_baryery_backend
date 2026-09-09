@@ -1,3 +1,8 @@
+"""Запуск telegram- и Max-ботов без основного приложения.
+
+Оба бота работают только в режиме polling: telegram поднимается через create_bot(),
+Max - в его post_init/post_shutdown. Для разработки и тестирования ботов без API.
+"""
 from telegram.ext import Application
 
 from src.bot.max.main import MaxBot

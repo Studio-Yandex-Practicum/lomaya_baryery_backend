@@ -139,7 +139,7 @@ python run.py
 Только боты, без API (оба в режиме polling):
 
 ```shell
-python run_bot.py
+python run_bots.py
 ```
 
 Признак успешного старта Max-бота в логах:
