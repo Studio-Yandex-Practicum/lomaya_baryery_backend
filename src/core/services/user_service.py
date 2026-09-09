@@ -51,8 +51,23 @@ class UserService:
 
     async def register_user(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        shift_id = await self.__shift_service.get_open_for_registration_shift_id()
         user = await self.__update_or_create_user(new_user_data)
+        await self.__request_participation(user)
+
+    async def switch_user_to_max(self, user: User, max_user_id: int) -> None:
+        """Перевести пользователя на мессенджер Max и подать заявку на текущую смену.
+
+        Вызывается, когда участник, ранее зарегистрированный в telegram, начинает
+        регистрацию в Max под тем же номером телефона: анкета и история сохраняются,
+        меняется только канал связи.
+        """
+        user.switch_to_max(max_user_id)
+        await self.__user_repository.update(user.id, user)
+        await self.__request_participation(user)
+
+    async def __request_participation(self, user: User) -> None:
+        """Создать или обновить заявку пользователя на участие в открытой смене."""
+        shift_id = await self.__shift_service.get_open_for_registration_shift_id()
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
         if request:
             await self.__update_request_data(request)
@@ -99,6 +114,10 @@ class UserService:
     async def get_user_by_max_id(self, max_user_id: int) -> User:
         """Получить участника проекта по его max_user_id."""
         return await self.__user_repository.get_by_max_user_id(max_user_id)
+
+    async def get_user_by_phone_number(self, phone_number: str) -> Optional[User]:
+        """Получить участника проекта по его номеру телефона."""
+        return await self.__user_repository.get_by_phone_number(phone_number)
 
     async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> UserDetailResponse:
         """Получить участника проекта с информацией о сменах по его id."""

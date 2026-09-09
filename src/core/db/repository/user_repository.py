@@ -59,6 +59,10 @@ class UserRepository(AbstractRepository):
         user = await self._session.execute(select(User).where(User.max_user_id == max_user_id))
         return user.scalars().first()
 
+    async def get_by_phone_number(self, phone_number: str) -> Optional[User]:
+        user = await self._session.execute(select(User).where(User.phone_number == phone_number))
+        return user.scalars().first()
+
     async def check_user_existence(
         self, telegram_id: Optional[int] = None, phone_number: Optional[str] = None, max_user_id: Optional[int] = None
     ) -> bool:
@@ -108,13 +112,7 @@ class UserRepository(AbstractRepository):
 
     async def get_users_by_shift_id(self, shift_id: UUID) -> list[User]:
         users = await self._session.execute(
-            select(User).where(
-                User.id.in_(
-                    select(Request.user_id).where(
-                        Request.shift_id == shift_id
-                    )
-                )
-            )
+            select(User).where(User.id.in_(select(Request.user_id).where(Request.shift_id == shift_id)))
         )
 
         return users.scalars().all()

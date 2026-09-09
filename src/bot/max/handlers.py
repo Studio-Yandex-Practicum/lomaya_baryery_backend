@@ -51,6 +51,11 @@ INVALID_DATE_FORMAT_TEXT = "Дата рождения должна быть в �
 PHOTO_DOWNLOAD_TIMEOUT = 30
 TEXT_ONLY_ANSWER_TEXT = "Пожалуйста, отправь ответ текстовым сообщением."
 CANCEL_REGISTRATION_TEXT = "Заполнение данных прервано. Отправь /start, чтобы начать заново."
+SWITCHED_TO_MAX_TEXT = (
+    "Мы нашли твою анкету по этому номеру телефона. Продолжим общение здесь, в Max, "
+    "а в Telegram уведомления приходить перестанут. Остальные данные заполнять не нужно - "
+    "они уже есть. Процесс обработки заявок занимает некоторое время, тебе придет уведомление."
+)
 
 
 class RegistrationState(str, enum.Enum):
@@ -202,12 +207,37 @@ async def registration_dialog(message: aiomax.Message, cursor: aiomax.fsm.FSMCur
         return
     data["fields"][field_name] = text
     cursor.change_data(data)
+    if state is RegistrationState.PHONE_NUMBER and await _try_switch_to_max(message, cursor, text):
+        # участник уже зарегистрирован под этим номером в telegram - перенесли на Max,
+        # остальные данные заполнять не нужно
+        return
     next_state = NEXT_REGISTRATION_STATE[state]
     if next_state is not None:
         cursor.change_state(next_state)
         await message.send(_registration_prompt(next_state, data.get("current")))
         return
     await _finish_registration(message, cursor, data)
+
+
+async def _try_switch_to_max(message: aiomax.Message, cursor: aiomax.fsm.FSMCursor, phone_number: str) -> bool:
+    """Перевести на Max участника, уже зарегистрированного в telegram под этим номером.
+
+    Возвращает True, если перенос выполнен и диалог регистрации завершён.
+    """
+    session = get_session()
+    user_service = await get_user_service_callback(session)
+    user = await user_service.get_user_by_phone_number(phone_number)
+    if user is None or user.is_from_max:
+        return False
+    try:
+        await user_service.switch_user_to_max(user, message.sender.user_id)
+    except exceptions.ApplicationError as e:
+        await message.send(e.detail)
+        cursor.clear()
+        return True
+    cursor.clear()
+    await message.send(SWITCHED_TO_MAX_TEXT)
+    return True
 
 
 async def _finish_registration(message: aiomax.Message, cursor: aiomax.fsm.FSMCursor, data: dict) -> None:

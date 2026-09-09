@@ -170,6 +170,16 @@ class User(Base):
         else:
             self.telegram_blocked = False
 
+    def switch_to_max(self, max_user_id: int) -> None:
+        """Сменить основной мессенджер пользователя на Max.
+
+        Telegram-канал отключается: у пользователя всегда заполнен ровно один
+        идентификатор мессенджера. Анкета, заявки и участия сохраняются.
+        """
+        self.telegram_id = None
+        self.telegram_blocked = False
+        self.max_user_id = max_user_id
+
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"
 
