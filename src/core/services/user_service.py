@@ -25,11 +25,9 @@ def validate_date_of_birth(value: date) -> None:
         raise exceptions.NotValidValueError(f'Возраст не может быть менее {settings.MIN_AGE} лет.')
 
 
-async def validate_user_not_exists(
-    user_repository: UserRepository, telegram_id: int = None, phone_number: str = None
-) -> None:
-    """Проверка, что в БД нет пользователя с указанным telegram_id или phone_number."""
-    user_exists = await user_repository.check_user_existence(telegram_id, phone_number)
+async def validate_user_not_exists(user: UserCreateRequest, user_repository: UserRepository) -> None:
+    """Проверка, что в БД нет пользователя с указанным telegram_id, max_user_id или phone_number."""
+    user_exists = await user_repository.check_user_existence(user.telegram_id, user.phone_number, user.max_user_id)
     if user_exists:
         raise exceptions.NotValidValueError('Пользователь с таким номером телефона уже существует.')
 
@@ -37,7 +35,7 @@ async def validate_user_not_exists(
 async def validate_user_create(user: UserCreateRequest, user_repository: UserRepository) -> None:
     """Валидация персональных данных пользователя."""
     validate_date_of_birth(user.date_of_birth)
-    await validate_user_not_exists(user_repository, user.telegram_id, user.phone_number)
+    await validate_user_not_exists(user, user_repository)
 
 
 class UserService:
@@ -53,8 +51,23 @@ class UserService:
 
     async def register_user(self, new_user_data: UserCreateRequest) -> None:
         """Регистрация пользователя. Отправка запроса на участие в смене."""
-        shift_id = await self.__shift_service.get_open_for_registration_shift_id()
         user = await self.__update_or_create_user(new_user_data)
+        await self.__request_participation(user)
+
+    async def switch_user_to_max(self, user: User, max_user_id: int) -> None:
+        """Перевести пользователя на мессенджер Max и подать заявку на текущую смену.
+
+        Вызывается, когда участник, ранее зарегистрированный в telegram, начинает
+        регистрацию в Max под тем же номером телефона: анкета и история сохраняются,
+        меняется только канал связи.
+        """
+        user.switch_to_max(max_user_id)
+        await self.__user_repository.update(user.id, user)
+        await self.__request_participation(user)
+
+    async def __request_participation(self, user: User) -> None:
+        """Создать или обновить заявку пользователя на участие в открытой смене."""
+        shift_id = await self.__shift_service.get_open_for_registration_shift_id()
         request = await self.__request_repository.get_by_user_and_shift(user.id, shift_id)
         if request:
             await self.__update_request_data(request)
@@ -75,7 +88,10 @@ class UserService:
 
     async def __update_or_create_user(self, user_scheme: UserCreateRequest) -> User:
         """Получение пользователя: обновление или создание."""
-        db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
+        if user_scheme.telegram_id is not None:
+            db_user = await self.__user_repository.get_by_telegram_id(user_scheme.telegram_id)
+        else:
+            db_user = await self.__user_repository.get_by_max_user_id(user_scheme.max_user_id)
         if db_user:
             return await self.__update_user_if_data_changed(db_user, user_scheme)
         user = user_scheme.create_db_model()
@@ -95,6 +111,14 @@ class UserService:
         """Получить участника проекта по его telegram_id."""
         return await self.__user_repository.get_by_telegram_id(telegram_id)
 
+    async def get_user_by_max_id(self, max_user_id: int) -> User:
+        """Получить участника проекта по его max_user_id."""
+        return await self.__user_repository.get_by_max_user_id(max_user_id)
+
+    async def get_user_by_phone_number(self, phone_number: str) -> Optional[User]:
+        """Получить участника проекта по его номеру телефона."""
+        return await self.__user_repository.get_by_phone_number(phone_number)
+
     async def get_user_by_id_with_shifts_detail(self, user_id: UUID) -> UserDetailResponse:
         """Получить участника проекта с информацией о сменах по его id."""
         user = await self.__user_repository.get(user_id)
@@ -112,12 +136,14 @@ class UserService:
     ) -> list[UserWithStatusResponse]:
         return await self.__user_repository.get_users_with_status(status, field_sort, direction_sort)
 
-    async def set_telegram_blocked(self, user: User) -> None:
-        user.telegram_blocked = True
+    async def block_user(self, user: User) -> None:
+        """Отметить, что пользователь заблокировал бота своего мессенджера."""
+        user.block()
         await self.__user_repository.update(user.id, user)
 
-    async def unset_telegram_blocked(self, user: User) -> None:
-        user.telegram_blocked = False
+    async def unblock_user(self, user: User) -> None:
+        """Снять отметку о блокировке бота своего мессенджера."""
+        user.unblock()
         await self.__user_repository.update(user.id, user)
 
     async def check_before_change_user_data(self, user_id: UUID) -> None:

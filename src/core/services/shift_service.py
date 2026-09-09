@@ -19,7 +19,7 @@ from src.api.response_models.shift import (
     ShiftMembersResponse,
     ShiftWithTotalUsersResponse,
 )
-from src.bot import services
+from src.bot import bot_service
 from src.core import exceptions
 from src.core.db.models import Member, Report, Request, Shift, User
 from src.core.db.repository import (
@@ -56,7 +56,7 @@ class ShiftService:
         self.__report_repository = report_repository
         self.__user_repository = user_repository
         self.__request_repository = request_repository
-        self.__telegram_bot = services.BotService
+        self.__telegram_bot = bot_service.BotService
 
     @staticmethod
     def __check_date_not_today_or_in_past(_date: date) -> None:

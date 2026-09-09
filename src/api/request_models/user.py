@@ -17,6 +17,7 @@ DATE_FORMAT = "%d.%m.%Y"
 
 class UserCreateRequest(BaseModel):
     telegram_id: Optional[StrictInt]
+    max_user_id: Optional[StrictInt]
     name: StrictStr = Field(min_length=2, max_length=100)
     surname: StrictStr = Field(min_length=2, max_length=100)
     date_of_birth: PastDate
@@ -56,6 +57,7 @@ class UserCreateRequest(BaseModel):
 
     def update_db_model(self, user: User) -> User:
         user.telegram_id = self.telegram_id
+        user.max_user_id = self.max_user_id
         user.name = self.name
         user.surname = self.surname
         user.date_of_birth = self.date_of_birth
@@ -67,6 +69,7 @@ class UserCreateRequest(BaseModel):
         return all(
             (
                 self.telegram_id == user.telegram_id,
+                self.max_user_id == user.max_user_id,
                 self.name == user.name,
                 self.surname == user.surname,
                 self.date_of_birth == user.date_of_birth,

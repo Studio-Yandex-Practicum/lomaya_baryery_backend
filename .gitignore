@@ -31,3 +31,4 @@ fill_db.log
 frontend/
 
 venv/
+.DS_Store

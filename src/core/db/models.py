@@ -8,6 +8,7 @@ from sqlalchemy import (
     TIMESTAMP,
     BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     Enum,
     Identity,
@@ -118,13 +119,19 @@ class User(Base):
         PENDING = "pending"
 
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "telegram_id IS NOT NULL OR max_user_id IS NOT NULL",
+            name="users_messenger_id_check",
+        ),
+    )
 
     name = Column(String(100), nullable=False)
     surname = Column(String(100), nullable=False)
     date_of_birth = Column(DATE, nullable=False)
     city = Column(String(50), nullable=False)
     phone_number = Column(String(16), unique=True, nullable=False)
-    telegram_id = Column(BigInteger, unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=True)
     status = Column(
         Enum(Status, name="user_status", values_callable=lambda obj: [e.value for e in obj]),
         default=Status.PENDING.value,
@@ -134,6 +141,44 @@ class User(Base):
     members = relationship("Member", back_populates="user")
     telegram_blocked = Column(Boolean, default=False, nullable=False)
     is_test_user = Column(Boolean, default=False, nullable=False)
+    # Поля дополнительного канала связи - мессенджера Max.
+    # Заполняются только у пользователей, пришедших не из telegram
+    max_user_id = Column(BigInteger, unique=True, nullable=True)
+    max_blocked = Column(Boolean, default=False, nullable=False)
+
+    @property
+    def is_from_max(self) -> bool:
+        """Пришел ли пользователь из мессенджера Max, а не из telegram."""
+        return self.max_user_id is not None
+
+    @property
+    def is_blocked(self) -> bool:
+        """Заблокировал ли пользователь бота своего мессенджера."""
+        return self.max_blocked or self.telegram_blocked
+
+    def block(self) -> None:
+        """Отметить, что пользователь заблокировал бота своего мессенджера."""
+        if self.is_from_max:
+            self.max_blocked = True
+        else:
+            self.telegram_blocked = True
+
+    def unblock(self) -> None:
+        """Снять отметку о блокировке бота своего мессенджера."""
+        if self.is_from_max:
+            self.max_blocked = False
+        else:
+            self.telegram_blocked = False
+
+    def switch_to_max(self, max_user_id: int) -> None:
+        """Сменить основной мессенджер пользователя на Max.
+
+        Telegram-канал отключается: у пользователя всегда заполнен ровно один
+        идентификатор мессенджера. Анкета, заявки и участия сохраняются.
+        """
+        self.telegram_id = None
+        self.telegram_blocked = False
+        self.max_user_id = max_user_id
 
     def __repr__(self):
         return f"<User: {self.id}, name: {self.name}, surname: {self.surname}>"

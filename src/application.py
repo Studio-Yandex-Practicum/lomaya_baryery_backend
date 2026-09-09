@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import routers
-from src.bot.main import start_bot
+from src.bot.max.main import MaxBot
+from src.bot.telegram.main import start_bot
 from src.core import exceptions
 from src.core.exception_handlers import (
     application_error_handler,
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(routers.shift_router)
     app.include_router(routers.task_router)
     app.include_router(routers.telegram)
+    app.include_router(routers.max_router)
     app.include_router(routers.user_router)
 
     app.add_exception_handler(HTTPStatus.INTERNAL_SERVER_ERROR, internal_exception_handler)
@@ -51,6 +53,7 @@ def create_app() -> FastAPI:
         # storing bot_instance to extra state of FastAPI app instance
         # refer to https://www.starlette.io/applications/#storing-state-on-the-app-instance
         app.state.bot_instance = bot_instance
+        app.state.max_bot = await MaxBot.start_bot()
 
     @app.on_event("shutdown")
     async def on_shutdown():
@@ -62,5 +65,6 @@ def create_app() -> FastAPI:
             await bot_instance.updater.stop()
         await bot_instance.stop()
         await bot_instance.shutdown()
+        await MaxBot.stop_bot()
 
     return app

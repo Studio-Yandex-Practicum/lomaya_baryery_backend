@@ -8,7 +8,7 @@ from telegram.ext import Application
 
 from src.api.request_models.request import RequestDeclineRequest
 from src.api.response_models.request import RequestResponse
-from src.bot import services
+from src.bot import bot_service
 from src.core import exceptions
 from src.core.db.DTO_models import RequestDTO
 from src.core.db.models import Member, Request, Shift, User
@@ -33,7 +33,7 @@ class RequestService:
         self.__user_repository = user_repository
         self.__shift_service = shift_service
         self.__report_service = report_service
-        self.__telegram_bot = services.BotService
+        self.__telegram_bot = bot_service.BotService
 
     async def __create_user_dir(self, user: User, request: Request) -> None:
         shift_dir = await self.__shift_service.get_shift_dir(request.shift_id)

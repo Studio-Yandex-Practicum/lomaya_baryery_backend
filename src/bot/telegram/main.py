@@ -16,7 +16,7 @@ from telegram.ext import (
 )
 from telegram.ext.filters import PHOTO, TEXT, StatusUpdate
 
-from src.bot.handlers import (
+from src.bot.telegram.handlers import (
     button_handler,
     chat_member_handler,
     incorrect_report_type_handler,
@@ -25,7 +25,7 @@ from src.bot.handlers import (
     start,
     web_app_data,
 )
-from src.bot.jobs import (
+from src.bot.telegram.jobs import (
     finish_shift_automatically_job,
     send_daily_task_job,
     send_no_report_reminder_job,

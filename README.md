@@ -16,6 +16,7 @@
           <a href="#зависимости">Зависимости</a>
           <ul>
             <li><a href="#poetry">Poetry</a></li>
+            <li><a href="#python">Python</a></li>
           </ul>
         </li>
         <li><a href="#установка">Установка</a></li>
@@ -32,6 +33,7 @@
             <li><a href="#запуск-без-api-приложения">Запуск без API приложения</a></li>
             <li><a href="#polling">Polling</a></li>
             <li><a href="#webhook">Webhook</a></li>
+            <li><a href="#бот-мессенджера-max">Бот мессенджера Max</a></li>
           </ul>
         </li>
         <li>
@@ -51,7 +53,7 @@
             <li><a href="#запустить-скрипт-без-активации-виртуального-окружения">Запустить скрипт без активации виртуального окружения</a></li>
           </ul>
         </li>
-        <li><a href="#использование-ngrok">Использование Ngrok</a></li>
+        <li><a href="#использование-cloudflare-tunnel">Использование Cloudflare Tunnel</a></li>
         <li><a href="#переменные-окружения-env">Переменные окружения (.env)</a></li>
       </ul>
     </li>
@@ -99,9 +101,13 @@
 
 Подробнее: https://python-poetry.org/
 
-1. Установить, следуя официальным инструкциям.
+1. Установить **Poetry 1.3.2**.
 
-    https://python-poetry.org/docs/#installation
+    ```shell
+    pipx install 'poetry==1.3.2'
+    ```
+
+    Подробнее об установке: https://python-poetry.org/docs/#installation
 
 2. Изменить конфигурацию Poetry (опционально).
 
@@ -110,6 +116,14 @@
     ```
     > **Note**:
     > Позволяет создавать виртуальное окружение в папке проекта.
+
+#### Python
+
+Проект работает на **Python 3.10**. Пины в `poetry.lock` относятся к началу 2023 года и не собираются под более новыми
+интерпретаторами.
+
+Подойдёт любой способ — `brew install python@3.10`, установщик с [python.org](https://www.python.org/),
+`pyenv`, `uv python install 3.10`.
 
 ### Установка
 
@@ -123,6 +137,7 @@
 2. Создать и активировать виртуальное окружение.
 
     ```shell
+    poetry env use 3.10
     poetry install
     poetry shell
     ```
@@ -143,6 +158,7 @@
     ```dotenv
     BOT_TOKEN=<Токен аутентификации бота>
     APPLICATION_URL=https://example.com  # Необязательно, пример
+    DEBUG=True  # Для локальной разработки
     ```
 
     > **Warning**:
@@ -151,14 +167,15 @@
 
     > **Warning**:
     > Необходимо доменное имя с установленным SSL-сертификатом.
-    > Иначе обратитесь к разделу "[Использование Ngrok](#использование-ngrok)".
+    > Иначе обратитесь к разделу
+    > "[Использование Cloudflare Tunnel](#использование-cloudflare-tunnel)".
 
 ### Запуск
 
 1. Выполнить запуск контейнеров docker.
 
     ```shell
-    docker-compose -f docker-compose.local.yaml up -d
+    docker compose -f docker-compose.local.yaml up -d
     ```
 
     > **Note**:
@@ -182,7 +199,11 @@
 "[Установка и Запуск](#установка-и-запуск)", вы сможете получить
 доступ к админке, перейдя по адресу http://localhost.
 
-Также по адресу http://localhost/api/docs доступна полная документация API.
+Также по адресу http://localhost/api/docs доступна полная документация API —
+но только при `DEBUG=True` в `.env`, иначе Swagger и ReDoc отключены.
+
+Сам uvicorn слушает `0.0.0.0:8080`, а на 80-й порт его проксирует nginx
+из `docker-compose.local.yaml`.
 
 ## Полезная информация
 
@@ -196,7 +217,7 @@
 1. Выполнить скрипт запуска.
 
     ```shell
-    python run_bot.py
+    python run_bots.py
     ```
 
     > **Warning**:
@@ -221,7 +242,28 @@
 
     > **Warning**:
     > Необходимо доменное имя с установленным SSL-сертификатом.
-    > Иначе обратитесь к разделу "[Использование Ngrok](#использование-ngrok)".
+    > Иначе обратитесь к разделу
+    > "[Использование Cloudflare Tunnel](#использование-cloudflare-tunnel)".
+
+#### Бот мессенджера Max
+
+Помимо telegram-бота проект поддерживает бота мессенджера
+[Max](https://dev.max.ru) с тем же набором функций. Он запускается вместе с
+приложением (`run.py`) и вместе с telegram-ботом (`run_bots.py`).
+
+1. Задать значение переменным окружения (.env).
+
+    ```dotenv
+    MAX_BOT_TOKEN=  # Токен аутентификации Max-бота
+    MAX_BOT_WEBHOOK_MODE=False  # Запустить Max-бота в режиме webhook(True) | polling(False)
+    ```
+
+    > **Note**:
+    > Если `MAX_BOT_TOKEN` не задан, Max-бот не запускается,
+    > telegram-бот и API работают в обычном режиме.
+
+Как получить токен, поднять и протестировать Max-бота локально:
+[src/bot/max/README.md](src/bot/max/README.md).
 
 ### Работа с базой данных
 
@@ -389,6 +431,12 @@ def downgrade():
 poetry shell
 ```
 
+> **Note**:
+> Альтернатива — активировать окружение напрямую: `source .venv/bin/activate`, а если
+> оно создано не в папке проекта, путь подскажет `poetry env info --path`:
+> `source "$(poetry env info --path)/bin/activate"`. В Poetry 2.0 команда `poetry shell`
+> удалена, и остаётся только этот способ.
+
 #### Добавить зависимость
 
 ```shell
@@ -403,34 +451,31 @@ poetry add <package_name>
 #### Запустить скрипт без активации виртуального окружения
 
 ```shell
-poetry run <script_name>.py
+poetry run python <script_name>.py
 ```
 
-### Использование Ngrok
+### Использование Cloudflare Tunnel
 
-Этот раздел будет полезен, если у вас нет доменного имени с
-установленным SSL-сертификатом.
-
-Ngrok — это инструмент, который позволяет создавать временный
+Cloudflare Tunnel — это инструмент, который позволяет создавать временный
 общедоступный адрес (туннель) для вашего локального сервера,
 находящимся за NAT или брандмауэром.
 
-Подробнее: https://ngrok.com/
+Подробнее: https://developers.cloudflare.com/tunnel
 
 1. Установить, следуя официальным инструкциям.
 
-    https://ngrok.com/download
+   https://developers.cloudflare.com/tunnel/downloads/
 
 2. Запустить туннель.
 
     ```shell
-    ngrok http 80
+    cloudflared tunnel --url http://localhost:80
     ```
 
 3. Задать значение переменной окружения (.env).
 
     ```dotenv
-    APPLICATION_URL=https://1234-56-78-9.eu.ngrok.io  # Пример
+    APPLICATION_URL=https://random-words-here.trycloudflare.com  # Пример
     ```
 
 ### Переменные окружения (.env)
@@ -439,6 +484,9 @@ Ngrok — это инструмент, который позволяет соз�
 # Переменные приложения
 BOT_TOKEN=  # Токен аутентификации бота
 BOT_WEBHOOK_MODE=False  # Запустить бота в режиме webhook(True) | polling(False)
+MAX_BOT_TOKEN=  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)
+MAX_BOT_WEBHOOK_MODE=False  # Запустить Max-бота в режиме webhook(True) | polling(False)
+MAX_BOT_USE_CERTIFICATE=False  # Использовать сертификат Минцифры для соединения с API Max
 APPLICATION_URL=  # Домен, на котором развернуто приложение
 HEALTHCHECK_API_URL=http://127.0.0.1:8080/docs  # Эндпоинт для проверки API
 DEBUG=False  # Включение(True) | Выключение(False) режима отладки

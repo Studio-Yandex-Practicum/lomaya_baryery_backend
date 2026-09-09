@@ -22,7 +22,16 @@ class Settings(BaseSettings):
     # Настройки telegram-бота
     BOT_TOKEN: str  # Токен аутентификации бота
     BOT_WEBHOOK_MODE: bool = False  # запустить бота в режиме webhook(true)|polling(false)
-    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "bot_persistence_file")
+    BOT_PERSISTENCE_FILE: str = str(BASE_DIR / "src" / "bot" / "telegram" / "bot_persistence_file")
+
+    # Настройки бота дополнительного мессенджера Max
+    MAX_BOT_TOKEN: str = ""  # Токен аутентификации Max-бота (пустая строка - Max-бот выключен)
+    MAX_BOT_WEBHOOK_MODE: bool = False  # запустить Max-бота в режиме webhook(true)|polling(false)
+    MAX_BOT_USE_CERTIFICATE: bool = False  # использовать сертификат Минцифры для соединения с API Max
+    # Секрет в пути вебхука Max, задается администратором при webhook-режиме. Отдельный от
+    # SECRET_KEY: путь попадает в логи веб-сервера и в реестр подписок Max, поэтому ключ
+    # подписи jwt-токенов туда попадать не должен
+    MAX_WEBHOOK_SECRET: str = ""
 
     # Настройки взаимодействия с БД
     POSTGRES_DB: str  # Имя базы данных
@@ -154,6 +163,14 @@ class Settings(BaseSettings):
     def telegram_webhook_url(self) -> str:
         """Получить url-ссылку на эндпоинт для работы telegram в режиме webhook."""
         return urljoin(self.api_url, "telegram/webhook")
+
+    @property
+    def max_webhook_url(self) -> str:
+        """Получить url-ссылку на эндпоинт для работы Max-бота в режиме webhook.
+
+        Секрет в пути заменяет секретный заголовок, которого нет в API Max.
+        """
+        return urljoin(self.api_url, f"max/webhook/{self.MAX_WEBHOOK_SECRET}")
 
     class Config:
         env_file = ENV_FILE

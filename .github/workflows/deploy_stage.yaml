@@ -91,6 +91,10 @@ jobs:
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env
             echo BOT_WEBHOOK_MODE=${{ secrets.BOT_WEBHOOK_MODE }} >> .env
+            echo MAX_BOT_TOKEN=${{ secrets.MAX_BOT_TOKEN }} >> .env
+            echo MAX_BOT_WEBHOOK_MODE=${{ secrets.MAX_BOT_WEBHOOK_MODE || 'False' }} >> .env
+            echo MAX_BOT_USE_CERTIFICATE=${{ secrets.MAX_BOT_USE_CERTIFICATE || 'False' }} >> .env
+            echo MAX_WEBHOOK_SECRET=${{ secrets.MAX_WEBHOOK_SECRET }} >> .env
             echo APPLICATION_URL=${{ secrets.APPLICATION_URL }} >> .env
             echo HEALTHCHECK_API_URL=${{ secrets.HEALTHCHECK_API_URL }} >> .env
             echo MAIL_LOGIN=${{ secrets.MAIL_LOGIN }} >> .env

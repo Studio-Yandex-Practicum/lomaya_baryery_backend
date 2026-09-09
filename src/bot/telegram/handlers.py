@@ -14,8 +14,8 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from src.api.request_models.user import UserCreateRequest, UserWebhookTelegram
-from src.bot.api_services import get_user_service_callback
-from src.bot.ui import (
+from src.bot.telegram.api_services import get_user_service_callback
+from src.bot.telegram.ui import (
     CONFIRM_SKIP_TASK,
     CONFIRM_SKIP_TASK_KEYBOARD,
     LOMBARIERS_BALANCE,
@@ -52,8 +52,8 @@ async def start(update: Update, context: CallbackContext) -> None:
     user_service = await get_user_service_callback(session)
     user = await user_service.get_user_by_telegram_id(update.effective_chat.id)
     context.user_data["user"] = user
-    if user and user.telegram_blocked:
-        await user_service.unset_telegram_blocked(user)
+    if user and user.is_blocked:
+        await user_service.unblock_user(user)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
     if user:
         try:
@@ -117,6 +117,9 @@ async def update_user_data(
 async def web_app_data(update: Update, context: CallbackContext) -> None:
     """Получение данных из формы регистрации. Создание (обновление) объекта User и Request."""
     user_data = json.loads(update.effective_message.web_app_data.data)
+    # идентификаторы мессенджеров задает сервер, из формы они не принимаются
+    user_data.pop("telegram_id", None)
+    user_data.pop("max_user_id", None)
     try:
         user_scheme = UserCreateRequest(**user_data)
     except ValidationError as e:
@@ -170,9 +173,10 @@ async def photo_handler(update: Update, context: CallbackContext) -> None:
     """Обработка полученного фото."""
     session_gen = get_session()
     session = await session_gen.asend(None)
+    shift_repository = ShiftRepository(session)
     user_service = UserService(UserRepository(session), RequestRepository(session))
-    report_service = ReportService(ReportRepository(session), ShiftRepository(session), MemberRepository(session))
-    shift_service = ShiftService(ShiftRepository(session))
+    report_service = ReportService(ReportRepository(session), shift_repository, MemberRepository(session))
+    shift_service = ShiftService(shift_repository)
 
     text = "Твой отчет отправлен на модерацию, после проверки тебе придет уведомление."
 
@@ -231,12 +235,11 @@ async def skip_report(chat_id: int) -> None:
     """Метод для пропуска задания."""
     session_gen = get_session()
     session = await session_gen.asend(None)
-    shift_service = ShiftService(ShiftRepository(session))
+    shift_repository = ShiftRepository(session)
+    shift_service = ShiftService(shift_repository)
     user_service = UserService(UserRepository(session), RequestRepository(session), shift_service)
     task_service = TaskService(TaskRepository(session))
-    report_service = ReportService(
-        ReportRepository(session), ShiftRepository(session), MemberRepository(session), task_service
-    )
+    report_service = ReportService(ReportRepository(session), shift_repository, MemberRepository(session), task_service)
     user = await user_service.get_user_by_telegram_id(chat_id)
     await report_service.skip_current_report(user.id)
 
@@ -247,7 +250,7 @@ async def incorrect_report_type_handler(update: Update, context: CallbackContext
 
 
 async def chat_member_handler(update: Update, context: CallbackContext) -> None:
-    """Меняет значение поля telegram_blocked при блокировке/разблокировке бота."""
+    """Отмечает в базе блокировку/разблокировку бота пользователем."""
     session_gen = get_session()
     session = await session_gen.asend(None)
     user_service = UserService(UserRepository(session))
@@ -258,10 +261,10 @@ async def chat_member_handler(update: Update, context: CallbackContext) -> None:
         update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.BANNED
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.MEMBER
     ):
-        return await user_service.set_telegram_blocked(user)
+        return await user_service.block_user(user)
     if (
         update.my_chat_member.new_chat_member.status == update.my_chat_member.new_chat_member.MEMBER
         and update.my_chat_member.old_chat_member.status == update.my_chat_member.old_chat_member.BANNED
     ):
-        return await user_service.unset_telegram_blocked(user)
+        return await user_service.unblock_user(user)
     return None

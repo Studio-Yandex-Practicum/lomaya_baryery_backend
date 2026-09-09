@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import Depends
 from telegram.ext import Application
 
-from src.bot import services
+from src.bot import bot_service
 from src.core.db.models import Member, Shift
 from src.core.db.repository import MemberRepository, ShiftRepository
 from src.core.settings import settings
@@ -18,7 +18,7 @@ class MemberService:
     ) -> None:
         self.__member_repository = member_repository
         self.__shift_repository = shift_repository
-        self.__telegram_bot = services.BotService
+        self.__telegram_bot = bot_service.BotService
 
     async def exclude_lagging_members(self, shift: Shift, bot: Application) -> None:
         """Исключает участников из стартовавшей смены.
@@ -43,3 +43,7 @@ class MemberService:
     async def get_number_of_lombariers_by_telegram_id(self, telegram_id) -> int:
         """Получение баланса ломбарьеров в текущей смене по telegram_id."""
         return await self.__member_repository.get_number_of_lombariers_by_telegram_id(telegram_id)
+
+    async def get_number_of_lombariers_by_max_user_id(self, max_user_id) -> int:
+        """Получение баланса ломбарьеров в текущей смене по max_user_id."""
+        return await self.__member_repository.get_number_of_lombariers_by_max_user_id(max_user_id)

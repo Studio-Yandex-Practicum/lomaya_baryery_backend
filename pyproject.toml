@@ -17,6 +17,7 @@ phonenumberslite = "^8.13.7"
 fastapi-restful = "^0.4.3"
 aiohttp = ">=3.8.3"
 aiolimiter = "1.0.0"
+aiomax = "^2.12"
 pytz = "^2022.6"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
